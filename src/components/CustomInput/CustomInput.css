@@ -1,0 +1,116 @@
+.custom-input-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.custom-input-field {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.custom-input-field .MuiOutlinedInput-root {
+  border-radius: 12px;
+  background-color: #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  font-size: 14px;
+  height: 48px;
+}
+
+.custom-input-field .MuiOutlinedInput-input {
+  font-size: 14px;
+  padding: 12px 14px;
+  height: auto;
+}
+
+.custom-input-field .MuiOutlinedInput-root fieldset,
+.custom-input-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border: none !important;
+  border-width: 0 !important;
+}
+
+.custom-input-field .MuiOutlinedInput-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.custom-input-field .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 4px 16px rgba(92, 107, 192, 0.25);
+}
+
+.custom-input-icon {
+  color: var(--primary-color, #1a2c49);
+  font-size: 20px;
+}
+
+.custom-input-field .MuiInputAdornment-positionEnd .MuiIconButton-root {
+  color: var(--primary-color, #1a2c49) !important;
+  padding: 8px;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  margin-right: 12px;
+}
+
+.custom-input-field .MuiInputAdornment-positionEnd .MuiIconButton-root:hover,
+.custom-input-field .MuiInputAdornment-positionEnd .MuiIconButton-root:focus {
+  background-color: transparent !important;
+  color: var(--primary-color, #1a2c49) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Hide browser's default password reveal button - Chrome/Edge/Safari */
+.custom-input-field input[type="password"]::-webkit-credentials-auto-fill-button,
+.custom-input-field input[type="password"]::-webkit-strong-password-auto-fill-button,
+.custom-input-field .MuiOutlinedInput-input[type="password"]::-webkit-credentials-auto-fill-button,
+.custom-input-field .MuiOutlinedInput-input[type="password"]::-webkit-strong-password-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+/* Hide Firefox password reveal button */
+.custom-input-field input[type="password"]::-moz-credentials-auto-fill-button,
+.custom-input-field .MuiOutlinedInput-input[type="password"]::-moz-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Internet Explorer specific - hide password reveal button */
+.custom-input-field input[type="password"]::-ms-reveal,
+.custom-input-field .MuiOutlinedInput-input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-reveal {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide any password reveal buttons in the input container */
+.custom-input-field .MuiOutlinedInput-root input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

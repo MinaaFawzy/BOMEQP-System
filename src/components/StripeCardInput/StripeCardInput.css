@@ -1,0 +1,22 @@
+/* Stripe Card Input Styles */
+.StripeElement {
+  background-color: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: border-color 0.2s;
+}
+
+.StripeElement--focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.StripeElement--invalid {
+  border-color: #ef4444;
+}
+
+.StripeElement--complete {
+  border-color: #10b981;
+}
+

@@ -1,0 +1,43 @@
+/* Payment Transactions Screen Styles */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition-property: transform, background-color, color, opacity, box-shadow, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-fade-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Balance card - removed as balance is no longer displayed */
+/* 
+.wallet-balance-card {
+  height: fit-content;
+  align-self: start;
+}
+*/

@@ -1,0 +1,6 @@
+/* Instructor Authorizations Screen Styles */
+
+/* Table row with dynamic animation delay */
+.table-row-animated {
+  animation-delay: var(--animation-delay, 0s);
+}
