@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar } from 'lucide-react';
+import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import './TraineesScreen.css';
@@ -227,6 +227,17 @@ const TraineesScreen = () => {
         return { ...prev, enrolled_classes: [...enrolledClasses, classId] };
       }
     });
+  };
+
+  const handleRemoveImage = (type) => {
+    if (type === 'id_image') {
+      setFormData(prev => ({ ...prev, id_image: null }));
+      setIdImagePreview(null);
+    } else if (type === 'card_image') {
+      setFormData(prev => ({ ...prev, card_image: null }));
+      setCardImagePreview(null);
+    }
+    setErrors({});
   };
 
   const handleSubmit = async (e) => {
@@ -756,65 +767,161 @@ const TraineesScreen = () => {
 
           {/* ID Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               ID Image {!selectedTrainee && <span className="text-red-500">*</span>}
             </label>
-            <div className="flex items-center gap-4">
-              <label className="flex-1 cursor-pointer">
+            
+            {idImagePreview ? (
+              <div className="relative">
+                <div className="relative group border-2 border-dashed border-primary-300 rounded-xl overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100/50">
+                  <img 
+                    src={idImagePreview} 
+                    alt="ID Preview" 
+                    className="w-full h-64 object-contain bg-white" 
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex gap-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,application/pdf"
+                          onChange={(e) => handleFileChange(e, 'id_image')}
+                          className="hidden"
+                        />
+                        <div className="px-4 py-2 bg-white/90 backdrop-blur-sm text-primary-700 rounded-lg hover:bg-white transition-colors flex items-center gap-2 shadow-lg">
+                          <Upload size={18} />
+                          <span className="text-sm font-medium">Change</span>
+                        </div>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage('id_image')}
+                        className="px-4 py-2 bg-red-500/90 backdrop-blur-sm text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 shadow-lg"
+                      >
+                        <X size={18} />
+                        <span className="text-sm font-medium">Remove</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {formData.id_image instanceof File && (
+                  <p className="mt-2 text-xs text-gray-600 flex items-center gap-1">
+                    <FileImage size={14} />
+                    {formData.id_image.name}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <label className="cursor-pointer block">
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'id_image')}
                   className="hidden"
                 />
-                <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                  <FileImage size={20} className="mr-2 text-gray-600" />
-                  <span className="text-sm text-gray-700">
-                    {formData.id_image ? formData.id_image.name : selectedTrainee ? 'Change ID Image' : 'Choose ID Image'}
-                  </span>
+                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 bg-gradient-to-br from-gray-50 to-gray-100/50 hover:border-primary-400 hover:from-primary-50 hover:to-primary-100/50 transition-all duration-300 group">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                      <Upload className="text-white" size={28} />
+                    </div>
+                    <p className="text-base font-semibold text-gray-700 mb-1 group-hover:text-primary-700 transition-colors">
+                      Upload ID Image
+                    </p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Click to browse or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      JPEG, JPG, PNG, PDF (Max 10MB)
+                    </p>
+                  </div>
                 </div>
               </label>
-              {idImagePreview && (
-                <div className="w-20 h-20 border border-gray-300 rounded-lg overflow-hidden">
-                  <img src={idImagePreview} alt="ID Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-gray-500">Accepted: JPEG, JPG, PNG, PDF (Max 10MB)</p>
+            )}
             {errors.id_image && (
-              <p className="mt-1 text-sm text-red-600">{Array.isArray(errors.id_image) ? errors.id_image[0] : errors.id_image}</p>
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <XCircle size={16} />
+                {Array.isArray(errors.id_image) ? errors.id_image[0] : errors.id_image}
+              </p>
             )}
           </div>
 
           {/* Card Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Card Image {!selectedTrainee && <span className="text-red-500">*</span>}
             </label>
-            <div className="flex items-center gap-4">
-              <label className="flex-1 cursor-pointer">
+            
+            {cardImagePreview ? (
+              <div className="relative">
+                <div className="relative group border-2 border-dashed border-primary-300 rounded-xl overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100/50">
+                  <img 
+                    src={cardImagePreview} 
+                    alt="Card Preview" 
+                    className="w-full h-64 object-contain bg-white" 
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex gap-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,application/pdf"
+                          onChange={(e) => handleFileChange(e, 'card_image')}
+                          className="hidden"
+                        />
+                        <div className="px-4 py-2 bg-white/90 backdrop-blur-sm text-primary-700 rounded-lg hover:bg-white transition-colors flex items-center gap-2 shadow-lg">
+                          <Upload size={18} />
+                          <span className="text-sm font-medium">Change</span>
+                        </div>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage('card_image')}
+                        className="px-4 py-2 bg-red-500/90 backdrop-blur-sm text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 shadow-lg"
+                      >
+                        <X size={18} />
+                        <span className="text-sm font-medium">Remove</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {formData.card_image instanceof File && (
+                  <p className="mt-2 text-xs text-gray-600 flex items-center gap-1">
+                    <FileImage size={14} />
+                    {formData.card_image.name}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <label className="cursor-pointer block">
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'card_image')}
                   className="hidden"
                 />
-                <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                  <FileImage size={20} className="mr-2 text-gray-600" />
-                  <span className="text-sm text-gray-700">
-                    {formData.card_image ? formData.card_image.name : selectedTrainee ? 'Change Card Image' : 'Choose Card Image'}
-                  </span>
+                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 bg-gradient-to-br from-gray-50 to-gray-100/50 hover:border-primary-400 hover:from-primary-50 hover:to-primary-100/50 transition-all duration-300 group">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                      <Upload className="text-white" size={28} />
+                    </div>
+                    <p className="text-base font-semibold text-gray-700 mb-1 group-hover:text-primary-700 transition-colors">
+                      Upload Card Image
+                    </p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Click to browse or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      JPEG, JPG, PNG, PDF (Max 10MB)
+                    </p>
+                  </div>
                 </div>
               </label>
-              {cardImagePreview && (
-                <div className="w-20 h-20 border border-gray-300 rounded-lg overflow-hidden">
-                  <img src={cardImagePreview} alt="Card Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-gray-500">Accepted: JPEG, JPG, PNG, PDF (Max 10MB)</p>
+            )}
             {errors.card_image && (
-              <p className="mt-1 text-sm text-red-600">{Array.isArray(errors.card_image) ? errors.card_image[0] : errors.card_image}</p>
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <XCircle size={16} />
+                {Array.isArray(errors.card_image) ? errors.card_image[0] : errors.card_image}
+              </p>
             )}
           </div>
 

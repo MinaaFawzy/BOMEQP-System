@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { HeaderProvider } from './context/HeaderContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Layout from './components/Layout/Layout';
 import AuthScreen from './screens/Auth/AuthScreen/AuthScreen';
@@ -12,12 +13,14 @@ import DashboardScreen from './screens/Dashboard/DashboardScreen/DashboardScreen
 
 // Group Admin screens
 import ACCApplicationsScreen from './screens/GroupAdmin/ACCApplicationsScreen/ACCApplicationsScreen';
+import TrainingCenterApplicationsScreen from './screens/GroupAdmin/TrainingCenterApplicationsScreen/TrainingCenterApplicationsScreen';
 import AllACCsScreen from './screens/GroupAdmin/AllACCsScreen/AllACCsScreen';
 import AllTrainingCentersScreen from './screens/GroupAdmin/AllTrainingCentersScreen/AllTrainingCentersScreen';
 import AllInstructorsScreen from './screens/GroupAdmin/AllInstructorsScreen/AllInstructorsScreen';
 import AllCoursesScreen from './screens/GroupAdmin/AllCoursesScreen/AllCoursesScreen';
 import CategoriesScreen from './screens/GroupAdmin/CategoriesScreen/CategoriesScreen';
 import FinancialScreen from './screens/GroupAdmin/FinancialScreen/FinancialScreen';
+import GroupAdminPaymentTransactionsScreen from './screens/GroupAdmin/PaymentTransactionsScreen/PaymentTransactionsScreen';
 import ReportsScreen from './screens/GroupAdmin/ReportsScreen/ReportsScreen';
 import InstructorAuthorizationsScreen from './screens/GroupAdmin/InstructorAuthorizationsScreen/InstructorAuthorizationsScreen';
 import StripeSettingsScreen from './screens/GroupAdmin/StripeSettingsScreen/StripeSettingsScreen';
@@ -32,6 +35,8 @@ import CertificatesScreen from './screens/ACCAdmin/CertificatesScreen/Certificat
 import MaterialsScreen from './screens/ACCAdmin/MaterialsScreen/MaterialsScreen';
 import DiscountCodesScreen from './screens/ACCAdmin/DiscountCodesScreen/DiscountCodesScreen';
 import ACCCategoriesScreen from './screens/ACCAdmin/CategoriesScreen/CategoriesScreen';
+import ACCPaymentTransactionsScreen from './screens/ACCAdmin/PaymentTransactionsScreen/PaymentTransactionsScreen';
+import ACCClassesScreen from './screens/ACCAdmin/ClassesScreen/ClassesScreen';
 
 // Training Center screens
 import TrainingCenterDashboardScreen from './screens/TrainingCenter/DashboardScreen/DashboardScreen';
@@ -44,12 +49,14 @@ import TrainingCenterCertificatesScreen from './screens/TrainingCenter/Certifica
 import WalletScreen from './screens/TrainingCenter/WalletScreen/WalletScreen';
 import MarketplaceScreen from './screens/TrainingCenter/MarketplaceScreen/MarketplaceScreen';
 import TrainingCenterInstructorAuthorizationsScreen from './screens/TrainingCenter/InstructorAuthorizationsScreen/InstructorAuthorizationsScreen';
+import TrainingCenterPaymentTransactionsScreen from './screens/TrainingCenter/PaymentTransactionsScreen/PaymentTransactionsScreen';
 
 // Instructor screens
 import InstructorDashboardScreen from './screens/Instructor/DashboardScreen/DashboardScreen';
 import InstructorClassesScreen from './screens/Instructor/ClassesScreen/ClassesScreen';
 import InstructorMaterialsScreen from './screens/Instructor/MaterialsScreen/MaterialsScreen';
 import EarningsScreen from './screens/Instructor/EarningsScreen/EarningsScreen';
+import InstructorProfileScreen from './screens/Instructor/ProfileScreen/InstructorProfileScreen';
 
 // Profile screen
 import ProfileScreen from './screens/Profile/ProfileScreen/ProfileScreen';
@@ -58,7 +65,8 @@ function App() {
   return (
     <AuthProvider>
       <HeaderProvider>
-        <BrowserRouter>
+        <NotificationsProvider>
+          <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<AuthScreen />} />
@@ -109,12 +117,14 @@ function App() {
                 <Layout>
                   <Routes>
                     <Route path="accs" element={<ACCApplicationsScreen />} />
+                    <Route path="training-center-applications" element={<TrainingCenterApplicationsScreen />} />
                     <Route path="all-accs" element={<AllACCsScreen />} />
                     <Route path="all-training-centers" element={<AllTrainingCentersScreen />} />
                     <Route path="all-instructors" element={<AllInstructorsScreen />} />
                     <Route path="all-courses" element={<AllCoursesScreen />} />
                     <Route path="categories" element={<CategoriesScreen />} />
                     <Route path="financial" element={<FinancialScreen />} />
+                    <Route path="payment-transactions" element={<GroupAdminPaymentTransactionsScreen />} />
                     <Route path="reports" element={<ReportsScreen />} />
                     <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
                     <Route path="stripe-settings" element={<StripeSettingsScreen />} />
@@ -140,6 +150,8 @@ function App() {
                     <Route path="materials" element={<MaterialsScreen />} />
                     <Route path="discount-codes" element={<DiscountCodesScreen />} />
                     <Route path="categories" element={<ACCCategoriesScreen />} />
+                    <Route path="classes" element={<ACCClassesScreen />} />
+                    <Route path="payment-transactions" element={<ACCPaymentTransactionsScreen />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -163,6 +175,7 @@ function App() {
                     <Route path="wallet" element={<WalletScreen />} />
                     <Route path="marketplace" element={<MarketplaceScreen />} />
                     <Route path="instructor-authorizations" element={<TrainingCenterInstructorAuthorizationsScreen />} />
+                    <Route path="payment-transactions" element={<TrainingCenterPaymentTransactionsScreen />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -180,6 +193,7 @@ function App() {
                     <Route path="classes" element={<InstructorClassesScreen />} />
                     <Route path="materials" element={<InstructorMaterialsScreen />} />
                     <Route path="earnings" element={<EarningsScreen />} />
+                    <Route path="profile" element={<InstructorProfileScreen />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -202,6 +216,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
+        </NotificationsProvider>
       </HeaderProvider>
     </AuthProvider>
   );

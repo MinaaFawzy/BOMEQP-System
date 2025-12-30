@@ -10,6 +10,16 @@ const getAuthToken = () => {
          localStorage.getItem('token');
 };
 
+// Request deduplication: track pending requests to prevent duplicate calls
+const pendingRequests = new Map();
+
+// Generate a unique key for a request
+const getRequestKey = (method, url, params) => {
+  const methodUpper = method?.toUpperCase() || 'GET';
+  const paramsStr = params ? JSON.stringify(params) : '';
+  return `${methodUpper}:${url}:${paramsStr}`;
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -19,13 +29,54 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Store original methods for deduplication
+const originalGet = api.get.bind(api);
+const originalPost = api.post.bind(api);
+const originalPut = api.put.bind(api);
+const originalDelete = api.delete.bind(api);
+
+// Wrap GET requests with deduplication
+api.get = function(url, config = {}) {
+  const requestKey = getRequestKey('GET', url, config.params);
+  
+  // If there's a pending request with the same key, return its promise
+  if (pendingRequests.has(requestKey)) {
+    console.log('🔄 Deduplicating request:', requestKey);
+    return pendingRequests.get(requestKey);
+  }
+  
+  // Create the request promise
+  const requestPromise = originalGet(url, config)
+    .then((response) => {
+      pendingRequests.delete(requestKey);
+      return response;
+    })
+    .catch((error) => {
+      pendingRequests.delete(requestKey);
+      throw error;
+    });
+  
+  pendingRequests.set(requestKey, requestPromise);
+  return requestPromise;
+};
+
+// Request interceptor to add auth token and log requests
 api.interceptors.request.use(
   (config) => {
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log API request details
+    console.log('📤 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: `${config.baseURL}${config.url}`,
+      headers: config.headers,
+      data: config.data,
+      params: config.params,
+    });
+    
     return config;
   },
   (error) => {
@@ -35,8 +86,26 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Log API response details
+    console.log('📥 API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      url: response.config?.url,
+      data: response.data,
+    });
+    return response.data;
+  },
   (error) => {
+    // Log API error details
+    console.error('❌ API Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      data: error.response?.data,
+      message: error.message,
+    });
+    
     if (error.response?.status === 401) {
       // Handle unauthorized - clear token
       // Don't redirect here to avoid page reloads, let the app handle it
@@ -72,6 +141,11 @@ export const adminAPI = {
   getTrainingCenterDetails: (id) => api.get(`/admin/training-centers/${id}`),
   updateTrainingCenter: (id, data) => api.put(`/admin/training-centers/${id}`, data),
   
+  // Training Center Applications
+  getTrainingCenterApplications: (params) => api.get('/admin/training-centers/applications', { params }),
+  approveTrainingCenterApplication: (id) => api.put(`/admin/training-centers/applications/${id}/approve`),
+  rejectTrainingCenterApplication: (id, data) => api.put(`/admin/training-centers/applications/${id}/reject`, data),
+  
   // Instructors
   listInstructors: (params) => api.get('/admin/instructors', { params }),
   getInstructorDetails: (id) => api.get(`/admin/instructors/${id}`),
@@ -97,9 +171,13 @@ export const adminAPI = {
   updateClass: (id, data) => api.put(`/admin/classes/${id}`, data),
   deleteClass: (id) => api.delete(`/admin/classes/${id}`),
   
+  // Dashboard
+  getDashboard: () => api.get('/admin/dashboard'),
+  
   // Financial & Reporting
   getFinancialDashboard: () => api.get('/admin/financial/dashboard'),
   getFinancialTransactions: (params) => api.get('/admin/financial/transactions', { params }),
+  getPaymentTransactions: (params) => api.get('/admin/financial/transactions', { params }),
   getSettlements: (params) => api.get('/admin/financial/settlements', { params }),
   requestPayment: (id) => api.post(`/admin/financial/settlements/${id}/request-payment`),
   getRevenueReport: (params) => api.get('/admin/reports/revenue', { params }),
@@ -174,9 +252,11 @@ export const accAPI = {
   listCertificates: (params) => api.get('/acc/certificates', { params }),
   createCertificate: (data) => api.post('/acc/certificates', data),
   listClasses: (params) => api.get('/acc/classes', { params }),
+  getClassDetails: (id) => api.get(`/acc/classes/${id}`),
   
   // Financial
   getFinancialTransactions: (params) => api.get('/acc/financial/transactions', { params }),
+  getPaymentTransactions: (params) => api.get('/acc/financial/transactions', { params }),
   getSettlements: (params) => api.get('/acc/financial/settlements', { params }),
   
   // Categories
@@ -241,14 +321,59 @@ export const trainingCenterAPI = {
         'Accept': 'application/json',
         // Don't set Content-Type - let browser set it with boundary for multipart/form-data
       };
-      return axios.put(`${API_BASE_URL}/training-center/instructors/${id}`, data, {
+      
+      // Log FormData contents before sending
+      console.log('📦 FormData contents before sending:');
+      const formDataEntries = [];
+      for (let pair of data.entries()) {
+        if (pair[1] instanceof File) {
+          formDataEntries.push(`${pair[0]}: [File] ${pair[1].name} (${pair[1].size} bytes, type: ${pair[1].type})`);
+        } else {
+          formDataEntries.push(`${pair[0]}: ${pair[1]} (type: ${typeof pair[1]})`);
+        }
+      }
+      console.log(formDataEntries);
+      
+      // Log request manually since it bypasses interceptor
+      console.log('📤 API Request:', {
+        method: 'POST (with _method=PUT)',
+        url: `${API_BASE_URL}/training-center/instructors/${id}?_method=PUT`,
+        headers: { ...headers, 'Content-Type': 'multipart/form-data (auto-set by browser)' },
+        data: 'FormData (see contents above)',
+      });
+      
+      // Use POST with _method=PUT for FormData (Laravel style)
+      return axios.post(`${API_BASE_URL}/training-center/instructors/${id}?_method=PUT`, data, {
         headers,
-      }).then(response => response.data);
+      })
+      .then(response => {
+        console.log('📥 API Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: `/training-center/instructors/${id}`,
+          data: response.data,
+        });
+        return response.data;
+      })
+      .catch(error => {
+        console.error('❌ API Error:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: `/training-center/instructors/${id}`,
+          data: error.response?.data,
+          message: error.message,
+        });
+        throw error;
+      });
     }
     return api.put(`/training-center/instructors/${id}`, data);
   },
   deleteInstructor: (id) => api.delete(`/training-center/instructors/${id}`),
   requestInstructorAuthorization: (instructorId, data) => api.post(`/training-center/instructors/${instructorId}/request-authorization`, data),
+  
+  // ACC Sub-Categories and Courses
+  getSubCategoriesForACC: (accId) => api.get(`/training-center/accs/${accId}/sub-categories`),
+  getCoursesForACC: (accId, params) => api.get(`/training-center/accs/${accId}/courses`, { params }),
   
   // Instructor Authorizations
   getInstructorAuthorizations: (params) => api.get('/training-center/instructors/authorizations', { params }),
@@ -265,6 +390,7 @@ export const trainingCenterAPI = {
   addFunds: (data) => api.post('/training-center/wallet/add-funds', data),
   getWalletBalance: () => api.get('/training-center/wallet/balance'),
   getWalletTransactions: (params) => api.get('/training-center/wallet/transactions', { params }),
+  getPaymentTransactions: (params) => api.get('/training-center/financial/transactions', { params }),
   
   // Classes
   createClass: (data) => api.post('/training-center/classes', data),
@@ -318,11 +444,76 @@ export const trainingCenterAPI = {
 // Instructor APIs
 export const instructorAPI = {
   getDashboard: () => api.get('/instructor/dashboard'),
+  getProfile: () => api.get('/instructor/profile'),
+  updateProfile: (data) => {
+    if (data instanceof FormData) {
+      const token = getAuthToken();
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      };
+      
+      // Log FormData contents before sending
+      console.log('📦 FormData contents before sending:');
+      const formDataEntries = [];
+      for (let pair of data.entries()) {
+        if (pair[1] instanceof File) {
+          formDataEntries.push(`${pair[0]}: [File] ${pair[1].name} (${pair[1].size} bytes, type: ${pair[1].type})`);
+        } else {
+          formDataEntries.push(`${pair[0]}: ${pair[1]} (type: ${typeof pair[1]})`);
+        }
+      }
+      console.log(formDataEntries);
+      
+      // Log request manually since it bypasses interceptor
+      console.log('📤 API Request:', {
+        method: 'POST (with _method=PUT)',
+        url: `${API_BASE_URL}/instructor/profile?_method=PUT`,
+        headers: { ...headers, 'Content-Type': 'multipart/form-data (auto-set by browser)' },
+        data: 'FormData (see contents above)',
+      });
+      
+      // Use POST with _method=PUT for FormData (Laravel style)
+      return axios.post(`${API_BASE_URL}/instructor/profile?_method=PUT`, data, {
+        headers,
+      })
+      .then(response => {
+        console.log('📥 API Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: '/instructor/profile',
+          data: response.data,
+        });
+        return response.data;
+      })
+      .catch(error => {
+        console.error('❌ API Error:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: '/instructor/profile',
+          data: error.response?.data,
+          message: error.message,
+        });
+        throw error;
+      });
+    }
+    // Use the axios instance with interceptors for JSON data
+    return api.put('/instructor/profile', data);
+  },
   listClasses: (params) => api.get('/instructor/classes', { params }),
   getClassDetails: (id) => api.get(`/instructor/classes/${id}`),
   markClassComplete: (id, data) => api.put(`/instructor/classes/${id}/mark-complete`, data),
+  getTrainingCenters: () => api.get('/instructor/training-centers'),
+  getACCs: () => api.get('/instructor/accs'),
   getAvailableMaterials: (params) => api.get('/instructor/materials', { params }),
   getEarnings: (params) => api.get('/instructor/earnings', { params }),
+};
+
+// Public APIs (No authentication required)
+export const publicAPI = {
+  getCountries: () => api.get('/countries'),
+  getCities: (countryCode) => api.get('/cities', { params: countryCode ? { country: countryCode } : {} }),
+  verifyCertificate: (code) => api.get(`/certificates/verify/${code}`),
 };
 
 // Stripe APIs (All authenticated users)
@@ -342,11 +533,6 @@ export const authAPI = {
   changePassword: (data) => api.put('/auth/change-password', data),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),
-};
-
-// Public APIs
-export const publicAPI = {
-  verifyCertificate: (code) => api.get(`/certificates/verify/${code}`),
 };
 
 // Notifications APIs (All authenticated users)

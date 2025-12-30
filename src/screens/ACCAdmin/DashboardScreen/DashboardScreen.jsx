@@ -54,7 +54,7 @@ const ACCDashboardScreen = () => {
               <div>
                 <p className="text-xs font-medium text-yellow-700 mb-1">Pending Requests</p>
                 <p className="text-2xl font-bold text-yellow-900 mb-1">
-                  {(dashboardData.pending_requests?.training_centers || 0) + (dashboardData.pending_requests?.instructors || 0)}
+                  {dashboardData.pending_requests || 0}
                 </p>
                 <p className="text-xs text-yellow-600">Click to view details</p>
               </div>
@@ -129,13 +129,13 @@ const ACCDashboardScreen = () => {
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-600 mb-1">Monthly Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${dashboardData.revenue.monthly || '0.00'}
+                    ${(dashboardData.revenue?.monthly || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-600 mb-1">Total Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${dashboardData.revenue.total || '0.00'}
+                    ${(dashboardData.revenue?.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

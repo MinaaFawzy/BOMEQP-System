@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { instructorAPI } from '../../../services/api';
 import { GraduationCap, CheckCircle, Eye, MapPin, Calendar, Users } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
@@ -8,6 +9,9 @@ import './ClassesScreen.css';
 import DataTable from '../../../components/DataTable/DataTable';
 
 const InstructorClassesScreen = () => {
+  const [searchParams] = useSearchParams();
+  const statusParam = searchParams.get('status');
+  
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -23,10 +27,26 @@ const InstructorClassesScreen = () => {
     completion_rate_percentage: '',
     notes: '',
   });
+  
+  // Determine initial filter based on URL parameter
+  const getInitialFilter = () => {
+    if (!statusParam) return 'all';
+    if (statusParam === 'scheduled') return 'scheduled';
+    if (statusParam === 'completed') return 'completed';
+    return 'all';
+  };
+  
+  const [selectedFilter, setSelectedFilter] = useState(() => getInitialFilter());
 
   useEffect(() => {
     loadClasses();
   }, [pagination.currentPage, pagination.perPage]);
+
+  // Update filter when URL parameter changes
+  useEffect(() => {
+    const newFilter = getInitialFilter();
+    setSelectedFilter(newFilter);
+  }, [statusParam]);
 
   const loadClasses = async () => {
     setLoading(true);
@@ -118,6 +138,18 @@ const InstructorClassesScreen = () => {
     }
   };
 
+  const getStatusClass = (status) => {
+    if (status === 'completed') return 'status-completed';
+    if (status === 'scheduled') return 'status-scheduled';
+    return 'status-default';
+  };
+
+  const getModalStatusClass = (status) => {
+    if (status === 'completed') return 'modal-status-completed';
+    if (status === 'scheduled') return 'modal-status-scheduled';
+    return 'modal-status-default';
+  };
+
   const columns = [
     {
       header: 'Course',
@@ -125,9 +157,9 @@ const InstructorClassesScreen = () => {
       render: (value, row) => {
         const courseName = typeof value === 'string' ? value : (value?.name || row.course?.name || 'N/A');
         return (
-          <div className="flex items-center">
-            <GraduationCap className="h-5 w-5 text-gray-400 mr-3" />
-            <span className="font-medium text-gray-900">{courseName}</span>
+          <div className="course-cell">
+            <GraduationCap className="course-icon" />
+            <span className="course-name">{courseName}</span>
           </div>
         );
       },
@@ -153,11 +185,7 @@ const InstructorClassesScreen = () => {
       header: 'Status',
       accessor: 'status',
       render: (value) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          value === 'completed' ? 'bg-green-100 text-green-800' :
-          value === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+        <span className={`status-badge ${getStatusClass(value)}`}>
           {value}
         </span>
       ),
@@ -165,17 +193,19 @@ const InstructorClassesScreen = () => {
     {
       header: 'Enrolled',
       accessor: 'enrolled_count',
-      render: (value, row) => `${value || 0}/${row.max_capacity || 0}`,
+      render: (value, row) => `${value || 0}/${row.course?.max_capacity || 'N/A'}`,
     },
+  ];
+
+  // Filter options for status
+  const filterOptions = [
+    { value: 'all', label: 'All Classes' },
+    { value: 'scheduled', label: 'Scheduled', filterFn: (row) => row.status === 'scheduled' },
+    { value: 'completed', label: 'Completed', filterFn: (row) => row.status === 'completed' },
   ];
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Classes</h1>
-        <p className="text-gray-600 mt-2">View and manage your assigned classes</p>
-      </div>
-
       <DataTable
         columns={columns}
         data={classes}
@@ -183,11 +213,17 @@ const InstructorClassesScreen = () => {
         onRowClick={handleViewDetails}
         isLoading={loading}
         emptyMessage="No classes assigned yet."
+        searchable={true}
+        filterable={true}
+        filterOptions={filterOptions}
+        sortable={true}
+        searchPlaceholder="Search classes..."
+        defaultFilter={selectedFilter}
       />
       
       {/* Pagination */}
       {!loading && pagination.totalItems > 0 && (
-        <div className="mt-4 bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+        <div className="pagination-container">
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -210,83 +246,79 @@ const InstructorClassesScreen = () => {
         size="lg"
       >
         {selectedClass && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <GraduationCap size={16} className="mr-2" />
+          <div className="modal-content">
+            <div className="modal-grid">
+              <div className="modal-field">
+                <p className="modal-field-label">
+                  <GraduationCap size={16} className="modal-field-label-icon" />
                   Course
                 </p>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="modal-field-value">
                   {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Training Center</p>
-                <p className="text-base font-semibold text-gray-900">
+              <div className="modal-field">
+                <p className="modal-field-label">Training Center</p>
+                <p className="modal-field-value">
                   {typeof selectedClass.training_center === 'string' ? selectedClass.training_center : (selectedClass.training_center?.name || 'N/A')}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Calendar size={16} className="mr-2" />
+              <div className="modal-field">
+                <p className="modal-field-label">
+                  <Calendar size={16} className="modal-field-label-icon" />
                   Start Date
                 </p>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="modal-field-value">
                   {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Calendar size={16} className="mr-2" />
+              <div className="modal-field">
+                <p className="modal-field-label">
+                  <Calendar size={16} className="modal-field-label-icon" />
                   End Date
                 </p>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="modal-field-value">
                   {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Users size={16} className="mr-2" />
+              <div className="modal-field">
+                <p className="modal-field-label">
+                  <Users size={16} className="modal-field-label-icon" />
                   Enrollment
                 </p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedClass.enrolled_count || 0} / {selectedClass.max_capacity || 0}
+                <p className="modal-field-value">
+                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedClass.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  selectedClass.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+              <div className="modal-field">
+                <p className="modal-field-label">Status</p>
+                <span className={`modal-status-badge ${getModalStatusClass(selectedClass.status)}`}>
                   {selectedClass.status}
                 </span>
               </div>
             </div>
             {selectedClass.location_details && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <MapPin size={16} className="mr-2" />
+              <div className="location-field">
+                <p className="modal-field-label">
+                  <MapPin size={16} className="modal-field-label-icon" />
                   Location
                 </p>
-                <p className="text-base font-semibold text-gray-900">{selectedClass.location_details}</p>
+                <p className="modal-field-value">{selectedClass.location_details}</p>
               </div>
             )}
             {selectedClass.materials && selectedClass.materials.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Course Materials</h3>
-                <div className="space-y-2">
+              <div className="materials-section">
+                <h3 className="materials-title">Course Materials</h3>
+                <div className="materials-list">
                   {selectedClass.materials.map((material, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-gray-900">{material.name}</p>
+                    <div key={index} className="material-item">
+                      <p className="material-name">{material.name}</p>
                       {material.file_url && (
                         <a
                           href={material.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 text-sm"
+                          className="material-link"
                         >
                           Download
                         </a>
@@ -297,15 +329,15 @@ const InstructorClassesScreen = () => {
               </div>
             )}
             {selectedClass.status !== 'completed' && (
-              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+              <div className="modal-actions">
                 <button
                   onClick={() => {
                     setDetailModalOpen(false);
                     handleMarkComplete(selectedClass);
                   }}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
+                  className="complete-button"
                 >
-                  <CheckCircle size={20} className="mr-2" />
+                  <CheckCircle size={20} className="complete-button-icon" />
                   Mark as Complete
                 </button>
               </div>
@@ -325,7 +357,7 @@ const InstructorClassesScreen = () => {
         title="Mark Class as Complete"
         size="md"
       >
-        <div className="space-y-4">
+        <div className="complete-modal-content">
           <FormInput
             label="Completion Rate (%)"
             name="completion_rate_percentage"
@@ -346,20 +378,20 @@ const InstructorClassesScreen = () => {
             rows={4}
             placeholder="Add any notes about the class completion..."
           />
-          <div className="flex space-x-3 pt-4">
+          <div className="complete-modal-actions">
             <button
               onClick={() => {
                 setCompleteModalOpen(false);
                 setSelectedClass(null);
                 setCompletionData({ completion_rate_percentage: '', notes: '' });
               }}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="cancel-button"
             >
               Cancel
             </button>
             <button
               onClick={confirmComplete}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="confirm-button"
             >
               Mark Complete
             </button>

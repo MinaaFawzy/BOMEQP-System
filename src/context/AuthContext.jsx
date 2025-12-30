@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { setAuthToken, getAuthToken } from '../config/api';
 
@@ -16,14 +16,26 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const isCheckingAuthRef = useRef(false);
+  const hasCheckedAuthRef = useRef(false);
 
   useEffect(() => {
     // Check if user is logged in on mount - only once
-    checkAuth();
+    if (!hasCheckedAuthRef.current) {
+      hasCheckedAuthRef.current = true;
+      checkAuth();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {
+    // Prevent duplicate concurrent auth checks
+    if (isCheckingAuthRef.current) {
+      console.log('🔄 Auth check already in progress, skipping duplicate request');
+      return;
+    }
+
+    isCheckingAuthRef.current = true;
     try {
       setLoading(true);
       const token = getAuthToken();
@@ -72,6 +84,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
+      isCheckingAuthRef.current = false;
     }
   };
 
@@ -253,6 +266,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const response = await authAPI.getProfile();
+      if (response.user) {
+        setUser(response.user);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   const value = useMemo(() => ({
     user,
     loading,
@@ -264,6 +289,7 @@ export const AuthProvider = ({ children }) => {
     checkAuth,
     forgotPassword,
     resetPassword,
+    refreshUser,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [user, loading, isAuthenticated]);
 

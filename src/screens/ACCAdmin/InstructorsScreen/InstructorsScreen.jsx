@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Search, Filter, Mail, ChevronUp, ChevronDown, AlertCircle, Building2 } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Search, Filter, Mail, ChevronUp, ChevronDown, AlertCircle, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
@@ -711,44 +711,326 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
-            {/* Display instructor info - works for both requests and authorized instructors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">First Name</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedRequest.instructor?.first_name || selectedRequest.first_name || 'N/A'}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Last Name</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedRequest.instructor?.last_name || selectedRequest.last_name || 'N/A'}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Email</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedRequest.instructor?.email || selectedRequest.email || selectedRequest._normalizedEmail || 'N/A'}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Phone</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedRequest.instructor?.phone || selectedRequest.phone || 'N/A'}
-                </p>
+            {/* Basic Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Users className="mr-2" size={20} />
+                Basic Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Users size={14} className="mr-1" />
+                    First Name
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {selectedRequest.instructor?.first_name || selectedRequest.first_name || 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Users size={14} className="mr-1" />
+                    Last Name
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {selectedRequest.instructor?.last_name || selectedRequest.last_name || 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Mail size={14} className="mr-1" />
+                    Email
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {selectedRequest.instructor?.email || selectedRequest.email || selectedRequest._normalizedEmail || 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Phone size={14} className="mr-1" />
+                    Phone
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {selectedRequest.instructor?.phone || selectedRequest.phone || 'N/A'}
+                  </p>
+                </div>
+                {(selectedRequest.instructor?.id_number || selectedRequest.id_number) && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">ID Number</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedRequest.instructor?.id_number || selectedRequest.id_number}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest._normalizedTrainingCenter && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Building2 size={14} className="mr-1" />
+                      Training Center
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedRequest._normalizedTrainingCenter}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest._normalizedDate && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Calendar size={14} className="mr-1" />
+                      Request Date
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {new Date(selectedRequest._normalizedDate).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                )}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Clock size={14} className="mr-1" />
+                    Status
+                  </p>
+                  <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
+                    selectedRequest.status === 'approved' || selectedRequest.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+                    selectedRequest.status === 'rejected' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
+                    selectedRequest.status === 'returned' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
+                    'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
+                  }`}>
+                    {selectedRequest.status === 'pending' && <Clock size={12} className="mr-1" />}
+                    {selectedRequest.status === 'returned' && <ArrowLeft size={12} className="mr-1" />}
+                    {selectedRequest.status === 'approved' && <CheckCircle size={12} className="mr-1" />}
+                    {selectedRequest.status ? selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1) : 'N/A'}
+                  </span>
+                </div>
               </div>
             </div>
-            {/* Only show certificates for requests */}
-            {selectedRequest._isRequest && selectedRequest.instructor?.certificates_json && selectedRequest.instructor.certificates_json.length > 0 && (
+
+            {/* Specializations/Languages */}
+            {(selectedRequest.instructor?.specializations || selectedRequest.specializations) && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Certificates</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <Globe className="mr-2" size={20} />
+                  Languages / Specializations
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const specializations = selectedRequest.instructor?.specializations || selectedRequest.specializations;
+                    const specArray = Array.isArray(specializations) 
+                      ? specializations 
+                      : (typeof specializations === 'string' ? specializations.split(',').map(s => s.trim()).filter(s => s) : []);
+                    return specArray.length > 0 ? (
+                      specArray.map((spec, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 border border-primary-200">
+                          <Globe size={12} className="mr-1" />
+                          {spec}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No specializations listed</p>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* CV / Resume */}
+            {(selectedRequest.instructor?.cv_url || selectedRequest.cv_url) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <FileText className="mr-2" size={20} />
+                  CV / Resume
+                </h3>
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <FileText className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Curriculum Vitae</p>
+                        <p className="text-xs text-gray-600">Click to view the instructor's CV</p>
+                      </div>
+                    </div>
+                    <a
+                      href={(selectedRequest.instructor?.cv_url || selectedRequest.cv_url).startsWith('http') 
+                        ? (selectedRequest.instructor?.cv_url || selectedRequest.cv_url)
+                        : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${selectedRequest.instructor?.cv_url || selectedRequest.cv_url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                      <FileText size={18} className="mr-2" />
+                      View CV
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-Category or Courses Requested */}
+            {selectedRequest._isRequest && (selectedRequest.sub_category_id || selectedRequest.sub_category || selectedRequest.courses || selectedRequest.requested_courses) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  Course Authorization Request
+                </h3>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  {selectedRequest.sub_category_id || selectedRequest.sub_category ? (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">Sub-Category Selected:</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {(() => {
+                          // Try multiple ways to get the sub-category name
+                          if (selectedRequest.sub_category?.name) {
+                            return selectedRequest.sub_category.name;
+                          }
+                          if (selectedRequest.sub_category_name) {
+                            return selectedRequest.sub_category_name;
+                          }
+                          if (typeof selectedRequest.sub_category === 'string') {
+                            return selectedRequest.sub_category;
+                          }
+                          if (selectedRequest.sub_category?.name_ar) {
+                            return selectedRequest.sub_category.name_ar;
+                          }
+                          // If we only have ID, show a message
+                          if (selectedRequest.sub_category_id) {
+                            return `Sub-Category (ID: ${selectedRequest.sub_category_id})`;
+                          }
+                          return 'N/A';
+                        })()}
+                      </p>
+                      {selectedRequest.sub_category?.description && (
+                        <p className="text-sm text-gray-600 mt-1">{selectedRequest.sub_category.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        All active courses in this sub-category will be authorized
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">Specific Courses Selected:</p>
+                      {(() => {
+                        const courses = selectedRequest.courses || selectedRequest.requested_courses || [];
+                        const courseArray = Array.isArray(courses) ? courses : [];
+                        return courseArray.length > 0 ? (
+                          <div className="space-y-2">
+                            {courseArray.map((course, index) => (
+                              <div key={index} className="p-2 bg-white rounded border border-gray-200">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {course.name || course.code || `Course ${course.id || index + 1}`}
+                                </p>
+                                {course.sub_category && (
+                                  <p className="text-xs text-gray-500">
+                                    Sub-Category: {typeof course.sub_category === 'object' 
+                                      ? (course.sub_category.name || course.sub_category.name_ar || course.sub_category)
+                                      : course.sub_category}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No courses specified</p>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Documents */}
+            {selectedRequest._isRequest && selectedRequest.documents_json && Array.isArray(selectedRequest.documents_json) && selectedRequest.documents_json.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <FileText className="mr-2" size={20} />
+                  Documents
+                </h3>
                 <div className="space-y-2">
-                  {selectedRequest.instructor.certificates_json.map((cert, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-gray-900">{cert.name}</p>
-                      <p className="text-sm text-gray-500">Issued by: {cert.issued_by} ({cert.year})</p>
+                  {selectedRequest.documents_json.map((doc, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `Document ${index + 1}`}</p>
+                          {doc.description && (
+                            <p className="text-sm text-gray-500">{doc.description}</p>
+                          )}
+                        </div>
+                        {doc.url && (
+                          <a
+                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                          >
+                            View Document
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+            {/* Certificates */}
+            {selectedRequest.instructor?.certificates_json && Array.isArray(selectedRequest.instructor.certificates_json) && selectedRequest.instructor.certificates_json.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <Award className="mr-2" size={20} />
+                  Certificates
+                </h3>
+                <div className="space-y-2">
+                  {selectedRequest.instructor.certificates_json.map((cert, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="font-medium text-gray-900">{cert.name || cert.certificate_name || `Certificate ${index + 1}`}</p>
+                      {cert.issued_by && (
+                        <p className="text-sm text-gray-500">Issued by: {cert.issued_by}</p>
+                      )}
+                      {cert.year && (
+                        <p className="text-sm text-gray-500">Year: {cert.year}</p>
+                      )}
+                      {cert.url && (
+                        <a
+                          href={cert.url.startsWith('http') ? cert.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${cert.url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-2 inline-block"
+                        >
+                          View Certificate
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Authorization Price (if approved) */}
+            {selectedRequest.authorization_price && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Authorization Details</h3>
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-500 mb-1">Authorization Price</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    ${parseFloat(selectedRequest.authorization_price).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Rejection Reason (if rejected) */}
+            {selectedRequest.rejection_reason && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <XCircle className="mr-2 text-red-600" size={20} />
+                  Rejection Reason
+                </h3>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-base text-gray-900">{selectedRequest.rejection_reason}</p>
                 </div>
               </div>
             )}

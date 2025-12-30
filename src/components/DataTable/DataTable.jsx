@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X } from 'lucide-react';
+import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import './DataTable.css';
 
 const DataTable = ({ 
@@ -14,12 +14,20 @@ const DataTable = ({
   searchable = true,
   filterable = true,
   searchPlaceholder = 'Search...',
-  filterOptions = null
+  filterOptions = null,
+  sortable = true,
+  defaultFilter = 'all'
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const filterRef = useRef(null);
+
+  // Update filter when defaultFilter prop changes
+  useEffect(() => {
+    setSelectedFilter(defaultFilter);
+  }, [defaultFilter]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -50,7 +58,18 @@ const DataTable = ({
     }
   };
 
-  // Filter and search logic
+  // Handle sorting
+  const handleSort = (column) => {
+    if (!sortable || column.sortable === false) return;
+    
+    let direction = 'asc';
+    if (sortConfig.key === column.accessor && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key: column.accessor, direction });
+  };
+
+  // Filter, search and sort logic
   const filteredData = useMemo(() => {
     let filtered = [...data];
 
@@ -88,29 +107,71 @@ const DataTable = ({
       }
     }
 
+    // Apply sorting
+    if (sortable && sortConfig.key) {
+      filtered.sort((a, b) => {
+        const column = columns.find(col => col.accessor === sortConfig.key);
+        if (!column) return 0;
+
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle object values
+        if (aValue && typeof aValue === 'object' && !Array.isArray(aValue)) {
+          aValue = aValue.name || aValue.title || JSON.stringify(aValue);
+        }
+        if (bValue && typeof bValue === 'object' && !Array.isArray(bValue)) {
+          bValue = bValue.name || bValue.title || JSON.stringify(bValue);
+        }
+
+        // Handle dates
+        if (aValue && bValue && (sortConfig.key.includes('date') || sortConfig.key.includes('Date'))) {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        // Handle numbers
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        // Handle strings
+        aValue = aValue?.toString().toLowerCase() || '';
+        bValue = bValue?.toString().toLowerCase() || '';
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
     return filtered;
-  }, [data, searchTerm, selectedFilter, columns, searchable, filterable, filterOptions]);
+  }, [data, searchTerm, selectedFilter, sortConfig, columns, searchable, filterable, filterOptions, sortable]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
+    <>
       {/* Search and Filter Bar */}
       {(searchable || (filterable && filterOptions)) && (
-        <div className="p-4 bg-gray-50 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-3">
+        <div className="data-table-search-container">
+          <div className="data-table-search-content">
             {searchable && (
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <div className="data-table-search-input-wrapper">
+                <Search className="data-table-search-icon" size={18} />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                  className="data-table-search-input"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="data-table-search-clear"
                   >
                     <X size={16} />
                   </button>
@@ -118,20 +179,20 @@ const DataTable = ({
               </div>
             )}
             {filterable && filterOptions && (
-              <div className="relative" ref={filterRef}>
+              <div className="data-table-filter-wrapper" ref={filterRef}>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-100 transition-colors ${
-                    selectedFilter !== 'all' ? 'bg-primary-50 border-primary-300 text-primary-700' : 'bg-white'
+                  className={`data-table-filter-button ${
+                    selectedFilter !== 'all' ? 'data-table-filter-button-active' : ''
                   }`}
                 >
                   <Filter size={18} />
-                  <span className="text-sm font-medium">
+                  <span className="data-table-filter-text">
                     {filterOptions.find(opt => opt.value === selectedFilter)?.label || 'All'}
                   </span>
                 </button>
                 {showFilters && (
-                  <div className="absolute right-0 sm:right-auto sm:left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1 max-h-64 overflow-y-auto">
+                  <div className="data-table-filter-dropdown">
                     {filterOptions.map((option) => (
                       <button
                         key={option.value}
@@ -139,8 +200,8 @@ const DataTable = ({
                           setSelectedFilter(option.value);
                           setShowFilters(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                          selectedFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700'
+                        className={`data-table-filter-option ${
+                          selectedFilter === option.value ? 'data-table-filter-option-active' : ''
                         }`}
                       >
                         {option.label}
@@ -152,26 +213,48 @@ const DataTable = ({
             )}
           </div>
           {searchTerm && (
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="data-table-search-results">
               Showing {filteredData.length} of {data.length} results
             </div>
           )}
         </div>
       )}
-      <div className="overflow-x-auto">
+      {/* Table */}
+      <div className="data-table-container">
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+          <thead className="data-table-header">
             <tr>
-              {columns.map((column, index) => (
-                <th
-                  key={index}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {column.header}
-                </th>
-              ))}
+              {columns.map((column, index) => {
+                const isSortable = sortable && column.sortable !== false;
+                const isSorted = sortConfig.key === column.accessor;
+                return (
+                  <th
+                    key={index}
+                    className={`data-table-th ${isSortable ? 'data-table-th-sortable' : ''}`}
+                    onClick={() => isSortable && handleSort(column)}
+                  >
+                    <div className="data-table-th-content">
+                      <span>{column.header}</span>
+                      {isSortable && (
+                        <span className="data-table-sort-icon">
+                          {isSorted ? (
+                            sortConfig.direction === 'asc' ? (
+                              <ArrowUp size={14} />
+                            ) : (
+                              <ArrowDown size={14} />
+                            )
+                          ) : (
+                            <ArrowUpDown size={14} />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
               {(onEdit || onDelete || onView) && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="data-table-th">
                   Actions
                 </th>
               )}
@@ -230,7 +313,7 @@ const DataTable = ({
                               <button
                                 key="edit"
                                 onClick={() => onEdit(row)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-edit"
                                 title="Edit"
                               >
                                 <Edit size={18} />
@@ -240,7 +323,7 @@ const DataTable = ({
                               <button
                                 key="delete"
                                 onClick={() => onDelete(row)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-delete"
                                 title="Delete"
                               >
                                 <Trash2 size={18} />
@@ -252,7 +335,7 @@ const DataTable = ({
                               <button
                                 key="view"
                                 onClick={() => onView(row)}
-                                className="text-primary-600 hover:text-primary-900 p-1 rounded hover:bg-primary-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-view"
                                 title="View"
                               >
                                 <Eye size={18} />
@@ -262,7 +345,7 @@ const DataTable = ({
                               <button
                                 key="edit"
                                 onClick={() => onEdit(row)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-edit"
                                 title="Edit"
                               >
                                 <Edit size={18} />
@@ -274,7 +357,7 @@ const DataTable = ({
                               <button
                                 key="view"
                                 onClick={() => onView(row)}
-                                className="text-primary-600 hover:text-primary-900 p-1 rounded hover:bg-primary-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-view"
                                 title="View"
                               >
                                 <Eye size={18} />
@@ -284,73 +367,43 @@ const DataTable = ({
                               <button
                                 key="delete"
                                 onClick={() => onDelete(row)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-delete"
                                 title="Delete"
                               >
                                 <Trash2 size={18} />
                               </button>
                             );
                           } else if (onEdit) {
-                            // Only Edit - show Edit twice with different styling
+                            // Only Edit - show Edit once
                             buttons.push(
                               <button
-                                key="edit1"
+                                key="edit"
                                 onClick={() => onEdit(row)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-all duration-200 hover:scale-110 transform"
-                                title="Edit"
-                              >
-                                <Edit size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="edit2"
-                                onClick={() => onEdit(row)}
-                                className="text-primary-600 hover:text-primary-900 p-1 rounded hover:bg-primary-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-edit"
                                 title="Edit"
                               >
                                 <Edit size={18} />
                               </button>
                             );
                           } else if (onDelete) {
-                            // Only Delete - show Delete twice with different styling
+                            // Only Delete - show Delete once
                             buttons.push(
                               <button
-                                key="delete1"
+                                key="delete"
                                 onClick={() => onDelete(row)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-all duration-200 hover:scale-110 transform"
-                                title="Delete"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="delete2"
-                                onClick={() => onDelete(row)}
-                                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-delete"
                                 title="Delete"
                               >
                                 <Trash2 size={18} />
                               </button>
                             );
                           } else if (onView) {
-                            // Only View - show View twice with different styling
+                            // Only View - show View once
                             buttons.push(
                               <button
-                                key="view1"
+                                key="view"
                                 onClick={() => onView(row)}
-                                className="text-primary-600 hover:text-primary-900 p-1 rounded hover:bg-primary-50 transition-all duration-200 hover:scale-110 transform"
-                                title="View"
-                              >
-                                <Eye size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="view2"
-                                onClick={() => onView(row)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-all duration-200 hover:scale-110 transform"
+                                className="data-table-action-btn data-table-action-view"
                                 title="View"
                               >
                                 <Eye size={18} />
@@ -368,8 +421,9 @@ const DataTable = ({
             )}
           </tbody>
         </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

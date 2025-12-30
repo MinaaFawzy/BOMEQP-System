@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, Search } from 'lucide-react';
+import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, Search, ChevronUp, ChevronDown, MessageSquare, Download } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Pagination from '../../../components/Pagination/Pagination';
+import { validateFile, validateArray, validateMaxLength } from '../../../utils/validation';
 import './ACCsScreen.css';
 
 const ACCsScreen = () => {
@@ -23,12 +24,16 @@ const ACCsScreen = () => {
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedACC, setSelectedACC] = useState(null);
+  const [selectedAuthorization, setSelectedAuthorization] = useState(null);
+  const [authDetailModalOpen, setAuthDetailModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({
     documents: [],
     additional_info: '',
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [accSortConfig, setAccSortConfig] = useState({ key: null, direction: 'asc' });
+  const [authSortConfig, setAuthSortConfig] = useState({ key: null, direction: 'asc' });
 
   useEffect(() => {
     loadAllData();
@@ -103,7 +108,24 @@ const ACCsScreen = () => {
     setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
   };
 
-  // Filter and paginate ACCs client-side
+  // Sort handlers
+  const handleAccSort = (key) => {
+    let direction = 'asc';
+    if (accSortConfig.key === key && accSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setAccSortConfig({ key, direction });
+  };
+
+  const handleAuthSort = (key) => {
+    let direction = 'asc';
+    if (authSortConfig.key === key && authSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setAuthSortConfig({ key, direction });
+  };
+
+  // Filter and sort ACCs client-side
   const filteredAccs = useMemo(() => {
     let filtered = [...allAccs];
     
@@ -120,10 +142,44 @@ const ACCsScreen = () => {
       });
     }
     
+    // Apply sorting
+    if (accSortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (accSortConfig.key === 'name') {
+          aValue = (a.name || '').toLowerCase();
+          bValue = (b.name || '').toLowerCase();
+        } else if (accSortConfig.key === 'email') {
+          aValue = (a.email || '').toLowerCase();
+          bValue = (b.email || '').toLowerCase();
+        } else if (accSortConfig.key === 'country') {
+          aValue = (a.country || '').toLowerCase();
+          bValue = (b.country || '').toLowerCase();
+        } else {
+          aValue = a[accSortConfig.key] || '';
+          bValue = b[accSortConfig.key] || '';
+        }
+        
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        
+        if (aValue < bValue) {
+          return accSortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return accSortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
     return filtered;
-  }, [allAccs, searchTerm]);
+  }, [allAccs, searchTerm, accSortConfig]);
 
-  // Filter and paginate authorizations client-side
+  // Filter and sort authorizations client-side
   const filteredAuthorizations = useMemo(() => {
     let filtered = [...allAuthorizations];
     
@@ -138,8 +194,53 @@ const ACCsScreen = () => {
       });
     }
     
+    // Apply sorting
+    if (authSortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (authSortConfig.key === 'acc_name') {
+          aValue = (a.acc?.name || '').toLowerCase();
+          bValue = (b.acc?.name || '').toLowerCase();
+        } else if (authSortConfig.key === 'email') {
+          aValue = (a.acc?.email || '').toLowerCase();
+          bValue = (b.acc?.email || '').toLowerCase();
+        } else if (authSortConfig.key === 'country') {
+          aValue = (a.acc?.country || '').toLowerCase();
+          bValue = (b.acc?.country || '').toLowerCase();
+        } else if (authSortConfig.key === 'status') {
+          aValue = (a.status || '').toLowerCase();
+          bValue = (b.status || '').toLowerCase();
+        } else if (authSortConfig.key === 'request_date') {
+          aValue = a.request_date ? new Date(a.request_date).getTime() : 0;
+          bValue = b.request_date ? new Date(b.request_date).getTime() : 0;
+        } else if (authSortConfig.key === 'reviewed_at') {
+          aValue = a.reviewed_at ? new Date(a.reviewed_at).getTime() : 0;
+          bValue = b.reviewed_at ? new Date(b.reviewed_at).getTime() : 0;
+        } else {
+          aValue = a[authSortConfig.key] || '';
+          bValue = b[authSortConfig.key] || '';
+        }
+        
+        if (authSortConfig.key === 'request_date' || authSortConfig.key === 'reviewed_at') {
+          // Already numbers
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        
+        if (aValue < bValue) {
+          return authSortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return authSortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
     return filtered;
-  }, [allAuthorizations, searchTerm]);
+  }, [allAuthorizations, searchTerm, authSortConfig]);
 
   // Paginate filtered data client-side
   const paginatedAccs = useMemo(() => {
@@ -176,17 +277,67 @@ const ACCsScreen = () => {
     setRequestModalOpen(true);
   };
 
+  const validateRequestForm = () => {
+    const newErrors = {};
+
+    // Validate documents
+    if (requestForm.documents.length === 0) {
+      newErrors.general = 'Please upload at least one document';
+      return newErrors;
+    }
+
+    // Validate each document
+    requestForm.documents.forEach((doc, index) => {
+      // Validate document type
+      if (!doc.type || doc.type.trim() === '') {
+        newErrors[`documents.${index}.type`] = 'Document type is required';
+      }
+
+      // Validate document file
+      if (!doc.file) {
+        newErrors[`documents.${index}.file`] = 'Please upload a file';
+      } else {
+        const fileError = validateFile(doc.file, {
+          required: true,
+          maxSize: 10 * 1024 * 1024, // 10MB
+          allowedTypes: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/jpg',
+            'image/png'
+          ],
+          fieldName: 'Document file'
+        });
+        if (fileError) {
+          newErrors[`documents.${index}.file`] = fileError;
+        }
+      }
+    });
+
+    // Validate additional info (optional but if provided, check max length)
+    if (requestForm.additional_info) {
+      const additionalInfoError = validateMaxLength(
+        requestForm.additional_info,
+        5000,
+        'Additional information'
+      );
+      if (additionalInfoError) {
+        newErrors.additional_info = additionalInfoError;
+      }
+    }
+
+    return newErrors;
+  };
+
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
     
-    if (requestForm.documents.length === 0) {
-      setErrors({ general: 'Please upload at least one document' });
-      return;
-    }
-    
-    const invalidDocs = requestForm.documents.filter(doc => !doc.type || !doc.file);
-    if (invalidDocs.length > 0) {
-      setErrors({ general: 'Please ensure all documents have both type and file uploaded' });
+    // Validate form
+    const validationErrors = validateRequestForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
     
@@ -278,30 +429,38 @@ const ACCsScreen = () => {
       ...requestForm,
       documents: updatedDocuments,
     });
+    
+    // Clear error for this field when user starts typing
+    if (errors[`documents.${index}.${field}`]) {
+      const newErrors = { ...errors };
+      delete newErrors[`documents.${index}.${field}`];
+      setErrors(newErrors);
+    }
   };
 
   const handleFileSelect = (index, file) => {
     if (!file) return;
     
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg',
-      'image/jpg',
-      'image/png'
-    ];
+    // Validate file using validation utility
+    const fileError = validateFile(file, {
+      required: true,
+      maxSize: 10 * 1024 * 1024, // 10MB
+      allowedTypes: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+      ],
+      fieldName: 'Document file'
+    });
     
-    const allowedExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
-    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-    
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-      alert('Please upload a valid file type: PDF, DOC, DOCX, JPG, JPEG, or PNG');
-      return;
-    }
-    
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+    if (fileError) {
+      setErrors({
+        ...errors,
+        [`documents.${index}.file`]: fileError
+      });
       return;
     }
     
@@ -318,11 +477,23 @@ const ACCsScreen = () => {
       ...requestForm,
       documents: updatedDocuments,
     });
+    
+    // Clear error for this field
+    if (errors[`documents.${index}.file`]) {
+      const newErrors = { ...errors };
+      delete newErrors[`documents.${index}.file`];
+      setErrors(newErrors);
+    }
   };
 
   const handleViewDetails = (acc) => {
     setSelectedACC(acc);
     setDetailModalOpen(true);
+  };
+
+  const handleViewAuthorizationDetails = (auth) => {
+    setSelectedAuthorization(auth);
+    setAuthDetailModalOpen(true);
   };
 
   if (loading) {
@@ -401,10 +572,50 @@ const ACCsScreen = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="table-header-gradient">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">ACC Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Country</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAccSort('name')}
+                  >
+                    <div className="flex items-center gap-2">
+                      ACC Name
+                      {accSortConfig.key === 'name' && (
+                        accSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAccSort('email')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Email
+                      {accSortConfig.key === 'email' && (
+                        accSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAccSort('country')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Country
+                      {accSortConfig.key === 'country' && (
+                        accSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAccSort('status')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Status
+                      {accSortConfig.key === 'status' && (
+                        accSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -519,19 +730,78 @@ const ACCsScreen = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="table-header-gradient">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">ACC</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Country</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Request Date</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Reviewed At</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Additional Info</th>
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('acc_name')}
+                  >
+                    <div className="flex items-center gap-2">
+                      ACC
+                      {authSortConfig.key === 'acc_name' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('email')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Email
+                      {authSortConfig.key === 'email' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('country')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Country
+                      {authSortConfig.key === 'country' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('status')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Status
+                      {authSortConfig.key === 'status' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('request_date')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Request Date
+                      {authSortConfig.key === 'request_date' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                    onClick={() => handleAuthSort('reviewed_at')}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      Reviewed At
+                      {authSortConfig.key === 'reviewed_at' && (
+                        authSortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {paginatedAuthorizations.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center">
+                    <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <Clock className="text-gray-400" size={32} />
@@ -559,6 +829,7 @@ const ACCsScreen = () => {
                       <tr
                         key={auth.id}
                         className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
+                        onClick={() => handleViewAuthorizationDetails(auth)}
                         style={{ '--animation-delay': `${index * 0.03}s` }}
                       >
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -599,15 +870,6 @@ const ACCsScreen = () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center">
                           {auth.reviewed_at ? new Date(auth.reviewed_at).toLocaleDateString() : 'Pending'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-center">
-                          <div className="max-w-xs truncate mx-auto" title={auth.additional_info || 'N/A'}>
-                            {auth.additional_info ? (
-                              <span className="text-gray-700">{auth.additional_info}</span>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </div>
                         </td>
                       </tr>
                     );
@@ -814,12 +1076,21 @@ const ACCsScreen = () => {
             label="Additional Information"
             name="additional_info"
             value={requestForm.additional_info}
-            onChange={(e) => setRequestForm({ ...requestForm, additional_info: e.target.value })}
+            onChange={(e) => {
+              setRequestForm({ ...requestForm, additional_info: e.target.value });
+              // Clear error when user starts typing
+              if (errors.additional_info) {
+                const newErrors = { ...errors };
+                delete newErrors.additional_info;
+                setErrors(newErrors);
+              }
+            }}
             textarea
             rows={4}
             placeholder="Provide any additional information about your training center..."
             error={errors.additional_info}
             disabled={submitting}
+            helpText="Maximum 5000 characters"
           />
 
           {errors.general && (
@@ -916,6 +1187,149 @@ const ACCsScreen = () => {
                   <Send size={20} className="mr-2" />
                   Request Authorization
                 </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Authorization Detail Modal */}
+      <Modal
+        isOpen={authDetailModalOpen}
+        onClose={() => {
+          setAuthDetailModalOpen(false);
+          setSelectedAuthorization(null);
+        }}
+        title="Authorization Request Details"
+        size="lg"
+      >
+        {selectedAuthorization && (
+          <div className="space-y-4">
+            {/* ACC Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1">ACC Name</p>
+                <p className="text-base font-semibold text-gray-900">{selectedAuthorization.acc?.name || 'N/A'}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1 flex items-center">
+                  <Mail size={16} className="mr-2" />
+                  Email
+                </p>
+                <p className="text-base font-semibold text-gray-900">{selectedAuthorization.acc?.email || 'N/A'}</p>
+              </div>
+              {selectedAuthorization.acc?.country && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Country</p>
+                  <p className="text-base font-semibold text-gray-900">{selectedAuthorization.acc.country}</p>
+                </div>
+              )}
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1">Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedAuthorization.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  selectedAuthorization.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  selectedAuthorization.status === 'returned' ? 'bg-blue-100 text-blue-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {selectedAuthorization.status ? selectedAuthorization.status.charAt(0).toUpperCase() + selectedAuthorization.status.slice(1) : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1 flex items-center">
+                  <Clock size={16} className="mr-2" />
+                  Request Date
+                </p>
+                <p className="text-base font-semibold text-gray-900">
+                  {selectedAuthorization.request_date ? new Date(selectedAuthorization.request_date).toLocaleString() : 'N/A'}
+                </p>
+              </div>
+              {selectedAuthorization.reviewed_at && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <CheckCircle size={16} className="mr-2" />
+                    Reviewed At
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {new Date(selectedAuthorization.reviewed_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Additional Information */}
+            {selectedAuthorization.additional_info && (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-semibold text-blue-900 mb-2">Additional Information</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAuthorization.additional_info}</p>
+              </div>
+            )}
+
+            {/* ACC Comment (when status is returned) */}
+            {selectedAuthorization.status === 'returned' && selectedAuthorization.return_comment && (
+              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-900 mb-2">ACC Comment / Return Reason</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAuthorization.return_comment}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ACC Rejection Reason (if exists) */}
+            {selectedAuthorization.status === 'rejected' && selectedAuthorization.rejection_reason && (
+              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-start gap-3">
+                  <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-red-900 mb-2">Rejection Reason</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAuthorization.rejection_reason}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Documents */}
+            {selectedAuthorization.documents && selectedAuthorization.documents.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <FileText size={18} className="mr-2" />
+                  Submitted Documents
+                </p>
+                <div className="space-y-2">
+                  {selectedAuthorization.documents.map((doc, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText size={20} className="text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : `Document ${index + 1}`}
+                          </p>
+                          {doc.file_name && (
+                            <p className="text-xs text-gray-500">{doc.file_name}</p>
+                          )}
+                        </div>
+                      </div>
+                      {doc.file_url && (
+                        <a
+                          href={doc.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Download document"
+                        >
+                          <Download size={18} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

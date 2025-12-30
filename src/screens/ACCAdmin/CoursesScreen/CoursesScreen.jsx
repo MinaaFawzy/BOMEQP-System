@@ -6,6 +6,7 @@ import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
 import Pagination from '../../../components/Pagination/Pagination';
+import { validateRequired, validateNumber, validateMinLength, validateMaxLength } from '../../../utils/validation';
 import './CoursesScreen.css';
 
 const CoursesScreen = () => {
@@ -37,14 +38,14 @@ const CoursesScreen = () => {
     code: '',
     description: '',
     duration_hours: '',
+    max_capacity: '',
     level: 'beginner',
     status: 'active',
+    assessor_required: false,
   });
   const [pricingData, setPricingData] = useState({
     base_price: '',
     currency: 'USD',
-    effective_from: '',
-    effective_to: '',
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -84,12 +85,12 @@ const CoursesScreen = () => {
     };
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadCourses = async () => {
+  const loadCourses = async (page = null) => {
     setLoading(true);
     try {
       // Build query parameters - all filtering is done client-side, no need to send filters to API
       const params = {
-        page: pagination.currentPage,
+        page: page !== null ? page : pagination.currentPage,
         per_page: pagination.perPage,
       };
       
@@ -97,11 +98,13 @@ const CoursesScreen = () => {
       
       // Handle paginated response structure
       let coursesArray = [];
+      const currentPageToSet = page !== null ? page : pagination.currentPage;
       if (data.data) {
         // Laravel pagination format
         coursesArray = data.data || [];
         setPagination(prev => ({
           ...prev,
+          currentPage: currentPageToSet,
           totalPages: data.last_page || data.total_pages || 1,
           totalItems: data.total || 0,
         }));
@@ -110,6 +113,7 @@ const CoursesScreen = () => {
         coursesArray = data.courses || [];
         setPagination(prev => ({
           ...prev,
+          currentPage: currentPageToSet,
           totalPages: 1,
           totalItems: data.courses?.length || 0,
         }));
@@ -118,6 +122,7 @@ const CoursesScreen = () => {
         coursesArray = Array.isArray(data) ? data : [];
         setPagination(prev => ({
           ...prev,
+          currentPage: currentPageToSet,
           totalPages: 1,
           totalItems: coursesArray.length,
         }));
@@ -251,24 +256,22 @@ const CoursesScreen = () => {
         code: course.code || '',
         description: course.description || '',
         duration_hours: course.duration_hours || '',
+        max_capacity: course.max_capacity || '',
         level: course.level || 'beginner',
         status: course.status || 'active',
+        assessor_required: course.assessor_required || false,
       });
       // Load pricing data if available (check both pricing and current_price)
-      const pricing = course.current_price || course.pricing;
+      const pricing = course.current_price || course.pricing || (course.certificate_pricing && course.certificate_pricing.length > 0 ? course.certificate_pricing[0] : null);
       if (pricing) {
         setPricingData({
           base_price: pricing.base_price || '',
           currency: pricing.currency || 'USD',
-          effective_from: pricing.effective_from ? pricing.effective_from.split('T')[0] : '',
-          effective_to: pricing.effective_to ? pricing.effective_to.split('T')[0] : '',
         });
       } else {
         setPricingData({
           base_price: '',
           currency: 'USD',
-          effective_from: '',
-          effective_to: '',
         });
       }
     } else {
@@ -280,14 +283,14 @@ const CoursesScreen = () => {
         code: '',
         description: '',
         duration_hours: '',
+        max_capacity: '',
         level: 'beginner',
         status: 'active',
+        assessor_required: false,
       });
       setPricingData({
         base_price: '',
         currency: 'USD',
-        effective_from: '',
-        effective_to: '',
       });
     }
     setErrors({});
@@ -311,6 +314,7 @@ const CoursesScreen = () => {
       duration_hours: '',
       level: 'beginner',
       status: 'active',
+      assessor_required: false,
     });
     setPricingData({
       base_price: '',
@@ -337,7 +341,86 @@ const CoursesScreen = () => {
       ...pricingData,
       [e.target.name]: e.target.value,
     });
-    setErrors({});
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[e.target.name];
+      return newErrors;
+    });
+  };
+
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate course fields
+    if (!formData.name || formData.name.trim() === '') {
+      newErrors.name = 'Course name is required';
+    } else if (formData.name.length > 255) {
+      newErrors.name = 'Course name must be at most 255 characters';
+    }
+
+    if (formData.name_ar && formData.name_ar.length > 255) {
+      newErrors.name_ar = 'Arabic name must be at most 255 characters';
+    }
+
+    if (!formData.code || formData.code.trim() === '') {
+      newErrors.code = 'Course code is required';
+    } else if (formData.code.length > 255) {
+      newErrors.code = 'Course code must be at most 255 characters';
+    }
+
+    if (!formData.sub_category_id) {
+      newErrors.sub_category_id = 'Sub category is required';
+    }
+
+    const durationError = validateRequired(formData.duration_hours, 'Duration');
+    if (durationError) {
+      newErrors.duration_hours = durationError;
+    } else {
+      const durationNum = parseInt(formData.duration_hours);
+      if (isNaN(durationNum) || durationNum < 1) {
+        newErrors.duration_hours = 'Duration must be at least 1 hour';
+      }
+    }
+
+    // Validate max_capacity (required field)
+    if (!formData.max_capacity || formData.max_capacity.toString().trim() === '') {
+      newErrors.max_capacity = 'Max capacity is required';
+    } else {
+      const maxCapacityNum = parseInt(formData.max_capacity);
+      if (isNaN(maxCapacityNum) || maxCapacityNum < 1) {
+        newErrors.max_capacity = 'Max capacity must be at least 1';
+      }
+    }
+
+    if (!formData.level) {
+      newErrors.level = 'Level is required';
+    } else if (!['beginner', 'intermediate', 'advanced'].includes(formData.level)) {
+      newErrors.level = 'Invalid level selected';
+    }
+
+    if (!formData.status) {
+      newErrors.status = 'Status is required';
+    } else if (!['active', 'inactive', 'archived'].includes(formData.status)) {
+      newErrors.status = 'Invalid status selected';
+    }
+
+    // Validate pricing if base_price is provided (pricing is completely optional)
+    if (pricingData.base_price) {
+      // If pricing is provided, base_price and currency are required
+      const basePriceError = validateNumber(pricingData.base_price, 'Base price', 0);
+      if (basePriceError) {
+        newErrors.base_price = basePriceError;
+      }
+
+      if (!pricingData.currency || pricingData.currency.trim() === '') {
+        newErrors.currency = 'Currency is required when pricing is set';
+      } else if (pricingData.currency.length !== 3) {
+        newErrors.currency = 'Currency must be a 3-character code (e.g., USD)';
+      }
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -345,45 +428,39 @@ const CoursesScreen = () => {
     setSaving(true);
     setErrors({});
 
+    // Validate form
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
+
     try {
       // Build the request payload with proper type conversions
       const payload = {
         ...formData,
         sub_category_id: parseInt(formData.sub_category_id),
         duration_hours: parseInt(formData.duration_hours),
+        max_capacity: parseInt(formData.max_capacity),
       };
       
-      // Check if pricing data should be included
-      // According to API docs: if pricing object is included, all pricing fields are required
-      // Commission percentages are NOT set by ACC - they are automatically taken from ACC's commission_percentage
-      // Only include pricing if base_price is provided (required field)
+      // Remove empty optional fields
+      if (!formData.name_ar || formData.name_ar.trim() === '') {
+        delete payload.name_ar;
+      }
+      if (!formData.description || formData.description.trim() === '') {
+        delete payload.description;
+      }
+      
+      // Check if pricing data should be included (pricing is completely optional)
+      // According to API docs: if pricing is provided, only base_price and currency are required
       if (pricingData.base_price) {
-        // Validate that all required pricing fields are present
-        if (!pricingData.currency) {
-          setErrors({ currency: 'Currency is required when pricing is set' });
-          setSaving(false);
-          return;
-        }
-        if (!pricingData.effective_from) {
-          setErrors({ effective_from: 'Effective from date is required when pricing is set' });
-          setSaving(false);
-          return;
-        }
-        
-        // Build pricing object with required fields only
+        // Build pricing object with only base_price and currency
         const pricing = {
           base_price: parseFloat(pricingData.base_price),
           currency: pricingData.currency,
-          effective_from: pricingData.effective_from,
         };
-        
-        // Include effective_to if provided (optional field, can be null)
-        if (pricingData.effective_to) {
-          pricing.effective_to = pricingData.effective_to;
-        } else {
-          // Set to null if not provided (API accepts null for no expiration)
-          pricing.effective_to = null;
-        }
         
         payload.pricing = pricing;
       }
@@ -399,10 +476,9 @@ const CoursesScreen = () => {
         console.log('Course created:', response);
       }
 
-      await loadCourses();
       handleCloseModal();
-      // Reset to first page after creating/updating
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
+      // Reset to first page after creating/updating and reload courses
+      await loadCourses(1);
       alert(selectedCourse ? 'Course updated successfully!' : 'Course created successfully!');
     } catch (error) {
       console.error('Failed to save course:', error);
@@ -573,13 +649,14 @@ const CoursesScreen = () => {
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Pricing</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Assessor</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
                     </div>
@@ -587,7 +664,7 @@ const CoursesScreen = () => {
                 </tr>
               ) : sortedCourses.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <GraduationCap className="text-gray-400" size={32} />
@@ -638,13 +715,29 @@ const CoursesScreen = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      {course.current_price || course.pricing ? (
-                        <div className="flex items-center text-sm font-semibold text-gray-900">
-                          <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
-                          {parseFloat((course.current_price || course.pricing).base_price || 0).toFixed(2)} {(course.current_price || course.pricing).currency || 'USD'}
-                        </div>
+                      {(() => {
+                        const pricing = course.current_price || 
+                                       course.pricing || 
+                                       (course.certificate_pricing && course.certificate_pricing.length > 0 
+                                         ? course.certificate_pricing[0] 
+                                         : null);
+                        return pricing ? (
+                          <div className="flex items-center text-sm font-semibold text-gray-900">
+                            <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
+                            {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">Not set</span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      {course.assessor_required ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                          Required
+                        </span>
                       ) : (
-                        <span className="text-sm text-gray-400">Not set</span>
+                        <span className="text-sm text-gray-400">Not Required</span>
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -754,16 +847,32 @@ const CoursesScreen = () => {
             error={errors.description}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Duration (Hours)"
               name="duration_hours"
               type="number"
               value={formData.duration_hours}
               onChange={handleChange}
+              required
+              min="1"
               error={errors.duration_hours}
             />
 
+            <FormInput
+              label="Max Capacity"
+              name="max_capacity"
+              type="number"
+              value={formData.max_capacity}
+              onChange={handleChange}
+              required
+              min="1"
+              placeholder="Maximum number of trainees per class"
+              error={errors.max_capacity}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Level"
               name="level"
@@ -787,20 +896,42 @@ const CoursesScreen = () => {
               options={[
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
+                { value: 'archived', label: 'Archived' },
               ]}
               error={errors.status}
             />
           </div>
 
+          {/* Assessor Required Switch */}
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="assessor_required"
+              name="assessor_required"
+              checked={formData.assessor_required || false}
+              onChange={(e) => setFormData({
+                ...formData,
+                assessor_required: e.target.checked
+              })}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="assessor_required" className="text-sm font-medium text-gray-700">
+              Assessor Required
+            </label>
+          </div>
+          <p className="text-xs text-gray-500 -mt-2 ml-6">This course requires an assessor</p>
+
           {/* Pricing Section */}
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <DollarSign size={20} className="text-primary-600" />
-              Pricing Information
+              Pricing Information (Optional)
             </h3>
             <p className="text-sm text-gray-500 mb-4">
-              Optional: Set pricing at creation time. Commission percentage is automatically taken from your ACC's commission percentage set by Group Admin.
+              Optional: Set pricing at creation time. You can create a course without pricing and add it later if needed. Commission percentages are managed by Group Admins separately.
             </p>
+            
+            {/* Base Price and Currency */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
                 label="Base Price"
@@ -827,24 +958,6 @@ const CoursesScreen = () => {
                   { value: 'SAR', label: 'SAR' },
                 ]}
                 error={errors.currency}
-              />
-
-              <FormInput
-                label="Effective From"
-                name="effective_from"
-                type="date"
-                value={pricingData.effective_from}
-                onChange={handlePricingChange}
-                error={errors.effective_from}
-              />
-
-              <FormInput
-                label="Effective To (Optional)"
-                name="effective_to"
-                type="date"
-                value={pricingData.effective_to}
-                onChange={handlePricingChange}
-                error={errors.effective_to}
               />
             </div>
           </div>
@@ -884,14 +997,21 @@ const CoursesScreen = () => {
       >
         {selectedCourse && (
           <div className="space-y-6">
+            {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Course Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.name}</p>
+                <p className="text-sm text-gray-500 mb-1">Course Name (English)</p>
+                <p className="text-base font-semibold text-gray-900">{selectedCourse.name || 'N/A'}</p>
               </div>
+              {selectedCourse.name_ar && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Course Name (Arabic)</p>
+                  <p className="text-base font-semibold text-gray-900">{selectedCourse.name_ar}</p>
+                </div>
+              )}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Course Code</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.code}</p>
+                <p className="text-base font-semibold text-gray-900">{selectedCourse.code || 'N/A'}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Level</p>
@@ -902,66 +1022,91 @@ const CoursesScreen = () => {
                 <p className="text-base font-semibold text-gray-900">{selectedCourse.duration_hours ? `${selectedCourse.duration_hours} hours` : 'N/A'}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1">Max Capacity</p>
+                <p className="text-base font-semibold text-gray-900">{selectedCourse.max_capacity ? `${selectedCourse.max_capacity} trainees` : 'N/A'}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Status</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedCourse.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  selectedCourse.status === 'active' ? 'bg-green-100 text-green-800' : 
+                  selectedCourse.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
                 }`}>
-                  {selectedCourse.status}
+                  {selectedCourse.status ? selectedCourse.status.charAt(0).toUpperCase() + selectedCourse.status.slice(1) : 'N/A'}
                 </span>
               </div>
             </div>
+
+            {/* Category Information */}
+            {selectedCourse.sub_category && (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-gray-500 mb-2">Category</p>
+                <div className="space-y-1">
+                  {selectedCourse.sub_category.category && (
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedCourse.sub_category.category.name}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-700">
+                    Sub Category: {selectedCourse.sub_category.name}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Description */}
             {selectedCourse.description && (
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Description</p>
-                <p className="text-base text-gray-900">{selectedCourse.description}</p>
+                <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedCourse.description}</p>
               </div>
             )}
-            {(selectedCourse.current_price || selectedCourse.pricing) && (
-              <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-                <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <DollarSign size={18} className="text-primary-600" />
-                  Pricing Information
-                </h4>
-                {(() => {
-                  const pricing = selectedCourse.current_price || selectedCourse.pricing;
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(() => {
+              // Check for pricing in multiple possible locations
+              const pricing = selectedCourse.current_price || 
+                             selectedCourse.pricing || 
+                             (selectedCourse.certificate_pricing && selectedCourse.certificate_pricing.length > 0 
+                               ? selectedCourse.certificate_pricing[0] 
+                               : null);
+              
+              return pricing ? (
+                <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
+                  <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <DollarSign size={18} className="text-primary-600" />
+                    Pricing Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Base Price</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
+                      </p>
+                    </div>
+                    {pricing.created_at && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Base Price</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
+                        <p className="text-sm text-gray-500 mb-1">Set On</p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {new Date(pricing.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      {pricing.group_commission_percentage !== undefined && pricing.group_commission_percentage !== null && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Group Commission</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {parseFloat(pricing.group_commission_percentage || 0).toFixed(2)}%
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">(Automatically set by Group Admin)</p>
-                        </div>
-                      )}
-                      {pricing.effective_from && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Effective From</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {pricing.effective_from.split('T')[0]}
-                          </p>
-                        </div>
-                      )}
-                      {pricing.effective_to && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Effective To</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {pricing.effective_to.split('T')[0]}
-                          </p>
-                        </div>
-                      )}
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Note: Commission percentages are managed by Group Admins. Pricing is effective immediately when set.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="text-gray-400" size={20} />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">No pricing set</p>
+                      <p className="text-xs text-gray-500 mt-1">You can add pricing when editing the course</p>
                     </div>
-                  );
-                })()}
-              </div>
-            )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </Modal>

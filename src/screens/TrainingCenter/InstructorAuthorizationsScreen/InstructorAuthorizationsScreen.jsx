@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCircle, Eye, Search, Filter, RefreshCw, BookOpen } from 'lucide-react';
+import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCircle, Eye, Search, Filter, RefreshCw, BookOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
@@ -33,6 +33,7 @@ const InstructorAuthorizationsScreen = () => {
     totalPages: 1,
     totalItems: 0,
   });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Reset to page 1 when search or filters change
   useEffect(() => {
@@ -194,7 +195,7 @@ const InstructorAuthorizationsScreen = () => {
   const handlePay = (authorization) => {
     // Check if authorization is ready for payment
     if (authorization.status !== 'approved' || authorization.group_admin_status !== 'commission_set') {
-      alert('This authorization is not ready for payment. Please wait for Group Admin to set commission percentage.');
+      alert('This authorization is not ready for payment. Please wait for Group Admin approval.');
       return;
     }
     if (authorization.payment_status === 'paid') {
@@ -468,60 +469,96 @@ const InstructorAuthorizationsScreen = () => {
     setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
   };
 
-  const filteredAuthorizations = authorizations.filter(auth => {
+  // Sort handler
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredAuthorizations = useMemo(() => {
+    let filtered = [...authorizations];
+    
     // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      // Get course names for search
-      const courseNames = auth.courses && Array.isArray(auth.courses)
-        ? auth.courses.map(c => typeof c === 'object' ? (c?.name || c?.course_name || '') : (c || '')).join(' ')
-        : auth.course
-        ? (typeof auth.course === 'object' ? (auth.course?.name || auth.course?.course_name || '') : (auth.course || ''))
-        : '';
-      const matchesSearch = (
-        (auth.instructor?.first_name || '').toLowerCase().includes(term) ||
-        (auth.instructor?.last_name || '').toLowerCase().includes(term) ||
-        (auth.acc?.name || '').toLowerCase().includes(term) ||
-        (auth.training_center?.name || '').toLowerCase().includes(term) ||
-        courseNames.toLowerCase().includes(term)
-      );
-      if (!matchesSearch) return false;
+      filtered = filtered.filter(auth => {
+        // Get course names for search
+        const courseNames = auth.courses && Array.isArray(auth.courses)
+          ? auth.courses.map(c => typeof c === 'object' ? (c?.name || c?.course_name || '') : (c || '')).join(' ')
+          : auth.course
+          ? (typeof auth.course === 'object' ? (auth.course?.name || auth.course?.course_name || '') : (auth.course || ''))
+          : '';
+        const matchesSearch = (
+          (auth.instructor?.first_name || '').toLowerCase().includes(term) ||
+          (auth.instructor?.last_name || '').toLowerCase().includes(term) ||
+          (auth.acc?.name || '').toLowerCase().includes(term) ||
+          (auth.training_center?.name || '').toLowerCase().includes(term) ||
+          courseNames.toLowerCase().includes(term)
+        );
+        return matchesSearch;
+      });
     }
 
     // Status filter
-    if (statusFilter !== 'all' && auth.status !== statusFilter) {
-      return false;
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(auth => auth.status === statusFilter);
     }
 
     // Payment status filter
-    if (paymentStatusFilter !== 'all' && auth.payment_status !== paymentStatusFilter) {
-      return false;
+    if (paymentStatusFilter !== 'all') {
+      filtered = filtered.filter(auth => auth.payment_status === paymentStatusFilter);
     }
 
-    return true;
-  });
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortConfig.key === 'instructor') {
+          aValue = `${a.instructor?.first_name || ''} ${a.instructor?.last_name || ''}`.trim().toLowerCase();
+          bValue = `${b.instructor?.first_name || ''} ${b.instructor?.last_name || ''}`.trim().toLowerCase();
+        } else if (sortConfig.key === 'acc') {
+          aValue = (a.acc?.name || '').toLowerCase();
+          bValue = (b.acc?.name || '').toLowerCase();
+        } else if (sortConfig.key === 'authorization_price') {
+          aValue = parseFloat(a.authorization_price || 0);
+          bValue = parseFloat(b.authorization_price || 0);
+        } else if (sortConfig.key === 'status') {
+          aValue = (a.status || '').toLowerCase();
+          bValue = (b.status || '').toLowerCase();
+        } else if (sortConfig.key === 'payment_status') {
+          aValue = (a.payment_status || '').toLowerCase();
+          bValue = (b.payment_status || '').toLowerCase();
+        } else {
+          aValue = a[sortConfig.key] || '';
+          bValue = b[sortConfig.key] || '';
+        }
+        
+        if (sortConfig.key === 'authorization_price') {
+          // Already numbers
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [authorizations, searchTerm, statusFilter, paymentStatusFilter, sortConfig]);
 
   return (
     <div>
-
-      {/* API Endpoint Notice - Show only if no data and not loading */}
-      {authorizations.length === 0 && !loading && (
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-800 mb-1">
-                API Endpoint Not Available
-              </p>
-              <p className="text-xs text-yellow-700">
-                The endpoint <code className="bg-yellow-100 px-1 rounded text-yellow-900">/api/training-center/instructors/authorizations</code> is not yet implemented in the backend (404 error). 
-                This feature will work once the backend endpoint is ready. In the meantime, you can still request instructor authorizations from the <strong>Instructors</strong> page.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Search and Filter Section */}
       <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
         <div className="flex flex-col md:flex-row gap-4">
@@ -571,12 +608,62 @@ const InstructorAuthorizationsScreen = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="table-header-gradient">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Instructor</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">ACC</th>
+                <th 
+                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                  onClick={() => handleSort('instructor')}
+                >
+                  <div className="flex items-center gap-2">
+                    Instructor
+                    {sortConfig.key === 'instructor' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                  onClick={() => handleSort('acc')}
+                >
+                  <div className="flex items-center gap-2">
+                    ACC
+                    {sortConfig.key === 'acc' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Courses</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Authorization Price</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Payment Status</th>
+                <th 
+                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                  onClick={() => handleSort('authorization_price')}
+                >
+                  <div className="flex items-center gap-2">
+                    Authorization Price
+                    {sortConfig.key === 'authorization_price' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    Status
+                    {sortConfig.key === 'status' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
+                  onClick={() => handleSort('payment_status')}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    Payment Status
+                    {sortConfig.key === 'payment_status' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -610,17 +697,12 @@ const InstructorAuthorizationsScreen = () => {
                             <li>Click <strong>Request Authorization</strong> button for that instructor</li>
                             <li>Select an ACC and courses for authorization</li>
                             <li>Wait for ACC Admin to approve and set authorization price</li>
-                            <li>Wait for Group Admin to set commission percentage</li>
+                            <li>Wait for Group Admin approval</li>
                             <li>Then come back here to complete payment!</li>
                           </ol>
                           <div className="mt-3 pt-3 border-t border-blue-200">
                             <p className="text-xs text-blue-600">
                               <strong>Note:</strong> Authorizations will only appear here after you've submitted a request and it's been approved by ACC Admin.
-                            </p>
-                          </div>
-                          <div className="mt-3 pt-3 border-t border-yellow-200 bg-yellow-50 rounded p-2">
-                            <p className="text-xs text-yellow-800">
-                              <strong>⚠️ API Notice:</strong> The instructor authorizations endpoint may not be implemented yet in the backend. If you've already submitted authorization requests, they may appear here once the backend endpoint is ready.
                             </p>
                           </div>
                         </div>
@@ -693,11 +775,6 @@ const InstructorAuthorizationsScreen = () => {
                           <DollarSign className="h-4 w-4 mr-1 text-green-600" />
                           {parseFloat(auth.authorization_price || 0).toFixed(2)}
                         </div>
-                        {auth.commission_percentage && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Commission: {parseFloat(auth.commission_percentage).toFixed(1)}%
-                          </div>
-                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-center">
                         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
@@ -712,7 +789,7 @@ const InstructorAuthorizationsScreen = () => {
                         </span>
                         {auth.group_admin_status && (
                           <div className="text-xs text-gray-500 mt-1">
-                            {auth.group_admin_status === 'pending' && 'Waiting for commission'}
+                            {auth.group_admin_status === 'pending' && 'Waiting for approval'}
                             {auth.group_admin_status === 'commission_set' && 'Ready for payment'}
                             {auth.group_admin_status === 'completed' && 'Completed'}
                           </div>
@@ -797,9 +874,6 @@ const InstructorAuthorizationsScreen = () => {
               <p className="text-sm text-gray-600">Instructor: <span className="font-semibold text-gray-900">{selectedAuthorization.instructor?.first_name} {selectedAuthorization.instructor?.last_name}</span></p>
               <p className="text-sm text-gray-600">ACC: <span className="font-semibold text-gray-900">{selectedAuthorization.acc?.name}</span></p>
               <p className="text-sm text-gray-600">Authorization Price: <span className="font-semibold text-gray-900">${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}</span></p>
-              {selectedAuthorization.commission_percentage && (
-                <p className="text-sm text-gray-600">Commission: <span className="font-semibold text-gray-900">{parseFloat(selectedAuthorization.commission_percentage).toFixed(1)}%</span></p>
-              )}
             </div>
           )}
 
@@ -900,14 +974,6 @@ const InstructorAuthorizationsScreen = () => {
                   ${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}
                 </p>
               </div>
-              {selectedAuthorization.commission_percentage && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Commission Percentage</p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {parseFloat(selectedAuthorization.commission_percentage).toFixed(1)}%
-                  </p>
-                </div>
-              )}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Status</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
@@ -934,8 +1000,8 @@ const InstructorAuthorizationsScreen = () => {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm font-semibold text-blue-900 mb-1">Group Admin Status</p>
                 <p className="text-sm text-gray-700">
-                  {selectedAuthorization.group_admin_status === 'pending' && 'Waiting for commission percentage to be set'}
-                  {selectedAuthorization.group_admin_status === 'commission_set' && 'Commission set - Ready for payment'}
+GI                {selectedAuthorization.group_admin_status === 'pending' && 'Waiting for Group Admin approval'}
+                  {selectedAuthorization.group_admin_status === 'commission_set' && 'Ready for payment'}
                   {selectedAuthorization.group_admin_status === 'completed' && 'Authorization completed'}
                 </p>
               </div>

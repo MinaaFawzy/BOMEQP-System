@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, Check, Trash2, CheckCheck } from 'lucide-react';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useNotificationsContext } from '../../context/NotificationsContext';
 import './NotificationBell.css';
 
 const NotificationBell = () => {
@@ -17,9 +17,7 @@ const NotificationBell = () => {
     deleteNotification,
     deleteAllRead,
     fetchNotifications,
-  } = useNotifications({ 
-    autoFetch: true, // Fetch on mount/reload only
-  });
+  } = useNotificationsContext();
 
   // Calculate dropdown position when opening
   useEffect(() => {
@@ -39,8 +37,10 @@ const NotificationBell = () => {
         top: buttonRect.bottom + 12,
         right: rightPosition,
       });
-      // Refresh notifications when opening dropdown
-      fetchNotifications({}, 1, 15);
+      // Refresh notifications when opening dropdown (only if not already loading)
+      if (!loading) {
+        fetchNotifications({}, 1, 15);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);

@@ -5,12 +5,13 @@ import { getAuthToken } from '../../../config/api';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
 import './InstructorsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
+import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 
 const TrainingCenterInstructorsScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -23,8 +24,11 @@ const TrainingCenterInstructorsScreen = () => {
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [accs, setAccs] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectionType, setSelectionType] = useState('sub_category'); // 'sub_category' or 'courses'
   const [requestForm, setRequestForm] = useState({
     acc_id: '',
+    sub_category_id: '',
     course_ids: [],
   });
   const [requestErrors, setRequestErrors] = useState({});
@@ -36,7 +40,8 @@ const TrainingCenterInstructorsScreen = () => {
     phone: '',
     id_number: '',
     cv: null,
-    specializations: '',
+    specializations: [],
+    is_assessor: false,
   });
   const [cvFile, setCvFile] = useState(null);
   const [cvFileName, setCvFileName] = useState('');
@@ -46,22 +51,12 @@ const TrainingCenterInstructorsScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [selectedLanguage, setSelectedLanguage] = useState('');
   const [pagination, setPagination] = useState({
     currentPage: 1,
     perPage: 10,
     totalPages: 1,
     totalItems: 0,
   });
-
-  // List of languages
-  const languages = [
-    'English', 'Arabic', 'French', 'Spanish', 'German', 'Italian', 'Portuguese', 
-    'Russian', 'Chinese', 'Japanese', 'Korean', 'Hindi', 'Turkish', 'Dutch', 
-    'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Polish', 'Czech', 'Greek', 
-    'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Malay', 'Tagalog', 'Urdu',
-    'Persian', 'Bengali', 'Punjabi', 'Tamil', 'Telugu', 'Marathi', 'Gujarati'
-  ];
 
   useEffect(() => {
     loadInstructors();
@@ -168,8 +163,9 @@ const TrainingCenterInstructorsScreen = () => {
         id_number: instructor.id_number || '',
         cv: null,
         specializations: Array.isArray(instructor.specializations) 
-          ? instructor.specializations.join(', ') 
-          : instructor.specializations || '',
+          ? instructor.specializations 
+          : (instructor.specializations ? instructor.specializations.split(',').map(s => s.trim()).filter(s => s) : []),
+        is_assessor: instructor.is_assessor || false,
       });
       setCvFile(null);
       setCvFileName('');
@@ -183,7 +179,8 @@ const TrainingCenterInstructorsScreen = () => {
         phone: '',
         id_number: '',
         cv: null,
-        specializations: '',
+        specializations: [],
+        is_assessor: false,
       });
       setCvFile(null);
       setCvFileName('');
@@ -203,7 +200,8 @@ const TrainingCenterInstructorsScreen = () => {
       phone: '',
       id_number: '',
       cv: null,
-      specializations: '',
+      specializations: [],
+      is_assessor: false,
     });
     setCvFile(null);
     setCvFileName('');
@@ -253,39 +251,12 @@ const TrainingCenterInstructorsScreen = () => {
     }
   };
 
-  const handleLanguageSelect = (e) => {
-    const language = e.target.value;
-    if (language && !formData.specializations.split(',').map(s => s.trim()).includes(language)) {
-      const currentSpecializations = formData.specializations.trim();
-      const newSpecializations = currentSpecializations 
-        ? `${currentSpecializations}, ${language}`
-        : language;
-      setFormData({
-        ...formData,
-        specializations: newSpecializations,
-      });
-      setSelectedLanguage('');
-      setErrors({});
-    }
-  };
-
-  const handleRemoveLanguage = (languageToRemove) => {
-    const currentSpecializations = formData.specializations
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s && s !== languageToRemove)
-      .join(', ');
+  const handleSpecializationsChange = (specializations) => {
     setFormData({
       ...formData,
-      specializations: currentSpecializations,
+      specializations: specializations,
     });
-  };
-
-  const getSelectedLanguages = () => {
-    return formData.specializations
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s);
+    setErrors({});
   };
 
   const handleSubmit = async (e) => {
@@ -294,41 +265,75 @@ const TrainingCenterInstructorsScreen = () => {
     setErrors({});
 
     try {
-      // Prepare submit data - convert specializations to array and clean up empty fields
-      const specializationsArray = formData.specializations
-        ? formData.specializations.split(',').map(s => s.trim()).filter(s => s)
-        : [];
-
-      // Use FormData for file upload
-      const submitData = new FormData();
-      submitData.append('first_name', formData.first_name.trim());
-      submitData.append('last_name', formData.last_name.trim());
-      submitData.append('email', formData.email.trim());
+      // Check if we need FormData (if there's a file to upload)
+      // cvFile is a File object when a new file is selected
+      const hasFile = cvFile instanceof File;
       
-      if (formData.phone?.trim()) {
-        submitData.append('phone', formData.phone.trim());
-      }
-      if (formData.id_number?.trim()) {
-        submitData.append('id_number', formData.id_number.trim());
-      }
+      let submitData;
       
-      // Append CV file if a new file is selected
-      if (cvFile) {
+      if (hasFile) {
+        // Use FormData ONLY when there's a file to upload
+        // Note: FormData is required for file uploads, JSON cannot handle files
+        submitData = new FormData();
+        submitData.append('first_name', formData.first_name.trim());
+        submitData.append('last_name', formData.last_name.trim());
+        submitData.append('email', formData.email.trim());
+        
+        if (formData.phone?.trim()) {
+          submitData.append('phone', formData.phone.trim());
+        }
+        if (formData.id_number?.trim()) {
+          submitData.append('id_number', formData.id_number.trim());
+        }
+        
+        // Append CV file (must be a File object)
         submitData.append('cv', cvFile);
-      }
-      
-      // Append specializations as array
-      if (specializationsArray.length > 0) {
-        specializationsArray.forEach(spec => {
-          submitData.append('specializations[]', spec);
-        });
+        
+        // Append specializations as array
+        if (formData.specializations && formData.specializations.length > 0) {
+          formData.specializations.forEach(spec => {
+            submitData.append('specializations[]', spec);
+          });
+        }
+        
+        // Append is_assessor - convert boolean to '1' or '0' for FormData
+        // Backend expects boolean, but FormData sends strings, so we send '1'/'0' which backend can convert to boolean
+        submitData.append('is_assessor', formData.is_assessor === true || formData.is_assessor === 'true' || formData.is_assessor === 1 || formData.is_assessor === '1' ? '1' : '0');
+        
+        console.log('📦 Using FormData (file upload required)');
+      } else {
+        // Use JSON object (no file upload needed) - cleaner and faster
+        submitData = {
+          first_name: formData.first_name.trim(),
+          last_name: formData.last_name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone?.trim() || null,
+          id_number: formData.id_number?.trim() || null,
+          specializations: formData.specializations || [],
+          is_assessor: formData.is_assessor, // Boolean value (not string)
+        };
+        
+        console.log('📄 Using JSON (no file upload):', JSON.stringify(submitData, null, 2));
       }
 
-      console.log('Submitting instructor data with FormData');
+      console.log('Submitting instructor data:', hasFile ? 'FormData' : 'JSON');
+      console.log('is_assessor value:', formData.is_assessor, 'Type:', typeof formData.is_assessor);
 
       if (selectedInstructor) {
-        await trainingCenterAPI.updateInstructor(selectedInstructor.id, submitData);
+        console.log('🔄 Updating instructor with ID:', selectedInstructor.id);
+        console.log('📦 Submit data type:', hasFile ? 'FormData' : 'JSON');
+        if (hasFile) {
+          console.log('📄 CV File:', cvFile.name, cvFile.size, 'bytes');
+        }
+        const result = await trainingCenterAPI.updateInstructor(selectedInstructor.id, submitData);
+        console.log('✅ Update result:', result);
+        
+        // Check if CV was updated
+        if (hasFile && result?.instructor?.cv_url) {
+          console.log('✅ CV updated successfully:', result.instructor.cv_url);
+        }
       } else {
+        console.log('➕ Creating new instructor');
         await trainingCenterAPI.createInstructor(submitData);
       }
       await loadInstructors();
@@ -386,8 +391,10 @@ const TrainingCenterInstructorsScreen = () => {
     setSelectedInstructor(instructor);
     setRequestForm({
       acc_id: '',
+      sub_category_id: '',
       course_ids: [],
     });
+    setSelectionType('sub_category');
     setRequestErrors({});
     setRequestAuthModalOpen(true);
   };
@@ -410,6 +417,7 @@ const TrainingCenterInstructorsScreen = () => {
       const approvedAccs = allAccs.filter(acc => approvedAccIds.has(acc.id));
       setAccs(approvedAccs);
       setCourses([]);
+      setSubCategories([]);
     } catch (error) {
       console.error('Failed to load request form data:', error);
       setAccs([]);
@@ -417,93 +425,40 @@ const TrainingCenterInstructorsScreen = () => {
   };
 
   const handleAccChange = async (accId) => {
-    // Clear courses immediately when ACC changes
-    setRequestForm({ ...requestForm, acc_id: accId, course_ids: [] });
+    // Clear everything when ACC changes
+    setRequestForm({ ...requestForm, acc_id: accId, sub_category_id: '', course_ids: [] });
     setCourses([]);
+    setSubCategories([]);
     
     if (!accId) {
       return;
     }
 
     try {
-      const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-      
-      // Try to get courses directly from ACC endpoint (same as ClassesScreen)
-      const endpoints = [
-        `${baseURL}/training-center/accs/${accId}/courses`,
-        `${baseURL}/acc/${accId}/courses`,
-        `${baseURL}/training-center/courses?acc_id=${accId}`,
-      ];
-      
-      let courses = [];
-      
-      // Try each endpoint until one works
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
-            },
-          });
-          
-          const data = response.data;
-          courses = data.courses || data.data || data || [];
-          
-          if (courses.length > 0) {
-            // Ensure all courses have acc_id set
-            courses = courses.map(course => ({
-              ...course,
-              acc_id: parseInt(accId),
-            }));
-            break; // Success, exit loop
-          }
-        } catch (error) {
-          // Continue to next endpoint
-          continue;
-        }
-      }
-      
-      // If direct endpoint didn't work, fallback to classes
-      if (courses.length === 0) {
-        try {
-          const classesData = await trainingCenterAPI.listClasses({ acc_id: accId });
-          const classesList = classesData?.classes || classesData?.data || [];
-          
-          const courseMap = new Map();
-          classesList.forEach(cls => {
-            // Verify the class belongs to the selected ACC
-            const classAccId = cls.acc_id || cls.acc?.id;
-            if (classAccId && parseInt(classAccId) === parseInt(accId) && cls.course) {
-              const courseObj = typeof cls.course === 'object' ? cls.course : { id: cls.course, name: cls.course };
-              const courseKey = courseObj.id || courseObj.name;
-              
-              if (courseKey && !courseMap.has(courseKey)) {
-                courseMap.set(courseKey, {
-                  ...courseObj,
-                  acc_id: parseInt(accId),
-                });
-                courses.push(courseMap.get(courseKey));
-              }
-            }
-          });
-        } catch (err) {
-          console.error('Failed to load courses from classes:', err);
-        }
-      }
-      
-      // Final filter: ensure all courses belong to the selected ACC
-      const filteredCourses = courses.filter(course => {
-        const courseAccId = course.acc_id || course.acc?.id;
-        return courseAccId && parseInt(courseAccId) === parseInt(accId);
-      });
-      
-      setCourses(filteredCourses);
+      // Load sub-categories and courses in parallel
+      const [subCategoriesData, coursesData] = await Promise.all([
+        trainingCenterAPI.getSubCategoriesForACC(accId).catch(() => ({ sub_categories: [] })),
+        trainingCenterAPI.getCoursesForACC(accId).catch(() => ({ courses: [] })),
+      ]);
+
+      // Set sub-categories
+      const subCats = subCategoriesData?.sub_categories || [];
+      setSubCategories(subCats);
+
+      // Set courses
+      const coursesList = coursesData?.courses || [];
+      setCourses(coursesList);
     } catch (error) {
-      console.error('Failed to load courses:', error);
+      console.error('Failed to load ACC data:', error);
       setCourses([]);
+      setSubCategories([]);
     }
+  };
+
+  const handleSelectionTypeChange = (type) => {
+    setSelectionType(type);
+    setRequestForm({ ...requestForm, sub_category_id: '', course_ids: [] });
+    setRequestErrors({});
   };
 
   const handleCourseToggle = (courseId) => {
@@ -525,25 +480,51 @@ const TrainingCenterInstructorsScreen = () => {
     setRequestErrors({});
 
     try {
-      if (!requestForm.acc_id || !requestForm.course_ids || requestForm.course_ids.length === 0) {
-        setRequestErrors({ general: 'Please select an ACC and at least one course' });
+      // Validate based on selection type
+      if (!requestForm.acc_id) {
+        setRequestErrors({ general: 'Please select an ACC' });
         setRequesting(false);
         return;
       }
 
+      if (selectionType === 'sub_category') {
+        if (!requestForm.sub_category_id) {
+          setRequestErrors({ general: 'Please select a sub-category' });
+          setRequesting(false);
+          return;
+        }
+      } else {
+        if (!requestForm.course_ids || requestForm.course_ids.length === 0) {
+          setRequestErrors({ general: 'Please select at least one course' });
+          setRequesting(false);
+          return;
+        }
+      }
+
+      // Build submit data based on selection type
       const submitData = {
         acc_id: parseInt(requestForm.acc_id),
-        course_ids: requestForm.course_ids.map(id => parseInt(id)),
       };
 
-      await trainingCenterAPI.requestInstructorAuthorization(selectedInstructor.id, submitData);
+      if (selectionType === 'sub_category') {
+        submitData.sub_category_id = parseInt(requestForm.sub_category_id);
+      } else {
+        submitData.course_ids = requestForm.course_ids.map(id => parseInt(id));
+      }
+
+      const response = await trainingCenterAPI.requestInstructorAuthorization(selectedInstructor.id, submitData);
+      
       setRequestAuthModalOpen(false);
       setRequestForm({
         acc_id: '',
+        sub_category_id: '',
         course_ids: [],
       });
+      setSelectionType('sub_category');
       setSelectedInstructor(null);
-      alert('Authorization request submitted successfully!');
+      
+      const coursesCount = response?.courses_count || (selectionType === 'courses' ? requestForm.course_ids.length : 'all');
+      alert(`Authorization request submitted successfully! ${coursesCount} course(s) included.`);
     } catch (error) {
       console.error('Failed to submit request:', error);
       if (error.response?.data) {
@@ -790,13 +771,14 @@ const TrainingCenterInstructorsScreen = () => {
                   </div>
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Languages</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Type</th>
                 <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {filteredAndSortedInstructors.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <Users className="text-gray-400" size={32} />
@@ -890,6 +872,17 @@ const TrainingCenterInstructorsScreen = () => {
                           </div>
                         ) : (
                           <span className="text-sm text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center">
+                        {instructor.is_assessor ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                            Assessor
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                            Instructor
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
@@ -1006,85 +999,115 @@ const TrainingCenterInstructorsScreen = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              CV (PDF)
+              CV / Resume (PDF)
             </label>
-            <div className="space-y-2">
-              <input
-                type="file"
-                accept=".pdf,application/pdf"
-                onChange={handleFileChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 cursor-pointer"
-              />
-              {cvFileName && (
-                <p className="text-sm text-gray-600">
-                  Selected: <span className="font-medium">{cvFileName}</span>
-                </p>
-              )}
-              {existingCvUrl && !cvFile && (
-                <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-xs text-gray-500 mb-1">Current CV:</p>
+            
+            {/* Current CV Display */}
+            {existingCvUrl && !cvFile && (
+              <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <FileText className="text-white" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Current CV</p>
+                      <p className="text-xs text-gray-600">Click to view your current CV</p>
+                    </div>
+                  </div>
                   <a
                     href={existingCvUrl.startsWith('http') ? existingCvUrl : `${API_BASE_URL}${existingCvUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700 underline"
+                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    View Current CV
+                    <FileText size={14} className="mr-1.5" />
+                    View CV
                   </a>
                 </div>
+              </div>
+            )}
+
+            {/* Upload Area */}
+            <div className="space-y-2">
+              <label className="relative block">
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="cv-upload-input"
+                />
+                <div className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-primary-400 hover:bg-primary-50/30 transition-all duration-200 cursor-pointer group">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                      <FileText className="text-primary-600" size={24} />
+                    </div>
+                    {cvFileName ? (
+                      <>
+                        <p className="text-sm font-medium text-gray-900 mb-1">
+                          {cvFileName}
+                        </p>
+                        <p className="text-xs text-gray-500">Click to change file</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          {existingCvUrl ? 'Update CV' : 'Upload CV'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Click to select PDF document
+                        </p>
+                      </>
+                    )}
+                    <p className="text-xs text-gray-400 mt-2">
+                      PDF only, maximum 10MB
+                    </p>
+                  </div>
+                </div>
+              </label>
+              
+              {cvFileName && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="text-green-600" size={18} />
+                  <p className="text-sm text-green-800">
+                    <span className="font-medium">Selected:</span> {cvFileName}
+                  </p>
+                </div>
               )}
-              <p className="text-xs text-gray-500">
-                PDF only, maximum 10MB
-              </p>
+              
               {errors.cv && (
-                <p className="text-sm text-red-600">{errors.cv}</p>
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{errors.cv}</p>
+                </div>
               )}
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Languages
+          <LanguageSelector
+            label="Languages"
+            value={formData.specializations}
+            onChange={handleSpecializationsChange}
+            error={errors.specializations}
+          />
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="is_assessor"
+              name="is_assessor"
+              checked={formData.is_assessor || false}
+              onChange={(e) => setFormData({
+                ...formData,
+                is_assessor: e.target.checked
+              })}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="is_assessor" className="text-sm font-medium text-gray-700">
+              Is Assessor
             </label>
-            <div className="relative">
-              <select
-                value={selectedLanguage}
-                onChange={handleLanguageSelect}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-              >
-                <option value="">Select a language...</option>
-                {languages
-                  .filter(lang => !getSelectedLanguages().includes(lang))
-                  .map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            {getSelectedLanguages().length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {getSelectedLanguages().map((lang, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 border border-primary-200"
-                  >
-                    {lang}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveLanguage(lang)}
-                      className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-primary-200 transition-colors"
-                    >
-                      <X size={12} className="text-primary-600" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            {errors.specializations && (
-              <p className="mt-1 text-sm text-red-600">{errors.specializations}</p>
-            )}
           </div>
+          <p className="text-xs text-gray-500 -mt-2 ml-6">Mark this instructor as an assessor</p>
 
           {errors.general && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1162,6 +1185,18 @@ const TrainingCenterInstructorsScreen = () => {
                 </div>
               )}
               <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1">Type</p>
+                {selectedInstructor.is_assessor ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    Assessor
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                    Instructor
+                  </span>
+                )}
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Status</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                   selectedInstructor.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -1192,19 +1227,29 @@ const TrainingCenterInstructorsScreen = () => {
               </div>
             )}
             {selectedInstructor.cv_url && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-2">CV</p>
-                <a
-                  href={selectedInstructor.cv_url.startsWith('http') 
-                    ? selectedInstructor.cv_url 
-                    : `${API_BASE_URL}${selectedInstructor.cv_url}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <BookOpen size={16} className="mr-2" />
-                  View CV (PDF)
-                </a>
+              <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <FileText className="text-white" size={28} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 mb-1">Curriculum Vitae</p>
+                      <p className="text-xs text-gray-600">Click the button to view the instructor's CV</p>
+                    </div>
+                  </div>
+                  <a
+                    href={selectedInstructor.cv_url.startsWith('http') 
+                      ? selectedInstructor.cv_url 
+                      : `${API_BASE_URL}${selectedInstructor.cv_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <FileText size={18} className="mr-2" />
+                    View CV
+                  </a>
+                </div>
               </div>
             )}
           </div>
@@ -1270,41 +1315,124 @@ const TrainingCenterInstructorsScreen = () => {
             </p>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Courses <span className="text-red-500 ml-1">*</span>
-            </label>
-            {!requestForm.acc_id ? (
-              <p className="text-sm text-gray-500">Please select an ACC first</p>
-            ) : courses.length === 0 ? (
-              <p className="text-sm text-yellow-600">No courses available for the selected ACC</p>
-            ) : (
-              <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 space-y-2">
-                {courses.map(course => (
-                  <label
-                    key={course.id || course.name}
-                    className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={requestForm.course_ids?.includes(course.id) || false}
-                      onChange={() => handleCourseToggle(course.id)}
-                      className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-900">{course.name || course.code || `Course ${course.id}`}</span>
-                  </label>
-                ))}
+          {requestForm.acc_id && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Selection Type <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="flex gap-4 mb-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="selectionType"
+                    value="sub_category"
+                    checked={selectionType === 'sub_category'}
+                    onChange={(e) => handleSelectionTypeChange(e.target.value)}
+                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700">Select Sub-Category (All Courses)</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="selectionType"
+                    value="courses"
+                    checked={selectionType === 'courses'}
+                    onChange={(e) => handleSelectionTypeChange(e.target.value)}
+                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700">Select Specific Courses</span>
+                </label>
               </div>
-            )}
-            {requestErrors.course_ids && <p className="mt-1 text-sm text-red-600">{requestErrors.course_ids}</p>}
-          </div>
+            </div>
+          )}
+
+          {requestForm.acc_id && selectionType === 'sub_category' && (
+            <div>
+              <FormInput
+                label="Sub-Category"
+                name="sub_category_id"
+                type="select"
+                value={requestForm.sub_category_id}
+                onChange={(e) => setRequestForm({ ...requestForm, sub_category_id: e.target.value, course_ids: [] })}
+                required
+                options={subCategories.length > 0
+                  ? subCategories.map(subCat => ({
+                      value: subCat.id,
+                      label: `${subCat.name} (${subCat.courses_count || 0} courses)`,
+                    }))
+                  : [{ value: '', label: 'No sub-categories available' }]
+                }
+                error={requestErrors.sub_category_id}
+                disabled={subCategories.length === 0}
+              />
+              {subCategories.length === 0 && requestForm.acc_id && (
+                <p className="text-sm text-yellow-600 mt-1">
+                  No sub-categories found for the selected ACC
+                </p>
+              )}
+            </div>
+          )}
+
+          {requestForm.acc_id && selectionType === 'courses' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Courses <span className="text-red-500 ml-1">*</span>
+              </label>
+              {courses.length === 0 ? (
+                <p className="text-sm text-yellow-600">No courses available for the selected ACC</p>
+              ) : (
+                <>
+                  <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 space-y-2">
+                    {courses.map(course => (
+                      <label
+                        key={course.id || course.name}
+                        className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={requestForm.course_ids?.includes(course.id) || false}
+                          onChange={() => handleCourseToggle(course.id)}
+                          className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-900">
+                            {course.name || course.code || `Course ${course.id}`}
+                          </span>
+                          {course.sub_category && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({course.sub_category.name || course.sub_category})
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  {requestForm.course_ids.length > 0 && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      Selected: <span className="font-medium">{requestForm.course_ids.length}</span> course(s)
+                    </p>
+                  )}
+                </>
+              )}
+              {requestErrors.course_ids && <p className="mt-1 text-sm text-red-600">{requestErrors.course_ids}</p>}
+            </div>
+          )}
 
           <div className="flex space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={() => {
                 setRequestAuthModalOpen(false);
+                setRequestForm({
+                  acc_id: '',
+                  sub_category_id: '',
+                  course_ids: [],
+                });
+                setSelectionType('sub_category');
                 setRequestErrors({});
+                setCourses([]);
+                setSubCategories([]);
               }}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
@@ -1325,3 +1453,4 @@ const TrainingCenterInstructorsScreen = () => {
 };
 
 export default TrainingCenterInstructorsScreen;
+

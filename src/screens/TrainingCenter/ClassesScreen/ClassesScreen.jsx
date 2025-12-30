@@ -16,6 +16,8 @@ const ClassesScreen = () => {
   const [availableCourses, setAvailableCourses] = useState([]);
   const [hasAuthorizations, setHasAuthorizations] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedCourseData, setSelectedCourseData] = useState(null);
+  const [filteredInstructors, setFilteredInstructors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -26,7 +28,6 @@ const ClassesScreen = () => {
     instructor_id: '',
     start_date: '',
     end_date: '',
-    max_capacity: '',
     location: 'physical',
   });
   const [errors, setErrors] = useState({});
@@ -48,8 +49,21 @@ const ClassesScreen = () => {
   useEffect(() => {
     if (isModalOpen) {
       loadAvailableCourses();
+      // Initialize filtered instructors with all instructors when modal opens
+      setFilteredInstructors(instructors);
+      setSelectedCourseData(null);
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, instructors]);
+
+  // When course is selected, load course details and filter instructors
+  useEffect(() => {
+    if (formData.course_id && isModalOpen && availableCourses.length > 0) {
+      loadCourseDetails(formData.course_id);
+    } else if (!formData.course_id) {
+      setSelectedCourseData(null);
+      setFilteredInstructors(instructors);
+    }
+  }, [formData.course_id, isModalOpen, availableCourses, instructors]);
 
   useEffect(() => {
     setHeaderTitle('Classes');
@@ -115,6 +129,76 @@ const ClassesScreen = () => {
   
   const handlePerPageChange = (perPage) => {
     setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
+  };
+
+  // Load course details and filter instructors based on assessor_required
+  const loadCourseDetails = async (courseId) => {
+    try {
+      // Find course in availableCourses array
+      const course = availableCourses.find(c => c.id === parseInt(courseId));
+      
+      if (course) {
+        setSelectedCourseData(course);
+        
+        // Filter instructors based on assessor_required
+        if (course.assessor_required) {
+          // Show only assessors
+          const assessors = instructors.filter(inst => inst.is_assessor === true);
+          setFilteredInstructors(assessors);
+          
+          // Clear instructor selection if current instructor is not an assessor
+          if (formData.instructor_id) {
+            const selectedInstructor = instructors.find(inst => inst.id === parseInt(formData.instructor_id));
+            if (selectedInstructor && !selectedInstructor.is_assessor) {
+              setFormData(prev => ({ ...prev, instructor_id: '' }));
+            }
+          }
+        } else {
+          // Show all instructors
+          setFilteredInstructors(instructors);
+        }
+      } else {
+        // Course not found in availableCourses, try to fetch from API
+        try {
+          const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+          const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+          
+          // Try to get course from ACC API
+          const response = await axios.get(`${baseURL}/acc/courses/${courseId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+            },
+          });
+          
+          const courseData = response.data.course || response.data;
+          setSelectedCourseData(courseData);
+          
+          // Filter instructors based on assessor_required
+          if (courseData.assessor_required) {
+            const assessors = instructors.filter(inst => inst.is_assessor === true);
+            setFilteredInstructors(assessors);
+            
+            if (formData.instructor_id) {
+              const selectedInstructor = instructors.find(inst => inst.id === parseInt(formData.instructor_id));
+              if (selectedInstructor && !selectedInstructor.is_assessor) {
+                setFormData(prev => ({ ...prev, instructor_id: '' }));
+              }
+            }
+          } else {
+            setFilteredInstructors(instructors);
+          }
+        } catch (error) {
+          console.error('Failed to load course details:', error);
+          setSelectedCourseData(null);
+          setFilteredInstructors(instructors);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading course details:', error);
+      setSelectedCourseData(null);
+      setFilteredInstructors(instructors);
+    }
   };
 
   const loadAvailableCourses = async () => {
@@ -233,7 +317,6 @@ const ClassesScreen = () => {
         instructor_id: classItem.instructor_id || '',
         start_date: classItem.start_date ? classItem.start_date.split('T')[0] : '',
         end_date: classItem.end_date ? classItem.end_date.split('T')[0] : '',
-        max_capacity: classItem.max_capacity || '',
         location: classItem.location || 'physical',
       });
     } else {
@@ -244,10 +327,11 @@ const ClassesScreen = () => {
         instructor_id: '',
         start_date: '',
         end_date: '',
-        max_capacity: '',
         location: 'physical',
       });
     }
+    setSelectedCourseData(null);
+    setFilteredInstructors(instructors);
     setErrors({});
     setIsModalOpen(true);
   };
@@ -261,7 +345,6 @@ const ClassesScreen = () => {
       instructor_id: '',
       start_date: '',
       end_date: '',
-      max_capacity: '',
       location: 'physical',
     });
     setErrors({});
@@ -307,11 +390,6 @@ const ClassesScreen = () => {
         setSaving(false);
         return;
       }
-      if (!formData.max_capacity) {
-        setErrors({ max_capacity: 'Max capacity is required' });
-        setSaving(false);
-        return;
-      }
 
       // Prepare submit data exactly as specified
       const submitData = {
@@ -320,7 +398,6 @@ const ClassesScreen = () => {
         instructor_id: parseInt(formData.instructor_id),
         start_date: formData.start_date,
         end_date: formData.end_date,
-        max_capacity: parseInt(formData.max_capacity),
         location: formData.location,
       };
 
@@ -739,7 +816,7 @@ const ClassesScreen = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600">
-                        {classItem.enrolled_count || 0} / {classItem.max_capacity || 0}
+                        {classItem.enrolled_count || 0} / {classItem.course?.max_capacity || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-2">
@@ -855,14 +932,34 @@ const ClassesScreen = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
             >
               <option value="">Select an instructor...</option>
-              {instructors.map(inst => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.first_name} {inst.last_name}
-                </option>
-              ))}
+              {filteredInstructors.length > 0 ? (
+                filteredInstructors.map(inst => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.first_name} {inst.last_name}
+                    {inst.is_assessor && ' (Assessor)'}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No instructors available</option>
+              )}
             </select>
             {errors.instructor_id && (
               <p className="mt-1 text-sm text-red-600">{errors.instructor_id}</p>
+            )}
+            {selectedCourseData?.assessor_required && filteredInstructors.length === 0 && (
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 font-medium">
+                  ⚠️ This course requires an assessor, but no assessors are available.
+                </p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Please mark at least one instructor as an assessor before creating this class.
+                </p>
+              </div>
+            )}
+            {selectedCourseData?.assessor_required && filteredInstructors.length > 0 && (
+              <p className="mt-1 text-xs text-blue-600">
+                ℹ️ This course requires an assessor. Only assessors are shown.
+              </p>
             )}
           </div>
 
@@ -888,35 +985,24 @@ const ClassesScreen = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput
-              label="Max Capacity"
-              name="max_capacity"
-              type="number"
-              value={formData.max_capacity}
-              onChange={handleChange}
-              required
-              error={errors.max_capacity}
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location <span className="text-red-500">*</span>
-              </label>
-              <select
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location <span className="text-red-500">*</span>
+            </label>
+            <select
               name="location"
               value={formData.location}
               onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-              >
-                <option value="physical">Physical</option>
-                <option value="online">Online</option>
-              </select>
-              {errors.location && (
-                <p className="mt-1 text-sm text-red-600">{errors.location}</p>
-              )}
-            </div>
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
+            >
+              <option value="physical">Physical</option>
+              <option value="online">Online</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+            {errors.location && (
+              <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+            )}
           </div>
 
           {errors.general && (
@@ -1013,7 +1099,7 @@ const ClassesScreen = () => {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Enrollment</p>
                 <p className="text-base font-semibold text-gray-900">
-                  {selectedClass.enrolled_count || 0} / {selectedClass.max_capacity || 0}
+                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">

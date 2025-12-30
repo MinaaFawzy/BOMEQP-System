@@ -21,62 +21,27 @@ const TrainingCenterDashboardScreen = () => {
 
   const loadDashboard = async () => {
     try {
-      // Load dashboard data and counts in parallel
-      const [dashboardResult, accsResult, authorizationsResult, classesResult, instructorsResult, certificatesResult] = await Promise.allSettled([
-        trainingCenterAPI.getDashboard(),
-        trainingCenterAPI.listACCs(),
-        trainingCenterAPI.getAuthorizationStatus(),
-        trainingCenterAPI.listClasses({ page: 1, per_page: 1 }),
-        trainingCenterAPI.listInstructors({ page: 1, per_page: 1 }),
-        trainingCenterAPI.listCertificates({ page: 1, per_page: 1 })
-      ]);
-
-      // Extract dashboard data
-      if (dashboardResult.status === 'fulfilled') {
-        setDashboardData(dashboardResult.value);
-      }
-
-      // Extract ACCs count - count all authorizations (all statuses)
-      let accsCount = 0;
-      if (authorizationsResult.status === 'fulfilled') {
-        const authData = authorizationsResult.value;
-        const authorizations = authData?.authorizations || [];
-        // Count all authorizations (approved, pending, etc.)
-        accsCount = authorizations.length;
-        console.log('Authorizations data:', authData, 'Total authorizations:', accsCount);
-      } else if (accsResult.status === 'fulfilled') {
-        const accsData = accsResult.value;
-        // Fallback to available ACCs count
-        accsCount = accsData?.total || accsData?.count || (accsData?.accs?.length || 0);
-        console.log('ACCs data:', accsData, 'Available ACCs count:', accsCount);
-      }
-
-      let classesCount = 0;
-      if (classesResult.status === 'fulfilled') {
-        const classesData = classesResult.value;
-        classesCount = classesData?.total || classesData?.count || (classesData?.classes?.length || 0);
-      }
-
-      let instructorsCount = 0;
-      if (instructorsResult.status === 'fulfilled') {
-        const instructorsData = instructorsResult.value;
-        instructorsCount = instructorsData?.total || instructorsData?.count || (instructorsData?.instructors?.length || 0);
-      }
-
-      let certificatesCount = 0;
-      if (certificatesResult.status === 'fulfilled') {
-        const certificatesData = certificatesResult.value;
-        certificatesCount = certificatesData?.total || certificatesData?.count || (certificatesData?.certificates?.length || 0);
-      }
-
+      // Use the dedicated dashboard endpoint
+      const data = await trainingCenterAPI.getDashboard();
+      
+      // API returns: authorized_accreditations, classes, instructors, certificates, training_center_state { status, registration_date, accreditation_status }
+      setDashboardData(data);
+      
       setCounts({
-        accs: accsCount,
-        classes: classesCount,
-        instructors: instructorsCount,
-        certificates: certificatesCount
+        accs: data.authorized_accreditations || 0,
+        classes: data.classes || 0,
+        instructors: data.instructors || 0,
+        certificates: data.certificates || 0
       });
     } catch (error) {
       console.error('Failed to load dashboard:', error);
+      setDashboardData(null);
+      setCounts({
+        accs: 0,
+        classes: 0,
+        instructors: 0,
+        certificates: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -173,26 +138,6 @@ const TrainingCenterDashboardScreen = () => {
             </div>
           </div>
 
-          {/* Revenue Section */}
-          {dashboardData.revenue && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Revenue Overview</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Monthly Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${(dashboardData.monthly_revenue || dashboardData.revenue || 0).toLocaleString()}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${(dashboardData.revenue || 0).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Training Center State Section */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
@@ -208,7 +153,9 @@ const TrainingCenterDashboardScreen = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Status</p>
-                    <p className="text-lg font-bold text-gray-900">Active</p>
+                    <p className="text-lg font-bold text-gray-900 capitalize">
+                      {dashboardData.training_center_state?.status || 'N/A'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -220,7 +167,7 @@ const TrainingCenterDashboardScreen = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Registration Date</p>
                     <p className="text-lg font-bold text-gray-900">
-                      {dashboardData.registration_date || 'N/A'}
+                      {dashboardData.training_center_state?.registration_date || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -233,7 +180,7 @@ const TrainingCenterDashboardScreen = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Accreditation Status</p>
                     <p className="text-lg font-bold text-gray-900">
-                      {dashboardData.accreditation_status || 'Verified'}
+                      {dashboardData.training_center_state?.accreditation_status || 'Not Verified'}
                     </p>
                   </div>
                 </div>

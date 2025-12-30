@@ -1,0 +1,434 @@
+/* InstructorProfileScreen Styles */
+
+.instructor-profile-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.instructor-profile-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.instructor-profile-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #e5e7eb;
+  border-top-color: var(--primary-600);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.instructor-profile-success {
+  background: linear-gradient(to right, #dcfce7, #bbf7d0);
+  border: 1px solid #86efac;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instructor-profile-success-icon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.instructor-profile-success-text {
+  color: #166534;
+  font-weight: 500;
+}
+
+.instructor-profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructor-profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructor-profile-card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  border: 1px solid #f3f4f6;
+}
+
+.instructor-profile-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.instructor-profile-card-icon-wrapper {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, var(--primary-100), var(--primary-200));
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.instructor-profile-card-icon-red {
+  background: linear-gradient(to bottom right, #fee2e2, #fecaca);
+}
+
+.instructor-profile-card-icon-indigo {
+  background: linear-gradient(to bottom right, #e0e7ff, #c7d2fe);
+}
+
+.instructor-profile-card-icon {
+  color: var(--primary-600);
+}
+
+.instructor-profile-card-icon-red .instructor-profile-card-icon {
+  color: #dc2626;
+}
+
+.instructor-profile-card-icon-indigo .instructor-profile-card-icon {
+  color: #4f46e5;
+}
+
+.instructor-profile-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.instructor-profile-card-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.instructor-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.instructor-profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .instructor-profile-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.instructor-profile-select-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.instructor-profile-select-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.instructor-profile-select-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.instructor-profile-select-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.instructor-profile-select {
+  width: 100%;
+  padding-left: 2.5rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.instructor-profile-select:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--primary-500);
+  border-color: var(--primary-500);
+}
+
+.instructor-profile-select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.instructor-profile-error {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.instructor-profile-error-box {
+  padding: 1rem;
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  border-radius: 0.5rem;
+}
+
+.instructor-profile-error-text {
+  font-size: 0.875rem;
+  color: #991b1b;
+  font-weight: 500;
+  margin: 0;
+}
+
+.instructor-profile-form-actions {
+  padding-top: 0.5rem;
+}
+
+.instructor-profile-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .instructor-profile-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* CV Section Styles */
+.instructor-profile-cv-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructor-profile-cv-current {
+  padding: 1rem;
+  background: linear-gradient(to bottom right, #dcfce7, #bbf7d0);
+  border-radius: 0.5rem;
+  border: 1px solid #86efac;
+}
+
+.instructor-profile-cv-current-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.instructor-profile-cv-current-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.instructor-profile-cv-icon {
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.instructor-profile-cv-current-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.instructor-profile-cv-current-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.instructor-profile-cv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--primary-600);
+  text-decoration: underline;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+}
+
+.instructor-profile-cv-link:hover {
+  color: var(--primary-700);
+}
+
+.instructor-profile-cv-current-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.instructor-profile-cv-remove-btn {
+  padding: 0.5rem;
+  color: #dc2626;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.instructor-profile-cv-remove-btn:hover {
+  background-color: #fee2e2;
+}
+
+.instructor-profile-cv-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.instructor-profile-cv-empty {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.instructor-profile-cv-empty-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.instructor-profile-cv-empty-icon {
+  color: #9ca3af;
+}
+
+.instructor-profile-cv-empty-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.instructor-profile-cv-empty-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.instructor-profile-cv-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructor-profile-cv-upload-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.instructor-profile-cv-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.instructor-profile-cv-upload-area {
+  flex: 1;
+  cursor: pointer;
+}
+
+.instructor-profile-cv-upload-input {
+  display: none;
+}
+
+.instructor-profile-cv-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.instructor-profile-cv-upload-area:hover .instructor-profile-cv-upload-content {
+  border-color: var(--primary-500);
+  background-color: var(--primary-50);
+}
+
+.instructor-profile-cv-upload-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.instructor-profile-cv-upload-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.instructor-profile-cv-upload-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+.instructor-profile-cv-upload-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+

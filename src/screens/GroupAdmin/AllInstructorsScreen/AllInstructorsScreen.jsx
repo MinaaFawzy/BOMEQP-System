@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, Mail, Phone, Search, Filter, Building2, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, Eye, Edit, Award } from 'lucide-react';
+import { Users, Mail, Phone, Search, Filter, Building2, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, Eye, Edit } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -531,19 +531,13 @@ const AllInstructorsScreen = () => {
                     )}
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    Authorizations
-                  </div>
-                </th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {sortedInstructors.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <Users className="text-gray-400" size={32} />
@@ -566,8 +560,6 @@ const AllInstructorsScreen = () => {
                   const trainingCenterName = instructor.training_center 
                     ? (typeof instructor.training_center === 'string' ? instructor.training_center : instructor.training_center.name)
                     : 'N/A';
-                  const authorizations = instructor.authorizations || [];
-                  const approvedCount = authorizations.filter(auth => auth.status === 'approved').length;
                   
                   return (
                     <tr
@@ -618,16 +610,6 @@ const AllInstructorsScreen = () => {
                           <StatusIcon size={14} className="mr-1" />
                           {instructor.status.charAt(0).toUpperCase() + instructor.status.slice(1)}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Award className="h-4 w-4 mr-2 text-gray-400" />
-                          {authorizations.length > 0 ? (
-                            <span className="font-semibold text-primary-600">{approvedCount}/{authorizations.length}</span>
-                          ) : (
-                            <span className="text-gray-400">0</span>
-                          )}
-                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">

@@ -556,10 +556,16 @@ const CategoriesScreen = () => {
   
   // Check if category was created by current ACC (for UI display)
   const isCategoryCreatedByMe = (category) => {
-    // If created_by exists and is not null, it's likely created by this ACC
-    // Assigned categories typically have created_by as null or pointing to admin
-    // We check if created_by exists and is truthy
-    return category.created_by != null && category.created_by !== undefined;
+    // If created_by = 1, it's assigned by Admin
+    // If created_by != 1 (and not null), it's created by this ACC
+    return category.created_by != null && category.created_by !== undefined && category.created_by !== 1;
+  };
+
+  // Check if sub category was created by current ACC (for UI display)
+  const isSubCategoryCreatedByMe = (subCategory) => {
+    // If created_by = 1, it's assigned by Admin
+    // If created_by != 1 (and not null), it's created by this ACC
+    return subCategory.created_by != null && subCategory.created_by !== undefined && subCategory.created_by !== 1;
   };
 
   if (loading && activeTab === 'categories') {
@@ -1015,24 +1021,24 @@ const CategoriesScreen = () => {
                                 <button
                                   onClick={() => handleOpenSubCategoryModal(subCategory)}
                                   className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                    subCategory.created_by
+                                    isSubCategoryCreatedByMe(subCategory)
                                       ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                                       : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                                   }`}
-                                  title={subCategory.created_by ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
-                                  disabled={!subCategory.created_by}
+                                  title={isSubCategoryCreatedByMe(subCategory) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
+                                  disabled={!isSubCategoryCreatedByMe(subCategory)}
                                 >
                                   <Edit size={16} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteSubCategory(subCategory)}
                                   className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                    subCategory.created_by
+                                    isSubCategoryCreatedByMe(subCategory)
                                       ? 'bg-red-50 text-red-600 hover:bg-red-100'
                                       : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                                   }`}
-                                  title={subCategory.created_by ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
-                                  disabled={!subCategory.created_by}
+                                  title={isSubCategoryCreatedByMe(subCategory) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
+                                  disabled={!isSubCategoryCreatedByMe(subCategory)}
                                 >
                                   <Trash2 size={16} />
                                 </button>

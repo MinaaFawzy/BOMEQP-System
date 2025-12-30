@@ -16,8 +16,8 @@ const GroupAdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    setHeaderTitle('Dashboard');
-    setHeaderSubtitle("Welcome back! Here's your overview");
+    setHeaderTitle(null);
+    setHeaderSubtitle(null);
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -26,61 +26,24 @@ const GroupAdminDashboard = () => {
 
   const loadDashboard = async () => {
     try {
-      // Load all data in parallel with minimal pagination for faster loading
-      const [financialResult, accsResult, trainingCentersResult, instructorsResult] = await Promise.allSettled([
-        adminAPI.getFinancialDashboard(),
-        adminAPI.listACCs({ page: 1, per_page: 1 }), // Just get first page to get total
-        adminAPI.getTrainingCentersReport(), // Use report endpoint which might be faster
-        adminAPI.listInstructors(), // Get all instructors to count properly
-      ]);
-
-      // Extract financial data
-      let financialData = {};
-      if (financialResult.status === 'fulfilled') {
-        financialData = financialResult.value;
-      }
-
-      // Extract counts with proper fallbacks
-      let totalAccs = 0;
-      if (accsResult.status === 'fulfilled') {
-        const accsData = accsResult.value;
-        totalAccs = accsData?.total || accsData?.count || (accsData?.accs?.length || 0);
-      }
-
-      let totalTrainingCenters = 0;
-      if (trainingCentersResult.status === 'fulfilled') {
-        const trainingCentersData = trainingCentersResult.value;
-        // Check multiple possible response formats
-        totalTrainingCenters = trainingCentersData?.total || 
-                             trainingCentersData?.count || 
-                             (trainingCentersData?.training_centers?.length || 0) ||
-                             (Array.isArray(trainingCentersData) ? trainingCentersData.length : 0);
-      }
-
-      let totalInstructors = 0;
-      if (instructorsResult.status === 'fulfilled') {
-        const instructorsData = instructorsResult.value;
-        // Check for total/count first, then fall back to array length
-        totalInstructors = instructorsData?.total || 
-                          instructorsData?.count || 
-                          (instructorsData?.instructors?.length || 0);
-      }
+      // Use the dedicated dashboard endpoint
+      const data = await adminAPI.getDashboard();
       
+      // API returns: accreditation_bodies, training_centers, instructors, revenue { monthly, total }
       setDashboard({
-        ...financialData,
-        total_accs: totalAccs,
-        total_training_centers: totalTrainingCenters,
-        total_instructors: totalInstructors,
+        accreditation_bodies: data.accreditation_bodies || 0,
+        training_centers: data.training_centers || 0,
+        instructors: data.instructors || 0,
+        revenue: data.revenue || { monthly: 0, total: 0 },
       });
     } catch (error) {
       console.error('Failed to load dashboard:', error);
       // Set empty dashboard to prevent rendering errors
       setDashboard({
-        total_revenue: 0,
-        monthly_revenue: 0,
-        total_accs: 0,
-        total_training_centers: 0,
-        total_instructors: 0,
+        accreditation_bodies: 0,
+        training_centers: 0,
+        instructors: 0,
+        revenue: { monthly: 0, total: 0 },
       });
     } finally {
       setLoading(false);
@@ -116,7 +79,7 @@ const GroupAdminDashboard = () => {
               <div>
                 <p className="text-xs font-medium text-green-700 mb-1">Accreditation Bodies</p>
                 <p className="text-2xl font-bold text-green-900 mb-1">
-                  {dashboard.total_accs || 0}
+                  {dashboard.accreditation_bodies || 0}
                 </p>
                 <p className="text-xs text-green-600">Click to view details</p>
               </div>
@@ -136,7 +99,7 @@ const GroupAdminDashboard = () => {
               <div>
                 <p className="text-xs font-medium text-purple-700 mb-1">Training Centers</p>
                 <p className="text-2xl font-bold text-purple-900 mb-1">
-                  {dashboard.total_training_centers || 0}
+                  {dashboard.training_centers || 0}
                 </p>
                 <p className="text-xs text-purple-600">Click to view details</p>
               </div>
@@ -156,7 +119,7 @@ const GroupAdminDashboard = () => {
               <div>
                 <p className="text-xs font-medium text-yellow-700 mb-1">Instructors</p>
                 <p className="text-2xl font-bold text-yellow-900 mb-1">
-                  {dashboard.total_instructors || 0}
+                  {dashboard.instructors || 0}
                 </p>
                 <p className="text-xs text-yellow-600">Click to view details</p>
               </div>
@@ -176,7 +139,7 @@ const GroupAdminDashboard = () => {
               <div>
                 <p className="text-xs font-medium text-amber-700 mb-1">Total Revenue</p>
                 <p className="text-2xl font-bold text-amber-900 mb-1">
-                  ${(dashboard.total_revenue || 0).toLocaleString()}
+                  ${(dashboard.revenue?.total || 0).toLocaleString()}
                 </p>
                 <p className="text-xs text-amber-600">Click to view details</p>
               </div>
@@ -190,13 +153,13 @@ const GroupAdminDashboard = () => {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-600 mb-1">Monthly Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${(dashboard.monthly_revenue || 0).toLocaleString()}
+                  ${(dashboard.revenue?.monthly || 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-600 mb-1">Total Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${(dashboard.total_revenue || 0).toLocaleString()}
+                  ${(dashboard.revenue?.total || 0).toLocaleString()}
                 </p>
               </div>
             </div>

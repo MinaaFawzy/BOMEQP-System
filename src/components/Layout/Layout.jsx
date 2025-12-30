@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useHeader } from '../../context/HeaderContext';
-import { accAPI } from '../../services/api';
+import { accAPI, instructorAPI } from '../../services/api';
 import NotificationBell from '../NotificationBell/NotificationBell';
 import { 
   LayoutDashboard, 
@@ -28,6 +28,7 @@ import {
   FolderTree,
   UserCheck,
   Sliders,
+  Receipt,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './Layout.css';
@@ -38,6 +39,28 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSubscribed, setIsSubscribed] = useState(null); // null = loading, true/false = loaded
+  const [isAssessor, setIsAssessor] = useState(false); // Track is_assessor status for instructors
+  
+  // Load is_assessor from dashboard if user is instructor
+  useEffect(() => {
+    const loadInstructorAssessorStatus = async () => {
+      if (user?.role === 'instructor') {
+        try {
+          const dashboardData = await instructorAPI.getDashboard();
+          const assessorStatus = dashboardData?.profile?.is_assessor || dashboardData?.is_assessor || false;
+          setIsAssessor(assessorStatus === true || assessorStatus === 'true' || assessorStatus === 1);
+        } catch (error) {
+          console.error('Failed to load instructor assessor status:', error);
+          // Fallback to user.is_assessor if available
+          setIsAssessor(user?.is_assessor === true || user?.is_assessor === 'true' || user?.is_assessor === 1);
+        }
+      } else {
+        setIsAssessor(false);
+      }
+    };
+    
+    loadInstructorAssessorStatus();
+  }, [user]);
   
   // Sidebar open by default, persist state in localStorage
   const [sidebarOpen, setSidebarOpen] = useState(() => {
@@ -147,6 +170,7 @@ const Layout = ({ children }) => {
             label: 'ACC Management',
             items: [
               { path: '/admin/accs', icon: FileCheck, label: 'ACC Applications' },
+              { path: '/admin/training-center-applications', icon: FileCheck, label: 'TC Applications' },
               { path: '/admin/all-accs', icon: Building2, label: 'Accreditation Bodies' },
             ]
           },
@@ -178,6 +202,7 @@ const Layout = ({ children }) => {
             label: 'Financial & Settings',
             items: [
               { path: '/admin/financial', icon: CreditCard, label: 'Financial' },
+              { path: '/admin/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
               { path: '/admin/stripe-settings', icon: Sliders, label: 'Stripe Settings' },
             ]
           },
@@ -210,9 +235,19 @@ const Layout = ({ children }) => {
             label: 'Courses & Content',
             items: [
               { path: '/acc/courses', icon: GraduationCap, label: 'Courses' },
+              { path: '/acc/classes', icon: School, label: 'Classes' },
               { path: '/acc/certificates', icon: Award, label: 'Certificates' },
               { path: '/acc/discount-codes', icon: Tag, label: 'Discount Codes' },
               { path: '/acc/categories', icon: FolderTree, label: 'Course Categories' },
+            ]
+          },
+          {
+            type: 'group',
+            key: 'financial',
+            icon: CreditCard,
+            label: 'Financial',
+            items: [
+              { path: '/acc/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
             ]
           },
         ];
@@ -248,24 +283,26 @@ const Layout = ({ children }) => {
             label: 'Financial',
             items: [
               { path: '/training-center/codes', icon: Tag, label: 'Codes' },
-              { path: '/training-center/wallet', icon: Wallet, label: 'Payment Transactions' },
+              { path: '/training-center/wallet', icon: Wallet, label: 'Wallet' },
+              { path: '/training-center/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
             ]
           },
         ];
       case 'instructor':
         return [
           ...baseItems,
-          {
-            type: 'group',
-            key: 'work',
-            icon: GraduationCap,
-            label: 'Work',
-            items: [
-              { path: '/instructor/classes', icon: GraduationCap, label: 'Classes' },
-              { path: '/instructor/materials', icon: BookOpen, label: 'Materials' },
-              { path: '/instructor/earnings', icon: Wallet, label: 'Earnings' },
-            ]
-          },
+          { type: 'single', path: '/instructor/classes', icon: GraduationCap, label: 'Classes' },
+          // {
+          //   type: 'group',
+          //   key: 'work',
+          //   icon: GraduationCap,
+          //   label: 'Work',
+          //   items: [
+          //     { path: '/instructor/classes', icon: GraduationCap, label: 'Classes' },
+          //     // { path: '/instructor/materials', icon: BookOpen, label: 'Materials' },
+          //     // { path: '/instructor/earnings', icon: Wallet, label: 'Earnings' },
+          //   ]
+          // },
         ];
       default:
         return baseItems;
@@ -285,6 +322,7 @@ const Layout = ({ children }) => {
     
     // Group Admin routes
     if (path === '/admin/accs') return 'ACC Applications';
+    if (path === '/admin/training-center-applications') return 'TC Applications';
     if (path === '/admin/all-accs') return 'Accreditation Bodies';
     if (path === '/admin/all-training-centers') return 'Training Centers';
     if (path === '/admin/all-instructors') return 'Instructors';
@@ -292,6 +330,7 @@ const Layout = ({ children }) => {
     if (path === '/admin/categories') return 'Course Categories';
     if (path === '/admin/instructor-authorizations') return 'Instructor Commissions';
     if (path === '/admin/financial') return 'Financial';
+    if (path === '/admin/payment-transactions') return 'Payment Transactions';
     if (path === '/admin/stripe-settings') return 'Stripe Settings';
     
     // ACC Admin routes
@@ -304,6 +343,8 @@ const Layout = ({ children }) => {
     if (path === '/acc/materials') return 'Materials';
     if (path === '/acc/discount-codes') return 'Discount Codes';
     if (path === '/acc/categories') return 'Course Categories';
+    if (path === '/acc/classes') return 'Classes';
+    if (path === '/acc/payment-transactions') return 'Payment Transactions';
     
     // Training Center routes
     if (path === '/training-center/dashboard') return 'Dashboard';
@@ -314,6 +355,7 @@ const Layout = ({ children }) => {
     if (path === '/training-center/codes') return 'Codes';
     if (path === '/training-center/certificates') return 'Certificates';
     if (path === '/training-center/instructor-authorizations') return 'Instructor Authorizations';
+    if (path === '/training-center/payment-transactions') return 'Payment Transactions';
     if (path === '/training-center/wallet') return 'Payment Transactions';
     if (path === '/training-center/marketplace') return 'Marketplace';
     
@@ -376,8 +418,9 @@ const Layout = ({ children }) => {
           } ${
             sidebarCollapsed ? 'w-16' : 'w-64'
           }`}
+          style={{ overflow: 'visible' }}
         >
-          <div className="flex flex-col h-full max-h-screen">
+          <div className="flex flex-col h-full max-h-screen overflow-visible">
             {/* Logo Section - Fixed at top */}
             <div 
               className={`flex-shrink-0 border-b animate-slide-down layout-section-bg ${
@@ -394,7 +437,9 @@ const Layout = ({ children }) => {
                       {user?.name || 'User'}
                     </p>
                     <p className="text-xs text-primary-200 mt-0.5 capitalize">
-                      {user?.role?.replace('_', ' ') || ''}
+                      {user?.role === 'instructor' 
+                        ? (isAssessor ? 'Assessor' : 'Instructor')
+                        : (user?.role?.replace('_', ' ') || '')}
                     </p>
                   </div>
                 )}
@@ -413,48 +458,69 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Navigation - Scrollable middle section */}
-            <nav className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar min-h-0 ${
-              sidebarCollapsed ? 'p-2' : 'p-4'
-            }`}>
-              <ul className="space-y-1.5">
+            <nav className={`flex-1 min-h-0 ${
+              sidebarCollapsed ? 'p-2 overflow-visible' : 'p-4 overflow-y-auto custom-scrollbar'
+            }`}
+            style={sidebarCollapsed ? { overflowX: 'visible', overflowY: 'visible' } : { overflowX: 'visible' }}
+            >
+              <ul className="space-y-1.5" style={{ overflow: 'visible' }}>
                 {menuItems.map((item, index) => {
                   if (item.type === 'single') {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path;
                     return (
-                      <li key={`${item.path}-${index}`} className="stagger-item" style={{ '--animation-delay': `${index * 0.03}s` }}>
-                        <Link
-                          to={item.path}
-                          onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center rounded-xl transition-all duration-200 ease-out relative group ${
-                            sidebarCollapsed 
-                              ? 'px-2 py-2 justify-center' 
-                              : 'px-4 py-3 min-w-0'
-                          } ${
-                            isActive
-                              ? 'text-[var(--tertiary-color)]'
-                              : 'text-white/80 nav-item-hover hover:scale-105 hover:shadow-md'
-                          }`}
-                          title={sidebarCollapsed ? item.label : item.label}
-                        >
-                          {Icon && (
-                            <Icon 
-                              size={sidebarCollapsed ? 20 : 20} 
-                              className={`transition-all duration-200 flex-shrink-0 ${sidebarCollapsed ? '' : 'mr-3'} ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
-                            />
-                          )}
-                          {!sidebarCollapsed && (
-                            <>
-                              <span className="font-medium text-sm whitespace-nowrap truncate flex-1 min-w-0">{item.label}</span>
-                              {isActive && (
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0"></div>
+                      <li key={`${item.path}-${index}`} className="stagger-item" style={{ '--animation-delay': `${index * 0.03}s`, overflow: 'visible' }}>
+                        {sidebarCollapsed ? (
+                          <div className="relative group sidebar-item-collapsed">
+                            <Link
+                              to={item.path}
+                              onClick={() => {
+                                setSidebarOpen(false);
+                                setSidebarCollapsed(false);
+                              }}
+                              className={`flex items-center rounded-xl transition-all duration-200 ease-out relative px-2 py-2 justify-center w-full group-hover-trigger ${
+                                isActive
+                                  ? 'text-[var(--tertiary-color)]'
+                                  : 'text-white/80 nav-item-hover hover:bg-white/10'
+                              }`}
+                            >
+                              {Icon && (
+                                <Icon 
+                                  size={20} 
+                                  className={`transition-all duration-200 flex-shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
+                                />
                               )}
-                            </>
-                          )}
-                          {!isActive && !sidebarCollapsed && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/50 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                          )}
-                        </Link>
+                            </Link>
+                            {/* Hover tooltip showing title */}
+                            <div className="sidebar-tooltip">
+                              {item.label}
+                            </div>
+                          </div>
+                        ) : (
+                          <Link
+                            to={item.path}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center rounded-xl transition-all duration-200 ease-out relative group px-4 py-3 min-w-0 ${
+                              isActive
+                                ? 'text-[var(--tertiary-color)]'
+                                : 'text-white/80 nav-item-hover hover:scale-105 hover:shadow-md'
+                            }`}
+                          >
+                            {Icon && (
+                              <Icon 
+                                size={20} 
+                                className={`transition-all duration-200 flex-shrink-0 mr-3 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
+                              />
+                            )}
+                            <span className="font-medium text-sm whitespace-nowrap truncate flex-1 min-w-0">{item.label}</span>
+                            {isActive && (
+                              <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0"></div>
+                            )}
+                            {!isActive && (
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/50 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                            )}
+                          </Link>
+                        )}
                       </li>
                     );
                   } else if (item.type === 'group') {
@@ -465,11 +531,20 @@ const Layout = ({ children }) => {
                     const isExpanded = expandedGroups[item.key] !== false; // Default to true (expanded)
                     
                     return (
-                      <li key={item.key} className="stagger-item" style={{ '--animation-delay': `${index * 0.03}s` }}>
+                      <li key={item.key} className="stagger-item" style={{ '--animation-delay': `${index * 0.03}s`, overflow: 'visible' }}>
                         {sidebarCollapsed ? (
-                          // Collapsed sidebar - show group icon only
-                          <div className="px-2 py-2 flex justify-center">
-                            <GroupIcon size={20} className="text-white/80" title={item.label} />
+                          // Collapsed sidebar - show group icon with hover title and click to expand
+                          <div className="relative group sidebar-item-collapsed">
+                            <button
+                              onClick={() => setSidebarCollapsed(false)}
+                              className="px-2 py-2 flex justify-center w-full rounded-xl transition-all duration-200 hover:bg-white/10 nav-item-hover group-hover-trigger"
+                            >
+                              <GroupIcon size={20} className="text-white/80" />
+                            </button>
+                            {/* Hover tooltip showing title */}
+                            <div className="sidebar-tooltip">
+                              {item.label}
+                            </div>
                           </div>
                         ) : (
                           <>

@@ -225,8 +225,8 @@ function AuthScreen() {
                         />
                         
                         {/* Role Selection */}
-                        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <Box sx={{ width: '100%' }}>
+                        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'row', gap: 1, width: '100%' }}>
+                            <Box sx={{ flex: 1 }}>
                                 <Paper
                                         onClick={() => setRegisterData({ ...registerData, role: 'training_center_admin' })}
                                         elevation={registerData.role === 'training_center_admin' ? 2 : 0}
@@ -293,7 +293,7 @@ function AuthScreen() {
                                         </Box>
                                     </Paper>
                                 </Box>
-                                <Box sx={{ width: '100%' }}>
+                                <Box sx={{ flex: 1 }}>
                                     <Paper
                                         onClick={() => setRegisterData({ ...registerData, role: 'acc_admin' })}
                                         elevation={registerData.role === 'acc_admin' ? 2 : 0}
