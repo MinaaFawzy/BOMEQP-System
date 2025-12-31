@@ -23,7 +23,6 @@ const CategoriesScreen = () => {
     name: '',
     name_ar: '',
     description: '',
-    icon_url: '',
     status: 'active',
   });
   const [errors, setErrors] = useState({});
@@ -160,7 +159,6 @@ const CategoriesScreen = () => {
         name: category.name || '',
         name_ar: category.name_ar || '',
         description: category.description || '',
-        icon_url: category.icon_url || '',
         status: category.status || 'active',
       });
     } else {
@@ -169,7 +167,6 @@ const CategoriesScreen = () => {
         name: '',
         name_ar: '',
         description: '',
-        icon_url: '',
         status: 'active',
       });
     }
@@ -184,7 +181,6 @@ const CategoriesScreen = () => {
       name: '',
       name_ar: '',
       description: '',
-      icon_url: '',
       status: 'active',
     });
     setErrors({});
@@ -987,15 +983,6 @@ const CategoriesScreen = () => {
             textarea
             rows={3}
             error={errors.description}
-          />
-
-          <FormInput
-            label="Icon URL"
-            name="icon_url"
-            type="url"
-            value={formData.icon_url}
-            onChange={handleChange}
-            error={errors.icon_url}
           />
 
           <FormInput

@@ -47,3 +47,370 @@
 .table-row-animated {
   animation-delay: var(--animation-delay, 0s);
 }
+
+/* Header Create Button */
+.header-create-btn {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  color: white;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.header-create-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* DataTable Container */
+.datatable-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(243, 244, 246);
+  overflow: hidden;
+}
+
+/* Pagination Container */
+.pagination-container {
+  padding: 1rem;
+  border-top: 1px solid rgb(229, 231, 235);
+}
+
+/* Empty State */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 0;
+}
+
+.empty-state-icon-container {
+  width: 4rem;
+  height: 4rem;
+  background-color: rgb(243, 244, 246);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.empty-state-icon {
+  color: rgb(156, 163, 175);
+}
+
+.empty-state-title {
+  color: rgb(107, 114, 128);
+  font-weight: 500;
+}
+
+.empty-state-subtitle {
+  font-size: 0.875rem;
+  color: rgb(156, 163, 175);
+  margin-top: 0.25rem;
+}
+
+/* Certificate Number Column */
+.certificate-number-container {
+  display: flex;
+  align-items: center;
+}
+
+.certificate-number-icon-container {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(to bottom right, rgb(219, 234, 254), rgb(191, 219, 254));
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+}
+
+.certificate-number-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--primary-color, #3b82f6);
+}
+
+.certificate-number-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(17, 24, 39);
+}
+
+/* Trainee Column */
+.trainee-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: rgb(17, 24, 39);
+}
+
+.trainee-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  color: rgb(156, 163, 175);
+}
+
+/* Course Column */
+.course-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: rgb(17, 24, 39);
+}
+
+.course-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  color: rgb(156, 163, 175);
+}
+
+/* Date Column */
+.date-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: rgb(75, 85, 99);
+}
+
+.date-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  color: rgb(156, 163, 175);
+}
+
+/* Status Column */
+.status-container {
+  text-align: center;
+}
+
+.status-badge {
+  padding: 0.375rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background: linear-gradient(to right, var(--bg-start), var(--bg-end));
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.status-badge.valid {
+  --bg-start: rgb(220, 252, 231);
+  --bg-end: rgb(187, 247, 208);
+  --text-color: rgb(22, 101, 52);
+  --border-color: rgb(134, 239, 172);
+}
+
+.status-badge.expired {
+  --bg-start: rgb(254, 226, 226);
+  --bg-end: rgb(254, 202, 202);
+  --text-color: rgb(153, 27, 27);
+  --border-color: rgb(252, 165, 165);
+}
+
+.status-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.25rem;
+}
+
+/* Actions Column */
+.actions-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.action-btn-view {
+  color: var(--primary-color, #3b82f6);
+}
+
+.action-btn-view:hover {
+  color: rgb(30, 64, 175);
+  background-color: rgb(239, 246, 255);
+}
+
+.action-btn-download {
+  color: rgb(37, 99, 235);
+}
+
+.action-btn-download:hover {
+  color: rgb(30, 64, 175);
+  background-color: rgb(239, 246, 255);
+}
+
+/* Modal Form Styles */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-error-general {
+  padding: 0.75rem;
+  background-color: rgb(254, 242, 242);
+  border: 1px solid rgb(254, 202, 202);
+  border-radius: 0.5rem;
+}
+
+.form-error-general-text {
+  font-size: 0.875rem;
+  color: rgb(220, 38, 38);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(229, 231, 235);
+}
+
+.form-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.form-btn-cancel {
+  color: rgb(55, 65, 81);
+  background-color: rgb(243, 244, 246);
+}
+
+.form-btn-cancel:hover {
+  background-color: rgb(229, 231, 235);
+}
+
+.form-btn-submit {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+.form-btn-submit:hover {
+  background-color: var(--primary-hover, #2563eb);
+}
+
+.form-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Detail Modal Styles */
+.detail-modal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .detail-modal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.detail-modal-item {
+  padding: 1rem;
+  background-color: rgb(249, 250, 251);
+  border-radius: 0.5rem;
+}
+
+.detail-modal-label {
+  font-size: 0.875rem;
+  color: rgb(107, 114, 128);
+  margin-bottom: 0.25rem;
+}
+
+.detail-modal-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(17, 24, 39);
+}
+
+.detail-modal-value-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.detail-modal-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.detail-modal-badge.valid {
+  background-color: rgb(220, 252, 231);
+  color: rgb(22, 101, 52);
+}
+
+.detail-modal-badge.expired {
+  background-color: rgb(254, 226, 226);
+  color: rgb(153, 27, 27);
+}
+
+.detail-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(229, 231, 235);
+}
+
+.detail-modal-action-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.detail-modal-action-btn:hover {
+  background-color: var(--primary-hover, #2563eb);
+}
+
+.detail-modal-action-icon {
+  margin-right: 0.5rem;
+}

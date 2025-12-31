@@ -47,8 +47,11 @@ const DataTable = ({
   }, [showFilters]);
 
   const handleRowClick = (row, e) => {
-    // Don't trigger row click if clicking on action buttons
-    if (e.target.closest('button') || e.target.closest('a')) {
+    // Don't trigger row click if clicking on action buttons or clickable elements
+    if (e.target.closest('button') || 
+        e.target.closest('a') || 
+        e.target.closest('.enrollment-clickable') ||
+        e.target.classList.contains('enrollment-clickable')) {
       return;
     }
     if (onRowClick) {
@@ -75,8 +78,16 @@ const DataTable = ({
 
     // Apply search filter
     if (searchable && searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(row => {
+        // First, check if row has _searchText field (for custom searchable text)
+        if (row._searchText && typeof row._searchText === 'string') {
+          if (row._searchText.includes(searchLower)) {
+            return true;
+          }
+        }
+        
+        // Otherwise, search in all columns
         return columns.some(column => {
           const value = row[column.accessor];
           if (value === null || value === undefined) return false;
@@ -294,13 +305,13 @@ const DataTable = ({
                     }
                     
                     return (
-                      <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td key={colIndex} className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
                         {column.render ? column.render(value, row) : displayValue}
                       </td>
                     );
                   })}
                   {(onEdit || onDelete || onView) && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center space-x-2">
                         {(() => {
                           // Always show exactly 2 buttons

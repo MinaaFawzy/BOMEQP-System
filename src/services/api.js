@@ -196,6 +196,9 @@ export const adminAPI = {
 // ACC Admin APIs
 export const accAPI = {
   getDashboard: () => api.get('/acc/dashboard'),
+  getProfile: () => api.get('/acc/profile'),
+  updateProfile: (data) => api.put('/acc/profile', data),
+  verifyStripeAccount: (stripeAccountId) => api.post('/acc/profile/verify-stripe-account', { stripe_account_id: stripeAccountId }),
   getSubscription: () => api.get('/acc/subscription'),
   createSubscriptionPaymentIntent: (data) => api.post('/acc/subscription/payment-intent', data),
   createRenewalPaymentIntent: (data) => api.post('/acc/subscription/renew-payment-intent', data),
@@ -277,6 +280,24 @@ export const accAPI = {
 // Training Center APIs
 export const trainingCenterAPI = {
   getDashboard: () => api.get('/training-center/dashboard'),
+  getProfile: () => api.get('/training-center/profile'),
+  updateProfile: (data) => {
+    // If data is FormData, use axios directly with proper headers
+    if (data instanceof FormData) {
+      const token = getAuthToken();
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        // Don't set Content-Type - let browser set it with boundary for multipart/form-data
+      };
+      
+      // Use POST with _method=PUT for FormData (Laravel style)
+      return axios.post(`${API_BASE_URL}/training-center/profile?_method=PUT`, data, {
+        headers,
+      }).then(response => response.data);
+    }
+    return api.put('/training-center/profile', data);
+  },
   
   // ACCs
   listACCs: (params) => api.get('/training-center/accs', { params }),

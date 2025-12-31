@@ -1,0 +1,259 @@
+/* Dashboard Card Component Styles */
+
+/* Card Base Styles */
+.dashboard-card {
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-width: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1.05);
+}
+
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+/* Icon Styles */
+.dashboard-card-icon {
+  color: white;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Accreditation Card (Indigo) */
+.dashboard-card-acc {
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
+  border-color: #c7d2fe;
+}
+
+.dashboard-card-acc:hover {
+  background: linear-gradient(to bottom right, #e0e7ff, #c7d2fe);
+}
+
+.dashboard-card-icon-wrapper-acc {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, #6366f1, #4f46e5);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.dashboard-card-acc:hover .dashboard-card-icon-wrapper-acc {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.dashboard-card-arrow-acc {
+  color: #4f46e5;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dashboard-card-acc:hover .dashboard-card-arrow-acc {
+  opacity: 1;
+}
+
+.dashboard-card-label-acc {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-value-acc {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #312e81;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-hint-acc {
+  font-size: 0.75rem;
+  color: #4f46e5;
+}
+
+/* Classes Card (Blue) */
+.dashboard-card-classes {
+  background: linear-gradient(to bottom right, #eff6ff, #dbeafe);
+  border-color: #bfdbfe;
+}
+
+.dashboard-card-classes:hover {
+  background: linear-gradient(to bottom right, #dbeafe, #bfdbfe);
+}
+
+.dashboard-card-icon-wrapper-classes {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, #3b82f6, #2563eb);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.dashboard-card-classes:hover .dashboard-card-icon-wrapper-classes {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.dashboard-card-arrow-classes {
+  color: #2563eb;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dashboard-card-classes:hover .dashboard-card-arrow-classes {
+  opacity: 1;
+}
+
+.dashboard-card-label-classes {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1e40af;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-value-classes {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-hint-classes {
+  font-size: 0.75rem;
+  color: #2563eb;
+}
+
+/* Instructors Card (Green) */
+.dashboard-card-instructors {
+  background: linear-gradient(to bottom right, #f0fdf4, #dcfce7);
+  border-color: #bbf7d0;
+}
+
+.dashboard-card-instructors:hover {
+  background: linear-gradient(to bottom right, #dcfce7, #bbf7d0);
+}
+
+.dashboard-card-icon-wrapper-instructors {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, #22c55e, #16a34a);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.dashboard-card-instructors:hover .dashboard-card-icon-wrapper-instructors {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.dashboard-card-arrow-instructors {
+  color: #16a34a;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dashboard-card-instructors:hover .dashboard-card-arrow-instructors {
+  opacity: 1;
+}
+
+.dashboard-card-label-instructors {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #15803d;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-value-instructors {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #14532d;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-hint-instructors {
+  font-size: 0.75rem;
+  color: #16a34a;
+}
+
+/* Certificates Card (Purple) */
+.dashboard-card-certificates {
+  background: linear-gradient(to bottom right, #faf5ff, #f3e8ff);
+  border-color: #e9d5ff;
+}
+
+.dashboard-card-certificates:hover {
+  background: linear-gradient(to bottom right, #f3e8ff, #e9d5ff);
+}
+
+.dashboard-card-icon-wrapper-certificates {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, #a855f7, #9333ea);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.dashboard-card-certificates:hover .dashboard-card-icon-wrapper-certificates {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.dashboard-card-arrow-certificates {
+  color: #9333ea;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dashboard-card-certificates:hover .dashboard-card-arrow-certificates {
+  opacity: 1;
+}
+
+.dashboard-card-label-certificates {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #7e22ce;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-value-certificates {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6b21a8;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-hint-certificates {
+  font-size: 0.75rem;
+  color: #9333ea;
+}
+

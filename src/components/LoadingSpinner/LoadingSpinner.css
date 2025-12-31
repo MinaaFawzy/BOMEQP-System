@@ -1,0 +1,44 @@
+/* Loading Spinner Component Styles */
+
+.loading-spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  border-bottom-width: 2px;
+  border-bottom-color: var(--primary-color, #4f46e5);
+  border-bottom-style: solid;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.loading-spinner-sm {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.loading-spinner-md {
+  height: 3rem;
+  width: 3rem;
+}
+
+.loading-spinner-lg {
+  height: 4rem;
+  width: 4rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

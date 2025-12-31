@@ -1,0 +1,268 @@
+/* Tab Card Component Styles */
+
+/* Tab Card Base */
+.tab-card {
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  border-width: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.tab-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab-card-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.tab-card-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.tab-card-icon-wrapper {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.tab-card-icon {
+  color: white;
+}
+
+/* Color Types */
+/* Indigo */
+.tab-card-indigo {
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
+  border-color: #c7d2fe;
+}
+
+.tab-card-indigo.active {
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+.tab-card-label-indigo {
+  color: #4338ca;
+}
+
+.tab-card-value-indigo {
+  color: #312e81;
+}
+
+.tab-card-icon-wrapper-indigo {
+  background: linear-gradient(to bottom right, #6366f1, #4f46e5);
+}
+
+/* Blue */
+.tab-card-blue {
+  background: linear-gradient(to bottom right, #eff6ff, #dbeafe);
+  border-color: #bfdbfe;
+}
+
+.tab-card-blue.active {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.tab-card-label-blue {
+  color: #1e40af;
+}
+
+.tab-card-value-blue {
+  color: #1e3a8a;
+}
+
+.tab-card-icon-wrapper-blue {
+  background: linear-gradient(to bottom right, #3b82f6, #2563eb);
+}
+
+/* Green */
+.tab-card-green {
+  background: linear-gradient(to bottom right, #f0fdf4, #dcfce7);
+  border-color: #bbf7d0;
+}
+
+.tab-card-green.active {
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+.tab-card-label-green {
+  color: #15803d;
+}
+
+.tab-card-value-green {
+  color: #14532d;
+}
+
+.tab-card-icon-wrapper-green {
+  background: linear-gradient(to bottom right, #22c55e, #16a34a);
+}
+
+/* Purple */
+.tab-card-purple {
+  background: linear-gradient(to bottom right, #faf5ff, #f3e8ff);
+  border-color: #e9d5ff;
+}
+
+.tab-card-purple.active {
+  box-shadow: 0 0 0 2px #a855f7;
+}
+
+.tab-card-label-purple {
+  color: #7e22ce;
+}
+
+.tab-card-value-purple {
+  color: #6b21a8;
+}
+
+.tab-card-icon-wrapper-purple {
+  background: linear-gradient(to bottom right, #a855f7, #9333ea);
+}
+
+/* Orange */
+.tab-card-orange {
+  background: linear-gradient(to bottom right, #fff7ed, #ffedd5);
+  border-color: #fed7aa;
+}
+
+.tab-card-orange.active {
+  box-shadow: 0 0 0 2px #f97316;
+}
+
+.tab-card-label-orange {
+  color: #c2410c;
+}
+
+.tab-card-value-orange {
+  color: #9a3412;
+}
+
+.tab-card-icon-wrapper-orange {
+  background: linear-gradient(to bottom right, #f97316, #ea580c);
+}
+
+/* Red */
+.tab-card-red {
+  background: linear-gradient(to bottom right, #fef2f2, #fee2e2);
+  border-color: #fecaca;
+}
+
+.tab-card-red.active {
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+.tab-card-label-red {
+  color: #991b1b;
+}
+
+.tab-card-value-red {
+  color: #7f1d1d;
+}
+
+.tab-card-icon-wrapper-red {
+  background: linear-gradient(to bottom right, #ef4444, #dc2626);
+}
+
+/* Pink */
+.tab-card-pink {
+  background: linear-gradient(to bottom right, #fdf2f8, #fce7f3);
+  border-color: #fbcfe8;
+}
+
+.tab-card-pink.active {
+  box-shadow: 0 0 0 2px #ec4899;
+}
+
+.tab-card-label-pink {
+  color: #9f1239;
+}
+
+.tab-card-value-pink {
+  color: #831843;
+}
+
+.tab-card-icon-wrapper-pink {
+  background: linear-gradient(to bottom right, #ec4899, #db2777);
+}
+
+/* Teal */
+.tab-card-teal {
+  background: linear-gradient(to bottom right, #f0fdfa, #ccfbf1);
+  border-color: #99f6e4;
+}
+
+.tab-card-teal.active {
+  box-shadow: 0 0 0 2px #14b8a6;
+}
+
+.tab-card-label-teal {
+  color: #134e4a;
+}
+
+.tab-card-value-teal {
+  color: #0f766e;
+}
+
+.tab-card-icon-wrapper-teal {
+  background: linear-gradient(to bottom right, #14b8a6, #0d9488);
+}
+
+/* Yellow */
+.tab-card-yellow {
+  background: linear-gradient(to bottom right, #fefce8, #fef9c3);
+  border-color: #fde047;
+}
+
+.tab-card-yellow.active {
+  box-shadow: 0 0 0 2px #eab308;
+}
+
+.tab-card-label-yellow {
+  color: #854d0e;
+}
+
+.tab-card-value-yellow {
+  color: #713f12;
+}
+
+.tab-card-icon-wrapper-yellow {
+  background: linear-gradient(to bottom right, #eab308, #ca8a04);
+}
+
+/* Gray */
+.tab-card-gray {
+  background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+  border-color: #e5e7eb;
+}
+
+.tab-card-gray.active {
+  box-shadow: 0 0 0 2px #6b7280;
+}
+
+.tab-card-label-gray {
+  color: #4b5563;
+}
+
+.tab-card-value-gray {
+  color: #374151;
+}
+
+.tab-card-icon-wrapper-gray {
+  background: linear-gradient(to bottom right, #6b7280, #4b5563);
+}
+

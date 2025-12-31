@@ -262,7 +262,9 @@ const FinancialScreen = () => {
                   <thead className="table-header-gradient">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Commission</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Provider Amount</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Currency</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
@@ -272,7 +274,7 @@ const FinancialScreen = () => {
                   <tbody className="bg-white divide-y divide-gray-100">
                     {filteredTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-4 py-12 text-center">
+                        <td colSpan={8} className="px-4 py-12 text-center">
                           <div className="flex flex-col items-center">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                               <Receipt className="text-gray-400" size={32} />
@@ -309,6 +311,24 @@ const FinancialScreen = () => {
                             <div className="text-sm font-semibold text-gray-900">
                               ${parseFloat(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {transaction.commission_amount ? (
+                              <div className="text-sm font-semibold text-amber-700">
+                                ${parseFloat(transaction.commission_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">N/A</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {transaction.provider_amount ? (
+                              <div className="text-sm font-semibold text-green-700">
+                                ${parseFloat(transaction.provider_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">N/A</span>
+                            )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm text-gray-600 uppercase">
@@ -491,11 +511,37 @@ const FinancialScreen = () => {
               <p className="modal-value modal-value-capitalize">{selectedTransaction.transaction_type?.replace('_', ' ')}</p>
             </div>
             <div className="modal-content-section">
-              <p className="modal-label">Amount</p>
+              <p className="modal-label">Total Amount</p>
               <p className="modal-amount">
                 ${parseFloat(selectedTransaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
+            {selectedTransaction.commission_amount && (
+              <div className="modal-content-section" style={{ backgroundColor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '8px', padding: '12px' }}>
+                <p className="modal-label" style={{ color: '#92400E' }}>Platform Commission</p>
+                <p className="modal-amount" style={{ color: '#92400E' }}>
+                  ${parseFloat(selectedTransaction.commission_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Amount received by platform</p>
+              </div>
+            )}
+            {selectedTransaction.provider_amount && (
+              <div className="modal-content-section" style={{ backgroundColor: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: '8px', padding: '12px' }}>
+                <p className="modal-label" style={{ color: '#065F46' }}>Provider Amount</p>
+                <p className="modal-amount" style={{ color: '#065F46' }}>
+                  ${parseFloat(selectedTransaction.provider_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Amount received by ACC/provider</p>
+              </div>
+            )}
+            {selectedTransaction.payment_type && (
+              <div className="modal-content-section">
+                <p className="modal-label">Payment Type</p>
+                <p className="modal-value modal-value-capitalize">
+                  {selectedTransaction.payment_type === 'destination_charge' ? 'Destination Charge' : 'Standard Payment'}
+                </p>
+              </div>
+            )}
             <div className="modal-content-section">
               <p className="modal-label">Currency</p>
               <p className="modal-value modal-value-uppercase">{selectedTransaction.currency || 'USD'}</p>

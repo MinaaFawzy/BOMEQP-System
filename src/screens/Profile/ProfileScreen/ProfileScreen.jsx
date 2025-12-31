@@ -7,7 +7,7 @@ import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import { 
   User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound,
-  Phone, MapPin, FileText, Upload, X, Award, Building2
+  Phone, MapPin, FileText, Upload, X, Award, Building2, Globe, Edit
 } from 'lucide-react';
 import axios from 'axios';
 import './ProfileScreen.css';
@@ -18,12 +18,18 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const isInstructor = user?.role === 'instructor';
+  const isTrainingCenter = user?.role === 'training_center_admin';
   
   // Instructor profile data
   const [instructorData, setInstructorData] = useState(null);
   const [cvFile, setCvFile] = useState(null);
   const [cvUrl, setCvUrl] = useState(null);
   const [uploadingCv, setUploadingCv] = useState(false);
+  
+  // Training Center profile data
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   
   // Countries and Cities
   const [countries, setCountries] = useState([]);
@@ -40,6 +46,13 @@ const ProfileScreen = () => {
     city: '',
     id_number: '',
     specializations: [],
+    // Training Center fields
+    name: '',
+    address: '',
+    state: '',
+    postal_code: '',
+    website: '',
+    description: '',
   });
   const [passwordData, setPasswordData] = useState({
     current_password: '',
@@ -54,11 +67,21 @@ const ProfileScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (countries.length > 0 || !isInstructor) {
+    if (countries.length > 0 || (!isInstructor && !isTrainingCenter)) {
+      loadProfile();
+    } else if (isTrainingCenter && countries.length > 0) {
       loadProfile();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries.length, isInstructor]);
+  }, [countries.length, isInstructor, isTrainingCenter]);
+
+  useEffect(() => {
+    if (isTrainingCenter && formData.country) {
+      loadCities(formData.country);
+    } else if (isTrainingCenter && !formData.country) {
+      setCities([]);
+    }
+  }, [formData.country, isTrainingCenter]);
 
   useEffect(() => {
     if (isInstructor && formData.country) {
@@ -121,6 +144,43 @@ const ProfileScreen = () => {
         if (instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume) {
           setCvUrl(instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume);
         }
+      } else if (isTrainingCenter) {
+        // Load Training Center profile
+        const response = await authAPI.getProfile();
+        const tcData = response.training_center || response.user || response;
+        
+        // Find country code if country is a name (not code)
+        let countryCode = tcData.country || '';
+        if (countryCode && countries.length > 0) {
+          const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
+          if (countryObj) {
+            countryCode = countryObj.code;
+          }
+        }
+        
+        setFormData({
+          name: tcData.name || tcData.training_center_name || '',
+          email: tcData.email || user?.email || '',
+          phone: tcData.phone || tcData.phone_number || '',
+          address: tcData.address || '',
+          city: tcData.city || '',
+          state: tcData.state || tcData.province || '',
+          country: countryCode,
+          postal_code: tcData.postal_code || tcData.zip_code || '',
+          website: tcData.website || tcData.website_url || '',
+          description: tcData.description || tcData.bio || '',
+        });
+        
+        if (tcData.logo || tcData.logo_url || tcData.avatar) {
+          setLogoUrl(tcData.logo || tcData.logo_url || tcData.avatar);
+        }
+        
+        // Load cities if country exists
+        if (countryCode) {
+          await loadCities(countryCode);
+        }
+        
+        updateUser(response.user || tcData);
       } else {
         // Load regular user profile
         const response = await authAPI.getProfile();
@@ -193,6 +253,30 @@ const ProfileScreen = () => {
     setSuccess('');
   };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors({ ...errors, logo: 'Please select an image file' });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors({ ...errors, logo: 'Image size must be less than 5MB' });
+        return;
+      }
+      
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setErrors({ ...errors, logo: null });
+    }
+  };
+
   const handlePasswordChange = (e) => {
     setPasswordData({
       ...passwordData,
@@ -244,6 +328,43 @@ const ProfileScreen = () => {
         if (updatedInstructor.cv_url || updatedInstructor.cv) {
           setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
         }
+      } else if (isTrainingCenter) {
+        // Update Training Center profile
+        const submitData = new FormData();
+        
+        // Add all form fields
+        Object.keys(formData).forEach(key => {
+          if (formData[key] !== null && formData[key] !== '') {
+            submitData.append(key, formData[key]);
+          }
+        });
+        
+        // Add logo if selected
+        if (logoFile instanceof File) {
+          submitData.append('logo', logoFile);
+        }
+        
+        // Use POST with _method=PUT for FormData (Laravel style)
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || 
+                     sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+        
+        const response = await axios.post(`${API_BASE_URL}/auth/profile?_method=PUT`, submitData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+          },
+        });
+        
+        const updatedData = response.data.training_center || response.data.user || response.data;
+        updateUser(response.data.user || updatedData);
+        
+        if (updatedData.logo || updatedData.logo_url) {
+          setLogoUrl(updatedData.logo || updatedData.logo_url);
+        }
+        setLogoFile(null);
+        setIsEditing(false);
+        setSuccess('Profile updated successfully!');
       } else {
         // Update regular user profile
         const response = await authAPI.updateProfile(formData);
@@ -455,7 +576,220 @@ const ProfileScreen = () => {
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-5">
-              {isInstructor ? (
+              {isTrainingCenter ? (
+                <>
+                  {/* Training Center Logo Section */}
+                  <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <Building2 className="text-gray-400" size={40} />
+                        )}
+                      </div>
+                      {isEditing && (
+                        <label className="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full cursor-pointer hover:bg-primary-700 transition-colors">
+                          <Upload size={16} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoChange}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">Training Center Logo</h3>
+                      <p className="text-sm text-gray-500 mb-3">Upload your training center logo</p>
+                      {!isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                        >
+                          <Edit size={16} />
+                          Edit Profile
+                        </button>
+                      )}
+                      {errors.logo && (
+                        <p className="mt-2 text-sm text-red-600">{errors.logo}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Training Center Name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleProfileChange}
+                      required
+                      disabled={!isEditing}
+                      error={errors.name}
+                    />
+
+                    <FormInput
+                      label="Email Address"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleProfileChange}
+                      required
+                      disabled={!isEditing}
+                      error={errors.email}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Phone Number"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.phone}
+                    />
+
+                    <FormInput
+                      label="Website"
+                      name="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.website}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5">
+                    <FormInput
+                      label="Address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.address}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Country
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <select
+                          name="country"
+                          value={formData.country}
+                          onChange={handleProfileChange}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          disabled={!isEditing || loadingCountries}
+                        >
+                          <option value="">Select Country</option>
+                          {countries.map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {errors.country && (
+                        <p className="mt-1 text-sm text-red-600">{errors.country}</p>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <select
+                          name="city"
+                          value={formData.city}
+                          onChange={handleProfileChange}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          disabled={!isEditing || !formData.country || loadingCities}
+                        >
+                          <option value="">Select City</option>
+                          {cities.map((city, index) => (
+                            <option key={index} value={city.name}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {errors.city && (
+                        <p className="mt-1 text-sm text-red-600">{errors.city}</p>
+                      )}
+                    </div>
+
+                    <FormInput
+                      label="State/Province"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.state}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Postal Code"
+                      name="postal_code"
+                      value={formData.postal_code}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.postal_code}
+                    />
+                  </div>
+
+                  <FormInput
+                    label="Description"
+                    name="description"
+                    textarea={true}
+                    rows={6}
+                    value={formData.description}
+                    onChange={handleProfileChange}
+                    disabled={!isEditing}
+                    error={errors.description}
+                    placeholder="Tell us about your training center..."
+                  />
+
+                  {isEditing && (
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setLogoFile(null);
+                          loadProfile();
+                        }}
+                        disabled={saving}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        fullWidth
+                        disabled={saving}
+                        loading={saving}
+                        icon={<Save size={20} />}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : isInstructor ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormInput
@@ -602,86 +936,86 @@ const ProfileScreen = () => {
                 </div>
               )}
 
-              <div className="pt-2">
-                <Button
-                type="submit"
-                  variant="primary"
-                  fullWidth
-                disabled={saving}
-                  loading={saving}
-                  icon={<Save size={20} />}
-              >
-                    Save Changes
-                </Button>
-              </div>
-            </form>
-        </div>
-
-          {/* Change Password and CV Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Change Password */}
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center mr-4">
-                  <KeyRound className="text-red-600" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-                  <p className="text-sm text-gray-500">Update your account password</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleChangePassword} className="space-y-5">
-                <FormInput
-                  label="Current Password"
-                  type="password"
-                  name="current_password"
-                  value={passwordData.current_password}
-                  onChange={handlePasswordChange}
-                  required
-                  error={errors.current_password}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput
-                    label="New Password"
-                    type="password"
-                    name="password"
-                    value={passwordData.password}
-                    onChange={handlePasswordChange}
-                    required
-                    error={errors.password}
-                  />
-
-                  <FormInput
-                    label="Confirm New Password"
-                    type="password"
-                    name="password_confirmation"
-                    value={passwordData.password_confirmation}
-                    onChange={handlePasswordChange}
-                    required
-                    error={errors.password_confirmation}
-                  />
-                </div>
-
+              {!isTrainingCenter && (
                 <div className="pt-2">
                   <Button
                     type="submit"
-                    variant="danger"
+                    variant="primary"
+                    fullWidth
                     disabled={saving}
                     loading={saving}
-                    icon={<Lock size={20} />}
-                    fullWidth
+                    icon={<Save size={20} />}
                   >
-                    Change Password
+                    Save Changes
                   </Button>
                 </div>
-              </form>
+              )}
+            </form>
+        </div>
+
+          {/* Change Password Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center mr-4">
+                <KeyRound className="text-red-600" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+                <p className="text-sm text-gray-500">Update your account password</p>
+              </div>
             </div>
-            
-            {/* Instructor CV Section */}
-            {isInstructor && (
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+
+            <form onSubmit={handleChangePassword} className="space-y-5">
+              <FormInput
+                label="Current Password"
+                type="password"
+                name="current_password"
+                value={passwordData.current_password}
+                onChange={handlePasswordChange}
+                required
+                error={errors.current_password}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <FormInput
+                  label="New Password"
+                  type="password"
+                  name="password"
+                  value={passwordData.password}
+                  onChange={handlePasswordChange}
+                  required
+                  error={errors.password}
+                />
+
+                <FormInput
+                  label="Confirm New Password"
+                  type="password"
+                  name="password_confirmation"
+                  value={passwordData.password_confirmation}
+                  onChange={handlePasswordChange}
+                  required
+                  error={errors.password_confirmation}
+                />
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  variant="danger"
+                  disabled={saving}
+                  loading={saving}
+                  icon={<Lock size={20} />}
+                  fullWidth
+                >
+                  Change Password
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Instructor CV Section */}
+          {isInstructor && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl flex items-center justify-center mr-4">
                   <FileText className="text-indigo-600" size={24} />
@@ -792,8 +1126,7 @@ const ProfileScreen = () => {
                 </div>
               </div>
             </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>

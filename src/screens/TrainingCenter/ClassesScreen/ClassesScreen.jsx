@@ -2,10 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import axios from 'axios';
-import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Search, Filter, ChevronUp, ChevronDown, Clock, XCircle } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import DataTable from '../../../components/DataTable/DataTable';
 import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -21,7 +23,9 @@ const ClassesScreen = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedClassForEnrollment, setSelectedClassForEnrollment] = useState(null);
   const [formData, setFormData] = useState({
     course_id: '',
     class_id: '',
@@ -32,9 +36,7 @@ const ClassesScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     perPage: 10,
@@ -44,7 +46,7 @@ const ClassesScreen = () => {
 
   useEffect(() => {
     loadData();
-  }, [searchTerm]); // Load all data once, pagination and statusFilter are handled client-side
+  }, []); // Load all data once, pagination and statusFilter are handled client-side
 
   useEffect(() => {
     if (isModalOpen) {
@@ -71,9 +73,9 @@ const ClassesScreen = () => {
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center transition-all duration-200 hover:scale-105"
+        className="header-create-btn"
       >
-        <Plus size={20} className="mr-2" />
+        <Plus size={20} className="header-create-btn-icon" />
         Create Class
       </button>
     );
@@ -88,18 +90,9 @@ const ClassesScreen = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
-      };
-      
-      // Only send searchTerm to API, statusFilter is handled client-side
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
+      // Note: search, statusFilter, and pagination are now handled client-side by DataTable
       const [classesData, instructorsData] = await Promise.all([
-        trainingCenterAPI.listClasses(params),
+        trainingCenterAPI.listClasses({}),
         trainingCenterAPI.listInstructors(),
       ]);
       
@@ -449,10 +442,21 @@ const ClassesScreen = () => {
   const handleViewDetails = async (classItem) => {
     try {
       const data = await trainingCenterAPI.getClassDetails(classItem.id);
-      setSelectedClass(data.class);
+      // Handle different response structures
+      const classData = data.class || data.data || data;
+      // Ensure trainees are included (could be in classData.trainees or data.trainees)
+      if (classData && !classData.trainees && data.trainees) {
+        classData.trainees = data.trainees;
+      }
+      // If still no trainees, try to get from original classItem
+      if (classData && !classData.trainees && classItem.trainees) {
+        classData.trainees = classItem.trainees;
+      }
+      setSelectedClass(classData);
       setDetailModalOpen(true);
     } catch (error) {
       console.error('Failed to load class details:', error);
+      // Fallback to original classItem data
       setSelectedClass(classItem);
       setDetailModalOpen(true);
     }
@@ -469,84 +473,172 @@ const ClassesScreen = () => {
     }
   };
 
-  // Sort classes
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Course',
+      accessor: 'course',
+      sortable: true,
+      render: (value, row) => {
+        const courseName = typeof row.course === 'string' ? row.course : (row.course?.name || 'N/A');
+        return (
+          <div className="course-container">
+            <div className="course-icon-container">
+              <GraduationCap className="course-icon" />
+            </div>
+            <div>
+              <div className="course-name">
+                {courseName}
+              </div>
+              {row.class_id && (
+                <div className="course-id">ID: {row.class_id}</div>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Instructor',
+      accessor: 'instructor',
+      sortable: true,
+      render: (value, row) => {
+        const instructorName = typeof row.instructor === 'string'
+          ? row.instructor
+          : (row.instructor?.first_name && row.instructor?.last_name
+            ? `${row.instructor.first_name} ${row.instructor.last_name}`
+            : 'N/A');
+        return (
+          <div className="instructor-container">
+            <Users className="instructor-icon" />
+            {instructorName}
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Start Date',
+      accessor: 'start_date',
+      sortable: true,
+      render: (value, row) => (
+        <div className="date-container">
+          <Calendar className="date-icon" />
+          {row.start_date ? new Date(row.start_date).toLocaleDateString() : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'End Date',
+      accessor: 'end_date',
+      sortable: true,
+      render: (value, row) => (
+        <div className="date-container">
+          <Calendar className="date-icon" />
+          {row.end_date ? new Date(row.end_date).toLocaleDateString() : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value, row) => {
+        const statusConfig = {
+          scheduled: { bg: 'from-blue-100 to-blue-200', text: 'text-blue-800', border: 'border-blue-300', icon: Clock },
+          completed: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
+          cancelled: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
+        };
+        const config = statusConfig[row.status] || { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock };
+        const StatusIcon = config.icon;
+        const statusClass = row.status === 'scheduled' ? 'scheduled' :
+                           row.status === 'completed' ? 'completed' :
+                           row.status === 'cancelled' ? 'cancelled' : 'default';
+        return (
+          <div className="status-container">
+            <span className={`status-badge ${statusClass}`}>
+              <StatusIcon size={14} className="status-icon" />
+              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Enrollment',
+      accessor: 'enrollment',
+      sortable: false,
+      render: (value, row) => {
+        const hasTrainees = row.trainees && Array.isArray(row.trainees) && row.trainees.length > 0;
+        const handleEnrollmentClick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          e.nativeEvent.stopImmediatePropagation();
+          if (hasTrainees) {
+            setSelectedClassForEnrollment(row);
+            setEnrollmentModalOpen(true);
+          }
+        };
+        return (
+          <div 
+            className={`enrollment-container ${hasTrainees ? 'enrollment-clickable' : ''}`}
+            onClick={handleEnrollmentClick}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
+            }}
+            role={hasTrainees ? "button" : undefined}
+            tabIndex={hasTrainees ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (hasTrainees && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleEnrollmentClick(e);
+              }
+            }}
+          >
+            {row.enrolled_count || 0} / {row.course?.max_capacity || 'N/A'}
+          </div>
+        );
+      },
+    },
+  ], []);
 
-  // Filter and sort classes (status filtering is done client-side)
-  const filteredAndSortedClasses = useMemo(() => {
-    let filtered = [...classes];
+  // Filter options for DataTable
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'scheduled', label: 'Scheduled', filterFn: (row) => row.status === 'scheduled' },
+    { value: 'completed', label: 'Completed', filterFn: (row) => row.status === 'completed' },
+    { value: 'cancelled', label: 'Cancelled', filterFn: (row) => row.status === 'cancelled' },
+  ], []);
 
-    // Apply status filter (client-side)
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(classItem => classItem.status === statusFilter);
-    }
-
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'course') {
-          aValue = typeof a.course === 'string' ? a.course : (a.course?.name || '').toLowerCase();
-          bValue = typeof b.course === 'string' ? b.course : (b.course?.name || '').toLowerCase();
-        } else if (sortConfig.key === 'instructor') {
-          const aInst = typeof a.instructor === 'string' ? a.instructor : 
-            (a.instructor?.first_name && a.instructor?.last_name 
-              ? `${a.instructor.first_name} ${a.instructor.last_name}` 
-              : '').toLowerCase();
-          const bInst = typeof b.instructor === 'string' ? b.instructor : 
-            (b.instructor?.first_name && b.instructor?.last_name 
-              ? `${b.instructor.first_name} ${b.instructor.last_name}` 
-              : '').toLowerCase();
-          aValue = aInst;
-          bValue = bInst;
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    return filtered;
-  }, [classes, statusFilter, sortConfig]);
-
-  // Paginate filtered data client-side
-  const paginatedClasses = useMemo(() => {
-    const start = (pagination.currentPage - 1) * pagination.perPage;
-    const end = start + pagination.perPage;
-    return filteredAndSortedClasses.slice(start, end);
-  }, [filteredAndSortedClasses, pagination.currentPage, pagination.perPage]);
-
-  // Update pagination totals based on filtered data
-  useEffect(() => {
-    const totalItems = filteredAndSortedClasses.length;
-    const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
-    setPagination(prev => ({
-      ...prev,
-      totalItems,
-      totalPages,
-      currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
-    }));
-  }, [filteredAndSortedClasses.length, pagination.perPage]);
+  // Add searchable text to each row for better search functionality
+  const dataWithSearchText = useMemo(() => {
+    return classes.map(classItem => {
+      const courseName = typeof classItem.course === 'string' ? classItem.course : (classItem.course?.name || '');
+      const instructorName = typeof classItem.instructor === 'string'
+        ? classItem.instructor
+        : (classItem.instructor?.first_name && classItem.instructor?.last_name
+          ? `${classItem.instructor.first_name} ${classItem.instructor.last_name}`
+          : '');
+      
+      const searchText = [
+        courseName,
+        instructorName,
+        classItem.class_id || '',
+        classItem.status || '',
+        classItem.location || '',
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      return {
+        ...classItem,
+        _searchText: searchText,
+      };
+    });
+  }, [classes]);
 
   // Calculate stats from all classes (not filtered, not paginated)
   const totalCount = classes.length;
@@ -554,304 +646,88 @@ const ClassesScreen = () => {
   const completedCount = classes.filter(c => c.status === 'completed').length;
   const cancelledCount = classes.filter(c => c.status === 'cancelled').length;
 
+  // Update pagination when data changes
+  useEffect(() => {
+    const totalItems = dataWithSearchText.length;
+    const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
+    setPagination(prev => ({
+      ...prev,
+      totalItems,
+      totalPages,
+      currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
+    }));
+  }, [dataWithSearchText.length, pagination.perPage]);
+
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Classes */}
-        <div 
+    <div className="main-container">
+      {/* Stats Cards using TabCard */}
+      <div className="stats-cards-grid">
+        <TabCard
+          name="Total Classes"
+          value={totalCount}
+          icon={GraduationCap}
+          colorType="indigo"
+          isActive={statusFilter === 'all'}
           onClick={() => setStatusFilter('all')}
-          className={`bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'all' ? 'ring-2 ring-primary-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-primary-700 mb-2">Total Classes</p>
-              <p className="text-3xl font-bold text-primary-900">{totalCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <GraduationCap className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Scheduled */}
-        <div 
+        />
+        <TabCard
+          name="Scheduled"
+          value={scheduledCount}
+          icon={Calendar}
+          colorType="blue"
+          isActive={statusFilter === 'scheduled'}
           onClick={() => setStatusFilter('scheduled')}
-          className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'scheduled' ? 'ring-2 ring-blue-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-700 mb-2">Scheduled</p>
-              <p className="text-3xl font-bold text-blue-900">{scheduledCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Calendar className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Completed */}
-        <div 
+        />
+        <TabCard
+          name="Completed"
+          value={completedCount}
+          icon={CheckCircle}
+          colorType="green"
+          isActive={statusFilter === 'completed'}
           onClick={() => setStatusFilter('completed')}
-          className={`bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'completed' ? 'ring-2 ring-green-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700 mb-2">Completed</p>
-              <p className="text-3xl font-bold text-green-900">{completedCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <CheckCircle className="text-white" size={32} />
-            </div>
-          </div>
+        />
         </div>
 
-        {/* Cancelled - Commented out */}
-        {/* <div 
-          onClick={() => setStatusFilter('cancelled')}
-          className={`bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'cancelled' ? 'ring-2 ring-red-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-red-700 mb-2">Cancelled</p>
-              <p className="text-3xl font-bold text-red-900">{cancelledCount}</p>
+      {/* DataTable */}
+      <div className="datatable-container">
+        <DataTable
+          columns={columns}
+          data={dataWithSearchText}
+          onEdit={handleOpenModal}
+          onDelete={handleDelete}
+          onView={handleViewDetails}
+          onRowClick={handleViewDetails}
+          isLoading={loading}
+          emptyMessage={
+            classes.length === 0 && !loading ? (
+              <div className="empty-state-container">
+                <div className="empty-state-icon-container">
+                  <GraduationCap className="empty-state-icon" size={32} />
             </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <XCircle className="text-white" size={32} />
+                <p className="empty-state-title">No classes found</p>
+                <p className="empty-state-subtitle">Create your first class to get started!</p>
             </div>
-          </div>
-        </div> */}
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by course or instructor..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('course')}
-                >
-                  <div className="flex items-center gap-2">
-                    Course
-                    {sortConfig.key === 'course' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('instructor')}
-                >
-                  <div className="flex items-center gap-2">
-                    Instructor
-                    {sortConfig.key === 'instructor' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('start_date')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    Start Date
-                    {sortConfig.key === 'start_date' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('end_date')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    End Date
-                    {sortConfig.key === 'end_date' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Enrollment</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {paginatedClasses.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <GraduationCap className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">
-                        {searchTerm || statusFilter !== 'all' ? 'No classes found matching your search' : 'No classes found'}
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your search criteria' : 'Create your first class to get started!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedClasses.map((classItem, index) => {
-                  const statusConfig = {
-                    scheduled: { bg: 'from-blue-100 to-blue-200', text: 'text-blue-800', border: 'border-blue-300', icon: Clock },
-                    completed: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
-                    cancelled: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
-                  };
-                  const config = statusConfig[classItem.status] || { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock };
-                  const StatusIcon = config.icon;
-                  const courseName = typeof classItem.course === 'string' ? classItem.course : (classItem.course?.name || 'N/A');
-                  const instructorName = typeof classItem.instructor === 'string'
-                    ? classItem.instructor
-                    : (classItem.instructor?.first_name && classItem.instructor?.last_name
-                      ? `${classItem.instructor.first_name} ${classItem.instructor.last_name}`
-                      : 'N/A');
-                  
-                  return (
-                    <tr
-                      key={classItem.id || index}
-                      className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                      onClick={() => handleViewDetails(classItem)}
-                      style={{ '--animation-delay': `${index * 0.03}s` }}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                            <GraduationCap className="h-5 w-5 text-primary-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                              {courseName}
-                            </div>
-                            {classItem.class_id && (
-                              <div className="text-xs text-gray-500">ID: {classItem.class_id}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Users className="h-4 w-4 mr-2 text-gray-400" />
-                          {instructorName}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                          {classItem.start_date ? new Date(classItem.start_date).toLocaleDateString() : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                          {classItem.end_date ? new Date(classItem.end_date).toLocaleDateString() : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm bg-gradient-to-r ${config.bg} ${config.text} border ${config.border}`}>
-                          <StatusIcon size={14} className="mr-1" />
-                          {classItem.status ? classItem.status.charAt(0).toUpperCase() + classItem.status.slice(1) : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600">
-                        {classItem.enrolled_count || 0} / {classItem.course?.max_capacity || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenModal(classItem);
-                            }}
-                            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(classItem);
-                            }}
-                            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+            ) : 'No classes found matching your filters'
+          }
+          searchable={true}
+          filterable={true}
+          searchPlaceholder="Search by course or instructor..."
+          filterOptions={filterOptions}
+          sortable={true}
+          defaultFilter={statusFilter}
+        />
         
         {/* Pagination */}
-        {!loading && filteredAndSortedClasses.length > 0 && (
+        {!loading && pagination.totalItems > 0 && (
+          <div className="pagination-container">
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -860,6 +736,7 @@ const ClassesScreen = () => {
             onPageChange={handlePageChange}
             onPerPageChange={handlePerPageChange}
           />
+          </div>
         )}
       </div>
 
@@ -870,17 +747,17 @@ const ClassesScreen = () => {
         title={selectedClass ? 'Edit Class' : 'Create New Class'}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="modal-form">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course <span className="text-red-500">*</span>
+            <label className="form-label">
+              Course <span className="form-label-required">*</span>
             </label>
             <select
               name="course_id"
               value={formData.course_id}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
+              className="form-select"
             >
               <option value="">Select a course...</option>
               {availableCourses.map(course => {
@@ -895,12 +772,12 @@ const ClassesScreen = () => {
               })}
             </select>
             {errors.course_id && (
-              <p className="mt-1 text-sm text-red-600">{errors.course_id}</p>
+              <p className="form-error">{errors.course_id}</p>
             )}
             {availableCourses.length === 0 && !loading && (
-              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 font-medium mb-1">No courses available</p>
-                <p className="text-xs text-yellow-700">
+              <div className="form-warning">
+                <p className="form-warning-title">No courses available</p>
+                <p className="form-warning-text">
                   {hasAuthorizations 
                     ? 'No courses found from your authorized ACCs. Please check if the ACCs have published courses.'
                     : 'Please ensure you have authorization from at least one ACC. Courses from authorized ACCs will appear here.'}
@@ -921,15 +798,15 @@ const ClassesScreen = () => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Instructor <span className="text-red-500">*</span>
+            <label className="form-label">
+              Instructor <span className="form-label-required">*</span>
             </label>
             <select
             name="instructor_id"
             value={formData.instructor_id}
             onChange={handleChange}
             required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
+              className="form-select"
             >
               <option value="">Select an instructor...</option>
               {filteredInstructors.length > 0 ? (
@@ -944,26 +821,26 @@ const ClassesScreen = () => {
               )}
             </select>
             {errors.instructor_id && (
-              <p className="mt-1 text-sm text-red-600">{errors.instructor_id}</p>
+              <p className="form-error">{errors.instructor_id}</p>
             )}
             {selectedCourseData?.assessor_required && filteredInstructors.length === 0 && (
-              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 font-medium">
+              <div className="form-warning">
+                <p className="form-warning-title">
                   ⚠️ This course requires an assessor, but no assessors are available.
                 </p>
-                <p className="text-xs text-yellow-700 mt-1">
+                <p className="form-warning-text">
                   Please mark at least one instructor as an assessor before creating this class.
                 </p>
               </div>
             )}
             {selectedCourseData?.assessor_required && filteredInstructors.length > 0 && (
-              <p className="mt-1 text-xs text-blue-600">
+              <p className="form-info">
                 ℹ️ This course requires an assessor. Only assessors are shown.
               </p>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="form-grid">
             <FormInput
               label="Start Date"
               name="start_date"
@@ -986,35 +863,35 @@ const ClassesScreen = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location <span className="text-red-500">*</span>
+            <label className="form-label">
+              Location <span className="form-label-required">*</span>
             </label>
             <select
               name="location"
               value={formData.location}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
+              className="form-select"
             >
               <option value="physical">Physical</option>
               <option value="online">Online</option>
               <option value="hybrid">Hybrid</option>
             </select>
             {errors.location && (
-              <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+              <p className="form-error">{errors.location}</p>
             )}
           </div>
 
           {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 font-medium">{errors.general}</p>
+            <div className="form-error-general">
+              <p className="form-error-general-text">{errors.general}</p>
             </div>
           )}
           
           {Object.keys(errors).filter(key => key !== 'general').length > 0 && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 font-medium mb-2">Please fix the following errors:</p>
-              <ul className="list-disc list-inside text-sm text-red-600">
+            <div className="form-error-general">
+              <p className="form-error-general-text">Please fix the following errors:</p>
+              <ul className="form-error-list">
                 {Object.entries(errors)
                   .filter(([key]) => key !== 'general')
                   .map(([key, value]) => (
@@ -1026,18 +903,18 @@ const ClassesScreen = () => {
             </div>
           )}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="form-actions">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="form-btn form-btn-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="form-btn form-btn-submit"
             >
               {saving ? 'Saving...' : selectedClass ? 'Update Class' : 'Create Class'}
             </button>
@@ -1056,17 +933,71 @@ const ClassesScreen = () => {
         size="lg"
       >
         {selectedClass && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Course</p>
-                <p className="text-base font-semibold text-gray-900">
+          <div className="detail-modal-container">
+            {/* Basic Information */}
+            <div className="detail-modal-grid">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Class ID</p>
+                <p className="detail-modal-value">
+                  {selectedClass.class_id || selectedClass.id || 'N/A'}
+                </p>
+              </div>
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Status</p>
+                <span className={`detail-modal-badge ${
+                  selectedClass.status === 'completed' ? 'completed' :
+                  selectedClass.status === 'scheduled' ? 'scheduled' :
+                  selectedClass.status === 'cancelled' ? 'cancelled' : 'default'
+                }`}>
+                  {selectedClass.status ? selectedClass.status.charAt(0).toUpperCase() + selectedClass.status.slice(1) : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* Course Information */}
+            <div className="detail-modal-section detail-modal-section-blue">
+              <p className="detail-modal-section-title detail-modal-section-title-blue">Course Information</p>
+              <div className="detail-modal-section-grid">
+                <div className="detail-modal-section-item">
+                  <p className="detail-modal-section-label detail-modal-section-label-blue">Course Name</p>
+                  <p className="detail-modal-section-value detail-modal-section-value-blue">
                   {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Instructor</p>
-                <p className="text-base font-semibold text-gray-900">
+                {selectedClass.course?.code && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">Course Code</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.code}</p>
+                  </div>
+                )}
+                {selectedClass.course?.max_capacity && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">Max Capacity</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.max_capacity}</p>
+                  </div>
+                )}
+                {selectedClass.course?.duration && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">Duration</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.duration}</p>
+                  </div>
+                )}
+                {selectedClass.course?.description && (
+                  <div className="detail-modal-section-item detail-modal-section-full">
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">Description</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Instructor Information */}
+            <div className="detail-modal-section detail-modal-section-purple">
+              <p className="detail-modal-section-title detail-modal-section-title-purple">Instructor Information</p>
+              <div className="detail-modal-section-grid">
+                <div className="detail-modal-section-item">
+                  <p className="detail-modal-section-label detail-modal-section-label-purple">Name</p>
+                  <p className="detail-modal-section-value detail-modal-section-value-purple">
                   {typeof selectedClass.instructor === 'string' 
                     ? selectedClass.instructor 
                     : (selectedClass.instructor?.first_name && selectedClass.instructor?.last_name
@@ -1074,53 +1005,301 @@ const ClassesScreen = () => {
                       : 'N/A')}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Start Date</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString() : 'N/A'}
+                {selectedClass.instructor?.email && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">Email</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-purple">{selectedClass.instructor.email}</p>
+                  </div>
+                )}
+                {selectedClass.instructor?.phone && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">Phone</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-purple">{selectedClass.instructor.phone}</p>
+                  </div>
+                )}
+                {selectedClass.instructor?.is_assessor && (
+                  <div className="detail-modal-section-item">
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">Role</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-purple">Assessor</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Schedule Information */}
+            <div className="detail-modal-grid">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Start Date</p>
+                <p className="detail-modal-value">
+                  {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : 'N/A'}
                 </p>
+                {selectedClass.start_date && (
+                  <p className="detail-modal-time">
+                    {new Date(selectedClass.start_date).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">End Date</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString() : 'N/A'}
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">End Date</p>
+                <p className="detail-modal-value">
+                  {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : 'N/A'}
                 </p>
+                {selectedClass.end_date && (
+                  <p className="detail-modal-time">
+                    {new Date(selectedClass.end_date).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedClass.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  selectedClass.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedClass.status}
-                </span>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Enrollment</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Location</p>
-                <p className="text-base font-semibold text-gray-900">
+
+            {/* Additional Information */}
+            <div className="detail-modal-grid">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Location</p>
+                <p className="detail-modal-value">
                   {selectedClass.location ? selectedClass.location.charAt(0).toUpperCase() + selectedClass.location.slice(1) : 'N/A'}
                 </p>
               </div>
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Enrollment</p>
+                <p className="detail-modal-value">
+                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
+                </p>
+                {selectedClass.course?.max_capacity && (
+                  <div className="detail-modal-progress-container">
+                    <div className="detail-modal-progress-bar">
+                      <div 
+                        className="detail-modal-progress-fill"
+                        style={{ 
+                          width: `${Math.min(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100, 100)}%` 
+                        }}
+                      ></div>
+              </div>
+                    <p className="detail-modal-progress-text">
+                      {Math.round(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100)}% full
+                </p>
+              </div>
+                )}
             </div>
+            </div>
+
+            {/* Trainees Section - Always show */}
+            <div className="detail-modal-section detail-modal-section-blue">
+              <p className="detail-modal-section-title detail-modal-section-title-blue">Enrolled Trainees</p>
+              {selectedClass.trainees && Array.isArray(selectedClass.trainees) && selectedClass.trainees.length > 0 ? (
+                <div className="detail-modal-trainees-list">
+                  {selectedClass.trainees.map((trainee, index) => (
+                    <div key={trainee.id || index} className="detail-modal-trainee-item">
+                      <div className="detail-modal-trainee-content">
+                        <div className="detail-modal-trainee-name">
+                          <Users size={16} className="detail-modal-trainee-icon" />
+                          <span>{trainee.first_name} {trainee.last_name}</span>
+                        </div>
+                        <div className="detail-modal-trainee-id">
+                          <Hash size={14} className="detail-modal-trainee-id-icon" />
+                          <span>{trainee.id_number || trainee.id || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-500 font-medium">No trainees enrolled</p>
+                  <p className="text-sm text-gray-400 mt-1">No trainees have been enrolled in this class yet.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Additional Fields */}
+            {(selectedClass.created_at || selectedClass.updated_at || selectedClass.notes) && (
+              <div className="detail-modal-section detail-modal-section-yellow">
+                <p className="detail-modal-section-title detail-modal-section-title-yellow">Additional Information</p>
+                <div className="detail-modal-additional-list">
+                  {selectedClass.created_at && (
+                    <div className="detail-modal-additional-item">
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Created At</p>
+                      <p className="detail-modal-additional-value detail-modal-additional-value-yellow">
+                        {new Date(selectedClass.created_at).toLocaleString('en-US')}
+                      </p>
+                    </div>
+                  )}
+                  {selectedClass.updated_at && (
+                    <div className="detail-modal-additional-item">
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Last Updated</p>
+                      <p className="detail-modal-additional-value detail-modal-additional-value-yellow">
+                        {new Date(selectedClass.updated_at).toLocaleString('en-US')}
+                      </p>
+                    </div>
+                  )}
+                  {selectedClass.notes && (
+                    <div className="detail-modal-additional-item">
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Notes</p>
+                      <p className="detail-modal-additional-value detail-modal-additional-value-yellow">{selectedClass.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
             {selectedClass.status !== 'completed' && (
-              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+              <div className="detail-modal-actions">
                 <button
                   onClick={() => {
                     handleMarkComplete(selectedClass);
                     setDetailModalOpen(false);
                   }}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center transition-colors"
+                  className="detail-modal-action-btn"
                 >
-                  <CheckCircle size={20} className="mr-2" />
+                  <CheckCircle size={20} className="detail-modal-action-icon" />
                   Mark as Complete
                 </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Enrollment Modal */}
+      <Modal
+        isOpen={enrollmentModalOpen}
+        onClose={() => {
+          setEnrollmentModalOpen(false);
+          setSelectedClassForEnrollment(null);
+        }}
+        title="Enrolled Trainees"
+        size="lg"
+      >
+        {selectedClassForEnrollment && (
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg mb-4">
+              <p className="text-sm text-gray-500 mb-1">Class Information</p>
+              <p className="text-base font-semibold text-gray-900">
+                {selectedClassForEnrollment.course?.name || 'N/A'}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                Enrollment: {selectedClassForEnrollment.enrolled_count || 0} / {selectedClassForEnrollment.course?.max_capacity || 'N/A'}
+              </p>
+            </div>
+
+            {selectedClassForEnrollment.trainees && selectedClassForEnrollment.trainees.length > 0 ? (
+              <div className="space-y-3">
+                {selectedClassForEnrollment.trainees.map((trainee, index) => (
+                  <div key={trainee.id || index} className="p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1 flex items-center">
+                          <Users size={14} className="mr-1" />
+                          Name
+                        </p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {trainee.first_name} {trainee.last_name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1 flex items-center">
+                          <Mail size={14} className="mr-1" />
+                          Email
+                        </p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {trainee.email || 'N/A'}
+                        </p>
+                      </div>
+                      {trainee.phone && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Phone size={14} className="mr-1" />
+                            Phone
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {trainee.phone}
+                          </p>
+                        </div>
+                      )}
+                      {trainee.id_number && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Hash size={14} className="mr-1" />
+                            ID Number
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {trainee.id_number}
+                          </p>
+                        </div>
+                      )}
+                      {trainee.enrolled_at && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Calendar size={14} className="mr-1" />
+                            Enrolled At
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(trainee.enrolled_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      {trainee.completed_at && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <CheckCircle size={14} className="mr-1" />
+                            Completed At
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(trainee.completed_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1 flex items-center">
+                          <Clock size={14} className="mr-1" />
+                          Status
+                        </p>
+                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
+                          trainee.status === 'completed' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+                          trainee.status === 'enrolled' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
+                          'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+                        }`}>
+                          {trainee.status === 'completed' && <CheckCircle size={12} className="mr-1" />}
+                          {trainee.status ? trainee.status.charAt(0).toUpperCase() + trainee.status.slice(1) : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="mx-auto text-gray-400 mb-4" size={48} />
+                <p className="text-gray-500 font-medium">No trainees enrolled</p>
+                <p className="text-sm text-gray-400 mt-1">No trainees have been enrolled in this class yet.</p>
               </div>
             )}
           </div>

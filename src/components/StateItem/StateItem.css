@@ -1,0 +1,70 @@
+/* State Item Component Styles */
+
+.state-item {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.state-item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.state-icon-wrapper {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.state-icon-wrapper-green {
+  background: #dcfce7;
+}
+
+.state-icon-wrapper-blue {
+  background: #dbeafe;
+}
+
+.state-icon-wrapper-purple {
+  background: #f3e8ff;
+}
+
+.state-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.state-icon-green {
+  color: #16a34a;
+}
+
+.state-icon-blue {
+  color: #2563eb;
+}
+
+.state-icon-purple {
+  color: #9333ea;
+}
+
+.state-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.state-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.state-value-capitalize {
+  text-transform: capitalize;
+}
+

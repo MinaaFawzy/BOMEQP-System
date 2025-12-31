@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { HeaderProvider } from './context/HeaderContext';
 import { NotificationsProvider } from './context/NotificationsContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
@@ -28,6 +28,7 @@ import StripeSettingsScreen from './screens/GroupAdmin/StripeSettingsScreen/Stri
 // ACC Admin screens
 import ACCDashboardScreen from './screens/ACCAdmin/DashboardScreen/DashboardScreen';
 import SubscriptionScreen from './screens/ACCAdmin/SubscriptionScreen/SubscriptionScreen';
+import ACCProfileScreen from './screens/ACCAdmin/ProfileScreen/ProfileScreen';
 import TrainingCentersScreen from './screens/ACCAdmin/TrainingCentersScreen/TrainingCentersScreen';
 import InstructorsScreen from './screens/ACCAdmin/InstructorsScreen/InstructorsScreen';
 import CoursesScreen from './screens/ACCAdmin/CoursesScreen/CoursesScreen';
@@ -60,6 +61,17 @@ import InstructorProfileScreen from './screens/Instructor/ProfileScreen/Instruct
 
 // Profile screen
 import ProfileScreen from './screens/Profile/ProfileScreen/ProfileScreen';
+
+// Profile Route Component - handles role-based profile screen selection
+const ProfileRoute = () => {
+  const { user } = useAuth();
+  
+  return (
+    <Layout>
+      {user?.role === 'acc_admin' ? <ACCProfileScreen /> : <ProfileScreen />}
+    </Layout>
+  );
+};
 
 function App() {
   return (
@@ -200,14 +212,12 @@ function App() {
             }
           />
 
-          {/* Profile route (all authenticated users) */}
+          {/* Profile route - role-based */}
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
-                <Layout>
-                  <ProfileScreen />
-                </Layout>
+                <ProfileRoute />
               </ProtectedRoute>
             }
           />

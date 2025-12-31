@@ -4,6 +4,11 @@ import { useHeader } from '../../../context/HeaderContext';
 import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
+import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import DataTable from '../../../components/DataTable/DataTable';
+import Pagination from '../../../components/Pagination/Pagination';
 import './TraineesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -11,10 +16,10 @@ const TraineesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [trainees, setTrainees] = useState([]);
   const [pagination, setPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    per_page: 15,
-    total: 0,
+    currentPage: 1,
+    totalPages: 1,
+    perPage: 15,
+    totalItems: 0,
   });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,12 +54,12 @@ const TraineesScreen = () => {
   useEffect(() => {
     setHeaderTitle('Trainees');
     setHeaderSubtitle('Manage your trainees');
-    setHeaderActions(
+      setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center transition-all duration-200 hover:scale-105"
+        className="trainees-header-button"
       >
-        <Plus size={20} className="mr-2" />
+        <Plus size={20} className="trainees-header-button-icon" />
         Add Trainee
       </button>
     );
@@ -78,19 +83,20 @@ const TraineesScreen = () => {
       const data = await trainingCenterAPI.listTrainees(params);
       if (data?.trainees) {
         setTrainees(data.trainees);
-        setPagination(data.pagination || {
-          current_page: page,
-          last_page: 1,
-          per_page: 15,
-          total: data.trainees.length,
+        const paginationData = data.pagination || {};
+        setPagination({
+          currentPage: paginationData.current_page || currentPage,
+          totalPages: paginationData.last_page || paginationData.total_pages || 1,
+          perPage: paginationData.per_page || pagination.perPage,
+          totalItems: paginationData.total || data.trainees.length,
         });
       } else if (Array.isArray(data)) {
         setTrainees(data);
         setPagination({
-          current_page: page,
-          last_page: 1,
-          per_page: 15,
-          total: data.length,
+          currentPage: currentPage,
+          totalPages: 1,
+          perPage: pagination.perPage,
+          totalItems: data.length,
         });
       } else {
         setTrainees([]);
@@ -115,6 +121,7 @@ const TraineesScreen = () => {
   };
 
   useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
     loadTrainees(1);
   }, [searchTerm]); // Only reload when searchTerm changes, statusFilter is client-side only
 
@@ -247,32 +254,63 @@ const TraineesScreen = () => {
 
     try {
       const submitFormData = new FormData();
-      submitFormData.append('first_name', formData.first_name.trim());
-      submitFormData.append('last_name', formData.last_name.trim());
-      submitFormData.append('email', formData.email.trim());
-      submitFormData.append('phone', formData.phone.trim());
-      submitFormData.append('id_number', formData.id_number.trim());
-      submitFormData.append('status', formData.status);
-
-      // Only append files if they are new (File objects)
-      if (formData.id_image instanceof File) {
-        submitFormData.append('id_image', formData.id_image);
-      }
-      if (formData.card_image instanceof File) {
-        submitFormData.append('card_image', formData.card_image);
-      }
-
-      // Append enrolled classes
-      formData.enrolled_classes.forEach(classId => {
-        submitFormData.append('enrolled_classes[]', classId);
-      });
-
+      
       if (selectedTrainee) {
+        // For updates: Only send fields that have non-empty values
+        const trimmedFirstName = formData.first_name?.trim();
+        const trimmedLastName = formData.last_name?.trim();
+        const trimmedEmail = formData.email?.trim();
+        const trimmedPhone = formData.phone?.trim();
+        const trimmedIdNumber = formData.id_number?.trim();
+        
+        if (trimmedFirstName) submitFormData.append('first_name', trimmedFirstName);
+        if (trimmedLastName) submitFormData.append('last_name', trimmedLastName);
+        if (trimmedEmail) submitFormData.append('email', trimmedEmail);
+        if (trimmedPhone) submitFormData.append('phone', trimmedPhone);
+        if (trimmedIdNumber) submitFormData.append('id_number', trimmedIdNumber);
+        if (formData.status) submitFormData.append('status', formData.status);
+
+        // Only append files if they are new (File objects)
+        if (formData.id_image instanceof File) {
+          submitFormData.append('id_image', formData.id_image);
+        }
+        if (formData.card_image instanceof File) {
+          submitFormData.append('card_image', formData.card_image);
+        }
+
+        // Only append enrolled classes if array is not empty
+        if (formData.enrolled_classes && formData.enrolled_classes.length > 0) {
+          formData.enrolled_classes.forEach(classId => {
+            submitFormData.append('enrolled_classes[]', classId);
+          });
+        }
+        
         await trainingCenterAPI.updateTrainee(selectedTrainee.id, submitFormData);
       } else {
+        // For creates: Send all required fields
+        submitFormData.append('first_name', formData.first_name.trim());
+        submitFormData.append('last_name', formData.last_name.trim());
+        submitFormData.append('email', formData.email.trim());
+        submitFormData.append('phone', formData.phone.trim());
+        submitFormData.append('id_number', formData.id_number.trim());
+        submitFormData.append('status', formData.status);
+
+        // Only append files if they are new (File objects)
+        if (formData.id_image instanceof File) {
+          submitFormData.append('id_image', formData.id_image);
+        }
+        if (formData.card_image instanceof File) {
+          submitFormData.append('card_image', formData.card_image);
+        }
+
+        // Append enrolled classes
+        formData.enrolled_classes.forEach(classId => {
+          submitFormData.append('enrolled_classes[]', classId);
+        });
+        
         await trainingCenterAPI.createTrainee(submitFormData);
       }
-      await loadTrainees(pagination.current_page);
+      await loadTrainees(pagination.currentPage);
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting trainee:', error);
@@ -296,7 +334,7 @@ const TraineesScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteTrainee(selectedTrainee.id);
-      await loadTrainees(pagination.current_page);
+      await loadTrainees(pagination.currentPage);
     } catch (error) {
       alert('Failed to delete trainee: ' + (error.message || 'Unknown error'));
     }
@@ -316,379 +354,216 @@ const TraineesScreen = () => {
     }
   };
 
-  // Sort trainees
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+  const handlePageChange = (page) => {
+    loadTrainees(page);
+  };
+  
+  const handlePerPageChange = (perPage) => {
+    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
+    loadTrainees(1);
   };
 
-  // Filter and sort trainees
-  const filteredAndSortedTrainees = useMemo(() => {
-    let filtered = [...trainees];
-
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(trainee => {
-        const firstName = trainee.first_name || '';
-        const lastName = trainee.last_name || '';
-        const email = trainee.email || '';
-        const phone = trainee.phone || '';
-        const idNumber = trainee.id_number || '';
-        const fullName = `${firstName} ${lastName}`.toLowerCase();
-        return fullName.includes(term) || 
-               email.toLowerCase().includes(term) ||
-               phone.includes(term) ||
-               idNumber.toLowerCase().includes(term);
-      });
-    }
-
-    // Apply status filter (already done server-side, but keep for client-side filtering if needed)
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(trainee => trainee.status === statusFilter);
-    }
-
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'name') {
-          aValue = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
-          bValue = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    return filtered;
-  }, [trainees, searchTerm, statusFilter, sortConfig]);
-
   // Calculate stats from all trainees (not filtered)
-  const totalCount = trainees.length;
+  const totalCount = pagination.totalItems || trainees.length;
   const activeCount = trainees.filter(t => t.status === 'active').length;
   const inactiveCount = trainees.filter(t => t.status === 'inactive').length;
   const suspendedCount = trainees.filter(t => t.status === 'suspended').length;
 
+  // Define columns for DataTable
+  const traineesColumns = useMemo(() => [
+    {
+      header: 'Trainee',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="trainees-column-trainee">
+          <div className="trainees-column-icon-wrapper">
+            <UserCheck className="trainees-column-icon" />
+          </div>
+          <div>
+            <div className="trainees-column-name">
+              {row.first_name} {row.last_name}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Email',
+      accessor: 'email',
+      sortable: true,
+      render: (value) => (
+        <div className="trainees-column-email">
+          <Mail className="trainees-column-email-icon" />
+          {value}
+        </div>
+      )
+    },
+    {
+      header: 'Phone',
+      accessor: 'phone',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <div className="trainees-column-phone">
+            <Phone className="trainees-column-phone-icon" />
+            {value}
+          </div>
+        ) : (
+          <span className="trainees-column-na">N/A</span>
+        )
+      )
+    },
+    {
+      header: 'ID Number',
+      accessor: 'id_number',
+      sortable: true,
+      render: (value) => (
+        <span className="trainees-column-id-number">{value || 'N/A'}</span>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => {
+        const statusConfig = {
+          active: { icon: CheckCircle, class: 'trainees-column-status-badge-active' },
+          inactive: { icon: Clock, class: 'trainees-column-status-badge-inactive' },
+          suspended: { icon: XCircle, class: 'trainees-column-status-badge-suspended' },
+        };
+        const config = statusConfig[value] || statusConfig.inactive;
+        const StatusIcon = config.icon;
+        return (
+          <span className={`trainees-column-status-badge ${config.class}`}>
+            <StatusIcon size={14} className="trainees-column-status-icon" />
+            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          </span>
+        );
+      }
+    },
+    {
+      header: 'Classes',
+      accessor: 'training_classes',
+      sortable: false,
+      render: (value) => (
+        value && value.length > 0 ? (
+          <div className="trainees-column-classes">
+            <BookOpen size={16} className="trainees-column-classes-icon" />
+            <span className="trainees-column-classes-count">{value.length}</span>
+          </div>
+        ) : (
+          <span className="trainees-column-na">0</span>
+        )
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="trainees-column-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenModal(row);
+            }}
+            className="trainees-action-button trainees-action-button-edit"
+            title="Edit"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row);
+            }}
+            className="trainees-action-button trainees-action-button-delete"
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
+  ], []);
+
   if (loading && trainees.length === 0) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="trainees-container">
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div 
+      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+        <TabCard
+          name="Total Trainees"
+          value={totalCount}
+          icon={UserCheck}
+          colorType="indigo"
+          isActive={statusFilter === 'all'}
           onClick={() => setStatusFilter('all')}
-          className={`bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'all' ? 'ring-2 ring-primary-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-primary-700 mb-2">Total Trainees</p>
-              <p className="text-3xl font-bold text-primary-900">{totalCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <UserCheck className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        <div 
+        />
+        <TabCard
+          name="Active"
+          value={activeCount}
+          icon={CheckCircle}
+          colorType="green"
+          isActive={statusFilter === 'active'}
           onClick={() => setStatusFilter('active')}
-          className={`bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'active' ? 'ring-2 ring-green-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700 mb-2">Active</p>
-              <p className="text-3xl font-bold text-green-900">{activeCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <CheckCircle className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        <div 
+        />
+        <TabCard
+          name="Inactive"
+          value={inactiveCount}
+          icon={Clock}
+          colorType="gray"
+          isActive={statusFilter === 'inactive'}
           onClick={() => setStatusFilter('inactive')}
-          className={`bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'inactive' ? 'ring-2 ring-gray-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Inactive</p>
-              <p className="text-3xl font-bold text-gray-900">{inactiveCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Clock className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        <div 
+        />
+        <TabCard
+          name="Suspended"
+          value={suspendedCount}
+          icon={XCircle}
+          colorType="red"
+          isActive={statusFilter === 'suspended'}
           onClick={() => setStatusFilter('suspended')}
-          className={`bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'suspended' ? 'ring-2 ring-red-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-red-700 mb-2">Suspended</p>
-              <p className="text-3xl font-bold text-red-900">{suspendedCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <XCircle className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name, email, phone, or ID number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        />
+      </TabCardsGrid>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Trainee
-                    {sortConfig.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('email')}
-                >
-                  <div className="flex items-center gap-2">
-                    Email
-                    {sortConfig.key === 'email' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('phone')}
-                >
-                  <div className="flex items-center gap-2">
-                    Phone
-                    {sortConfig.key === 'phone' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">ID Number</th>
-                <th 
-                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Classes</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {filteredAndSortedTrainees.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <UserCheck className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">
-                        {searchTerm || statusFilter !== 'all' ? 'No trainees found matching your search' : 'No trainees found'}
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your search criteria' : 'Add your first trainee to get started!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredAndSortedTrainees.map((trainee, index) => {
-                  const statusConfig = {
-                    active: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
-                    inactive: { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock },
-                    suspended: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
-                  };
-                  const config = statusConfig[trainee.status] || statusConfig.inactive;
-                  const StatusIcon = config.icon;
-                  
-                  return (
-                    <tr
-                      key={trainee.id || index}
-                      className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                      onClick={() => handleViewDetails(trainee)}
-                      style={{ '--animation-delay': `${index * 0.03}s` }}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                            <UserCheck className="h-5 w-5 text-primary-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                              {trainee.first_name} {trainee.last_name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {trainee.email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {trainee.phone ? (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                            {trainee.phone}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-sm text-gray-600">{trainee.id_number || 'N/A'}</span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm bg-gradient-to-r ${config.bg} ${config.text} border ${config.border}`}>
-                          <StatusIcon size={14} className="mr-1" />
-                          {trainee.status ? trainee.status.charAt(0).toUpperCase() + trainee.status.slice(1) : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        {trainee.training_classes && trainee.training_classes.length > 0 ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <BookOpen size={16} className="text-primary-600" />
-                            <span className="text-sm text-gray-600">{trainee.training_classes.length}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">0</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenModal(trainee);
-                            }}
-                            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(trainee);
-                            }}
-                            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="trainees-table-container">
+        <DataTable
+          columns={traineesColumns}
+          data={trainees}
+          isLoading={loading}
+          searchable={true}
+          sortable={true}
+          filterable={true}
+          searchPlaceholder="Search by name, email, phone, or ID number..."
+          emptyMessage="No trainees found"
+          filterOptions={[
+            { value: 'all', label: 'All Status', filterFn: null },
+            { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
+            { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+            { value: 'suspended', label: 'Suspended', filterFn: (row) => row.status === 'suspended' },
+          ]}
+          defaultFilter={statusFilter}
+          onRowClick={(trainee) => handleViewDetails(trainee)}
+        />
+        
+        {/* Pagination */}
+        {!loading && pagination.totalItems > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            perPage={pagination.perPage}
+            onPageChange={handlePageChange}
+            onPerPageChange={handlePerPageChange}
+          />
+        )}
       </div>
-
-      {/* Pagination */}
-      {pagination.last_page > 1 && (
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-          <div className="text-sm text-gray-600">
-            Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to {Math.min(pagination.current_page * pagination.per_page, pagination.total)} of {pagination.total} trainees
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => loadTrainees(pagination.current_page - 1)}
-              disabled={pagination.current_page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => loadTrainees(pagination.current_page + 1)}
-              disabled={pagination.current_page === pagination.last_page}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Add/Edit Modal */}
       <Modal
@@ -697,8 +572,8 @@ const TraineesScreen = () => {
         title={selectedTrainee ? 'Edit Trainee' : 'Add New Trainee'}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="trainees-form">
+          <div className="trainees-form-grid">
             <FormInput
               label="First Name"
               name="first_name"
@@ -718,7 +593,7 @@ const TraineesScreen = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="trainees-form-grid">
             <FormInput
               label="Email"
               type="email"
@@ -740,7 +615,7 @@ const TraineesScreen = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="trainees-form-grid">
             <FormInput
               label="ID Number"
               name="id_number"
@@ -767,70 +642,70 @@ const TraineesScreen = () => {
 
           {/* ID Image Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              ID Image {!selectedTrainee && <span className="text-red-500">*</span>}
+            <label className="trainees-image-label">
+              ID Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
             
             {idImagePreview ? (
-              <div className="relative">
-                <div className="relative group border-2 border-dashed border-primary-300 rounded-xl overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100/50">
+              <div className="trainees-image-preview-container">
+                <div className="trainees-image-preview-box">
                   <img 
                     src={idImagePreview} 
                     alt="ID Preview" 
-                    className="w-full h-64 object-contain bg-white" 
+                    className="trainees-image-preview-img" 
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex gap-2">
-                      <label className="cursor-pointer">
+                  <div className="trainees-image-preview-overlay">
+                    <div className="trainees-image-preview-actions">
+                      <label>
                         <input
                           type="file"
                           accept="image/jpeg,image/jpg,image/png,application/pdf"
                           onChange={(e) => handleFileChange(e, 'id_image')}
-                          className="hidden"
+                          className="trainees-image-upload-input"
                         />
-                        <div className="px-4 py-2 bg-white/90 backdrop-blur-sm text-primary-700 rounded-lg hover:bg-white transition-colors flex items-center gap-2 shadow-lg">
+                        <div className="trainees-image-change-button">
                           <Upload size={18} />
-                          <span className="text-sm font-medium">Change</span>
+                          <span className="trainees-image-change-text">Change</span>
                         </div>
                       </label>
                       <button
                         type="button"
                         onClick={() => handleRemoveImage('id_image')}
-                        className="px-4 py-2 bg-red-500/90 backdrop-blur-sm text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 shadow-lg"
+                        className="trainees-image-remove-button"
                       >
                         <X size={18} />
-                        <span className="text-sm font-medium">Remove</span>
+                        <span className="trainees-image-remove-text">Remove</span>
                       </button>
                     </div>
                   </div>
                 </div>
                 {formData.id_image instanceof File && (
-                  <p className="mt-2 text-xs text-gray-600 flex items-center gap-1">
+                  <p className="trainees-image-file-name">
                     <FileImage size={14} />
                     {formData.id_image.name}
                   </p>
                 )}
               </div>
             ) : (
-              <label className="cursor-pointer block">
+              <label className="trainees-image-upload-label">
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'id_image')}
-                  className="hidden"
+                  className="trainees-image-upload-input"
                 />
-                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 bg-gradient-to-br from-gray-50 to-gray-100/50 hover:border-primary-400 hover:from-primary-50 hover:to-primary-100/50 transition-all duration-300 group">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                <div className="trainees-image-upload-area">
+                  <div className="trainees-image-upload-inner">
+                    <div className="trainees-image-upload-icon-wrapper">
                       <Upload className="text-white" size={28} />
                     </div>
-                    <p className="text-base font-semibold text-gray-700 mb-1 group-hover:text-primary-700 transition-colors">
+                    <p className="trainees-image-upload-text-title">
                       Upload ID Image
                     </p>
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className="trainees-image-upload-text-hint">
                       Click to browse or drag and drop
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="trainees-image-upload-text-small">
                       JPEG, JPG, PNG, PDF (Max 10MB)
                     </p>
                   </div>
@@ -838,7 +713,7 @@ const TraineesScreen = () => {
               </label>
             )}
             {errors.id_image && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <p className="trainees-image-error">
                 <XCircle size={16} />
                 {Array.isArray(errors.id_image) ? errors.id_image[0] : errors.id_image}
               </p>
@@ -847,70 +722,70 @@ const TraineesScreen = () => {
 
           {/* Card Image Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Card Image {!selectedTrainee && <span className="text-red-500">*</span>}
+            <label className="trainees-image-label">
+              Card Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
             
             {cardImagePreview ? (
-              <div className="relative">
-                <div className="relative group border-2 border-dashed border-primary-300 rounded-xl overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100/50">
+              <div className="trainees-image-preview-container">
+                <div className="trainees-image-preview-box">
                   <img 
                     src={cardImagePreview} 
                     alt="Card Preview" 
-                    className="w-full h-64 object-contain bg-white" 
+                    className="trainees-image-preview-img" 
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex gap-2">
-                      <label className="cursor-pointer">
+                  <div className="trainees-image-preview-overlay">
+                    <div className="trainees-image-preview-actions">
+                      <label>
                         <input
                           type="file"
                           accept="image/jpeg,image/jpg,image/png,application/pdf"
                           onChange={(e) => handleFileChange(e, 'card_image')}
-                          className="hidden"
+                          className="trainees-image-upload-input"
                         />
-                        <div className="px-4 py-2 bg-white/90 backdrop-blur-sm text-primary-700 rounded-lg hover:bg-white transition-colors flex items-center gap-2 shadow-lg">
+                        <div className="trainees-image-change-button">
                           <Upload size={18} />
-                          <span className="text-sm font-medium">Change</span>
+                          <span className="trainees-image-change-text">Change</span>
                         </div>
                       </label>
                       <button
                         type="button"
                         onClick={() => handleRemoveImage('card_image')}
-                        className="px-4 py-2 bg-red-500/90 backdrop-blur-sm text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 shadow-lg"
+                        className="trainees-image-remove-button"
                       >
                         <X size={18} />
-                        <span className="text-sm font-medium">Remove</span>
+                        <span className="trainees-image-remove-text">Remove</span>
                       </button>
                     </div>
                   </div>
                 </div>
                 {formData.card_image instanceof File && (
-                  <p className="mt-2 text-xs text-gray-600 flex items-center gap-1">
+                  <p className="trainees-image-file-name">
                     <FileImage size={14} />
                     {formData.card_image.name}
                   </p>
                 )}
               </div>
             ) : (
-              <label className="cursor-pointer block">
+              <label className="trainees-image-upload-label">
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'card_image')}
-                  className="hidden"
+                  className="trainees-image-upload-input"
                 />
-                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 bg-gradient-to-br from-gray-50 to-gray-100/50 hover:border-primary-400 hover:from-primary-50 hover:to-primary-100/50 transition-all duration-300 group">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                <div className="trainees-image-upload-area">
+                  <div className="trainees-image-upload-inner">
+                    <div className="trainees-image-upload-icon-wrapper">
                       <Upload className="text-white" size={28} />
                     </div>
-                    <p className="text-base font-semibold text-gray-700 mb-1 group-hover:text-primary-700 transition-colors">
+                    <p className="trainees-image-upload-text-title">
                       Upload Card Image
                     </p>
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className="trainees-image-upload-text-hint">
                       Click to browse or drag and drop
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="trainees-image-upload-text-small">
                       JPEG, JPG, PNG, PDF (Max 10MB)
                     </p>
                   </div>
@@ -918,7 +793,7 @@ const TraineesScreen = () => {
               </label>
             )}
             {errors.card_image && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <p className="trainees-image-error">
                 <XCircle size={16} />
                 {Array.isArray(errors.card_image) ? errors.card_image[0] : errors.card_image}
               </p>
@@ -927,30 +802,30 @@ const TraineesScreen = () => {
 
           {/* Enrolled Classes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="trainees-classes-label">
               Enrolled Classes
             </label>
             {trainingClasses.length === 0 ? (
-              <p className="text-sm text-gray-500">No training classes available</p>
+              <p className="trainees-classes-empty">No training classes available</p>
             ) : (
-              <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 space-y-2">
+              <div className="trainees-classes-container">
                 {trainingClasses.map(trainingClass => (
                   <label
                     key={trainingClass.id}
-                    className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    className="trainees-class-item"
                   >
                     <input
                       type="checkbox"
                       checked={formData.enrolled_classes?.includes(trainingClass.id) || false}
                       onChange={() => handleClassToggle(trainingClass.id)}
-                      className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="trainees-class-checkbox"
                     />
-                    <div className="flex-1">
-                      <span className="text-sm text-gray-900 font-medium">
+                    <div className="trainees-class-info">
+                      <span className="trainees-class-name">
                         {trainingClass.course?.name || trainingClass.name || `Class ${trainingClass.id}`}
                       </span>
                       {trainingClass.start_date && trainingClass.end_date && (
-                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <div className="trainees-class-date">
                           <Calendar size={12} />
                           {new Date(trainingClass.start_date).toLocaleDateString()} - {new Date(trainingClass.end_date).toLocaleDateString()}
                         </div>
@@ -961,37 +836,37 @@ const TraineesScreen = () => {
               </div>
             )}
             {errors.enrolled_classes && (
-              <p className="mt-1 text-sm text-red-600">{Array.isArray(errors.enrolled_classes) ? errors.enrolled_classes[0] : errors.enrolled_classes}</p>
+              <p className="trainees-classes-error">{Array.isArray(errors.enrolled_classes) ? errors.enrolled_classes[0] : errors.enrolled_classes}</p>
             )}
           </div>
 
           {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 font-medium">{errors.general}</p>
+            <div className="trainees-error-box">
+              <p className="trainees-error-text-bold">{errors.general}</p>
             </div>
           )}
           
           {/* Display field-specific errors */}
           {Object.keys(errors).filter(key => key !== 'general' && key !== 'id_image' && key !== 'card_image' && key !== 'enrolled_classes').map((key) => (
             errors[key] && (
-              <p key={key} className="text-sm text-red-600">
+              <p key={key} className="trainees-error-text">
                 {key}: {Array.isArray(errors[key]) ? errors[key][0] : errors[key]}
               </p>
             )
           ))}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="trainees-form-actions">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="trainees-button-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="trainees-button-submit"
             >
               {saving ? 'Saving...' : selectedTrainee ? 'Update Trainee' : 'Add Trainee'}
             </button>
@@ -1010,43 +885,42 @@ const TraineesScreen = () => {
         size="lg"
       >
         {selectedTrainee && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">First Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedTrainee.first_name || 'N/A'}</p>
+          <div className="trainees-detail-container">
+            <div className="trainees-detail-grid">
+              <div className="trainees-detail-item">
+                <p className="trainees-detail-label">First Name</p>
+                <p className="trainees-detail-value">{selectedTrainee.first_name || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Last Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedTrainee.last_name || 'N/A'}</p>
+              <div className="trainees-detail-item">
+                <p className="trainees-detail-label">Last Name</p>
+                <p className="trainees-detail-value">{selectedTrainee.last_name || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Mail size={16} className="mr-2" />
+              <div className="trainees-detail-item">
+                <p className="trainees-detail-label">
+                  <Mail size={16} className="trainees-detail-label-icon" />
                   Email
                 </p>
-                <p className="text-base font-semibold text-gray-900">{selectedTrainee.email || 'N/A'}</p>
+                <p className="trainees-detail-value">{selectedTrainee.email || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Phone size={16} className="mr-2" />
+              <div className="trainees-detail-item">
+                <p className="trainees-detail-label">
+                  <Phone size={16} className="trainees-detail-label-icon" />
                   Phone
                 </p>
-                <p className="text-base font-semibold text-gray-900">{selectedTrainee.phone || 'N/A'}</p>
+                <p className="trainees-detail-value">{selectedTrainee.phone || 'N/A'}</p>
               </div>
               {selectedTrainee.id_number && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">ID Number</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedTrainee.id_number}</p>
+                <div className="trainees-detail-item">
+                  <p className="trainees-detail-label">ID Number</p>
+                  <p className="trainees-detail-value">{selectedTrainee.id_number}</p>
                 </div>
               )}
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedTrainee.status === 'active' ? 'bg-green-100 text-green-800' :
-                  selectedTrainee.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                  selectedTrainee.status === 'suspended' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
+              <div className="trainees-detail-item">
+                <p className="trainees-detail-label">Status</p>
+                <span className={`trainees-detail-status ${
+                  selectedTrainee.status === 'active' ? 'trainees-detail-status-active' :
+                  selectedTrainee.status === 'inactive' ? 'trainees-detail-status-inactive' :
+                  'trainees-detail-status-suspended'
                 }`}>
                   {selectedTrainee.status}
                 </span>
@@ -1054,20 +928,20 @@ const TraineesScreen = () => {
             </div>
 
             {/* ID and Card Images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="trainees-detail-images-grid">
               {selectedTrainee.id_image_url && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-2">ID Image</p>
-                  <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={selectedTrainee.id_image_url} alt="ID" className="w-full h-48 object-contain border border-gray-300 rounded-lg" />
+                <div className="trainees-detail-image-box">
+                  <p className="trainees-detail-image-label">ID Image</p>
+                  <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
+                    <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" />
                   </a>
                 </div>
               )}
               {selectedTrainee.card_image_url && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-2">Card Image</p>
-                  <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={selectedTrainee.card_image_url} alt="Card" className="w-full h-48 object-contain border border-gray-300 rounded-lg" />
+                <div className="trainees-detail-image-box">
+                  <p className="trainees-detail-image-label">Card Image</p>
+                  <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
+                    <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" />
                   </a>
                 </div>
               )}
@@ -1076,33 +950,33 @@ const TraineesScreen = () => {
             {/* Training Classes */}
             {selectedTrainee.training_classes && selectedTrainee.training_classes.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Enrolled Classes</h3>
-                <div className="space-y-2">
+                <h3 className="trainees-classes-title">Enrolled Classes</h3>
+                <div className="trainees-classes-list">
                   {selectedTrainee.training_classes.map((tc, index) => (
-                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between">
+                    <div key={index} className="trainees-class-detail-item">
+                      <div className="trainees-class-detail-header">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="trainees-class-detail-name">
                             {tc.course?.name || tc.name || `Class ${tc.id}`}
                           </p>
                           {tc.start_date && tc.end_date && (
-                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            <p className="trainees-class-detail-date">
                               <Calendar size={12} />
                               {new Date(tc.start_date).toLocaleDateString()} - {new Date(tc.end_date).toLocaleDateString()}
                             </p>
                           )}
                           {tc.instructor && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="trainees-class-detail-instructor">
                               Instructor: {tc.instructor.first_name} {tc.instructor.last_name}
                             </p>
                           )}
                         </div>
                         {tc.pivot?.status && (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            tc.pivot.status === 'enrolled' ? 'bg-blue-100 text-blue-800' :
-                            tc.pivot.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            tc.pivot.status === 'dropped' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
+                          <span className={`trainees-class-detail-status ${
+                            tc.pivot.status === 'enrolled' ? 'trainees-class-detail-status-enrolled' :
+                            tc.pivot.status === 'completed' ? 'trainees-class-detail-status-completed' :
+                            tc.pivot.status === 'dropped' ? 'trainees-class-detail-status-dropped' :
+                            'trainees-class-detail-status-other'
                           }`}>
                             {tc.pivot.status}
                           </span>

@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { FileText, Plus, Eye, Download, Search, Filter, ChevronUp, ChevronDown, BookOpen, Calendar, User } from 'lucide-react';
+import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, CheckCircle, XCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
-import Pagination from '../../../components/Pagination/Pagination';
+import DataTable from '../../../components/DataTable/DataTable';
 import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const TrainingCenterCertificatesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [certificates, setCertificates] = useState([]);
-  const [sortedCertificates, setSortedCertificates] = useState([]);
   const [classes, setClasses] = useState([]);
   const [codes, setCodes] = useState([]);
   const [filteredCodes, setFilteredCodes] = useState([]);
@@ -19,8 +18,6 @@ const TrainingCenterCertificatesScreen = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -40,11 +37,7 @@ const TrainingCenterCertificatesScreen = () => {
 
   useEffect(() => {
     loadData();
-  }, [pagination.currentPage, pagination.perPage, searchTerm, statusFilter]);
-
-  useEffect(() => {
-    applySort();
-  }, [certificates, sortConfig]);
+  }, []); // Load all data once, pagination and filtering are handled client-side
 
   useEffect(() => {
     setHeaderTitle('Certificates');
@@ -52,7 +45,7 @@ const TrainingCenterCertificatesScreen = () => {
     setHeaderActions(
       <button
         onClick={handleOpenModal}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+        className="header-create-btn"
       >
         <Plus size={20} />
         Generate Certificate
@@ -69,21 +62,9 @@ const TrainingCenterCertificatesScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
-      };
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
-      
+      // Note: search, statusFilter, and pagination are now handled client-side by DataTable
       const [certData, classesData, codesData] = await Promise.all([
-        trainingCenterAPI.listCertificates(params),
+        trainingCenterAPI.listCertificates({}),
         trainingCenterAPI.listClasses(),
         trainingCenterAPI.getCodeInventory({ status: 'available' }),
       ]);
@@ -91,25 +72,10 @@ const TrainingCenterCertificatesScreen = () => {
       let certificatesArray = [];
       if (certData.data) {
         certificatesArray = certData.data || [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: certData.last_page || certData.total_pages || 1,
-          totalItems: certData.total || 0,
-        }));
       } else if (certData.certificates) {
         certificatesArray = certData.certificates || [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: certData.certificates?.length || 0,
-        }));
       } else {
         certificatesArray = Array.isArray(certData) ? certData : [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: certificatesArray.length,
-        }));
       }
       
       setCertificates(certificatesArray);
@@ -129,49 +95,6 @@ const TrainingCenterCertificatesScreen = () => {
   
   const handlePerPageChange = (perPage) => {
     setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
-
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const applySort = () => {
-    let sorted = [...certificates];
-
-    // Apply sorting
-    if (sortConfig.key) {
-      sorted.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'course') {
-          aValue = typeof a.course === 'object' ? (a.course?.name || '') : (a.course || '');
-          bValue = typeof b.course === 'object' ? (b.course?.name || '') : (b.course || '');
-        } else if (sortConfig.key === 'issue_date') {
-          aValue = new Date(a.issue_date || 0);
-          bValue = new Date(b.issue_date || 0);
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (sortConfig.key === 'issue_date') {
-          // Already Date objects
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    setSortedCertificates(sorted);
   };
 
   const handleOpenModal = () => {
@@ -339,223 +262,188 @@ const TrainingCenterCertificatesScreen = () => {
     }
   };
 
-  const renderSortIcon = (key) => {
-    if (sortConfig.key === key) {
-      return sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />;
-    }
-    return null;
-  };
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Certificate Number',
+      accessor: 'certificate_number',
+      sortable: true,
+      render: (value, row) => (
+        <div className="certificate-number-container">
+          <div className="certificate-number-icon-container">
+            <FileText className="certificate-number-icon" />
+          </div>
+          <div>
+            <div className="certificate-number-text">
+              {row.certificate_number || 'N/A'}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Trainee',
+      accessor: 'trainee_name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="trainee-container">
+          <User className="trainee-icon" />
+          {row.trainee_name || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Course',
+      accessor: 'course',
+      sortable: true,
+      render: (value, row) => (
+        <div className="course-container">
+          <BookOpen className="course-icon" />
+          {typeof row.course === 'object' ? row.course?.name || 'N/A' : row.course || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Issue Date',
+      accessor: 'issue_date',
+      sortable: true,
+      render: (value, row) => (
+        <div className="date-container">
+          <Calendar className="date-icon" />
+          {row.issue_date ? new Date(row.issue_date).toLocaleDateString() : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value, row) => {
+        const isValid = row.status === 'valid';
+        const StatusIcon = isValid ? CheckCircle : XCircle;
+        return (
+          <div className="status-container">
+            <span className={`status-badge ${isValid ? 'valid' : 'expired'}`}>
+              <StatusIcon size={14} className="status-icon" />
+              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="actions-container">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails(row);
+            }}
+            className="action-btn action-btn-view"
+            title="View Details"
+          >
+            <Eye size={18} />
+          </button>
+          {row.certificate_pdf_url ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(row);
+              }}
+              className="action-btn action-btn-download"
+              title="Download PDF"
+            >
+              <Download size={18} />
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewDetails(row);
+              }}
+              className="action-btn action-btn-download"
+              title="View Info"
+            >
+              <FileText size={18} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ], [handleViewDetails, handleDownload]);
+
+  // Filter options for DataTable
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'valid', label: 'Valid', filterFn: (row) => row.status === 'valid' },
+    { value: 'expired', label: 'Expired', filterFn: (row) => row.status === 'expired' },
+  ], []);
+
+  // Add searchable text to each row for better search functionality
+  const dataWithSearchText = useMemo(() => {
+    return certificates.map(cert => {
+      const courseName = typeof cert.course === 'object' ? cert.course?.name || '' : cert.course || '';
+      const searchText = [
+        cert.certificate_number || '',
+        cert.trainee_name || '',
+        courseName,
+        cert.verification_code || '',
+        cert.status || '',
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      return {
+        ...cert,
+        _searchText: searchText,
+      };
+    });
+  }, [certificates]);
+
+  // Update pagination when data changes
+  useEffect(() => {
+    const totalItems = dataWithSearchText.length;
+    const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
+    setPagination(prev => ({
+      ...prev,
+      totalItems,
+      totalPages,
+      currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
+    }));
+  }, [dataWithSearchText.length, pagination.perPage]);
 
   return (
     <div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by certificate number, trainee name, course, or verification code..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="valid">Valid</option>
-              <option value="expired">Expired</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('certificate_number')}
-                >
-                  <div className="flex items-center gap-2">
-                    Certificate Number
-                    {renderSortIcon('certificate_number')}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('trainee_name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Trainee
-                    {renderSortIcon('trainee_name')}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('course')}
-                >
-                  <div className="flex items-center gap-2">
-                    Course
-                    {renderSortIcon('course')}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('issue_date')}
-                >
-                  <div className="flex items-center gap-2">
-                    Issue Date
-                    {renderSortIcon('issue_date')}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {renderSortIcon('status')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : sortedCertificates.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <FileText className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">No certificates found</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your filters' : 'Generate your first certificate!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                sortedCertificates.map((cert, index) => (
-                  <tr
-                    key={cert.id || index}
-                    className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                    style={{ '--animation-delay': `${index * 0.03}s` }}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                          <FileText className="h-5 w-5 text-primary-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                            {cert.certificate_number || 'N/A'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">{cert.trainee_name || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <BookOpen className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">
-                          {typeof cert.course === 'object' ? cert.course?.name || 'N/A' : cert.course || 'N/A'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-600">
-                          {cert.issue_date ? new Date(cert.issue_date).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                        cert.status === 'valid' 
-                          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
-                          : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300'
-                      }`}>
-                        {cert.status ? cert.status.charAt(0).toUpperCase() + cert.status.slice(1) : 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleViewDetails(cert)}
-                          className="text-primary-600 hover:text-primary-900 p-2 rounded hover:bg-primary-50 transition-all"
-                          title="View Details"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        {cert.certificate_pdf_url ? (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownload(cert);
-                            }}
-                            className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition-all"
-                            title="Download PDF"
-                          >
-                            <Download size={18} />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDetails(cert);
-                            }}
-                            className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition-all"
-                            title="View Info"
-                          >
-                            <FileText size={18} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="datatable-container">
+        <DataTable
+          columns={columns}
+          data={dataWithSearchText}
+          onRowClick={handleViewDetails}
+          isLoading={loading}
+          emptyMessage={
+            certificates.length === 0 && !loading ? (
+              <div className="empty-state-container">
+                <div className="empty-state-icon-container">
+                  <FileText className="empty-state-icon" size={32} />
+                </div>
+                <p className="empty-state-title">No certificates found</p>
+                <p className="empty-state-subtitle">Generate your first certificate!</p>
+              </div>
+            ) : 'No certificates found matching your filters'
+          }
+          searchable={true}
+          filterable={true}
+          searchPlaceholder="Search by certificate number, trainee name, course, or verification code..."
+          filterOptions={filterOptions}
+          sortable={true}
+          defaultFilter={statusFilter}
+        />
         
         {/* Pagination */}
         {!loading && pagination.totalItems > 0 && (
-          <div className="px-4 py-4 border-t border-gray-200">
+          <div className="pagination-container">
             <Pagination
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
@@ -575,10 +463,10 @@ const TrainingCenterCertificatesScreen = () => {
         title="Generate Certificate"
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="modal-form">
           {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.general}</p>
+            <div className="form-error-general">
+              <p className="form-error-general-text">{errors.general}</p>
             </div>
           )}
 
@@ -618,7 +506,7 @@ const TrainingCenterCertificatesScreen = () => {
             helpText={formData.training_class_id && filteredCodes.length === 0 ? 'No available codes match the selected training class' : ''}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="form-grid">
             <FormInput
               label="Trainee Name"
               name="trainee_name"
@@ -648,18 +536,18 @@ const TrainingCenterCertificatesScreen = () => {
             error={errors.issue_date}
           />
 
-          <div className="flex space-x-3 pt-4 border-t border-gray-200">
+          <div className="form-actions">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="form-btn form-btn-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={generating}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="form-btn form-btn-submit"
             >
               {generating ? 'Generating...' : 'Generate Certificate'}
             </button>
@@ -678,54 +566,52 @@ const TrainingCenterCertificatesScreen = () => {
         size="lg"
       >
         {selectedCertificate && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Certificate Number</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCertificate.certificate_number}</p>
+          <div className="detail-modal-container">
+            <div className="detail-modal-grid">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Certificate Number</p>
+                <p className="detail-modal-value">{selectedCertificate.certificate_number}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Verification Code</p>
-                <p className="text-base font-semibold text-gray-900 font-mono">{selectedCertificate.verification_code || 'N/A'}</p>
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Verification Code</p>
+                <p className="detail-modal-value detail-modal-value-mono">{selectedCertificate.verification_code || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Trainee Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCertificate.trainee_name}</p>
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Trainee Name</p>
+                <p className="detail-modal-value">{selectedCertificate.trainee_name}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Course</p>
-                <p className="text-base font-semibold text-gray-900">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Course</p>
+                <p className="detail-modal-value">
                   {typeof selectedCertificate.course === 'object' ? selectedCertificate.course?.name : selectedCertificate.course}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Issue Date</p>
-                <p className="text-base font-semibold text-gray-900">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Issue Date</p>
+                <p className="detail-modal-value">
                   {selectedCertificate.issue_date ? new Date(selectedCertificate.issue_date).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Expiry Date</p>
-                <p className="text-base font-semibold text-gray-900">
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Expiry Date</p>
+                <p className="detail-modal-value">
                   {selectedCertificate.expiry_date ? new Date(selectedCertificate.expiry_date).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedCertificate.status === 'valid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
+              <div className="detail-modal-item">
+                <p className="detail-modal-label">Status</p>
+                <span className={`detail-modal-badge ${selectedCertificate.status === 'valid' ? 'valid' : 'expired'}`}>
                   {selectedCertificate.status}
                 </span>
               </div>
             </div>
             {selectedCertificate.certificate_pdf_url && (
-              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+              <div className="detail-modal-actions">
                 <button
                   onClick={() => handleDownload(selectedCertificate)}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center justify-center transition-colors"
+                  className="detail-modal-action-btn"
                 >
-                  <Download size={20} className="mr-2" />
+                  <Download size={20} className="detail-modal-action-icon" />
                   Download PDF
                 </button>
               </div>

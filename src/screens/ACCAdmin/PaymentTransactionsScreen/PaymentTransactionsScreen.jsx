@@ -320,7 +320,9 @@ const PaymentTransactionsScreen = () => {
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Payer</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Payee</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Received</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Commission</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
@@ -329,7 +331,7 @@ const PaymentTransactionsScreen = () => {
                 <tbody className="bg-white divide-y divide-gray-100">
                   {filteredTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center">
+                      <td colSpan={9} className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                             <Receipt className="text-gray-400" size={32} />
@@ -418,6 +420,24 @@ const PaymentTransactionsScreen = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
+                          {transaction.provider_amount || transaction.received_amount ? (
+                            <div className="text-sm font-semibold text-green-700">
+                              + {formatCurrency(transaction.provider_amount || transaction.received_amount, transaction.currency)}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {transaction.commission_amount ? (
+                            <div className="text-sm font-semibold text-amber-700">
+                              - {formatCurrency(transaction.commission_amount, transaction.currency)}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(transaction.status)}`}>
                             {transaction.status?.charAt(0).toUpperCase() + transaction.status?.slice(1) || 'N/A'}
                           </span>
@@ -488,7 +508,7 @@ const PaymentTransactionsScreen = () => {
                 </span>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Amount</p>
+                <p className="text-sm text-gray-500 mb-1">Total Amount</p>
                 <p className={`text-2xl font-bold ${isReceived(selectedTransaction) ? 'text-green-700' : 'text-red-700'}`}>
                   {isReceived(selectedTransaction) ? '+' : '-'} {formatCurrency(selectedTransaction.amount, selectedTransaction.currency)}
                 </p>
@@ -497,6 +517,32 @@ const PaymentTransactionsScreen = () => {
                 <p className="text-sm text-gray-500 mb-1">Payment Method</p>
                 <p className="text-base font-semibold text-gray-900 capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || 'N/A'}</p>
               </div>
+              {selectedTransaction.provider_amount || selectedTransaction.received_amount ? (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-500 mb-1">Amount Received</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    + {formatCurrency(selectedTransaction.provider_amount || selectedTransaction.received_amount, selectedTransaction.currency)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Amount you received after commission</p>
+                </div>
+              ) : null}
+              {selectedTransaction.commission_amount ? (
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-sm text-gray-500 mb-1">Platform Commission</p>
+                  <p className="text-2xl font-bold text-amber-700">
+                    - {formatCurrency(selectedTransaction.commission_amount, selectedTransaction.currency)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Commission deducted from total amount</p>
+                </div>
+              ) : null}
+              {selectedTransaction.payment_type && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-gray-500 mb-1">Payment Type</p>
+                  <p className="text-base font-semibold text-gray-900 capitalize">
+                    {selectedTransaction.payment_type === 'destination_charge' ? 'Destination Charge' : 'Standard Payment'}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Payer Info */}

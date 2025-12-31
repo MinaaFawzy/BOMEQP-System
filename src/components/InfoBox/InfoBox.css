@@ -1,0 +1,70 @@
+/* InfoBox Component Styles */
+
+.info-box {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+.info-box-blue {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.info-box-yellow {
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.info-box-red {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.info-box-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.info-box-title-blue {
+  color: #1e40af;
+}
+
+.info-box-title-yellow {
+  color: #854d0e;
+}
+
+.info-box-title-red {
+  color: #991b1b;
+}
+
+.info-box-content {
+  font-size: 0.875rem;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.info-box-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.info-box-icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.info-box-icon-yellow {
+  color: #d97706;
+}
+
+.info-box-icon-red {
+  color: #dc2626;
+}
+
+.info-box-content-wrapper {
+  flex: 1;
+}
+

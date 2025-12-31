@@ -1,0 +1,21 @@
+/* DocumentsList Component Styles */
+
+.documents-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.documents-header-icon {
+  margin-right: 0.5rem;
+}
+
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+

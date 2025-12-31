@@ -212,12 +212,14 @@ const Layout = ({ children }) => {
         if (isSubscribed === false) {
           return [
             { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
+            { type: 'single', path: '/profile', icon: Settings, label: 'Profile' },
           ];
         }
         // If subscribed or still loading, show all items
         return [
           ...baseItems,
           { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
+          { type: 'single', path: '/profile', icon: Settings, label: 'Profile' },
           {
             type: 'group',
             key: 'management',
@@ -283,7 +285,7 @@ const Layout = ({ children }) => {
             label: 'Financial',
             items: [
               { path: '/training-center/codes', icon: Tag, label: 'Codes' },
-              { path: '/training-center/wallet', icon: Wallet, label: 'Wallet' },
+              // { path: '/training-center/wallet', icon: Wallet, label: 'Wallet' },
               { path: '/training-center/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
             ]
           },

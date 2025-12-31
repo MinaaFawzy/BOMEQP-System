@@ -1,0 +1,51 @@
+/* DocumentItem Component Styles */
+
+.document-item {
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.document-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.document-icon {
+  color: #9ca3af;
+}
+
+.document-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.document-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.document-filename {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.document-download {
+  padding: 0.5rem;
+  color: var(--primary-color, #4f46e5);
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.document-download:hover {
+  background: #eef2ff;
+}
+

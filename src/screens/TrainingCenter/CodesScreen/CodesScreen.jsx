@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { getAuthToken } from '../../../config/api';
 import axios from 'axios';
-import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen, Building2, CheckCircle2, XCircle } from 'lucide-react';
+import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen, Building2, CheckCircle2, XCircle, Calendar, DollarSign } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
+import DataTable from '../../../components/DataTable/DataTable';
 import './CodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const CodesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [inventory, setInventory] = useState([]);
-  const [sortedInventory, setSortedInventory] = useState([]);
   const [batches, setBatches] = useState([]);
-  const [sortedBatches, setSortedBatches] = useState([]);
   const [courses, setCourses] = useState([]);
   const [accs, setAccs] = useState([]);
   const [discountCodes, setDiscountCodes] = useState([]);
@@ -49,7 +48,7 @@ const CodesScreen = () => {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, searchTerm, statusFilter]);
+  }, [activeTab]); // Load all data once, search and filtering are handled client-side
 
   // Load batches on initial mount and when searchTerm changes (to show count in Purchase History tab)
   useEffect(() => {
@@ -101,9 +100,7 @@ const CodesScreen = () => {
     }
   }, [purchaseModalOpen]);
 
-  useEffect(() => {
-    applySort();
-  }, [inventory, batches, sortConfig, activeTab]);
+  // Removed applySort useEffect - now handled in filteredAndSortedInventory useMemo
 
   useEffect(() => {
     setHeaderTitle('Certificate Codes');
@@ -111,7 +108,7 @@ const CodesScreen = () => {
     setHeaderActions(
       <button
         onClick={handlePurchase}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+        className="header-create-btn"
       >
         <ShoppingCart size={20} />
         Purchase Codes
@@ -507,16 +504,9 @@ const CodesScreen = () => {
       
       const params = {};
       
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      if (activeTab === 'inventory' && statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
-      
       if (activeTab === 'inventory') {
-        const data = await trainingCenterAPI.getCodeInventory(params);
+        // Note: search and statusFilter are now handled client-side
+        const data = await trainingCenterAPI.getCodeInventory({});
         
         let codesList = [];
         if (data.data) {
@@ -531,7 +521,8 @@ const CodesScreen = () => {
         const enrichedCodes = await enrichCodesWithACCData(codesList, currentAccsMap);
         setInventory(enrichedCodes);
       } else {
-        const data = await trainingCenterAPI.getCodeBatches(params);
+        // Note: search and filtering for batches are now handled client-side by DataTable
+        const data = await trainingCenterAPI.getCodeBatches({});
         
         let batchesList = [];
         if (data.data) {
@@ -566,13 +557,38 @@ const CodesScreen = () => {
     setSortConfig({ key, direction });
   };
 
-  const applySort = () => {
-    const dataToSort = activeTab === 'inventory' ? inventory : batches;
-    let sorted = [...dataToSort];
+  // Filter and sort inventory data
+  const filteredAndSortedInventory = useMemo(() => {
+    let filtered = [...inventory];
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(code => {
+        const codeValue = code.code || '';
+        const accName = typeof code.acc === 'object' ? code.acc?.name || '' : code.acc || '';
+        const courseName = typeof code.course === 'object' ? code.course?.name || '' : code.course || '';
+        const status = code.status || '';
+        
+        const searchText = [
+          codeValue,
+          accName,
+          courseName,
+          status,
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        return searchText.includes(searchLower);
+      });
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(code => code.status === statusFilter);
+    }
 
     // Apply sorting
     if (sortConfig.key) {
-      sorted.sort((a, b) => {
+      filtered.sort((a, b) => {
         let aValue, bValue;
         
         if (typeof a[sortConfig.key] === 'object' && a[sortConfig.key] !== null) {
@@ -596,11 +612,12 @@ const CodesScreen = () => {
       });
     }
 
-    if (activeTab === 'inventory') {
-      setSortedInventory(sorted);
-    } else {
-      setSortedBatches(sorted);
-    }
+    return filtered;
+  }, [inventory, searchTerm, statusFilter, sortConfig]);
+
+  const applySort = () => {
+    // Sorting is now handled in filteredAndSortedInventory useMemo
+    // This function is kept for compatibility but doesn't need to do anything
   };
 
   const handlePurchase = () => {
@@ -789,7 +806,14 @@ const CodesScreen = () => {
       const response = await trainingCenterAPI.createPaymentIntent(requestData);
       
       if (response.success && response.client_secret && response.payment_intent_id) {
-        setPaymentIntentData(response);
+        // Store full payment intent data including new destination charge fields
+        setPaymentIntentData({
+          ...response,
+          // New fields from destination charges
+          commission_amount: response.commission_amount,
+          provider_amount: response.provider_amount,
+          payment_type: response.payment_type || 'standard',
+        });
         setPurchaseForm(prev => ({
           ...prev,
           payment_intent_id: response.payment_intent_id,
@@ -863,6 +887,93 @@ const CodesScreen = () => {
     return null;
   };
 
+  // Define columns for Purchase History DataTable
+  const batchesColumns = useMemo(() => [
+    {
+      header: 'ACC',
+      accessor: 'acc',
+      sortable: true,
+      render: (value, row) => (
+        <div className="batch-acc-container">
+          <Building2 className="batch-acc-icon" />
+          {typeof row.acc === 'object' ? row.acc?.name || 'N/A' : row.acc || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Course',
+      accessor: 'course',
+      sortable: true,
+      render: (value, row) => (
+        <div className="batch-course-container">
+          <BookOpen className="batch-course-icon" />
+          {typeof row.course === 'object' ? row.course?.name || 'N/A' : row.course || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Quantity',
+      accessor: 'quantity',
+      sortable: true,
+      render: (value, row) => (
+        <span className="batch-quantity">{row.quantity || 0}</span>
+      ),
+    },
+    {
+      header: 'Amount',
+      accessor: 'total_amount',
+      sortable: true,
+      render: (value, row) => (
+        <div className="batch-amount-container">
+          <DollarSign className="batch-amount-icon" />
+          {parseFloat(row.total_amount || 0).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      header: 'Purchase Date',
+      accessor: 'purchase_date',
+      sortable: true,
+      render: (value, row) => (
+        <div className="batch-date-container">
+          <Calendar className="batch-date-icon" />
+          {row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Payment Method',
+      accessor: 'payment_method',
+      sortable: true,
+      render: (value, row) => (
+        <span className="batch-payment-method">
+          {row.payment_method ? row.payment_method.replace('_', ' ') : 'N/A'}
+        </span>
+      ),
+    },
+  ], []);
+
+  // Add searchable text to each batch for better search functionality
+  const batchesWithSearchText = useMemo(() => {
+    return batches.map(batch => {
+      const accName = typeof batch.acc === 'object' ? batch.acc?.name || '' : batch.acc || '';
+      const courseName = typeof batch.course === 'object' ? batch.course?.name || '' : batch.course || '';
+      const searchText = [
+        accName,
+        courseName,
+        batch.quantity || '',
+        batch.total_amount || '',
+        batch.purchase_date ? new Date(batch.purchase_date).toLocaleDateString() : '',
+        batch.payment_method || '',
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      return {
+        ...batch,
+        _searchText: searchText,
+      };
+    });
+  }, [batches]);
+
   // Group codes by ACC and Course
   const groupCodesByACCCourse = (codes) => {
     const groups = new Map();
@@ -923,154 +1034,144 @@ const CodesScreen = () => {
     return `${accId || 'unknown'}_${courseId || 'unknown'}`;
   };
 
-  const currentData = activeTab === 'inventory' ? sortedInventory : sortedBatches;
+  const currentData = activeTab === 'inventory' ? filteredAndSortedInventory : batchesWithSearchText;
   const columns = activeTab === 'inventory' ? 6 : 6;
 
   return (
     <div>
 
       {/* Tabs */}
-      <div className="mb-6 bg-white rounded-xl shadow-lg border border-gray-100 p-1.5">
-        <div className="flex space-x-2">
+      <div className="tabs-container">
+        <div className="tabs-wrapper">
           <button
             onClick={() => {
               setActiveTab('inventory');
             }}
-            className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-              activeTab === 'inventory' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-            }`}
+            className={`tab-button ${activeTab === 'inventory' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
-            <Package size={20} className={activeTab === 'inventory' ? 'text-white' : 'text-gray-500'} />
+            <Package size={20} className={activeTab === 'inventory' ? 'tab-icon-active' : 'tab-icon-inactive'} />
             Inventory ({inventory.length})
           </button>
           <button
             onClick={() => {
               setActiveTab('batches');
             }}
-            className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-              activeTab === 'batches' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-            }`}
+            className={`tab-button ${activeTab === 'batches' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
-            <ShoppingCart size={20} className={activeTab === 'batches' ? 'text-white' : 'text-gray-500'} />
+            <ShoppingCart size={20} className={activeTab === 'batches' ? 'tab-icon-active' : 'tab-icon-inactive'} />
             Purchase History ({batches.length})
           </button>
         </div>
       </div>
 
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder={activeTab === 'inventory' ? 'Search by code, ACC, course, or status...' : 'Search by ACC, course, or payment method...'}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
+      {/* Search and Filter Section - Only for Inventory */}
+      {activeTab === 'inventory' && (
+        <div className="search-filter-container">
+          <div className="search-filter-wrapper">
+            <div className="search-input-container">
+              <Search className="search-icon" size={20} />
+              <input
+                type="text"
+                placeholder="Search by code, ACC, course, or status..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                }}
+                className="search-input"
+              />
+            </div>
+            <div className="filter-container">
+              <Filter className="filter-icon" size={20} />
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                }}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="used">Used</option>
+              </select>
+            </div>
           </div>
-          {activeTab === 'inventory' && (
-            <>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                  }}
-                  className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-                >
-                  <option value="all">All Status</option>
-                  <option value="available">Available</option>
-                  <option value="used">Used</option>
-                </select>
-              </div>
-            </>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Inventory Table - Statistics View */}
       {activeTab === 'inventory' ? (
         loading ? (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-12">
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary-600"></div>
+          <div className="loading-container">
+            <div className="loading-spinner">
+              <div className="loading-spinner-icon"></div>
             </div>
           </div>
         ) : currentData.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-12">
-            <div className="flex flex-col items-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Package className="text-gray-400" size={32} />
+          <div className="empty-state-container">
+            <div className="empty-state-content">
+              <div className="empty-state-icon-container">
+                <Package className="empty-state-icon" size={32} />
               </div>
-              <p className="text-gray-500 font-medium">No codes in inventory</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="empty-state-title">No codes in inventory</p>
+              <p className="empty-state-subtitle">
                 {searchTerm || statusFilter !== 'all' ? 'Try adjusting your filters' : 'Purchase codes to get started!'}
               </p>
             </div>
           </div>
         ) : (
           /* Statistics Cards View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupCodesByACCCourse(sortedInventory.length > 0 ? sortedInventory : currentData).map((group, groupIndex) => {
+          <div className="stats-cards-grid">
+            {groupCodesByACCCourse(currentData).map((group, groupIndex) => {
               const groupKey = getGroupKey(group.accId, group.courseId);
               
               return (
                 <div
                   key={groupKey}
-                  className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-xl hover:scale-105"
+                  className="stats-card"
                   style={{ '--animation-delay': `${groupIndex * 0.05}s` }}
                 >
-                  <div className="p-6">
+                  <div className="stats-card-content">
                     {/* Header */}
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex-shrink-0">
-                        <Building2 className="h-6 w-6 text-primary-600" />
+                    <div className="stats-card-header">
+                      <div className="stats-card-icon-container">
+                        <Building2 className="stats-card-icon" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">{group.accName}</h3>
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-sm font-semibold text-gray-700 truncate">{group.courseName}</p>
+                      <div className="stats-card-title-section">
+                        <h3 className="stats-card-title">{group.accName}</h3>
+                        <div className="stats-card-subtitle">
+                          <BookOpen className="stats-card-subtitle-icon" />
+                          <p className="stats-card-subtitle-text">{group.courseName}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Statistics */}
-                    <div className="space-y-3">
+                    <div className="stats-card-stats">
                       {/* Total Codes */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-primary-50 to-white rounded-lg border border-primary-100">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-primary-500"></div>
-                          <span className="text-sm font-medium text-gray-700">Total Codes</span>
+                      <div className="stats-item stats-item-total">
+                        <div className="stats-item-label">
+                          <div className="stats-item-dot"></div>
+                          <span className="stats-item-label-text">Total Codes</span>
                         </div>
-                        <span className="text-lg font-bold text-gray-900">{group.total}</span>
+                        <span className="stats-item-value stats-item-value-total">{group.total}</span>
                       </div>
 
                       {/* Available Codes */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-white rounded-lg border border-green-100">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span className="text-sm font-medium text-gray-700">Available</span>
+                      <div className="stats-item stats-item-available">
+                        <div className="stats-item-label">
+                          <CheckCircle2 className="stats-item-icon stats-item-icon-available" />
+                          <span className="stats-item-label-text">Available</span>
                         </div>
-                        <span className="text-lg font-bold text-green-700">{group.available}</span>
+                        <span className="stats-item-value stats-item-value-available">{group.available}</span>
                       </div>
 
                       {/* Used Codes */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-white rounded-lg border border-blue-100">
-                        <div className="flex items-center gap-2">
-                          <XCircle className="h-5 w-5 text-blue-500" />
-                          <span className="text-sm font-medium text-gray-700">Used</span>
+                      <div className="stats-item stats-item-used">
+                        <div className="stats-item-label">
+                          <XCircle className="stats-item-icon stats-item-icon-used" />
+                          <span className="stats-item-label-text">Used</span>
                         </div>
-                        <span className="text-lg font-bold text-blue-700">{group.used}</span>
+                        <span className="stats-item-value stats-item-value-used">{group.used}</span>
                       </div>
                     </div>
                   </div>
@@ -1080,134 +1181,28 @@ const CodesScreen = () => {
           </div>
         )
       ) : (
-        /* Purchase History Table */
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="table-header-gradient">
-                <tr>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('acc')}
-                  >
-                    <div className="flex items-center gap-2">
-                      ACC
-                      {renderSortIcon('acc')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('course')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Course
-                      {renderSortIcon('course')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('quantity')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Quantity
-                      {renderSortIcon('quantity')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('total_amount')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Amount
-                      {renderSortIcon('total_amount')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('purchase_date')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Purchase Date
-                      {renderSortIcon('purchase_date')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                    onClick={() => handleSort('payment_method')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Payment Method
-                      {renderSortIcon('payment_method')}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center">
-                      <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : currentData.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center">
-                      <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                          <Package className="text-gray-400" size={32} />
-                        </div>
-                        <p className="text-gray-500 font-medium">No purchase history found</p>
-                        <p className="text-sm text-gray-400 mt-1">Your purchase history will appear here</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  currentData.map((item, index) => (
-                    <tr
-                      key={item.id || index}
-                      className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 group table-row-animated"
-                      style={{ '--animation-delay': `${index * 0.03}s` }}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">
-                            {typeof item.acc === 'object' ? item.acc?.name || 'N/A' : item.acc || 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <BookOpen className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">
-                            {typeof item.course === 'object' ? item.course?.name || 'N/A' : item.course || 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-sm font-semibold text-gray-900">{item.quantity || 0}</span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-sm font-bold text-primary-600">
-                          ${parseFloat(item.total_amount || 0).toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium capitalize">
-                          {item.payment_method ? item.payment_method.replace('_', ' ') : 'N/A'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        /* Purchase History DataTable */
+        <div className="datatable-container">
+          <DataTable
+            columns={batchesColumns}
+            data={batchesWithSearchText}
+            isLoading={loading}
+            emptyMessage={
+              batches.length === 0 && !loading ? (
+                <div className="empty-state-content">
+                  <div className="empty-state-icon-container">
+                    <Package className="empty-state-icon" size={32} />
+                  </div>
+                  <p className="empty-state-title">No purchase history found</p>
+                  <p className="empty-state-subtitle">Your purchase history will appear here</p>
+                </div>
+              ) : 'No purchase history found matching your filters'
+            }
+            searchable={true}
+            filterable={false}
+            searchPlaceholder="Search by ACC, course, quantity, amount, date, or payment method..."
+            sortable={true}
+          />
         </div>
       )}
 
@@ -1231,10 +1226,10 @@ const CodesScreen = () => {
         title="Purchase Certificate Codes"
         size="lg"
       >
-        <form onSubmit={handlePurchaseSubmit} className="space-y-4">
+        <form onSubmit={handlePurchaseSubmit} className="modal-form">
           {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.general}</p>
+            <div className="form-error-general">
+              <p className="form-error-general-text">{errors.general}</p>
             </div>
           )}
 
@@ -1256,7 +1251,7 @@ const CodesScreen = () => {
             error={errors.acc_id}
           />
           {accs.length === 0 && (
-            <p className="text-sm text-yellow-600 mt-1">
+            <p className="form-warning-text">
               No approved ACCs found. Please request and get approval from an ACC first.
             </p>
           )}
@@ -1287,12 +1282,12 @@ const CodesScreen = () => {
               error={errors.course_id}
             />
             {!purchaseForm.acc_id && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="form-info-text">
                 Please select an ACC first to see available courses.
               </p>
             )}
             {purchaseForm.acc_id && courses.length === 0 && !loadingCourses && (
-              <p className="text-sm text-yellow-600 mt-1">
+              <p className="form-warning-text">
                 No courses available for the selected ACC.
               </p>
             )}
@@ -1346,21 +1341,21 @@ const CodesScreen = () => {
               />
             )}
             {discountCodes.length > 0 && (
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-xs font-semibold text-blue-900 mb-2">Available Discount Codes:</p>
-                <div className="space-y-1">
+              <div className="discount-codes-container">
+                <p className="discount-codes-title">Available Discount Codes:</p>
+                <div className="discount-codes-list">
                   {discountCodes.map((code, index) => (
-                    <div key={code.id || index} className="flex items-center justify-between text-xs">
-                      <span className="font-mono font-semibold text-blue-800">{code.code || code.discount_code}</span>
-                      <div className="flex items-center gap-2">
+                    <div key={code.id || index} className="discount-code-item">
+                      <span className="discount-code-value">{code.code || code.discount_code}</span>
+                      <div className="discount-code-details">
                         {code.discount_percentage && (
-                          <span className="text-blue-700">{code.discount_percentage}% off</span>
+                          <span className="discount-code-percentage">{code.discount_percentage}% off</span>
                         )}
                         {code.discount_amount && (
-                          <span className="text-blue-700">${code.discount_amount} off</span>
+                          <span className="discount-code-amount">${code.discount_amount} off</span>
                         )}
                         {code.expires_at && (
-                          <span className="text-blue-600 text-xs">Expires: {new Date(code.expires_at).toLocaleDateString()}</span>
+                          <span className="discount-code-expiry">Expires: {new Date(code.expires_at).toLocaleDateString()}</span>
                         )}
                       </div>
                     </div>
@@ -1391,28 +1386,28 @@ const CodesScreen = () => {
           />
           */}
 
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-2">Payment Method: Credit Card</p>
-            <p className="text-xs text-blue-700">
+          <div className="payment-info-container">
+            <p className="payment-info-title">Payment Method: Credit Card</p>
+            <p className="payment-info-text">
               Payment will be processed securely through Stripe. The total amount will be calculated including any discounts. Click "Purchase Codes" below to enter your card details.
             </p>
           </div>
 
-          <div className="flex space-x-3 pt-4 border-t border-gray-200">
+          <div className="form-actions">
             <button
               type="button"
               onClick={() => {
                 setPurchaseModalOpen(false);
                 setErrors({});
               }}
-              className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              className="form-btn form-btn-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={creatingPaymentIntent || purchasing || !purchaseForm.acc_id || !purchaseForm.course_id || !purchaseForm.quantity}
-              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
+              className="form-btn form-btn-submit"
             >
               {creatingPaymentIntent ? 'Processing...' : purchasing ? 'Processing...' : 'Purchase Codes'}
             </button>

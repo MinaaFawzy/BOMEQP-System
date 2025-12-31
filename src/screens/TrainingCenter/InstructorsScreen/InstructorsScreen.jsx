@@ -9,6 +9,10 @@ import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircl
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
+import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import DataTable from '../../../components/DataTable/DataTable';
 import './InstructorsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
@@ -48,9 +52,7 @@ const TrainingCenterInstructorsScreen = () => {
   const [existingCvUrl, setExistingCvUrl] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     perPage: 10,
@@ -60,7 +62,7 @@ const TrainingCenterInstructorsScreen = () => {
 
   useEffect(() => {
     loadInstructors();
-  }, [pagination.currentPage, pagination.perPage, searchTerm]); // statusFilter is handled client-side
+  }, [pagination.currentPage, pagination.perPage]); // searchTerm and statusFilter are handled client-side
 
   useEffect(() => {
     setHeaderTitle('Instructors');
@@ -68,9 +70,9 @@ const TrainingCenterInstructorsScreen = () => {
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center transition-all duration-200 hover:scale-105"
+        className="instructors-header-button"
       >
-        <Plus size={20} className="mr-2" />
+        <Plus size={20} className="instructors-header-button-icon" />
         Add Instructor
       </button>
     );
@@ -96,11 +98,7 @@ const TrainingCenterInstructorsScreen = () => {
         per_page: pagination.perPage,
       };
       
-      // Only send searchTerm to API, statusFilter is handled client-side
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
+      // Don't send searchTerm to API - it's handled client-side
       const data = await trainingCenterAPI.listInstructors(params);
       
       let instructorsArray = [];
@@ -546,54 +544,175 @@ const TrainingCenterInstructorsScreen = () => {
     }
   };
 
-  // Sort instructors
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
 
-  // Filter and sort instructors (status filtering is done client-side)
-  const filteredAndSortedInstructors = useMemo(() => {
-    let filtered = [...instructors];
+  // Filter instructors by status (search is handled by DataTable)
+  const filteredInstructors = useMemo(() => {
+    // DataTable handles search internally, we only need to filter by status if needed
+    // But since DataTable has filterOptions, we can just pass all instructors
+    return instructors;
+  }, [instructors]);
 
-    // Apply status filter (client-side)
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(instructor => instructor.status === statusFilter);
+  // Define columns for DataTable
+  const instructorsColumns = useMemo(() => [
+    {
+      header: 'Instructor',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="instructors-column-instructor">
+          <div className="instructors-column-icon-wrapper">
+            <Users className="instructors-column-icon" />
+            </div>
+            <div>
+            <div className="instructors-column-name">
+              {row.first_name} {row.last_name}
+            </div>
+            {row.id_number && (
+              <div className="instructors-column-id">ID: {row.id_number}</div>
+                    )}
+                  </div>
+                  </div>
+      )
+    },
+    {
+      header: 'Email',
+      accessor: 'email',
+      sortable: true,
+      render: (value) => (
+        <div className="instructors-column-email">
+          <Mail className="instructors-column-email-icon" />
+          {value}
+                  </div>
+      )
+    },
+    {
+      header: 'Phone',
+      accessor: 'phone',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <div className="instructors-column-phone">
+            <Phone className="instructors-column-phone-icon" />
+            {value}
+                  </div>
+        ) : (
+          <span className="instructors-column-na">N/A</span>
+        )
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => {
+                  const statusConfig = {
+                    active: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
+                    pending: { bg: 'from-yellow-100 to-yellow-200', text: 'text-yellow-800', border: 'border-yellow-300', icon: Clock },
+                    suspended: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
+                    inactive: { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock },
+                  };
+        const config = statusConfig[value] || statusConfig.inactive;
+                  const StatusIcon = config.icon;
+        const statusClass = value === 'active' ? 'instructors-column-status-badge-active' :
+                            value === 'pending' ? 'instructors-column-status-badge-pending' :
+                            value === 'suspended' ? 'instructors-column-status-badge-suspended' :
+                            'instructors-column-status-badge-inactive';
+                  return (
+          <span className={`instructors-column-status-badge ${statusClass}`}>
+            <StatusIcon size={14} className="instructors-column-status-icon" />
+            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+                        </span>
+        );
+      }
+    },
+    {
+      header: 'Languages',
+      accessor: 'specializations',
+      sortable: false,
+      render: (value) => {
+        const instructorLanguages = Array.isArray(value) 
+          ? value 
+          : (value ? value.split(',').map(s => s.trim()).filter(s => s) : []);
+        return (
+          instructorLanguages.length > 0 ? (
+            <div className="instructors-column-languages">
+                            {instructorLanguages.slice(0, 2).map((lang, langIndex) => (
+                              <span
+                                key={langIndex}
+                  className="instructors-column-language-badge"
+                              >
+                  <Globe size={12} className="instructors-column-language-icon" />
+                                {lang}
+                              </span>
+                            ))}
+                            {instructorLanguages.length > 2 && (
+                <span className="instructors-column-language-more">
+                                +{instructorLanguages.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+            <span className="instructors-column-na">N/A</span>
+          )
+        );
+      }
+    },
+    {
+      header: 'Type',
+      accessor: 'is_assessor',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <span className="instructors-column-type-badge-blue">
+                            Assessor
+                          </span>
+                        ) : (
+          <span className="instructors-column-type-badge-gray">
+                            Instructor
+                          </span>
+        )
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="instructors-column-actions" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+              handleOpenModal(row);
+                            }}
+            className="instructors-action-button instructors-action-button-edit"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+              handleRequestAuthorization(row);
+                            }}
+            className="instructors-action-button instructors-action-button-send"
+                            title="Request Authorization"
+                          >
+                            <Send size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+              handleDelete(row);
+                            }}
+            className="instructors-action-button instructors-action-button-delete"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+      )
     }
-
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'name') {
-          aValue = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
-          bValue = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    return filtered;
-  }, [instructors, statusFilter, sortConfig]);
+  ], []);
 
   // Calculate stats - use pagination.totalItems for total, status counts from current page only
   // Note: Status counts are approximate (current page only) since we use server-side pagination
@@ -603,329 +722,69 @@ const TrainingCenterInstructorsScreen = () => {
   const suspendedCount = instructors.filter(i => i.status === 'suspended').length;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="instructors-container">
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Total Instructors */}
-        <div 
+      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+        <TabCard
+          name="Total Instructors"
+          value={totalCount}
+          icon={Users}
+          colorType="indigo"
+          isActive={statusFilter === 'all'}
           onClick={() => setStatusFilter('all')}
-          className={`bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'all' ? 'ring-2 ring-primary-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-primary-700 mb-2">Total Instructors</p>
-              <p className="text-3xl font-bold text-primary-900">{totalCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Users className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Active */}
-        <div 
+        />
+        <TabCard
+          name="Active"
+          value={activeCount}
+          icon={CheckCircle}
+          colorType="green"
+          isActive={statusFilter === 'active'}
           onClick={() => setStatusFilter('active')}
-          className={`bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'active' ? 'ring-2 ring-green-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700 mb-2">Active</p>
-              <p className="text-3xl font-bold text-green-900">{activeCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <CheckCircle className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Pending */}
-        <div 
+        />
+        <TabCard
+          name="Pending"
+          value={pendingCount}
+          icon={Clock}
+          colorType="yellow"
+          isActive={statusFilter === 'pending'}
           onClick={() => setStatusFilter('pending')}
-          className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'pending' ? 'ring-2 ring-yellow-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-yellow-700 mb-2">Pending</p>
-              <p className="text-3xl font-bold text-yellow-900">{pendingCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Clock className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Suspended */}
-        <div 
+        />
+        <TabCard
+          name="Suspended"
+          value={suspendedCount}
+          icon={XCircle}
+          colorType="red"
+          isActive={statusFilter === 'suspended'}
           onClick={() => setStatusFilter('suspended')}
-          className={`bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'suspended' ? 'ring-2 ring-red-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-red-700 mb-2">Suspended</p>
-              <p className="text-3xl font-bold text-red-900">{suspendedCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <XCircle className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        />
+      </TabCardsGrid>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Instructor
-                    {sortConfig.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('email')}
-                >
-                  <div className="flex items-center gap-2">
-                    Email
-                    {sortConfig.key === 'email' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('phone')}
-                >
-                  <div className="flex items-center gap-2">
-                    Phone
-                    {sortConfig.key === 'phone' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Languages</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {filteredAndSortedInstructors.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Users className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">
-                        {searchTerm || statusFilter !== 'all' ? 'No instructors found matching your search' : 'No instructors found'}
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your search criteria' : 'Add your first instructor to get started!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredAndSortedInstructors.map((instructor, index) => {
-                  const statusConfig = {
-                    active: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
-                    pending: { bg: 'from-yellow-100 to-yellow-200', text: 'text-yellow-800', border: 'border-yellow-300', icon: Clock },
-                    suspended: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
-                    inactive: { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock },
-                  };
-                  const config = statusConfig[instructor.status] || statusConfig.inactive;
-                  const StatusIcon = config.icon;
-                  
-                  // Get languages/specializations
-                  const instructorLanguages = Array.isArray(instructor.specializations) 
-                    ? instructor.specializations 
-                    : (instructor.specializations ? instructor.specializations.split(',').map(s => s.trim()).filter(s => s) : []);
-                  
-                  return (
-                    <tr
-                      key={instructor.id || index}
-                      className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                      onClick={() => handleViewDetails(instructor)}
-                      style={{ '--animation-delay': `${index * 0.03}s` }}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                            <Users className="h-5 w-5 text-primary-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                              {instructor.first_name} {instructor.last_name}
-                            </div>
-                            {instructor.id_number && (
-                              <div className="text-xs text-gray-500">ID: {instructor.id_number}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {instructor.email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {instructor.phone ? (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                            {instructor.phone}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm bg-gradient-to-r ${config.bg} ${config.text} border ${config.border}`}>
-                          <StatusIcon size={14} className="mr-1" />
-                          {instructor.status ? instructor.status.charAt(0).toUpperCase() + instructor.status.slice(1) : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        {instructorLanguages.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 justify-center items-center">
-                            {instructorLanguages.slice(0, 2).map((lang, langIndex) => (
-                              <span
-                                key={langIndex}
-                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary-100 text-primary-800 border border-primary-200"
-                              >
-                                <Globe size={12} className="mr-1" />
-                                {lang}
-                              </span>
-                            ))}
-                            {instructorLanguages.length > 2 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                                +{instructorLanguages.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        {instructor.is_assessor ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                            Assessor
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                            Instructor
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenModal(instructor);
-                            }}
-                            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRequestAuthorization(instructor);
-                            }}
-                            className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Request Authorization"
-                          >
-                            <Send size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(instructor);
-                            }}
-                            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="instructors-table-container">
+        <DataTable
+          columns={instructorsColumns}
+          data={filteredInstructors}
+          isLoading={loading}
+          searchable={true}
+          sortable={true}
+          filterable={true}
+          searchPlaceholder="Search by name or email..."
+          emptyMessage="No instructors found"
+          filterOptions={[
+            { value: 'all', label: 'All Status', filterFn: null },
+            { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
+            { value: 'pending', label: 'Pending', filterFn: (row) => row.status === 'pending' },
+            { value: 'suspended', label: 'Suspended', filterFn: (row) => row.status === 'suspended' },
+            { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+          ]}
+          defaultFilter={statusFilter}
+          onRowClick={(instructor) => handleViewDetails(instructor)}
+        />
         
         {/* Pagination */}
         {!loading && pagination.totalItems > 0 && (
@@ -947,8 +806,8 @@ const TrainingCenterInstructorsScreen = () => {
         title={selectedInstructor ? 'Edit Instructor' : 'Add New Instructor'}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="instructors-form">
+          <div className="instructors-form-grid">
             <FormInput
               label="First Name"
               name="first_name"
@@ -968,7 +827,7 @@ const TrainingCenterInstructorsScreen = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="instructors-form-grid">
             <FormInput
               label="Email"
               type="email"
@@ -998,30 +857,30 @@ const TrainingCenterInstructorsScreen = () => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="instructors-cv-label">
               CV / Resume (PDF)
             </label>
             
             {/* Current CV Display */}
             {existingCvUrl && !cvFile && (
-              <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+              <div className="instructors-cv-display-box">
+                <div className="instructors-cv-display-flex">
+                  <div className="instructors-cv-display-inner">
+                    <div className="instructors-cv-icon-wrapper">
                       <FileText className="text-white" size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Current CV</p>
-                      <p className="text-xs text-gray-600">Click to view your current CV</p>
+                      <p className="instructors-cv-text-title">Current CV</p>
+                      <p className="instructors-cv-text-hint">Click to view your current CV</p>
                     </div>
                   </div>
                   <a
                     href={existingCvUrl.startsWith('http') ? existingCvUrl : `${API_BASE_URL}${existingCvUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className="instructors-cv-link"
                   >
-                    <FileText size={14} className="mr-1.5" />
+                    <FileText size={14} className="instructors-cv-link-icon" />
                     View CV
                   </a>
                 </div>
@@ -1029,38 +888,38 @@ const TrainingCenterInstructorsScreen = () => {
             )}
 
             {/* Upload Area */}
-            <div className="space-y-2">
-              <label className="relative block">
+            <div className="instructors-upload-area">
+              <label className="instructors-upload-label">
                 <input
                   type="file"
                   accept=".pdf,application/pdf"
                   onChange={handleFileChange}
-                  className="hidden"
+                  className="instructors-upload-input"
                   id="cv-upload-input"
                 />
-                <div className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-primary-400 hover:bg-primary-50/30 transition-all duration-200 cursor-pointer group">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                <div className="instructors-upload-div">
+                  <div className="instructors-upload-inner">
+                    <div className="instructors-upload-icon-wrapper">
                       <FileText className="text-primary-600" size={24} />
                     </div>
                     {cvFileName ? (
                       <>
-                        <p className="text-sm font-medium text-gray-900 mb-1">
+                        <p className="instructors-upload-text-title">
                           {cvFileName}
                         </p>
-                        <p className="text-xs text-gray-500">Click to change file</p>
+                        <p className="instructors-upload-text-hint">Click to change file</p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium text-gray-700 mb-1">
+                        <p className="instructors-upload-text-title">
                           {existingCvUrl ? 'Update CV' : 'Upload CV'}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="instructors-upload-text-hint">
                           Click to select PDF document
                         </p>
                       </>
                     )}
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="instructors-upload-text-small">
                       PDF only, maximum 10MB
                     </p>
                   </div>
@@ -1068,17 +927,17 @@ const TrainingCenterInstructorsScreen = () => {
               </label>
               
               {cvFileName && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="instructors-file-selected-box">
                   <CheckCircle className="text-green-600" size={18} />
-                  <p className="text-sm text-green-800">
-                    <span className="font-medium">Selected:</span> {cvFileName}
+                  <p className="instructors-file-selected-text">
+                    <span className="instructors-file-selected-bold">Selected:</span> {cvFileName}
                   </p>
                 </div>
               )}
               
               {errors.cv && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errors.cv}</p>
+                <div className="instructors-error-box">
+                  <p className="instructors-error-text">{errors.cv}</p>
                 </div>
               )}
             </div>
@@ -1091,7 +950,7 @@ const TrainingCenterInstructorsScreen = () => {
             error={errors.specializations}
           />
 
-          <div className="flex items-center space-x-2">
+          <div className="instructors-checkbox-container">
             <input
               type="checkbox"
               id="is_assessor"
@@ -1101,41 +960,41 @@ const TrainingCenterInstructorsScreen = () => {
                 ...formData,
                 is_assessor: e.target.checked
               })}
-              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              className="instructors-checkbox"
             />
-            <label htmlFor="is_assessor" className="text-sm font-medium text-gray-700">
+            <label htmlFor="is_assessor" className="instructors-checkbox-label">
               Is Assessor
             </label>
           </div>
-          <p className="text-xs text-gray-500 -mt-2 ml-6">Mark this instructor as an assessor</p>
+          <p className="instructors-helper-text">Mark this instructor as an assessor</p>
 
           {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 font-medium">{errors.general}</p>
+            <div className="instructors-error-box">
+              <p className="instructors-error-text-bold">{errors.general}</p>
             </div>
           )}
           
           {/* Display field-specific errors */}
           {Object.keys(errors).filter(key => key !== 'general' && key !== 'specializations').map((key) => (
             errors[key] && (
-              <p key={key} className="text-sm text-red-600">
+              <p key={key} className="instructors-error-text">
                 {key}: {errors[key]}
               </p>
             )
           ))}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="instructors-form-actions">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="instructors-button-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="instructors-button-submit"
             >
               {saving ? 'Saving...' : selectedInstructor ? 'Update Instructor' : 'Add Instructor'}
             </button>
@@ -1154,55 +1013,55 @@ const TrainingCenterInstructorsScreen = () => {
         size="lg"
       >
         {selectedInstructor && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">First Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedInstructor.first_name || 'N/A'}</p>
+          <div className="instructors-detail-container">
+            <div className="instructors-detail-grid">
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">First Name</p>
+                <p className="instructors-detail-value">{selectedInstructor.first_name || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Last Name</p>
-                <p className="text-base font-semibold text-gray-900">{selectedInstructor.last_name || 'N/A'}</p>
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">Last Name</p>
+                <p className="instructors-detail-value">{selectedInstructor.last_name || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Mail size={16} className="mr-2" />
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">
+                  <Mail size={16} className="instructors-detail-label-icon" />
                   Email
                 </p>
-                <p className="text-base font-semibold text-gray-900">{selectedInstructor.email || 'N/A'}</p>
+                <p className="instructors-detail-value">{selectedInstructor.email || 'N/A'}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1 flex items-center">
-                  <Phone size={16} className="mr-2" />
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">
+                  <Phone size={16} className="instructors-detail-label-icon" />
                   Phone
                 </p>
-                <p className="text-base font-semibold text-gray-900">{selectedInstructor.phone || 'N/A'}</p>
+                <p className="instructors-detail-value">{selectedInstructor.phone || 'N/A'}</p>
               </div>
               {selectedInstructor.id_number && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">ID Number</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedInstructor.id_number}</p>
+                <div className="instructors-detail-item">
+                  <p className="instructors-detail-label">ID Number</p>
+                  <p className="instructors-detail-value">{selectedInstructor.id_number}</p>
                 </div>
               )}
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Type</p>
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">Type</p>
                 {selectedInstructor.is_assessor ? (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                  <span className="instructors-detail-badge-blue">
                     Assessor
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                  <span className="instructors-detail-badge-gray">
                     Instructor
                   </span>
                 )}
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedInstructor.status === 'active' ? 'bg-green-100 text-green-800' :
-                  selectedInstructor.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  selectedInstructor.status === 'suspended' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
+              <div className="instructors-detail-item">
+                <p className="instructors-detail-label">Status</p>
+                <span className={`instructors-detail-status ${
+                  selectedInstructor.status === 'active' ? 'instructors-detail-status-active' :
+                  selectedInstructor.status === 'pending' ? 'instructors-detail-status-pending' :
+                  selectedInstructor.status === 'suspended' ? 'instructors-detail-status-suspended' :
+                  'instructors-detail-status-inactive'
                 }`}>
                   {selectedInstructor.status}
                 </span>
@@ -1210,16 +1069,16 @@ const TrainingCenterInstructorsScreen = () => {
             </div>
             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Specializations</h3>
-                <div className="flex flex-wrap gap-2">
+                <h3 className="instructors-specializations-title">Specializations</h3>
+                <div className="instructors-specializations-list">
                   {Array.isArray(selectedInstructor.specializations) ? (
                     selectedInstructor.specializations.map((spec, index) => (
-                      <span key={index} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
+                      <span key={index} className="instructors-specialization-badge">
                         {spec}
                       </span>
                     ))
                   ) : (
-                    <span className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
+                    <span className="instructors-specialization-badge">
                       {selectedInstructor.specializations}
                     </span>
                   )}
@@ -1227,15 +1086,15 @@ const TrainingCenterInstructorsScreen = () => {
               </div>
             )}
             {selectedInstructor.cv_url && (
-              <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="instructors-cv-box">
+                <div className="instructors-cv-box-flex">
+                  <div className="instructors-cv-box-inner">
+                    <div className="instructors-cv-box-icon-wrapper">
                       <FileText className="text-white" size={28} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Curriculum Vitae</p>
-                      <p className="text-xs text-gray-600">Click the button to view the instructor's CV</p>
+                      <p className="instructors-cv-box-text-title">Curriculum Vitae</p>
+                      <p className="instructors-cv-box-text-hint">Click the button to view the instructor's CV</p>
                     </div>
                   </div>
                   <a
@@ -1244,9 +1103,9 @@ const TrainingCenterInstructorsScreen = () => {
                       : `${API_BASE_URL}${selectedInstructor.cv_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    className="instructors-cv-box-link"
                   >
-                    <FileText size={18} className="mr-2" />
+                    <FileText size={18} className="instructors-cv-box-link-icon" />
                     View CV
                   </a>
                 </div>
@@ -1285,10 +1144,10 @@ const TrainingCenterInstructorsScreen = () => {
         title={`Request Authorization for ${selectedInstructor ? `${selectedInstructor.first_name} ${selectedInstructor.last_name}` : 'Instructor'}`}
         size="lg"
       >
-        <form onSubmit={handleRequestSubmit} className="space-y-4">
+        <form onSubmit={handleRequestSubmit} className="instructors-request-form">
           {requestErrors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{requestErrors.general}</p>
+            <div className="instructors-error-box">
+              <p className="instructors-error-text">{requestErrors.general}</p>
             </div>
           )}
 
@@ -1310,38 +1169,38 @@ const TrainingCenterInstructorsScreen = () => {
             disabled={accs.length === 0}
           />
           {accs.length === 0 && (
-            <p className="text-sm text-yellow-600 mt-1">
+            <p className="instructors-request-warning">
               No approved ACCs found. Please request and get approval from an ACC first.
             </p>
           )}
 
           {requestForm.acc_id && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Selection Type <span className="text-red-500 ml-1">*</span>
+              <label className="instructors-request-label">
+                Selection Type <span className="instructors-request-label-required">*</span>
               </label>
-              <div className="flex gap-4 mb-4">
-                <label className="flex items-center cursor-pointer">
+              <div className="instructors-request-radio-group">
+                <label className="instructors-request-radio-label">
                   <input
                     type="radio"
                     name="selectionType"
                     value="sub_category"
                     checked={selectionType === 'sub_category'}
                     onChange={(e) => handleSelectionTypeChange(e.target.value)}
-                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                    className="instructors-request-radio"
                   />
-                  <span className="text-sm text-gray-700">Select Sub-Category (All Courses)</span>
+                  <span className="instructors-request-radio-text">Select Sub-Category (All Courses)</span>
                 </label>
-                <label className="flex items-center cursor-pointer">
+                <label className="instructors-request-radio-label">
                   <input
                     type="radio"
                     name="selectionType"
                     value="courses"
                     checked={selectionType === 'courses'}
                     onChange={(e) => handleSelectionTypeChange(e.target.value)}
-                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                    className="instructors-request-radio"
                   />
-                  <span className="text-sm text-gray-700">Select Specific Courses</span>
+                  <span className="instructors-request-radio-text">Select Specific Courses</span>
                 </label>
               </div>
             </div>
@@ -1367,7 +1226,7 @@ const TrainingCenterInstructorsScreen = () => {
                 disabled={subCategories.length === 0}
               />
               {subCategories.length === 0 && requestForm.acc_id && (
-                <p className="text-sm text-yellow-600 mt-1">
+                <p className="instructors-request-warning">
                   No sub-categories found for the selected ACC
                 </p>
               )}
@@ -1376,31 +1235,31 @@ const TrainingCenterInstructorsScreen = () => {
 
           {requestForm.acc_id && selectionType === 'courses' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Courses <span className="text-red-500 ml-1">*</span>
+              <label className="instructors-request-label">
+                Courses <span className="instructors-request-label-required">*</span>
               </label>
               {courses.length === 0 ? (
-                <p className="text-sm text-yellow-600">No courses available for the selected ACC</p>
+                <p className="instructors-request-warning">No courses available for the selected ACC</p>
               ) : (
                 <>
-                  <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3 space-y-2">
+                  <div className="instructors-courses-container">
                     {courses.map(course => (
                       <label
                         key={course.id || course.name}
-                        className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        className="instructors-course-item"
                       >
                         <input
                           type="checkbox"
                           checked={requestForm.course_ids?.includes(course.id) || false}
                           onChange={() => handleCourseToggle(course.id)}
-                          className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          className="instructors-course-checkbox"
                         />
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-900">
+                        <div className="instructors-course-info">
+                          <span className="instructors-course-name">
                             {course.name || course.code || `Course ${course.id}`}
                           </span>
                           {course.sub_category && (
-                            <span className="text-xs text-gray-500 ml-2">
+                            <span className="instructors-course-subcategory">
                               ({course.sub_category.name || course.sub_category})
                             </span>
                           )}
@@ -1409,17 +1268,17 @@ const TrainingCenterInstructorsScreen = () => {
                     ))}
                   </div>
                   {requestForm.course_ids.length > 0 && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Selected: <span className="font-medium">{requestForm.course_ids.length}</span> course(s)
+                    <p className="instructors-course-selected">
+                      Selected: <span className="instructors-course-selected-bold">{requestForm.course_ids.length}</span> course(s)
                     </p>
                   )}
                 </>
               )}
-              {requestErrors.course_ids && <p className="mt-1 text-sm text-red-600">{requestErrors.course_ids}</p>}
+              {requestErrors.course_ids && <p className="instructors-error-text">{requestErrors.course_ids}</p>}
             </div>
           )}
 
-          <div className="flex space-x-3 pt-4 border-t border-gray-200">
+          <div className="instructors-request-actions">
             <button
               type="button"
               onClick={() => {
@@ -1434,14 +1293,14 @@ const TrainingCenterInstructorsScreen = () => {
                 setCourses([]);
                 setSubCategories([]);
               }}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="instructors-button-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={requesting}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="instructors-button-submit"
             >
               {requesting ? 'Submitting...' : 'Submit Request'}
             </button>

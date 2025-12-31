@@ -1,0 +1,33 @@
+/* DetailItem Component Styles */
+
+.detail-item {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.detail-item-full {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.detail-label-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.detail-label-icon {
+  margin-right: 0.5rem;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+

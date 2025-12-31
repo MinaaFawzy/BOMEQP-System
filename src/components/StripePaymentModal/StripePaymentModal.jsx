@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { getStripeConfig } from '../../config/stripe';
+import { useAuth } from '../../context/AuthContext';
 import Modal from '../Modal/Modal';
 import './StripePaymentModal.css';
 
@@ -187,9 +188,13 @@ const StripePaymentModal = ({
   onPaymentSuccess, 
   onPaymentError 
 }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stripePromise, setStripePromise] = useState(null);
   const [stripeConfigError, setStripeConfigError] = useState(null);
+  
+  // Check if user is training center - hide commission details from them
+  const isTrainingCenter = user?.role === 'training_center';
 
   // Load Stripe config when modal opens
   useEffect(() => {
@@ -302,6 +307,25 @@ const StripePaymentModal = ({
             )}
             {paymentSummary.unit_price && (
               <p><strong>Unit Price:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.unit_price).toFixed(2)}</p>
+            )}
+            
+            {/* Payment Breakdown - Hidden from Training Center */}
+            {/* Only show breakdown if user is NOT training center AND there's commission/provider info */}
+            {!isTrainingCenter && 
+             (paymentSummary.commission_amount || paymentSummary.provider_amount) && (
+              <div className="mt-3 pt-3 border-t border-green-300">
+                <p className="text-xs font-semibold text-green-900 mb-1">Payment Breakdown:</p>
+                {paymentSummary.provider_amount && (
+                  <p className="text-xs text-green-800">
+                    <strong>Provider Receives:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.provider_amount).toFixed(2)}
+                  </p>
+                )}
+                {paymentSummary.commission_amount && (
+                  <p className="text-xs text-green-800">
+                    <strong>Platform Commission:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.commission_amount).toFixed(2)}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Search, Filter, Mail, ChevronUp, ChevronDown, AlertCircle, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Search, Filter, Mail, ChevronUp, ChevronDown, AlertCircle, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
@@ -711,11 +711,101 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
+            {/* Request Information */}
+            {selectedRequest._isRequest && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2" size={20} />
+                  Request Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedRequest.id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Hash size={14} className="mr-1" />
+                        Request ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedRequest.id}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.instructor_id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <UserCircle size={14} className="mr-1" />
+                        Instructor ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedRequest.instructor_id}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.acc_id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Building2 size={14} className="mr-1" />
+                        ACC ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedRequest.acc_id}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.sub_category_id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <BookOpen size={14} className="mr-1" />
+                        Sub-Category ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedRequest.sub_category_id}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.created_at && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Calendar size={14} className="mr-1" />
+                        Created At
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {new Date(selectedRequest.created_at).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.updated_at && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Calendar size={14} className="mr-1" />
+                        Updated At
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {new Date(selectedRequest.updated_at).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Users className="mr-2" size={20} />
-                Basic Information
+                Instructor Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
@@ -762,14 +852,25 @@ const InstructorsScreen = () => {
                     </p>
                   </div>
                 )}
-                {selectedRequest._normalizedTrainingCenter && (
+                {selectedRequest.instructor?.country && (
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Building2 size={14} className="mr-1" />
-                      Training Center
+                      <MapPin size={14} className="mr-1" />
+                      Country
                     </p>
                     <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest._normalizedTrainingCenter}
+                      {selectedRequest.instructor.country}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest.instructor?.city && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <MapPin size={14} className="mr-1" />
+                      City
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedRequest.instructor.city}
                     </p>
                   </div>
                 )}
@@ -807,6 +908,145 @@ const InstructorsScreen = () => {
                 </div>
               </div>
             </div>
+
+            {/* Training Center Information */}
+            {(selectedRequest.training_center || selectedRequest._normalizedTrainingCenter) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Building2 className="mr-2" size={20} />
+                  Training Center Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedRequest.training_center?.id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Hash size={14} className="mr-1" />
+                        Training Center ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedRequest.training_center.id}
+                      </p>
+                    </div>
+                  )}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Building2 size={14} className="mr-1" />
+                      Name
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedRequest.training_center?.name || selectedRequest.training_center?.legal_name || selectedRequest._normalizedTrainingCenter || 'N/A'}
+                    </p>
+                  </div>
+                  {selectedRequest.training_center?.email && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Mail size={14} className="mr-1" />
+                        Email
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.training_center.email}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.training_center?.phone && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Phone size={14} className="mr-1" />
+                        Phone
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.training_center.phone}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.training_center?.address && (
+                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <MapPin size={14} className="mr-1" />
+                        Address
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.training_center.address}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.training_center?.city && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <MapPin size={14} className="mr-1" />
+                        City
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.training_center.city}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.training_center?.country && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <MapPin size={14} className="mr-1" />
+                        Country
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.training_center.country}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Sub-Category Information */}
+            {(selectedRequest.sub_category || selectedRequest.sub_category_id) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  Sub-Category Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedRequest.sub_category?.name && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <BookOpen size={14} className="mr-1" />
+                        Name
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedRequest.sub_category.name}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.sub_category?.description && (
+                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+                      <p className="text-sm text-gray-500 mb-1">Description</p>
+                      <p className="text-base text-gray-900">
+                        {selectedRequest.sub_category.description}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.sub_category?.courses && Array.isArray(selectedRequest.sub_category.courses) && selectedRequest.sub_category.courses.length > 0 && (
+                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+                      <p className="text-sm text-gray-500 mb-2 font-medium">Courses</p>
+                      <div className="space-y-2">
+                        {selectedRequest.sub_category.courses.map((course, index) => (
+                          <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {course.name || course.code || `Course ${course.id || index + 1}`}
+                                </p>
+                                {course.code && (
+                                  <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Specializations/Languages */}
             {(selectedRequest.instructor?.specializations || selectedRequest.specializations) && (
@@ -906,9 +1146,35 @@ const InstructorsScreen = () => {
                       {selectedRequest.sub_category?.description && (
                         <p className="text-sm text-gray-600 mt-1">{selectedRequest.sub_category.description}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        All active courses in this sub-category will be authorized
-                      </p>
+                      
+                      {/* Display courses from sub_category if available */}
+                      {selectedRequest.sub_category?.courses && Array.isArray(selectedRequest.sub_category.courses) && selectedRequest.sub_category.courses.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-500 mb-2 font-medium">Courses in this Sub-Category:</p>
+                          <div className="space-y-2">
+                            {selectedRequest.sub_category.courses.map((course, index) => (
+                              <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                      {course.name || course.code || `Course ${course.id || index + 1}`}
+                                    </p>
+                                    {course.code && (
+                                      <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {(!selectedRequest.sub_category?.courses || selectedRequest.sub_category.courses.length === 0) && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          All active courses in this sub-category will be authorized
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div>
@@ -919,17 +1185,27 @@ const InstructorsScreen = () => {
                         return courseArray.length > 0 ? (
                           <div className="space-y-2">
                             {courseArray.map((course, index) => (
-                              <div key={index} className="p-2 bg-white rounded border border-gray-200">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {course.name || course.code || `Course ${course.id || index + 1}`}
-                                </p>
-                                {course.sub_category && (
-                                  <p className="text-xs text-gray-500">
-                                    Sub-Category: {typeof course.sub_category === 'object' 
-                                      ? (course.sub_category.name || course.sub_category.name_ar || course.sub_category)
-                                      : course.sub_category}
-                                  </p>
-                                )}
+                              <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                      {course.name || course.name_ar || course.code || `Course ${course.id || index + 1}`}
+                                    </p>
+                                    {course.code && (
+                                      <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
+                                    )}
+                                    {course.name_ar && course.name && course.name !== course.name_ar && (
+                                      <p className="text-xs text-gray-600 mt-1">{course.name_ar}</p>
+                                    )}
+                                    {course.sub_category && (
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        Sub-Category: {typeof course.sub_category === 'object' 
+                                          ? (course.sub_category.name || course.sub_category.name_ar || course.sub_category)
+                                          : course.sub_category}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
