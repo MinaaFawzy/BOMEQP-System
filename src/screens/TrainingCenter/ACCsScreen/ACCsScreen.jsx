@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, MessageSquare, Download } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
-import Pagination from '../../../components/Pagination/Pagination';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
@@ -24,12 +23,11 @@ const ACCsScreen = () => {
   const [allAuthorizations, setAllAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
+  
+  // Total counts for cards (from API)
+  const [totalAccsCount, setTotalAccsCount] = useState(0);
+  const [totalAuthsCount, setTotalAuthsCount] = useState(0);
+  
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedACC, setSelectedACC] = useState(null);
@@ -42,9 +40,71 @@ const ACCsScreen = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  const loadACCs = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Load all data without pagination
+      const accsData = await trainingCenterAPI.listACCs({ per_page: 1000 });
+      
+      let accsArray = [];
+      if (accsData?.data) {
+        accsArray = Array.isArray(accsData.data) ? accsData.data : [];
+      } else if (accsData?.accs) {
+        accsArray = Array.isArray(accsData.accs) ? accsData.accs : [];
+      } else if (Array.isArray(accsData)) {
+        accsArray = accsData;
+      }
+      
+      setAllAccs(accsArray);
+      
+      // Update total count for card display
+      if (accsData) {
+        const totalCount = accsData.total || accsArray.length;
+        setTotalAccsCount(totalCount);
+      }
+    } catch (error) {
+      console.error('Failed to load ACCs:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadAuthorizations = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Load all data without pagination
+      const authData = await trainingCenterAPI.getAuthorizationStatus({ per_page: 1000 });
+      
+      let authArray = [];
+      if (authData?.data) {
+        authArray = Array.isArray(authData.data) ? authData.data : [];
+      } else if (authData?.authorizations) {
+        authArray = Array.isArray(authData.authorizations) ? authData.authorizations : [];
+      } else if (Array.isArray(authData)) {
+        authArray = authData;
+      }
+      
+      setAllAuthorizations(authArray);
+      
+      // Update total count for card display
+      if (authData) {
+        const totalCount = authData.total || authArray.length;
+        setTotalAuthsCount(totalCount);
+      }
+    } catch (error) {
+      console.error('Failed to load authorizations:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load all data on mount
   useEffect(() => {
-    loadAllData();
-  }, [pagination.currentPage, pagination.perPage, activeTab]); // Reload data when pagination or tab changes
+    loadACCs();
+    loadAuthorizations();
+  }, [loadACCs, loadAuthorizations]);
 
   useEffect(() => {
     setHeaderTitle('Accreditation Bodies');
@@ -54,79 +114,10 @@ const ACCsScreen = () => {
       setHeaderSubtitle(null);
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
-
-  const loadAllData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load all data without pagination for client-side filtering and pagination
-      const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
-      };
-      
-      // Load both datasets in parallel (without search - filtering is client-side)
-      const [accsResult, authResult] = await Promise.allSettled([
-        trainingCenterAPI.listACCs(params),
-        trainingCenterAPI.getAuthorizationStatus(params)
-      ]);
-
-      if (accsResult.status === 'fulfilled') {
-        const accsData = accsResult.value;
-        let accsArray = [];
-        if (accsData?.data) {
-          accsArray = Array.isArray(accsData.data) ? accsData.data : [];
-        } else if (accsData?.accs) {
-          accsArray = Array.isArray(accsData.accs) ? accsData.accs : [];
-        } else if (Array.isArray(accsData)) {
-          accsArray = accsData;
-        }
-        setAllAccs(accsArray);
-        
-        // Update pagination from API response for ACCs
-        if (activeTab === 'available' && accsData) {
-          setPagination(prev => ({
-            ...prev,
-            totalPages: accsData.last_page || accsData.total_pages || 1,
-            totalItems: accsData.total || accsArray.length,
-          }));
-        }
-      }
-
-      if (authResult.status === 'fulfilled') {
-        const authData = authResult.value;
-        let authArray = [];
-        if (authData?.data) {
-          authArray = Array.isArray(authData.data) ? authData.data : [];
-        } else if (authData?.authorizations) {
-          authArray = Array.isArray(authData.authorizations) ? authData.authorizations : [];
-        } else if (Array.isArray(authData)) {
-          authArray = authData;
-        }
-        setAllAuthorizations(authArray);
-        
-        // Update pagination from API response for Authorizations
-        if (activeTab === 'authorizations' && authData) {
-          setPagination(prev => ({
-            ...prev,
-            totalPages: authData.last_page || authData.total_pages || 1,
-            totalItems: authData.total || authArray.length,
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // Don't reload data, just switch the view
   };
 
   // Define columns for ACCs table
@@ -328,7 +319,8 @@ const ACCsScreen = () => {
       
       const response = await trainingCenterAPI.requestAuthorization(selectedACC.id, submitFormData);
       
-      await loadAllData();
+      // Reload both datasets after successful submission
+      await Promise.all([loadACCs(), loadAuthorizations()]);
       setRequestModalOpen(false);
       setRequestForm({
         documents: [],
@@ -399,19 +391,19 @@ const ACCsScreen = () => {
       <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 2 }}>
         <TabCard
           name="Available Accreditation"
-          value={allAccs.length}
+          value={totalAccsCount}
           icon={Building2}
           colorType="indigo"
           isActive={activeTab === 'available'}
-          onClick={() => setActiveTab('available')}
+          onClick={() => handleTabChange('available')}
         />
         <TabCard
           name="My Authorizations"
-          value={allAuthorizations.length}
+          value={totalAuthsCount}
           icon={CheckCircle}
           colorType="blue"
           isActive={activeTab === 'authorizations'}
-          onClick={() => setActiveTab('authorizations')}
+          onClick={() => handleTabChange('authorizations')}
         />
       </TabCardsGrid>
 
@@ -432,18 +424,6 @@ const ACCsScreen = () => {
             emptyMessage="No ACCs found"
             onRowClick={(acc) => handleViewDetails(acc)}
           />
-          
-          {/* Pagination for Available ACCs */}
-          {!loading && activeTab === 'available' && pagination.totalItems > 0 && (
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              perPage={pagination.perPage}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-            />
-          )}
         </div>
       ) : (
         <div className="accs-table-container">
@@ -458,18 +438,6 @@ const ACCsScreen = () => {
             onView={(auth) => handleViewAuthorizationDetails(auth)}
             onRowClick={(auth) => handleViewAuthorizationDetails(auth)}
           />
-          
-          {/* Pagination for Authorizations */}
-          {!loading && activeTab === 'authorizations' && pagination.totalItems > 0 && (
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              perPage={pagination.perPage}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-            />
-          )}
         </div>
       )}
 

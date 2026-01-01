@@ -263,6 +263,126 @@ const PaymentTransactionsScreen = () => {
     return transaction.payee && transaction.payee.type === 'training_center';
   };
 
+  // Fields that are already displayed elsewhere in the modal - exclude from reference details
+  const excludedFields = [
+    'transaction_type',
+    'status',
+    'amount',
+    'currency',
+    'payment_method',
+    'description',
+    'created_at',
+    'completed_at',
+    'payment_gateway_transaction_id',
+    'payer',
+    'payee',
+    'reference', // Don't show reference within reference
+  ];
+
+  // Check if an object contains payer/payee data that's already shown
+  const hasPayerPayeeData = (obj) => {
+    if (!obj || typeof obj !== 'object') return false;
+    const payerPayeeFields = ['name', 'email', 'type', 'id'];
+    return payerPayeeFields.some(field => obj.hasOwnProperty(field));
+  };
+
+  // Render reference details in a user-friendly format, excluding duplicated data
+  const renderReferenceDetails = (details, parentKey = '') => {
+    if (!details || typeof details !== 'object') {
+      return <span className="info-section-value">N/A</span>;
+    }
+
+    // Handle array of objects
+    if (Array.isArray(details)) {
+      return (
+        <div className="reference-details-list">
+          {details.map((item, index) => (
+            <div key={index} className="reference-details-item">
+              {renderReferenceDetails(item, `${parentKey}[${index}]`)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Handle object
+    const filteredEntries = Object.entries(details).filter(([key]) => {
+      // Exclude fields that are already shown in the modal
+      if (excludedFields.includes(key)) {
+        return false;
+      }
+      
+      // Exclude payer/payee objects if they only contain name, email, type, id
+      const value = details[key];
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        if (hasPayerPayeeData(value) && Object.keys(value).every(k => ['name', 'email', 'type', 'id'].includes(k))) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+
+    // If all fields were filtered out, show nothing
+    if (filteredEntries.length === 0) {
+      return <span className="info-section-value">No additional details</span>;
+    }
+
+    return (
+      <div className="reference-details-grid">
+        {filteredEntries.map(([key, value]) => {
+          // Format the key (convert snake_case to Title Case)
+          const formattedKey = key
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
+          // Handle different value types
+          let displayValue = value;
+          if (value === null || value === undefined) {
+            displayValue = 'N/A';
+          } else if (typeof value === 'boolean') {
+            displayValue = value ? 'Yes' : 'No';
+          } else if (typeof value === 'object') {
+            // Recursively render nested objects, but filter out payer/payee data
+            if (Array.isArray(value)) {
+              return (
+                <div key={key} className="reference-details-nested">
+                  <span className="reference-details-nested-key">{formattedKey}:</span>
+                  <div className="reference-details-nested-value">
+                    {renderReferenceDetails(value, key)}
+                  </div>
+                </div>
+              );
+            } else if (hasPayerPayeeData(value) && Object.keys(value).every(k => ['name', 'email', 'type', 'id'].includes(k))) {
+              // Skip payer/payee objects that are already shown
+              return null;
+            } else {
+              return (
+                <div key={key} className="reference-details-nested">
+                  <span className="reference-details-nested-key">{formattedKey}:</span>
+                  <div className="reference-details-nested-value">
+                    {renderReferenceDetails(value, key)}
+                  </div>
+                </div>
+              );
+            }
+          } else if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
+            // Format date strings
+            displayValue = formatDateTime(value);
+          }
+
+          return (
+            <div key={key} className="reference-details-row">
+              <span className="reference-details-label">{formattedKey}:</span>
+              <span className="reference-details-value">{String(displayValue)}</span>
+            </div>
+          );
+        }).filter(Boolean)}
+      </div>
+    );
+  };
+
   return (
     <div className="payment-transactions-container">
       {/* Summary Cards using TabCard */}
@@ -316,6 +436,7 @@ const PaymentTransactionsScreen = () => {
               <option value="all">All Types</option>
               <option value="code_purchase">Code Purchase</option>
               <option value="course_purchase">Course Purchase</option>
+              <option value="instructor_authorization">Instructor Authorization</option>
             </select>
           </div>
 
@@ -459,13 +580,19 @@ const PaymentTransactionsScreen = () => {
               <div className="reference-section">
                 <p className="reference-title">Reference Information</p>
                 <div className="reference-content">
-                  <div>
+                  <div className="reference-type-row">
                     <span className="info-section-label">Type:</span>
-                    <span className="info-section-value" style={{ marginLeft: '0.5rem' }}>{selectedTransaction.reference.type}</span>
+                    <span className="info-section-value" style={{ marginLeft: '0.5rem' }}>
+                      {selectedTransaction.reference.type
+                        ?.split('_')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ') || 'N/A'}
+                    </span>
                   </div>
                   {selectedTransaction.reference.details && (
                     <div className="reference-details-box">
-                      <pre className="reference-details-pre">{JSON.stringify(selectedTransaction.reference.details, null, 2)}</pre>
+                      <p className="reference-details-title">Details:</p>
+                      {renderReferenceDetails(selectedTransaction.reference.details)}
                     </div>
                   )}
                 </div>

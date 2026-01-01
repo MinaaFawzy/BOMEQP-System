@@ -8,19 +8,12 @@ import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import Pagination from '../../../components/Pagination/Pagination';
 import './TraineesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
 const TraineesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [trainees, setTrainees] = useState([]);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    perPage: 15,
-    totalItems: 0,
-  });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -42,6 +35,7 @@ const TraineesScreen = () => {
   const [cardImagePreview, setCardImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [resizingImage, setResizingImage] = useState(null); // 'id_image' or 'card_image' or null
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -71,33 +65,19 @@ const TraineesScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadTrainees = async (page = 1) => {
+  const loadTrainees = async () => {
     setLoading(true);
     try {
+      // Load all data - search and statusFilter are handled client-side
       const params = {
-        page,
-        per_page: 15,
-        // Only send searchTerm to API, statusFilter is handled client-side
+        per_page: 1000,
         ...(searchTerm && { search: searchTerm }),
       };
       const data = await trainingCenterAPI.listTrainees(params);
       if (data?.trainees) {
         setTrainees(data.trainees);
-        const paginationData = data.pagination || {};
-        setPagination({
-          currentPage: paginationData.current_page || currentPage,
-          totalPages: paginationData.last_page || paginationData.total_pages || 1,
-          perPage: paginationData.per_page || pagination.perPage,
-          totalItems: paginationData.total || data.trainees.length,
-        });
       } else if (Array.isArray(data)) {
         setTrainees(data);
-        setPagination({
-          currentPage: currentPage,
-          totalPages: 1,
-          perPage: pagination.perPage,
-          totalItems: data.length,
-        });
       } else {
         setTrainees([]);
       }
@@ -121,9 +101,8 @@ const TraineesScreen = () => {
   };
 
   useEffect(() => {
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
-    loadTrainees(1);
-  }, [searchTerm]); // Only reload when searchTerm changes, statusFilter is client-side only
+    loadTrainees();
+  }, [searchTerm]); // Reload when searchTerm changes, statusFilter is client-side only
 
   const handleOpenModal = (trainee = null) => {
     if (trainee) {
@@ -189,7 +168,67 @@ const TraineesScreen = () => {
     setErrors({});
   };
 
-  const handleFileChange = (e, type) => {
+  // Resize image function
+  const resizeImage = (file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) => {
+    return new Promise((resolve) => {
+      // If it's a PDF, return as-is
+      if (file.type === 'application/pdf') {
+        resolve(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            } else {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          // Create canvas and resize
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                // Create a new File object with the resized image
+                const resizedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now(),
+                });
+                resolve(resizedFile);
+              } else {
+                resolve(file); // Fallback to original if conversion fails
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+        img.onerror = () => resolve(file); // Fallback to original on error
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file); // Fallback to original on error
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -203,25 +242,42 @@ const TraineesScreen = () => {
         setErrors({ [type]: 'File size must be less than 10MB' });
         return;
       }
-      setFormData({
-        ...formData,
-        [type]: file,
-      });
-      // Create preview for images
-      if (type === 'id_image' && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setIdImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-      } else if (type === 'card_image' && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setCardImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
+
+      setResizingImage(type);
+      try {
+        // Resize image if it's an image file (not PDF)
+        let processedFile = file;
+        if (file.type.startsWith('image/')) {
+          processedFile = await resizeImage(file);
+          console.log(`Image resized: ${file.size} bytes -> ${processedFile.size} bytes`);
+        }
+
+        setFormData({
+          ...formData,
+          [type]: processedFile,
+        });
+
+        // Create preview for images
+        if (type === 'id_image' && processedFile.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setIdImagePreview(reader.result);
+          };
+          reader.readAsDataURL(processedFile);
+        } else if (type === 'card_image' && processedFile.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setCardImagePreview(reader.result);
+          };
+          reader.readAsDataURL(processedFile);
+        }
+        setErrors({});
+      } catch (error) {
+        console.error('Error processing image:', error);
+        setErrors({ [type]: 'Failed to process image. Please try again.' });
+      } finally {
+        setResizingImage(null);
       }
-      setErrors({});
     }
   };
 
@@ -310,7 +366,7 @@ const TraineesScreen = () => {
         
         await trainingCenterAPI.createTrainee(submitFormData);
       }
-      await loadTrainees(pagination.currentPage);
+      await loadTrainees();
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting trainee:', error);
@@ -334,7 +390,7 @@ const TraineesScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteTrainee(selectedTrainee.id);
-      await loadTrainees(pagination.currentPage);
+      await loadTrainees();
     } catch (error) {
       alert('Failed to delete trainee: ' + (error.message || 'Unknown error'));
     }
@@ -354,17 +410,8 @@ const TraineesScreen = () => {
     }
   };
 
-  const handlePageChange = (page) => {
-    loadTrainees(page);
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-    loadTrainees(1);
-  };
-
   // Calculate stats from all trainees (not filtered)
-  const totalCount = pagination.totalItems || trainees.length;
+  const totalCount = trainees.length;
   const activeCount = trainees.filter(t => t.status === 'active').length;
   const inactiveCount = trainees.filter(t => t.status === 'inactive').length;
   const suspendedCount = trainees.filter(t => t.status === 'suspended').length;
@@ -551,18 +598,6 @@ const TraineesScreen = () => {
           defaultFilter={statusFilter}
           onRowClick={(trainee) => handleViewDetails(trainee)}
         />
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-          />
-        )}
       </div>
 
       {/* Add/Edit Modal */}
@@ -572,7 +607,15 @@ const TraineesScreen = () => {
         title={selectedTrainee ? 'Edit Trainee' : 'Add New Trainee'}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="trainees-form">
+        {saving && (
+          <div className="trainees-form-loading-overlay">
+            <div className="trainees-form-loading-spinner">
+              <div className="trainees-form-spinner"></div>
+              <p className="trainees-form-loading-text">Saving trainee...</p>
+            </div>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className={`trainees-form ${saving ? 'trainees-form-saving' : ''}`}>
           <div className="trainees-form-grid">
             <FormInput
               label="First Name"
@@ -581,6 +624,7 @@ const TraineesScreen = () => {
               onChange={handleChange}
               required
               error={errors.first_name}
+              disabled={saving}
             />
 
             <FormInput
@@ -590,6 +634,7 @@ const TraineesScreen = () => {
               onChange={handleChange}
               required
               error={errors.last_name}
+              disabled={saving}
             />
           </div>
 
@@ -602,6 +647,7 @@ const TraineesScreen = () => {
               onChange={handleChange}
               required
               error={errors.email}
+              disabled={saving}
             />
 
             <FormInput
@@ -612,6 +658,7 @@ const TraineesScreen = () => {
               onChange={handleChange}
               required
               error={errors.phone}
+              disabled={saving}
             />
           </div>
 
@@ -623,6 +670,7 @@ const TraineesScreen = () => {
               onChange={handleChange}
               required
               error={errors.id_number}
+              disabled={saving}
             />
 
             <FormInput
@@ -637,6 +685,7 @@ const TraineesScreen = () => {
                 { value: 'suspended', label: 'Suspended' },
               ]}
               error={errors.status}
+              disabled={saving}
             />
           </div>
 
@@ -646,7 +695,12 @@ const TraineesScreen = () => {
               ID Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
             
-            {idImagePreview ? (
+            {resizingImage === 'id_image' ? (
+              <div className="trainees-image-resizing">
+                <div className="trainees-image-resizing-spinner"></div>
+                <p className="trainees-image-resizing-text">Resizing image...</p>
+              </div>
+            ) : idImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
                   <img 
@@ -662,6 +716,7 @@ const TraineesScreen = () => {
                           accept="image/jpeg,image/jpg,image/png,application/pdf"
                           onChange={(e) => handleFileChange(e, 'id_image')}
                           className="trainees-image-upload-input"
+                          disabled={saving || resizingImage !== null}
                         />
                         <div className="trainees-image-change-button">
                           <Upload size={18} />
@@ -672,6 +727,7 @@ const TraineesScreen = () => {
                         type="button"
                         onClick={() => handleRemoveImage('id_image')}
                         className="trainees-image-remove-button"
+                        disabled={saving}
                       >
                         <X size={18} />
                         <span className="trainees-image-remove-text">Remove</span>
@@ -682,7 +738,7 @@ const TraineesScreen = () => {
                 {formData.id_image instanceof File && (
                   <p className="trainees-image-file-name">
                     <FileImage size={14} />
-                    {formData.id_image.name}
+                    {formData.id_image.name} ({Math.round(formData.id_image.size / 1024)} KB)
                   </p>
                 )}
               </div>
@@ -693,6 +749,7 @@ const TraineesScreen = () => {
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'id_image')}
                   className="trainees-image-upload-input"
+                  disabled={saving || resizingImage !== null}
                 />
                 <div className="trainees-image-upload-area">
                   <div className="trainees-image-upload-inner">
@@ -706,7 +763,7 @@ const TraineesScreen = () => {
                       Click to browse or drag and drop
                     </p>
                     <p className="trainees-image-upload-text-small">
-                      JPEG, JPG, PNG, PDF (Max 10MB)
+                      JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)
                     </p>
                   </div>
                 </div>
@@ -726,7 +783,12 @@ const TraineesScreen = () => {
               Card Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
             
-            {cardImagePreview ? (
+            {resizingImage === 'card_image' ? (
+              <div className="trainees-image-resizing">
+                <div className="trainees-image-resizing-spinner"></div>
+                <p className="trainees-image-resizing-text">Resizing image...</p>
+              </div>
+            ) : cardImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
                   <img 
@@ -742,6 +804,7 @@ const TraineesScreen = () => {
                           accept="image/jpeg,image/jpg,image/png,application/pdf"
                           onChange={(e) => handleFileChange(e, 'card_image')}
                           className="trainees-image-upload-input"
+                          disabled={saving || resizingImage !== null}
                         />
                         <div className="trainees-image-change-button">
                           <Upload size={18} />
@@ -752,6 +815,7 @@ const TraineesScreen = () => {
                         type="button"
                         onClick={() => handleRemoveImage('card_image')}
                         className="trainees-image-remove-button"
+                        disabled={saving}
                       >
                         <X size={18} />
                         <span className="trainees-image-remove-text">Remove</span>
@@ -762,7 +826,7 @@ const TraineesScreen = () => {
                 {formData.card_image instanceof File && (
                   <p className="trainees-image-file-name">
                     <FileImage size={14} />
-                    {formData.card_image.name}
+                    {formData.card_image.name} ({Math.round(formData.card_image.size / 1024)} KB)
                   </p>
                 )}
               </div>
@@ -773,6 +837,7 @@ const TraineesScreen = () => {
                   accept="image/jpeg,image/jpg,image/png,application/pdf"
                   onChange={(e) => handleFileChange(e, 'card_image')}
                   className="trainees-image-upload-input"
+                  disabled={saving || resizingImage !== null}
                 />
                 <div className="trainees-image-upload-area">
                   <div className="trainees-image-upload-inner">
@@ -786,7 +851,7 @@ const TraineesScreen = () => {
                       Click to browse or drag and drop
                     </p>
                     <p className="trainees-image-upload-text-small">
-                      JPEG, JPG, PNG, PDF (Max 10MB)
+                      JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)
                     </p>
                   </div>
                 </div>
@@ -819,6 +884,7 @@ const TraineesScreen = () => {
                       checked={formData.enrolled_classes?.includes(trainingClass.id) || false}
                       onChange={() => handleClassToggle(trainingClass.id)}
                       className="trainees-class-checkbox"
+                      disabled={saving}
                     />
                     <div className="trainees-class-info">
                       <span className="trainees-class-name">

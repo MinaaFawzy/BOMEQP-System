@@ -5,7 +5,6 @@ import axios from 'axios';
 import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
-import Pagination from '../../../components/Pagination/Pagination';
 import TabCard from '../../../components/TabCard/TabCard';
 import DataTable from '../../../components/DataTable/DataTable';
 import './ClassesScreen.css';
@@ -37,12 +36,6 @@ const ClassesScreen = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
   useEffect(() => {
     loadData();
@@ -90,9 +83,9 @@ const ClassesScreen = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Note: search, statusFilter, and pagination are now handled client-side by DataTable
+      // Load all data - search and statusFilter are handled client-side by DataTable
       const [classesData, instructorsData] = await Promise.all([
-        trainingCenterAPI.listClasses({}),
+        trainingCenterAPI.listClasses({ per_page: 1000 }),
         trainingCenterAPI.listInstructors(),
       ]);
       
@@ -116,13 +109,6 @@ const ClassesScreen = () => {
     }
   };
   
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
 
   // Load course details and filter instructors based on assessor_required
   const loadCourseDetails = async (courseId) => {
@@ -646,17 +632,6 @@ const ClassesScreen = () => {
   const completedCount = classes.filter(c => c.status === 'completed').length;
   const cancelledCount = classes.filter(c => c.status === 'cancelled').length;
 
-  // Update pagination when data changes
-  useEffect(() => {
-    const totalItems = dataWithSearchText.length;
-    const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
-    setPagination(prev => ({
-      ...prev,
-      totalItems,
-      totalPages,
-      currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
-    }));
-  }, [dataWithSearchText.length, pagination.perPage]);
 
   if (loading) {
     return (
@@ -724,20 +699,6 @@ const ClassesScreen = () => {
           sortable={true}
           defaultFilter={statusFilter}
         />
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <div className="pagination-container">
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-          />
-          </div>
-        )}
       </div>
 
       {/* Add/Edit Modal */}

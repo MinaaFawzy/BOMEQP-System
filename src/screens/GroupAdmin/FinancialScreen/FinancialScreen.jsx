@@ -9,6 +9,7 @@ const FinancialScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [dashboard, setDashboard] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [transactionsSummary, setTransactionsSummary] = useState(null);
   const [settlements, setSettlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -39,7 +40,11 @@ const FinancialScreen = () => {
           adminAPI.getFinancialTransactions({ page: 1, per_page: 10 }),
         ]);
         setDashboard(dashboardData);
-        setTransactions(transactionsData.transactions || []);
+        // Handle both old and new response formats
+        const transactionsList = transactionsData?.data || transactionsData?.transactions || [];
+        setTransactions(Array.isArray(transactionsList) ? transactionsList : []);
+        // Set summary if available
+        setTransactionsSummary(transactionsData?.summary || null);
       } else {
         const settlementsData = await adminAPI.getSettlements();
         setSettlements(settlementsData.settlements || []);
@@ -137,10 +142,11 @@ const FinancialScreen = () => {
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-primary-700 mb-2">Total Revenue</p>
+                <p className="text-sm font-medium text-primary-700 mb-2">💰 Commission Revenue</p>
                 <p className="text-3xl font-bold text-primary-900">
                   ${parseFloat(dashboard.total_revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
+                <p className="text-xs text-primary-600 mt-1">Total commission received</p>
               </div>
               <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
                 <TrendingUp className="text-white" size={32} />
@@ -151,10 +157,11 @@ const FinancialScreen = () => {
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 mb-2">Monthly Revenue</p>
+                <p className="text-sm font-medium text-green-700 mb-2">💰 Monthly Commission</p>
                 <p className="text-3xl font-bold text-green-900">
                   ${parseFloat(dashboard.monthly_revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
+                <p className="text-xs text-green-600 mt-1">Commission this month</p>
               </div>
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                 <DollarSign className="text-white" size={32} />
@@ -221,6 +228,41 @@ const FinancialScreen = () => {
       {/* Overview Tab Content */}
       {activeTab === 'overview' && (
         <>
+          {/* Commission Summary Cards */}
+          {transactionsSummary && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-lg p-6 border border-emerald-200 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-emerald-700 mb-2">💰 Total Commission</p>
+                    <p className="text-3xl font-bold text-emerald-900 commission-amount">
+                      ${parseFloat(transactionsSummary.total_commission || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-emerald-600 mt-1">From all transactions</p>
+                  </div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <DollarSign className="text-white" size={32} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-lg p-6 border border-teal-200 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-teal-700 mb-2">✅ Completed Commission</p>
+                    <p className="text-3xl font-bold text-teal-900 commission-amount">
+                      ${parseFloat(transactionsSummary.completed_commission || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-teal-600 mt-1">From completed transactions</p>
+                  </div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <TrendingUp className="text-white" size={32} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Search and Filter Section */}
           <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -263,7 +305,7 @@ const FinancialScreen = () => {
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Amount</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Commission</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider commission-column">💰 Commission</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Provider Amount</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Currency</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
@@ -314,11 +356,12 @@ const FinancialScreen = () => {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             {transaction.commission_amount ? (
-                              <div className="text-sm font-semibold text-amber-700">
-                                ${parseFloat(transaction.commission_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              <div className="text-sm font-semibold commission-cell highlight">
+                                <span className="commission-icon">💰</span>
+                                <strong>${parseFloat(transaction.commission_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                               </div>
                             ) : (
-                              <span className="text-sm text-gray-400">N/A</span>
+                              <span className="text-sm text-gray-400 no-commission">$0.00</span>
                             )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">

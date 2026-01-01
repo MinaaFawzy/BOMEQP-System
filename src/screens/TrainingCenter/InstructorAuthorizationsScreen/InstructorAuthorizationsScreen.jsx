@@ -5,7 +5,6 @@ import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCirc
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
-import Pagination from '../../../components/Pagination/Pagination';
 import DataTable from '../../../components/DataTable/DataTable';
 import './InstructorAuthorizationsScreen.css';
 
@@ -26,17 +25,11 @@ const InstructorAuthorizationsScreen = () => {
   const [creatingPaymentIntent, setCreatingPaymentIntent] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.currentPage, pagination.perPage]);
+  }, []);
 
   useEffect(() => {
     setHeaderTitle('Instructor Authorizations');
@@ -73,13 +66,10 @@ const InstructorAuthorizationsScreen = () => {
     try {
       setLoading(true);
       
-      // Prepare pagination and filter parameters
+      // Load all data - search and statusFilter are handled client-side by DataTable
       const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
+        per_page: 1000,
       };
-      
-      // Note: search and statusFilter are now handled client-side by DataTable
       
       // Try the main endpoint first
       try {
@@ -93,32 +83,16 @@ const InstructorAuthorizationsScreen = () => {
         
         if (data?.authorizations) {
           authorizationsList = data.authorizations;
-          totalItems = data.total || data.total_items || authorizationsList.length;
-          totalPages = data.total_pages || data.last_page || Math.ceil(totalItems / pagination.perPage) || 1;
         } else if (data?.data?.authorizations) {
           authorizationsList = data.data.authorizations;
-          totalItems = data.data.total || data.data.total_items || authorizationsList.length;
-          totalPages = data.data.total_pages || data.data.last_page || Math.ceil(totalItems / pagination.perPage) || 1;
         } else if (Array.isArray(data?.data)) {
           authorizationsList = data.data;
-          totalItems = data.total || data.total_items || authorizationsList.length;
-          totalPages = data.total_pages || data.last_page || Math.ceil(totalItems / pagination.perPage) || 1;
         } else if (Array.isArray(data)) {
           authorizationsList = data;
-          totalItems = authorizationsList.length;
-          totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
         }
         
         console.log('Processed authorizations:', authorizationsList);
         setAuthorizations(authorizationsList);
-        
-        // Update pagination
-        setPagination(prev => ({
-          ...prev,
-          totalItems,
-          totalPages,
-          currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
-        }));
         
         return;
       } catch (mainError) {
@@ -137,17 +111,6 @@ const InstructorAuthorizationsScreen = () => {
             
             if (instructorAuths.length > 0) {
               setAuthorizations(instructorAuths);
-              
-              // Update pagination for alternative endpoint
-              const totalItems = instructorAuths.length;
-              const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
-              setPagination(prev => ({
-                ...prev,
-                totalItems,
-                totalPages,
-                currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
-              }));
-              
               return;
             }
           } catch (altError) {
@@ -164,11 +127,6 @@ const InstructorAuthorizationsScreen = () => {
         message: error.message
       });
       setAuthorizations([]);
-      setPagination(prev => ({
-        ...prev,
-        totalItems: 0,
-        totalPages: 1,
-      }));
     } finally {
       setLoading(false);
     }
@@ -450,13 +408,6 @@ const InstructorAuthorizationsScreen = () => {
     setDetailModalOpen(true);
   };
 
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
 
   // Define columns for DataTable
   const columns = useMemo(() => [
@@ -692,20 +643,6 @@ const InstructorAuthorizationsScreen = () => {
           sortable={true}
           defaultFilter={statusFilter}
         />
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <div className="pagination-container">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              perPage={pagination.perPage}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-            />
-          </div>
-        )}
       </div>
 
       {/* Payment Modal */}

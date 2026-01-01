@@ -129,3 +129,37 @@ select:focus {
   font-weight: 700;
   color: #111827;
 }
+
+/* Commission column styling */
+.commission-column {
+  background-color: #f0f9ff;
+  font-weight: 600;
+}
+
+.commission-cell {
+  color: #059669;
+  font-weight: 600;
+}
+
+.commission-cell.highlight {
+  background-color: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.commission-icon {
+  font-size: 1.1em;
+}
+
+.commission-amount {
+  color: #059669;
+  font-size: 1.5em;
+  font-weight: 700;
+}
+
+.no-commission {
+  color: #9ca3af;
+}

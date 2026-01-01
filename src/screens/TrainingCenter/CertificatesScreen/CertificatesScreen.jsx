@@ -19,12 +19,6 @@ const TrainingCenterCertificatesScreen = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
   const [formData, setFormData] = useState({
     training_class_id: '',
     code_id: '',
@@ -62,9 +56,9 @@ const TrainingCenterCertificatesScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Note: search, statusFilter, and pagination are now handled client-side by DataTable
+      // Load all data - search and statusFilter are handled client-side by DataTable
       const [certData, classesData, codesData] = await Promise.all([
-        trainingCenterAPI.listCertificates({}),
+        trainingCenterAPI.listCertificates({ per_page: 1000 }),
         trainingCenterAPI.listClasses(),
         trainingCenterAPI.getCodeInventory({ status: 'available' }),
       ]);
@@ -89,13 +83,6 @@ const TrainingCenterCertificatesScreen = () => {
     }
   };
   
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
 
   const handleOpenModal = () => {
     setFormData({
@@ -213,7 +200,6 @@ const TrainingCenterCertificatesScreen = () => {
       await trainingCenterAPI.generateCertificate(submitData);
       await loadData();
       handleCloseModal();
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
       alert('Certificate generated successfully!');
     } catch (error) {
       console.error('Failed to generate certificate:', error);
@@ -401,17 +387,6 @@ const TrainingCenterCertificatesScreen = () => {
     });
   }, [certificates]);
 
-  // Update pagination when data changes
-  useEffect(() => {
-    const totalItems = dataWithSearchText.length;
-    const totalPages = Math.ceil(totalItems / pagination.perPage) || 1;
-    setPagination(prev => ({
-      ...prev,
-      totalItems,
-      totalPages,
-      currentPage: prev.currentPage > totalPages ? 1 : prev.currentPage,
-    }));
-  }, [dataWithSearchText.length, pagination.perPage]);
 
   return (
     <div>
@@ -440,20 +415,6 @@ const TrainingCenterCertificatesScreen = () => {
           sortable={true}
           defaultFilter={statusFilter}
         />
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <div className="pagination-container">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              perPage={pagination.perPage}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-            />
-          </div>
-        )}
       </div>
 
       {/* Generate Certificate Modal */}

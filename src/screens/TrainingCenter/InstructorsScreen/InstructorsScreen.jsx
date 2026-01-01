@@ -8,7 +8,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/
 import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
-import Pagination from '../../../components/Pagination/Pagination';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
@@ -53,16 +52,10 @@ const TrainingCenterInstructorsScreen = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
   useEffect(() => {
     loadInstructors();
-  }, [pagination.currentPage, pagination.perPage]); // searchTerm and statusFilter are handled client-side
+  }, []); // Load all data once, search and statusFilter are handled client-side
 
   useEffect(() => {
     setHeaderTitle('Instructors');
@@ -93,36 +86,16 @@ const TrainingCenterInstructorsScreen = () => {
   const loadInstructors = async () => {
     setLoading(true);
     try {
-      const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
-      };
-      
-      // Don't send searchTerm to API - it's handled client-side
-      const data = await trainingCenterAPI.listInstructors(params);
+      // Load all data - search and statusFilter are handled client-side
+      const data = await trainingCenterAPI.listInstructors({ per_page: 1000 });
       
       let instructorsArray = [];
       if (data?.data) {
         instructorsArray = Array.isArray(data.data) ? data.data : (data.data?.instructors || []);
-        setPagination(prev => ({
-          ...prev,
-          totalPages: data.last_page || data.total_pages || 1,
-          totalItems: data.total || 0,
-        }));
       } else if (data?.instructors) {
         instructorsArray = data.instructors;
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: data.instructors?.length || 0,
-        }));
       } else if (Array.isArray(data)) {
         instructorsArray = data;
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: data.length,
-        }));
       } else {
         console.warn('Unexpected response format:', data);
         instructorsArray = [];
@@ -142,13 +115,6 @@ const TrainingCenterInstructorsScreen = () => {
     }
   };
   
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
 
   const handleOpenModal = (instructor = null) => {
     if (instructor) {
@@ -714,9 +680,8 @@ const TrainingCenterInstructorsScreen = () => {
     }
   ], []);
 
-  // Calculate stats - use pagination.totalItems for total, status counts from current page only
-  // Note: Status counts are approximate (current page only) since we use server-side pagination
-  const totalCount = pagination.totalItems || instructors.length;
+  // Calculate stats from all instructors
+  const totalCount = instructors.length;
   const activeCount = instructors.filter(i => i.status === 'active').length;
   const pendingCount = instructors.filter(i => i.status === 'pending').length;
   const suspendedCount = instructors.filter(i => i.status === 'suspended').length;
@@ -785,18 +750,6 @@ const TrainingCenterInstructorsScreen = () => {
           defaultFilter={statusFilter}
           onRowClick={(instructor) => handleViewDetails(instructor)}
         />
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-          />
-        )}
       </div>
 
       {/* Add/Edit Modal */}

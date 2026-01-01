@@ -137,11 +137,11 @@ const GroupAdminDashboard = () => {
                 <ArrowRight className="text-amber-600 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div>
-                <p className="text-xs font-medium text-amber-700 mb-1">Total Revenue</p>
+                <p className="text-xs font-medium text-amber-700 mb-1">💰 Commission Revenue</p>
                 <p className="text-2xl font-bold text-amber-900 mb-1">
                   ${(dashboard.revenue?.total || 0).toLocaleString()}
                 </p>
-                <p className="text-xs text-amber-600">Click to view details</p>
+                <p className="text-xs text-amber-600">Total commission received</p>
               </div>
             </div>
           </div>
@@ -151,16 +151,18 @@ const GroupAdminDashboard = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Revenue Overview</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">Monthly Revenue</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">💰 Monthly Commission</p>
                 <p className="text-2xl font-bold text-gray-900">
                   ${(dashboard.revenue?.monthly || 0).toLocaleString()}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Commission this month</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">Total Revenue</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">💰 Total Commission</p>
                 <p className="text-2xl font-bold text-gray-900">
                   ${(dashboard.revenue?.total || 0).toLocaleString()}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Total commission received</p>
               </div>
             </div>
           </div>
