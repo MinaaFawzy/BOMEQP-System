@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Search, Filter, Mail, ChevronUp, ChevronDown, AlertCircle, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
-import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import DataTable from '../../../components/DataTable/DataTable';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams, setSearchParams] = useSearchParams();
   const [allData, setAllData] = useState([]); // Unified data array
-  const [sortedData, setSortedData] = useState([]);
-  const [paginatedData, setPaginatedData] = useState([]);
-  const [filteredTotal, setFilteredTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [approveModalOpen, setApproveModalOpen] = useState(false);
@@ -25,15 +24,7 @@ const InstructorsScreen = () => {
   const [authorizationPrice, setAuthorizationPrice] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [returnComment, setReturnComment] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
   const [trainingCenters, setTrainingCenters] = useState({}); // Map of TC ID to TC name
 
   // Read filter from URL params on mount
@@ -46,7 +37,7 @@ const InstructorsScreen = () => {
 
   useEffect(() => {
     loadData();
-  }, [pagination.currentPage, pagination.perPage, searchTerm]);
+  }, [statusFilter]);
 
   useEffect(() => {
     setHeaderTitle('Instructors');
@@ -61,13 +52,8 @@ const InstructorsScreen = () => {
     setLoading(true);
     try {
       const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
+        per_page: 1000, // Load all data
       };
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
       
       // Load instructor requests and training centers in parallel with pagination
       const [allRequestsData, trainingCentersData] = await Promise.all([
@@ -179,49 +165,138 @@ const InstructorsScreen = () => {
       });
       
       setAllData(uniqueData);
-      setSortedData(uniqueData);
-      
-      // Update pagination based on combined data
-      const totalFromRequests = allRequestsData.total || allRequestsData.requests?.length || 0;
-      const totalFromTCs = trainingCentersData.total || trainingCentersData.training_centers?.length || 0;
-      const estimatedTotal = totalFromRequests + totalFromTCs;
-      
-      setPagination(prev => ({
-        ...prev,
-        totalPages: Math.max(
-          allRequestsData.last_page || allRequestsData.total_pages || 1,
-          trainingCentersData.last_page || trainingCentersData.total_pages || 1
-        ),
-        totalItems: estimatedTotal || uniqueData.length,
-      }));
     } catch (error) {
       console.error('Failed to load data:', error);
       setAllData([]);
-      setSortedData([]);
     } finally {
       setLoading(false);
     }
   };
   
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
+
+  const handleApprove = (request) => {
+    setSelectedRequest(request);
+    setAuthorizationPrice('');
+    setApproveModalOpen(true);
   };
 
-  // Sort handler
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+  const handleViewDetails = (item) => {
+    setSelectedRequest(item);
+    setDetailModalOpen(true);
+  };
+
+  const handleRowClick = (item) => {
+    // Allow clicking on both requests and authorized instructors to view details
+    handleViewDetails(item);
+  };
+
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Instructor',
+      accessor: '_normalizedName',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <Users className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Email',
+      accessor: '_normalizedEmail',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center text-sm text-gray-600">
+          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+          {value || 'N/A'}
+        </div>
+      )
+    },
+    {
+      header: 'Date',
+      accessor: '_normalizedDate',
+      sortable: true,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value ? new Date(value).toLocaleDateString() : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value, row) => {
+        const statusConfig = {
+          approved: { 
+            badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
+            icon: CheckCircle 
+          },
+          active: { 
+            badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
+            icon: CheckCircle 
+          },
+          rejected: { 
+            badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
+            icon: XCircle 
+          },
+          returned: { 
+            badgeClass: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300',
+            icon: ArrowLeft 
+          },
+          pending: { 
+            badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
+            icon: Clock 
+          }
+        };
+        const config = statusConfig[value] || statusConfig.pending;
+        const Icon = config.icon;
+        return (
+          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
+            <Icon size={12} className="mr-1" />
+            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          </span>
+        );
+      }
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleViewDetails(row)}
+            className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+          {(row.status === 'pending' || row.status === 'returned') && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleApprove(row);
+              }}
+              className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Approve"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
+        </div>
+      )
     }
-    setSortConfig({ key, direction });
-  };
+  ], [handleViewDetails, handleApprove]);
 
-  // Apply filtering and sorting
-  useEffect(() => {
+  // Filter data based on status filter
+  const filteredData = useMemo(() => {
     let filtered = [...allData];
 
     // Apply status filter
@@ -241,83 +316,14 @@ const InstructorsScreen = () => {
       });
     }
 
-    // Apply search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => {
-        const name = (item._normalizedName || '').toLowerCase();
-        const email = (item._normalizedEmail || '').toLowerCase();
-        return name.includes(searchLower) || email.includes(searchLower);
-      });
-    }
+    // Add search text for DataTable - include all searchable fields
+    filtered = filtered.map(item => ({
+      ...item,
+      _searchText: `${item._normalizedName || ''} ${item._normalizedEmail || ''} ${item.instructor?.first_name || ''} ${item.instructor?.last_name || ''} ${item.instructor?.email || ''} ${item.training_center?.name || ''} ${item.name || ''} ${item.email || ''} ${item.status || ''}`.toLowerCase()
+    }));
 
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'name') {
-          aValue = a._normalizedName || '';
-          bValue = b._normalizedName || '';
-        } else if (sortConfig.key === 'email') {
-          aValue = a._normalizedEmail || '';
-          bValue = b._normalizedEmail || '';
-        } else if (sortConfig.key === 'date') {
-          aValue = new Date(a._normalizedDate || 0);
-          bValue = new Date(b._normalizedDate || 0);
-        } else if (sortConfig.key === 'training_center') {
-          aValue = a._normalizedTrainingCenter || '';
-          bValue = b._normalizedTrainingCenter || '';
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (sortConfig.key === 'date') {
-          // Already Date objects
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    setSortedData(filtered);
-    setFilteredTotal(filtered.length);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortConfig, allData, statusFilter, searchTerm]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setPagination(prev => {
-      if (prev.currentPage !== 1) {
-        return { ...prev, currentPage: 1 };
-      }
-      return prev;
-    });
-  }, [statusFilter, searchTerm]);
-
-  // Apply pagination to filtered data
-  useEffect(() => {
-    const startIndex = (pagination.currentPage - 1) * pagination.perPage;
-    const endIndex = startIndex + pagination.perPage;
-    const paginated = sortedData.slice(startIndex, endIndex);
-    setPaginatedData(paginated);
-  }, [sortedData, pagination.currentPage, pagination.perPage]);
-
-  const handleApprove = (request) => {
-    setSelectedRequest(request);
-    setAuthorizationPrice('');
-    setApproveModalOpen(true);
-  };
+    return filtered;
+  }, [allData, statusFilter]);
 
   const confirmApprove = async () => {
     if (!authorizationPrice || parseFloat(authorizationPrice) <= 0) {
@@ -331,7 +337,6 @@ const InstructorsScreen = () => {
       await loadData();
       setApproveModalOpen(false);
       setSelectedRequest(null);
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
       setAuthorizationPrice('');
       alert('Instructor approved successfully. Waiting for Group Admin to set commission percentage.');
     } catch (error) {
@@ -355,7 +360,6 @@ const InstructorsScreen = () => {
       await loadData();
       setRejectModalOpen(false);
       setSelectedRequest(null);
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
       setRejectionReason('');
       alert('Instructor request rejected');
     } catch (error) {
@@ -378,23 +382,12 @@ const InstructorsScreen = () => {
       await accAPI.returnInstructorRequest(selectedRequest.id, { return_comment: returnComment });
       await loadData();
       setReturnModalOpen(false);
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
       setSelectedRequest(null);
       setReturnComment('');
       alert('Request returned for revision');
     } catch (error) {
       alert('Failed to return request: ' + (error.message || 'Unknown error'));
     }
-  };
-
-  const handleViewDetails = (item) => {
-    setSelectedRequest(item);
-    setDetailModalOpen(true);
-  };
-
-  const handleRowClick = (item) => {
-    // Allow clicking on both requests and authorized instructors to view details
-    handleViewDetails(item);
   };
 
   // Calculate stats from all data
@@ -410,293 +403,57 @@ const InstructorsScreen = () => {
   return (
     <div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {/* Total Instructors */}
-        <div 
-          onClick={() => {
-            setStatusFilter('all');
-            setPagination(prev => ({ ...prev, currentPage: 1 }));
-          }}
-          className={`bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'all' ? 'ring-2 ring-primary-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-primary-700 mb-2">Total</p>
-              <p className="text-3xl font-bold text-primary-900">{totalCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Users className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Pending */}
-        <div 
-          onClick={() => {
-            setStatusFilter('pending');
-            setPagination(prev => ({ ...prev, currentPage: 1 }));
-          }}
-          className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'pending' ? 'ring-2 ring-yellow-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-yellow-700 mb-2">Pending</p>
-              <p className="text-3xl font-bold text-yellow-900">{pendingCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Clock className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Authorized */}
-        <div 
-          onClick={() => {
-            setStatusFilter('active');
-            setPagination(prev => ({ ...prev, currentPage: 1 }));
-          }}
-          className={`bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'active' || statusFilter === 'approved' ? 'ring-2 ring-green-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700 mb-2">Active</p>
-              <p className="text-3xl font-bold text-green-900">{activeCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <CheckCircle className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Returned */}
-        <div 
-          onClick={() => {
-            setStatusFilter('returned');
-            setPagination(prev => ({ ...prev, currentPage: 1 }));
-          }}
-          className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-xl transition-all duration-300 cursor-pointer ${
-            statusFilter === 'returned' ? 'ring-2 ring-blue-500' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-700 mb-2">Returned</p>
-              <p className="text-3xl font-bold text-blue-900">{returnedCount}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <ArrowLeft className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="returned">Returned</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Instructor
-                    {sortConfig.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('email')}
-                >
-                  <div className="flex items-center gap-2">
-                    Email
-                    {sortConfig.key === 'email' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('date')}
-                >
-                  <div className="flex items-center gap-2">
-                    Date
-                    {sortConfig.key === 'date' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : sortedData.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Users className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">No instructors found</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your filters' : 'No instructors available'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedData.map((item, index) => {
-                  const name = item._normalizedName || 'N/A';
-                  const email = item._normalizedEmail || 'N/A';
-                  
-                  return (
-                    <tr
-                      key={`${item.id || 'item'}-${item._isRequest ? 'req' : 'auth'}-${index}`}
-                      className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                      onClick={() => handleRowClick(item)}
-                      style={{ '--animation-delay': `${index * 0.03}s` }}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                            <Users className="h-5 w-5 text-primary-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{name || 'N/A'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {item._normalizedDate ? new Date(item._normalizedDate).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-                          item.status === 'approved' || item.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                          item.status === 'rejected' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
-                          item.status === 'returned' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
-                          'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
-                        }`}>
-                          {item.status === 'pending' && <Clock size={12} className="mr-1" />}
-                          {item.status === 'returned' && <ArrowLeft size={12} className="mr-1" />}
-                          {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleViewDetails(item)}
-                            className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="View Details"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          {item.status === 'pending' || item.status === 'returned' ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApprove(item);
-                              }}
-                              className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                              title="Approve"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        {!loading && filteredTotal > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={Math.ceil(filteredTotal / pagination.perPage)}
-            totalItems={filteredTotal}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
+      {/* Tab Cards */}
+      <div className="mb-6">
+        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+          <TabCard
+            name="Total"
+            value={totalCount}
+            icon={Users}
+            colorType="indigo"
+            isActive={statusFilter === 'all'}
+            onClick={() => setStatusFilter('all')}
           />
-        )}
+          <TabCard
+            name="Pending"
+            value={pendingCount}
+            icon={Clock}
+            colorType="yellow"
+            isActive={statusFilter === 'pending'}
+            onClick={() => setStatusFilter('pending')}
+          />
+          <TabCard
+            name="Active"
+            value={activeCount}
+            icon={CheckCircle}
+            colorType="green"
+            isActive={statusFilter === 'active'}
+            onClick={() => setStatusFilter('active')}
+          />
+          <TabCard
+            name="Returned"
+            value={returnedCount}
+            icon={ArrowLeft}
+            colorType="blue"
+            isActive={statusFilter === 'returned'}
+            onClick={() => setStatusFilter('returned')}
+          />
+        </TabCardsGrid>
+      </div>
+
+      {/* DataTable */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          isLoading={loading}
+          searchable={true}
+          sortable={true}
+          filterable={false}
+          searchPlaceholder="Search by name or email..."
+          emptyMessage="No instructors found"
+          onRowClick={(item) => handleRowClick(item)}
+        />
       </div>
 
       {/* Detail Modal */}

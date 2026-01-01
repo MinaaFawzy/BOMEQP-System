@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
-import { accAPI } from '../../../services/api';
-import { User, Mail, Phone, MapPin, CreditCard, CheckCircle, AlertCircle, Globe, Building2, FileText } from 'lucide-react';
+import { accAPI, authAPI } from '../../../services/api';
+import { User, Mail, Phone, MapPin, CreditCard, CheckCircle, AlertCircle, Globe, Building2, FileText, Edit, X, Save, Lock, KeyRound } from 'lucide-react';
 import FormInput from '../../../components/FormInput/FormInput';
-import Button from '../../../components/Button/Button';
 import './ProfileScreen.css';
+import '../../../components/FormInput/FormInput.css';
 
 const ProfileScreen = () => {
   const { user } = useAuth();
@@ -23,9 +23,17 @@ const ProfileScreen = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
   const [verifyingAccount, setVerifyingAccount] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null); // { valid: true/false, message: string, account: object }
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -161,6 +169,7 @@ const ProfileScreen = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
+    setSuccessMessage('');
     setVerificationStatus(null);
 
     // Validate Stripe Account ID format
@@ -197,8 +206,12 @@ const ProfileScreen = () => {
       // Clear verification status after successful save
       setVerificationStatus(null);
       
-      alert('Profile updated successfully!');
+      setSuccessMessage('Profile updated successfully!');
+      setIsEditing(false);
       await loadProfile(); // Reload to get latest data
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Failed to update profile:', error);
       
@@ -229,105 +242,232 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    setErrors({});
+    setVerificationStatus(null);
+    // Reset form data to original profile
+    if (profileData) {
+      setFormData({
+        name: profileData.name || user?.name || '',
+        legal_name: profileData.legal_name || '',
+        email: profileData.email || user?.email || '',
+        phone: profileData.phone || user?.phone || '',
+        country: profileData.country || '',
+        address: profileData.address || user?.address || '',
+        website: profileData.website || '',
+        stripe_account_id: profileData.stripe_account_id || profileData.stripe_connect_account_id || '',
+      });
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData({
+      ...passwordData,
+      [name]: value,
+    });
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setChangingPassword(true);
+    setErrors({});
+    setSuccessMessage('');
+
+    try {
+      await authAPI.changePassword(passwordData);
+      setSuccessMessage('Password changed successfully!');
+      setPasswordData({
+        current_password: '',
+        password: '',
+        password_confirmation: '',
+      });
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ password: error.response.data.message });
+      } else {
+        setErrors({ password: error.message || 'Failed to change password. Please try again.' });
+      }
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   if (loadingProfile) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="profile-loading-container">
+        <div className="profile-loading-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {errors.general && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.general}</p>
+    <div className="profile-container">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="profile-success-message">
+          <CheckCircle size={20} />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errors.general && (
+        <div className="profile-error-message">
+          <AlertCircle size={20} />
+          <span>{errors.general}</span>
+        </div>
+      )}
+
+      <div className="profile-content">
+        {/* Profile Header */}
+        <div className="profile-header">
+          <div className="profile-avatar-section">
+            <div className="profile-avatar-container">
+              <div className="profile-avatar-placeholder">
+                <Building2 size={48} />
+              </div>
             </div>
-          )}
+          </div>
+          <div className="profile-header-info">
+            <h1 className="profile-name">{formData.name || 'ACC Admin'}</h1>
+            <p className="profile-email">{formData.email || 'No email provided'}</p>
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="profile-edit-btn"
+              >
+                <Edit size={18} />
+                Edit Profile
+              </button>
+            )}
+          </div>
+        </div>
 
-          <FormInput
-            label="Name"
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            icon={<User size={18} />}
-            error={errors.name}
-          />
+        {/* Profile Form */}
+        <form onSubmit={handleSubmit} className="profile-form">
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <User className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Basic Information</h2>
+                <p className="text-sm text-gray-500 mt-1">Your personal and contact details</p>
+              </div>
+            </div>
+            <div className="profile-form-grid">
+              <FormInput
+                label="Name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                error={errors.name}
+              />
+              <FormInput
+                label="Legal Name"
+                name="legal_name"
+                type="text"
+                value={formData.legal_name}
+                onChange={handleChange}
+                disabled={!isEditing}
+                error={errors.legal_name}
+                helpText="Official legal name of your organization"
+              />
+              <FormInput
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                error={errors.email}
+              />
+              <FormInput
+                label="Phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                disabled={!isEditing}
+                error={errors.phone}
+              />
+              <FormInput
+                label="Website"
+                name="website"
+                type="url"
+                value={formData.website}
+                onChange={handleChange}
+                placeholder="https://example.com"
+                disabled={!isEditing}
+                error={errors.website}
+              />
+            </div>
+          </div>
 
-          <FormInput
-            label="Legal Name"
-            name="legal_name"
-            type="text"
-            value={formData.legal_name}
-            onChange={handleChange}
-            icon={<Building2 size={18} />}
-            error={errors.legal_name}
-            helpText="Official legal name of your organization"
-          />
-
-          <FormInput
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            icon={<Mail size={18} />}
-            error={errors.email}
-          />
-
-          <FormInput
-            label="Phone"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-            icon={<Phone size={18} />}
-            error={errors.phone}
-          />
-
-          <FormInput
-            label="Country"
-            name="country"
-            type="text"
-            value={formData.country}
-            onChange={handleChange}
-            icon={<MapPin size={18} />}
-            error={errors.country}
-          />
-
-          <FormInput
-            label="Address"
-            name="address"
-            type="text"
-            value={formData.address}
-            onChange={handleChange}
-            icon={<MapPin size={18} />}
-            error={errors.address}
-          />
-
-          <FormInput
-            label="Website"
-            name="website"
-            type="url"
-            value={formData.website}
-            onChange={handleChange}
-            placeholder="https://example.com"
-            icon={<Globe size={18} />}
-            error={errors.website}
-          />
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
+              <div className="p-2 bg-green-50 rounded-lg">
+                <MapPin className="text-green-600" size={24} />
+              </div>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Address Information</h2>
+                <p className="text-sm text-gray-500 mt-1">Your location and address details</p>
+              </div>
+            </div>
+            <div className="profile-form-grid">
+              <FormInput
+                label="Address"
+                name="address"
+                type="text"
+                value={formData.address}
+                onChange={handleChange}
+                disabled={!isEditing}
+                error={errors.address}
+              />
+              <FormInput
+                label="Country"
+                name="country"
+                type="text"
+                value={formData.country}
+                onChange={handleChange}
+                disabled={!isEditing}
+                error={errors.country}
+              />
+            </div>
+          </div>
 
           {/* Stripe Connect Settings Section */}
-          <div className="border-t pt-6 mt-6">
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <CreditCard className="text-indigo-600" size={24} />
+              </div>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Stripe Payment Settings</h2>
+                <p className="text-sm text-gray-500 mt-1">Configure your payment gateway integration</p>
+              </div>
+            </div>
+            
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <CreditCard size={20} className="text-blue-600" />
-                Stripe Payment Settings
-              </h3>
               <p className="text-sm text-gray-700 mb-2">
                 <strong>Enable Destination Charges:</strong> Enter your Stripe Connect Account ID to automatically receive payments directly to your Stripe account.
               </p>
@@ -371,35 +511,32 @@ const ProfileScreen = () => {
                 value={formData.stripe_account_id}
                 onChange={handleChange}
                 placeholder="acct_xxxxxxxxxxxxx"
-                icon={<CreditCard size={18} />}
                 error={errors.stripe_account_id}
                 helpText="Your Stripe Connect account ID (starts with 'acct_'). You can find this in your Stripe Dashboard under Settings → Connect → Accounts."
-                disabled={verifyingAccount}
+                disabled={!isEditing || verifyingAccount}
               />
               
               {/* Verify Account Button */}
-              {formData.stripe_account_id && 
+              {isEditing && formData.stripe_account_id && 
                formData.stripe_account_id.trim() !== '' && 
                !validateStripeAccountId(formData.stripe_account_id) && (
                 <div className="flex justify-end">
-                  <Button
+                  <button
                     type="button"
                     onClick={async () => {
                       await verifyStripeAccount(formData.stripe_account_id);
                     }}
                     disabled={verifyingAccount}
-                    loading={verifyingAccount}
-                    variant="outline"
-                    className="text-sm"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {verifyingAccount ? 'Verifying...' : 'Verify Account'}
-                  </Button>
+                  </button>
                 </div>
               )}
             </div>
 
             {/* Real-time validation feedback */}
-            {formData.stripe_account_id && formData.stripe_account_id.trim() !== '' && (
+            {isEditing && formData.stripe_account_id && formData.stripe_account_id.trim() !== '' && (
               <div className="mt-2">
                 {validateStripeAccountId(formData.stripe_account_id) ? (
                   <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
@@ -420,7 +557,7 @@ const ProfileScreen = () => {
             )}
 
             {/* Verification Status */}
-            {verifyingAccount && (
+            {isEditing && verifyingAccount && (
               <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800 flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
@@ -429,7 +566,7 @@ const ProfileScreen = () => {
               </div>
             )}
 
-            {verificationStatus && !verifyingAccount && (
+            {isEditing && verificationStatus && !verifyingAccount && (
               <div className={`mt-2 p-3 rounded-lg border ${
                 verificationStatus.valid 
                   ? 'bg-green-50 border-green-200' 
@@ -457,7 +594,7 @@ const ProfileScreen = () => {
               </div>
             )}
             
-            {formData.stripe_account_id && !validateStripeAccountId(formData.stripe_account_id) && !verificationStatus && (
+            {isEditing && formData.stripe_account_id && !validateStripeAccountId(formData.stripe_account_id) && !verificationStatus && (
               <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800 flex items-center gap-2">
                   <FileText size={14} />
@@ -470,15 +607,86 @@ const ProfileScreen = () => {
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
-            <Button
-              type="submit"
-              disabled={loading}
-              loading={loading}
-            >
-              Update Profile
-            </Button>
+          {/* Change Password Section */}
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
+              <div className="p-2 bg-red-50 rounded-lg">
+                <KeyRound className="text-red-600" size={24} />
+              </div>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Change Password</h2>
+                <p className="text-sm text-gray-500 mt-1">Update your account password</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <FormInput
+                label="Current Password"
+                type="password"
+                name="current_password"
+                value={passwordData.current_password}
+                onChange={handlePasswordChange}
+                required
+                error={errors.current_password}
+              />
+
+              <div className="profile-form-grid">
+                <FormInput
+                  label="New Password"
+                  type="password"
+                  name="password"
+                  value={passwordData.password}
+                  onChange={handlePasswordChange}
+                  required
+                  error={errors.password}
+                />
+
+                <FormInput
+                  label="Confirm New Password"
+                  type="password"
+                  name="password_confirmation"
+                  value={passwordData.password_confirmation}
+                  onChange={handlePasswordChange}
+                  required
+                  error={errors.password_confirmation}
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="profile-change-password-btn"
+                  disabled={changingPassword}
+                >
+                  <Lock size={18} />
+                  {changingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
           </div>
+
+          {/* Form Actions */}
+          {isEditing && (
+            <div className="profile-form-actions">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="profile-cancel-btn"
+                disabled={loading}
+              >
+                <X size={18} />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="profile-save-btn"
+                disabled={loading}
+              >
+                <Save size={18} />
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

@@ -1,32 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Tag, Plus, Search, Filter, ChevronUp, ChevronDown, BookOpen, Edit, Trash2 } from 'lucide-react';
+import { Tag, Plus, BookOpen } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
-import Pagination from '../../../components/Pagination/Pagination';
+import DataTable from '../../../components/DataTable/DataTable';
 import './DiscountCodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const DiscountCodesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [codes, setCodes] = useState([]);
-  const [sortedCodes, setSortedCodes] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCode, setSelectedCode] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
   const [formData, setFormData] = useState({
     code: '',
     discount_percentage: '',
@@ -43,7 +33,7 @@ const DiscountCodesScreen = () => {
   useEffect(() => {
     loadCodes();
     loadCourses();
-  }, [pagination.currentPage, pagination.perPage, searchTerm, statusFilter]);
+  }, []);
 
   useEffect(() => {
     setHeaderTitle('Discount Codes');
@@ -69,54 +59,39 @@ const DiscountCodesScreen = () => {
     setLoading(true);
     try {
       const params = {
-        page: pagination.currentPage,
-        per_page: pagination.perPage,
+        per_page: 1000, // Load all data
       };
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
       
       const data = await accAPI.listDiscountCodes(params);
       
-      // Handle paginated response structure
+      // Handle response structure
       let codesArray = [];
       if (data.data) {
         // Laravel pagination format
         codesArray = data.data || [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: data.last_page || data.total_pages || 1,
-          totalItems: data.total || 0,
-        }));
       } else if (data.discount_codes) {
         // Non-paginated format (fallback)
         codesArray = data.discount_codes || [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: data.discount_codes?.length || 0,
-        }));
       } else {
         // Array format
         codesArray = Array.isArray(data) ? data : [];
-        setPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: codesArray.length,
-        }));
       }
       
+      // Add _searchText for better search functionality
+      codesArray = codesArray.map(code => ({
+        ...code,
+        _searchText: [
+          code.code,
+          code.discount_type,
+          code.status,
+          ...getCourseNames(code)
+        ].filter(Boolean).join(' ').toLowerCase()
+      }));
+      
       setCodes(codesArray);
-      setSortedCodes(codesArray);
     } catch (error) {
       console.error('Failed to load codes:', error);
       setCodes([]);
-      setSortedCodes([]);
     } finally {
       setLoading(false);
     }
@@ -150,72 +125,6 @@ const DiscountCodesScreen = () => {
         return course ? course.name : null;
       })
       .filter(name => name !== null);
-  };
-
-  // Sort handler
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  // Apply sorting (filtering is now done server-side via API)
-  useEffect(() => {
-    let sorted = [...codes];
-
-    // Apply sorting
-    if (sortConfig.key) {
-      sorted.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'code') {
-          aValue = (a.code || '').toLowerCase();
-          bValue = (b.code || '').toLowerCase();
-        } else if (sortConfig.key === 'discount_percentage') {
-          aValue = a.discount_percentage || 0;
-          bValue = b.discount_percentage || 0;
-        } else if (sortConfig.key === 'start_date' || sortConfig.key === 'end_date') {
-          aValue = new Date(a[sortConfig.key] || 0);
-          bValue = new Date(b[sortConfig.key] || 0);
-        } else if (sortConfig.key === 'total_quantity' || sortConfig.key === 'used_quantity') {
-          aValue = a[sortConfig.key] || 0;
-          bValue = b[sortConfig.key] || 0;
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (sortConfig.key === 'discount_percentage' || sortConfig.key === 'total_quantity' || sortConfig.key === 'used_quantity') {
-          // Already numbers
-        } else if (sortConfig.key === 'start_date' || sortConfig.key === 'end_date') {
-          // Already Date objects
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    setSortedCodes(sorted);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortConfig, codes]);
-  
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
   };
 
   const handleOpenModal = (code = null) => {
@@ -396,8 +305,6 @@ const DiscountCodesScreen = () => {
       
       await loadCodes();
       handleCloseModal();
-      // Reset to first page after creating/updating
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
     } catch (error) {
       console.error('Failed to create discount code:', error);
       console.error('Error response:', error.response);
@@ -463,320 +370,201 @@ const DiscountCodesScreen = () => {
     setSelectedCode(null);
   };
 
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Code',
+      accessor: 'code',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <Tag className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">
+              {value || 'N/A'}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Discount',
+      accessor: 'discount_percentage',
+      sortable: true,
+      render: (value) => (
+        <span className="text-xl font-bold text-primary-600">
+          {parseFloat(value) || 0}%
+        </span>
+      )
+    },
+    {
+      header: 'Type',
+      accessor: 'discount_type',
+      sortable: true,
+      render: (value) => (
+        <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium capitalize">
+          {value ? value.replace(/_/g, ' ') : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Courses',
+      accessor: 'courses',
+      sortable: false,
+      render: (value, row) => {
+        const courseNames = getCourseNames(row);
+        
+        if (courseNames.length === 0) {
+          return (
+            <span className="text-sm text-gray-400 italic">No courses assigned</span>
+          );
+        }
+        
+        return (
+          <div className="flex flex-wrap gap-1.5">
+            {courseNames.map((name, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-200"
+                title={name}
+              >
+                <BookOpen size={12} />
+                <span className="max-w-[150px] truncate">{name}</span>
+              </span>
+            ))}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+          value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+          'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+        }`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Start Date',
+      accessor: 'start_date',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <span className="text-sm text-gray-700 font-medium">
+            {formatDate(value)}
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+            Not Set
+          </span>
+        )
+      )
+    },
+    {
+      header: 'End Date',
+      accessor: 'end_date',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <span className="text-sm text-gray-700 font-medium">
+            {formatDate(value)}
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+            Not Set
+          </span>
+        )
+      )
+    },
+    {
+      header: 'Quantity',
+      accessor: 'total_quantity',
+      sortable: true,
+      render: (value, row) => {
+        if (row.discount_type === 'quantity_based') {
+          const used = row.used_quantity || 0;
+          const total = value || 0;
+          const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
+          
+          return (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-primary-700">
+                  {used}
+                </span>
+                <span className="text-gray-400">/</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  {total}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all"
+                    style={{ width: `${percentage}%` }}
+                  ></div>
+                </div>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
+                  {percentage}%
+                </span>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+              N/A
+            </span>
+          );
+        }
+      }
+    }
+  ], [courses]);
+
+  // Filter options for status
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { 
+      value: 'active', 
+      label: 'Active', 
+      filterFn: (code) => code.status === 'active' 
+    },
+    { 
+      value: 'inactive', 
+      label: 'Inactive', 
+      filterFn: (code) => code.status === 'inactive' 
+    }
+  ], []);
+
   return (
     <div>
-
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by code or type..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('code')}
-                >
-                  <div className="flex items-center gap-2">
-                    Code
-                    {sortConfig.key === 'code' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('discount_percentage')}
-                >
-                  <div className="flex items-center gap-2">
-                    Discount
-                    {sortConfig.key === 'discount_percentage' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('discount_type')}
-                >
-                  <div className="flex items-center gap-2">
-                    Type
-                    {sortConfig.key === 'discount_type' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider"
-                >
-                  <div className="flex items-center gap-2">
-                    Courses
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('start_date')}
-                >
-                  <div className="flex items-center gap-2">
-                    Start Date
-                    {sortConfig.key === 'start_date' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('end_date')}
-                >
-                  <div className="flex items-center gap-2">
-                    End Date
-                    {sortConfig.key === 'end_date' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('total_quantity')}
-                >
-                  <div className="flex items-center gap-2">
-                    Quantity
-                    {sortConfig.key === 'total_quantity' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : sortedCodes.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Tag className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">No discount codes found</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your filters' : 'Create your first discount code!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                sortedCodes.map((code, index) => (
-                  <tr
-                    key={code.id || index}
-                    className="table-row-animated hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group"
-                    style={{ '--animation-delay': `${index * 0.03}s` }}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                          <Tag className="h-5 w-5 text-primary-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{code.code || 'N/A'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="text-xl font-bold text-primary-600">{parseFloat(code.discount_percentage) || 0}%</span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium capitalize">
-                        {code.discount_type ? code.discount_type.replace(/_/g, ' ') : 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-1">
-                        {(() => {
-                          const courseNames = getCourseNames(code);
-                          
-                          if (courseNames.length === 0) {
-                            return (
-                              <span className="text-sm text-gray-400 italic">No courses assigned</span>
-                            );
-                          }
-                          
-                          return (
-                            <div className="flex flex-wrap gap-1.5">
-                              {courseNames.map((name, idx) => (
-                                <span
-                                  key={idx}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-200"
-                                  title={name}
-                                >
-                                  <BookOpen size={12} />
-                                  <span className="max-w-[150px] truncate">{name}</span>
-                                </span>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                        code.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                        'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                      }`}>
-                        {code.status ? code.status.charAt(0).toUpperCase() + code.status.slice(1) : 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {code.start_date ? (
-                        <span className="text-sm text-gray-700 font-medium">
-                          {new Date(code.start_date).toLocaleDateString()}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                          Not Set
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {code.end_date ? (
-                        <span className="text-sm text-gray-700 font-medium">
-                          {new Date(code.end_date).toLocaleDateString()}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                          Not Set
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {code.discount_type === 'quantity_based' ? (
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-primary-700">
-                              {code.used_quantity || 0}
-                            </span>
-                            <span className="text-gray-400">/</span>
-                            <span className="text-sm font-semibold text-gray-700">
-                              {code.total_quantity || 0}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all"
-                                style={{ 
-                                  width: `${code.total_quantity > 0 ? ((code.used_quantity || 0) / code.total_quantity * 100) : 0}%` 
-                                }}
-                              ></div>
-                            </div>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
-                              {code.total_quantity > 0 ? Math.round(((code.used_quantity || 0) / code.total_quantity) * 100) : 0}%
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
-                          N/A
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenModal(code);
-                          }}
-                          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(code);
-                          }}
-                          className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        {!loading && pagination.totalItems > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-          />
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={codes}
+        isLoading={loading}
+        searchable={true}
+        searchPlaceholder="Search by code or type..."
+        filterable={true}
+        filterOptions={filterOptions}
+        defaultFilter="all"
+        sortable={true}
+        emptyMessage="No discount codes found. Create your first discount code!"
+        onEdit={handleOpenModal}
+        onDelete={handleDelete}
+      />
 
       {/* Add/Edit Discount Code Modal */}
       <Modal

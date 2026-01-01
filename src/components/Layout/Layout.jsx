@@ -212,14 +212,12 @@ const Layout = ({ children }) => {
         if (isSubscribed === false) {
           return [
             { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
-            { type: 'single', path: '/profile', icon: Settings, label: 'Profile' },
           ];
         }
         // If subscribed or still loading, show all items
         return [
           ...baseItems,
           { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
-          { type: 'single', path: '/profile', icon: Settings, label: 'Profile' },
           {
             type: 'group',
             key: 'management',

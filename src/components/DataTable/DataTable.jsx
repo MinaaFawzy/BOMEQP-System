@@ -16,7 +16,8 @@ const DataTable = ({
   searchPlaceholder = 'Search...',
   filterOptions = null,
   sortable = true,
-  defaultFilter = 'all'
+  defaultFilter = 'all',
+  customFilters = null
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
@@ -80,22 +81,51 @@ const DataTable = ({
     if (searchable && searchTerm) {
       const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(row => {
-        // First, check if row has _searchText field (for custom searchable text)
+        // Check if row has _searchText field (for custom searchable text)
+        // This takes priority and is more reliable for searching
         if (row._searchText && typeof row._searchText === 'string') {
           if (row._searchText.includes(searchLower)) {
             return true;
           }
         }
         
-        // Otherwise, search in all columns
-        return columns.some(column => {
+        // Also search in columns, but only in meaningful text fields
+        const foundInColumns = columns.some(column => {
+          // Skip actions column
+          if (column.accessor === 'actions') {
+            return false;
+          }
+          
+          // Skip numeric-only columns like enrolled_count, capacity, etc.
+          if (column.accessor === 'enrolled_count' || 
+              column.accessor === 'max_capacity' || 
+              column.accessor === 'capacity' ||
+              column.accessor === 'duration_hours' ||
+              column.accessor === 'base_price') {
+            return false;
+          }
+          
           const value = row[column.accessor];
           if (value === null || value === undefined) return false;
           
-          // Handle object values
+          // Skip pure numeric values
+          if (typeof value === 'number') {
+            return false;
+          }
+          
+          // Handle object values (like course, training_center, instructor)
           if (typeof value === 'object' && !Array.isArray(value)) {
-            const objStr = JSON.stringify(value).toLowerCase();
-            return objStr.includes(searchLower);
+            // Search in object properties that are likely text fields
+            const searchableProps = ['name', 'code', 'email', 'first_name', 'last_name', 'title', 'name_ar'];
+            return Object.keys(value).some(key => {
+              if (searchableProps.includes(key.toLowerCase())) {
+                const propValue = value[key];
+                if (propValue && typeof propValue === 'string') {
+                  return propValue.toLowerCase().includes(searchLower);
+                }
+              }
+              return false;
+            });
           }
           
           // Handle array values
@@ -105,8 +135,15 @@ const DataTable = ({
             );
           }
           
-          return String(value).toLowerCase().includes(searchLower);
+          // Only search in string values
+          if (typeof value === 'string') {
+            return value.toLowerCase().includes(searchLower);
+          }
+          
+          return false;
         });
+        
+        return foundInColumns;
       });
     }
 
@@ -166,7 +203,7 @@ const DataTable = ({
   return (
     <>
       {/* Search and Filter Bar */}
-      {(searchable || (filterable && filterOptions)) && (
+      {(searchable || (filterable && filterOptions) || customFilters) && (
         <div className="data-table-search-container">
           <div className="data-table-search-content">
             {searchable && (
@@ -189,39 +226,46 @@ const DataTable = ({
                 )}
               </div>
             )}
-            {filterable && filterOptions && (
-              <div className="data-table-filter-wrapper" ref={filterRef}>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`data-table-filter-button ${
-                    selectedFilter !== 'all' ? 'data-table-filter-button-active' : ''
-                  }`}
-                >
-                  <Filter size={18} />
-                  <span className="data-table-filter-text">
-                    {filterOptions.find(opt => opt.value === selectedFilter)?.label || 'All'}
-                  </span>
-                </button>
-                {showFilters && (
-                  <div className="data-table-filter-dropdown">
-                    {filterOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setSelectedFilter(option.value);
-                          setShowFilters(false);
-                        }}
-                        className={`data-table-filter-option ${
-                          selectedFilter === option.value ? 'data-table-filter-option-active' : ''
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
+              {customFilters && (
+                <div style={{ flexShrink: 0 }}>
+                  {customFilters}
+                </div>
+              )}
+              {filterable && filterOptions && (
+                <div className="data-table-filter-wrapper" ref={filterRef}>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`data-table-filter-button ${
+                      selectedFilter !== 'all' ? 'data-table-filter-button-active' : ''
+                    }`}
+                  >
+                    <Filter size={18} />
+                    <span className="data-table-filter-text">
+                      {filterOptions.find(opt => opt.value === selectedFilter)?.label || 'All'}
+                    </span>
+                  </button>
+                  {showFilters && (
+                    <div className="data-table-filter-dropdown">
+                      {filterOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setSelectedFilter(option.value);
+                            setShowFilters(false);
+                          }}
+                          className={`data-table-filter-option ${
+                            selectedFilter === option.value ? 'data-table-filter-option-active' : ''
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           {searchTerm && (
             <div className="data-table-search-results">

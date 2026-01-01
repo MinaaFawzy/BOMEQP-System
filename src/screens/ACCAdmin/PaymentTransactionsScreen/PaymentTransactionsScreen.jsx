@@ -1,9 +1,11 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { DollarSign, TrendingUp, Calendar, Receipt, Search, Filter, Eye, Building2, User, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Receipt, Eye, Building2, User, ArrowDownCircle, ArrowUpCircle, Filter } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
-import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import DataTable from '../../../components/DataTable/DataTable';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
@@ -13,15 +15,9 @@ const PaymentTransactionsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
-  // Filters and pagination
-  const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(15);
+  const [showTypeFilters, setShowTypeFilters] = useState(false);
+  const typeFilterRef = useRef(null);
 
   useEffect(() => {
     setHeaderTitle('Payment Transactions');
@@ -34,26 +30,53 @@ const PaymentTransactionsScreen = () => {
 
   useEffect(() => {
     loadTransactions();
-  }, [currentPage, perPage, typeFilter, statusFilter, dateFrom, dateTo]);
+  }, []);
+
+  // Close type filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (typeFilterRef.current && !typeFilterRef.current.contains(event.target)) {
+        setShowTypeFilters(false);
+      }
+    };
+
+    if (showTypeFilters) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTypeFilters]);
 
   const loadTransactions = async () => {
     setLoading(true);
     try {
       const params = {
-        page: currentPage,
-        per_page: perPage,
+        per_page: 1000, // Load all data
       };
-      
-      if (typeFilter !== 'all') params.type = typeFilter;
-      if (statusFilter !== 'all') params.status = statusFilter;
-      if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
 
       const response = await accAPI.getPaymentTransactions(params);
       const data = response?.data || response || [];
       const summaryData = response?.summary || null;
       
-      setTransactions(Array.isArray(data) ? data : (data?.data || []));
+      let transactionsArray = Array.isArray(data) ? data : (data?.data || []);
+      
+      // Add _searchText for better search functionality
+      transactionsArray = transactionsArray.map(transaction => ({
+        ...transaction,
+        _searchText: [
+          transaction.transaction_type,
+          transaction.amount,
+          transaction.currency,
+          transaction.status,
+          transaction.description,
+          transaction.payer?.name,
+          transaction.payee?.name
+        ].filter(Boolean).join(' ').toLowerCase()
+      }));
+      
+      setTransactions(transactionsArray);
       setSummary(summaryData);
     } catch (error) {
       console.error('Failed to load transactions:', error);
@@ -71,32 +94,6 @@ const PaymentTransactionsScreen = () => {
     setSelectedTransaction(transaction);
     setDetailModalOpen(true);
   };
-
-  // Filter transactions by search term
-  const filteredTransactions = useMemo(() => {
-    if (!searchTerm) return transactions;
-    
-    const term = searchTerm.toLowerCase();
-    return transactions.filter(transaction => {
-      const type = transaction.transaction_type || '';
-      const amount = String(transaction.amount || '');
-      const currency = transaction.currency || '';
-      const status = transaction.status || '';
-      const description = transaction.description || '';
-      const payerName = transaction.payer?.name || '';
-      const payeeName = transaction.payee?.name || '';
-      
-      return (
-        type.toLowerCase().includes(term) ||
-        amount.includes(term) ||
-        currency.toLowerCase().includes(term) ||
-        status.toLowerCase().includes(term) ||
-        description.toLowerCase().includes(term) ||
-        payerName.toLowerCase().includes(term) ||
-        payeeName.toLowerCase().includes(term)
-      );
-    });
-  }, [transactions, searchTerm]);
 
   const formatCurrency = (amount, currency = 'USD') => {
     return `${parseFloat(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
@@ -145,343 +142,296 @@ const PaymentTransactionsScreen = () => {
     return transaction.payee && transaction.payee.type === 'acc';
   };
 
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Type',
+      accessor: 'transaction_type',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+            isReceived(row)
+              ? 'bg-gradient-to-br from-green-100 to-green-200'
+              : 'bg-gradient-to-br from-red-100 to-red-200'
+          }`}>
+            {isReceived(row) ? (
+              <ArrowDownCircle className="h-5 w-5 text-green-600" />
+            ) : (
+              <ArrowUpCircle className="h-5 w-5 text-red-600" />
+            )}
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">
+              {getTransactionTypeLabel(value)}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Payer',
+      accessor: 'payer',
+      sortable: true,
+      render: (value) => {
+        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        return (
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+              {value.type === 'acc' || value.type === 'training_center' ? (
+                <Building2 className="h-4 w-4 text-blue-600" />
+              ) : (
+                <User className="h-4 w-4 text-blue-600" />
+              )}
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-900">{value.name || 'N/A'}</div>
+              <div className="text-xs text-gray-500 capitalize">{value.type || ''}</div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Payee',
+      accessor: 'payee',
+      sortable: true,
+      render: (value) => {
+        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        return (
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
+              {value.type === 'acc' || value.type === 'training_center' ? (
+                <Building2 className="h-4 w-4 text-green-600" />
+              ) : (
+                <User className="h-4 w-4 text-green-600" />
+              )}
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-900">{value.name || 'N/A'}</div>
+              <div className="text-xs text-gray-500 capitalize">{value.type || ''}</div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Total Amount',
+      accessor: 'amount',
+      sortable: true,
+      render: (value, row) => (
+        <div className={`text-sm font-semibold ${isReceived(row) ? 'text-green-700' : 'text-red-700'}`}>
+          {isReceived(row) ? '+' : '-'} {formatCurrency(value, row.currency)}
+        </div>
+      )
+    },
+    {
+      header: 'Received',
+      accessor: 'provider_amount',
+      sortable: true,
+      render: (value, row) => {
+        const receivedAmount = value || row.received_amount;
+        if (!receivedAmount) return <span className="text-sm text-gray-400">N/A</span>;
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            + {formatCurrency(receivedAmount, row.currency)}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Commission',
+      accessor: 'commission_amount',
+      sortable: true,
+      render: (value, row) => {
+        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        return (
+          <div className="text-sm font-semibold text-amber-700">
+            - {formatCurrency(value, row.currency)}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(value)}`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Date',
+      accessor: 'created_at',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-600">
+          {formatDate(value)}
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleViewDetails(row)}
+            className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      )
+    }
+  ], []);
+
+  // Filter transactions by type
+  const filteredTransactionsByType = useMemo(() => {
+    if (typeFilter === 'all') return transactions;
+    return transactions.filter(transaction => transaction.transaction_type === typeFilter);
+  }, [transactions, typeFilter]);
+
+  // Type filter options
+  const typeFilterOptions = useMemo(() => [
+    { value: 'all', label: 'All Types' },
+    { value: 'subscription', label: 'Subscription' },
+    { value: 'code_purchase', label: 'Code Purchase' },
+    { value: 'material_purchase', label: 'Material Purchase' },
+    { value: 'course_purchase', label: 'Course Purchase' },
+    { value: 'commission', label: 'Commission' },
+    { value: 'settlement', label: 'Settlement' }
+  ], []);
+
+  // Filter options for status
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { 
+      value: 'completed', 
+      label: 'Completed', 
+      filterFn: (transaction) => transaction.status === 'completed' 
+    },
+    { 
+      value: 'pending', 
+      label: 'Pending', 
+      filterFn: (transaction) => transaction.status === 'pending' 
+    },
+    { 
+      value: 'failed', 
+      label: 'Failed', 
+      filterFn: (transaction) => transaction.status === 'failed' 
+    },
+    { 
+      value: 'refunded', 
+      label: 'Refunded', 
+      filterFn: (transaction) => transaction.status === 'refunded' 
+    }
+  ], []);
+
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-primary-700 mb-2">Total Transactions</p>
-                <p className="text-3xl font-bold text-primary-900">{summary.total_transactions || 0}</p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Receipt className="text-white" size={32} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700 mb-2">Total Received</p>
-                <p className="text-3xl font-bold text-green-900">
-                  {formatCurrency(summary.total_received || 0)}
-                </p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ArrowDownCircle className="text-white" size={32} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-700 mb-2">Total Paid</p>
-                <p className="text-3xl font-bold text-red-900">
-                  {formatCurrency(summary.total_paid || 0)}
-                </p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ArrowUpCircle className="text-white" size={32} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700 mb-2">Completed</p>
-                <p className="text-3xl font-bold text-blue-900">
-                  {formatCurrency(summary.completed_amount || 0)}
-                </p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <TrendingUp className="text-white" size={32} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-yellow-700 mb-2">Pending</p>
-                <p className="text-3xl font-bold text-yellow-900">
-                  {formatCurrency(summary.pending_amount || 0)}
-                </p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Calendar className="text-white" size={32} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }} className="mb-6">
+          <TabCard
+            name="Total Transactions"
+            value={summary.total_transactions || 0}
+            icon={Receipt}
+            colorType="indigo"
+          />
+          <TabCard
+            name="Total Received"
+            value={formatCurrency(summary.total_received || 0)}
+            icon={ArrowDownCircle}
+            colorType="green"
+          />
+          <TabCard
+            name="Total Paid"
+            value={formatCurrency(summary.total_paid || 0)}
+            icon={ArrowUpCircle}
+            colorType="red"
+          />
+        </TabCardsGrid>
       )}
-
-      {/* Filters Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search transactions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-
-          {/* Type Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Types</option>
-              <option value="subscription">Subscription</option>
-              <option value="code_purchase">Code Purchase</option>
-              <option value="material_purchase">Material Purchase</option>
-              <option value="course_purchase">Course Purchase</option>
-              <option value="commission">Commission</option>
-              <option value="settlement">Settlement</option>
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-            </select>
-          </div>
-
-          {/* Date From */}
-          <div>
-            <input
-              type="date"
-              placeholder="Date From"
-              value={dateFrom}
-              onChange={(e) => {
-                setDateFrom(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-
-          {/* Date To */}
-          <div>
-            <input
-              type="date"
-              placeholder="Date To"
-              value={dateTo}
-              onChange={(e) => {
-                setDateTo(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-        </div>
-      </div>
 
       {/* Transactions Table */}
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      ) : (
-        <>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="table-header-gradient">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Payer</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Payee</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Received</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Commission</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <Receipt className="text-gray-400" size={32} />
-                          </div>
-                          <p className="text-gray-500 font-medium">No transactions found</p>
-                          <p className="text-sm text-gray-400 mt-1">
-                            {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                              ? 'No transactions match your search criteria'
-                              : 'No transactions available'}
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredTransactions.map((transaction, index) => (
-                      <tr
-                        key={transaction.id || index}
-                        className={`hover:bg-gradient-to-r hover:to-white transition-all duration-200 group table-row-animated ${
-                          isReceived(transaction) 
-                            ? 'hover:from-green-50/30' 
-                            : 'hover:from-red-50/30'
+      <div>
+        <style>{`
+          .payment-transactions-filters-wrapper .data-table-search-container .data-table-search-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+          }
+          .payment-transactions-filters-wrapper .data-table-search-input-wrapper {
+            flex: 1;
+            min-width: 200px;
+          }
+          .payment-transactions-filters-wrapper .data-table-filter-wrapper {
+            flex-shrink: 0;
+          }
+          @media (max-width: 640px) {
+            .payment-transactions-filters-wrapper .data-table-search-container .data-table-search-content {
+              flex-direction: column;
+            }
+            .payment-transactions-filters-wrapper .data-table-filter-wrapper {
+              width: 100%;
+            }
+          }
+        `}</style>
+        <div className="payment-transactions-filters-wrapper">
+          <DataTable
+            columns={columns}
+            data={filteredTransactionsByType}
+            isLoading={loading}
+            searchable={true}
+            searchPlaceholder="Search transactions..."
+            filterable={true}
+            filterOptions={filterOptions}
+            defaultFilter="all"
+            sortable={true}
+            emptyMessage="No transactions found"
+            onView={handleViewDetails}
+            customFilters={
+              <div className="data-table-filter-wrapper" ref={typeFilterRef}>
+                <button
+                  onClick={() => setShowTypeFilters(!showTypeFilters)}
+                  className={`data-table-filter-button ${
+                    typeFilter !== 'all' ? 'data-table-filter-button-active' : ''
+                  }`}
+                >
+                  <Filter size={18} />
+                  <span className="data-table-filter-text">
+                    {typeFilterOptions.find(opt => opt.value === typeFilter)?.label || 'All Types'}
+                  </span>
+                </button>
+                {showTypeFilters && (
+                  <div className="data-table-filter-dropdown">
+                    {typeFilterOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setTypeFilter(option.value);
+                          setShowTypeFilters(false);
+                        }}
+                        className={`data-table-filter-option ${
+                          typeFilter === option.value ? 'data-table-filter-option-active' : ''
                         }`}
-                        style={{ '--animation-delay': `${index * 0.03}s` }}
                       >
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${
-                              isReceived(transaction)
-                                ? 'bg-gradient-to-br from-green-100 to-green-200'
-                                : 'bg-gradient-to-br from-red-100 to-red-200'
-                            }`}>
-                              {isReceived(transaction) ? (
-                                <ArrowDownCircle className="h-5 w-5 text-green-600" />
-                              ) : (
-                                <ArrowUpCircle className="h-5 w-5 text-red-600" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                                {getTransactionTypeLabel(transaction.transaction_type)}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {transaction.payer ? (
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                                {transaction.payer.type === 'acc' || transaction.payer.type === 'training_center' ? (
-                                  <Building2 className="h-4 w-4 text-blue-600" />
-                                ) : (
-                                  <User className="h-4 w-4 text-blue-600" />
-                                )}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{transaction.payer.name || 'N/A'}</div>
-                                <div className="text-xs text-gray-500 capitalize">{transaction.payer.type || ''}</div>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {transaction.payee ? (
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                                {transaction.payee.type === 'acc' || transaction.payee.type === 'training_center' ? (
-                                  <Building2 className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <User className="h-4 w-4 text-green-600" />
-                                )}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{transaction.payee.name || 'N/A'}</div>
-                                <div className="text-xs text-gray-500 capitalize">{transaction.payee.type || ''}</div>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className={`text-sm font-semibold ${isReceived(transaction) ? 'text-green-700' : 'text-red-700'}`}>
-                            {isReceived(transaction) ? '+' : '-'} {formatCurrency(transaction.amount, transaction.currency)}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {transaction.provider_amount || transaction.received_amount ? (
-                            <div className="text-sm font-semibold text-green-700">
-                              + {formatCurrency(transaction.provider_amount || transaction.received_amount, transaction.currency)}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {transaction.commission_amount ? (
-                            <div className="text-sm font-semibold text-amber-700">
-                              - {formatCurrency(transaction.commission_amount, transaction.currency)}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(transaction.status)}`}>
-                            {transaction.status?.charAt(0).toUpperCase() + transaction.status?.slice(1) || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">
-                            {formatDate(transaction.created_at)}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleViewDetails(transaction)}
-                              className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                              title="View Details"
-                            >
-                              <Eye size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pagination */}
-          {summary && summary.total > 0 && (
-            <Pagination
-              currentPage={currentPage || 1}
-              totalPages={Math.ceil((summary.total || 0) / perPage)}
-              totalItems={summary.total || 0}
-              perPage={perPage}
-              onPageChange={setCurrentPage}
-              onPerPageChange={(newPerPage) => {
-                setPerPage(newPerPage);
-                setCurrentPage(1);
-              }}
-            />
-          )}
-        </>
-      )}
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            }
+          />
+        </div>
+      </div>
 
       {/* Transaction Detail Modal */}
       <Modal

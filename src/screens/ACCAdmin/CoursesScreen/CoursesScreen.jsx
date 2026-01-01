@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { GraduationCap, Plus, Edit, Trash2, Eye, Search, Filter, Clock, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, Clock, DollarSign, Hash, Calendar, BookOpen } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
-import Pagination from '../../../components/Pagination/Pagination';
+import DataTable from '../../../components/DataTable/DataTable';
 import { validateRequired, validateNumber, validateMinLength, validateMaxLength } from '../../../utils/validation';
 import './CoursesScreen.css';
 
@@ -13,24 +13,13 @@ const CoursesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const handleOpenModalRef = useRef(null);
   const [courses, setCourses] = useState([]);
-  const [sortedCourses, setSortedCourses] = useState([]);
-  const [paginatedData, setPaginatedData] = useState([]);
-  const [filteredTotal, setFilteredTotal] = useState(0);
   const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
   const [formData, setFormData] = useState({
     sub_category_id: '',
     name: '',
@@ -57,7 +46,7 @@ const CoursesScreen = () => {
   useEffect(() => {
     loadCourses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, pagination.currentPage, pagination.perPage]);
+  }, []);
 
   // Set header actions and title
   useEffect(() => {
@@ -85,71 +74,40 @@ const CoursesScreen = () => {
     };
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadCourses = async (page = null) => {
+  const loadCourses = async () => {
     setLoading(true);
     try {
       // Build query parameters - all filtering is done client-side, no need to send filters to API
       const params = {
-        page: page !== null ? page : pagination.currentPage,
-        per_page: pagination.perPage,
+        per_page: 1000, // Load all data
       };
       
       const data = await accAPI.listCourses(params);
       
-      // Handle paginated response structure
+      // Handle response structure
       let coursesArray = [];
-      const currentPageToSet = page !== null ? page : pagination.currentPage;
       if (data.data) {
         // Laravel pagination format
         coursesArray = data.data || [];
-        setPagination(prev => ({
-          ...prev,
-          currentPage: currentPageToSet,
-          totalPages: data.last_page || data.total_pages || 1,
-          totalItems: data.total || 0,
-        }));
       } else if (data.courses) {
         // Non-paginated format (fallback)
         coursesArray = data.courses || [];
-        setPagination(prev => ({
-          ...prev,
-          currentPage: currentPageToSet,
-          totalPages: 1,
-          totalItems: data.courses?.length || 0,
-        }));
       } else {
         // Array format
         coursesArray = Array.isArray(data) ? data : [];
-        setPagination(prev => ({
-          ...prev,
-          currentPage: currentPageToSet,
-          totalPages: 1,
-          totalItems: coursesArray.length,
-        }));
       }
       
       setCourses(coursesArray);
-      setSortedCourses(coursesArray);
     } catch (error) {
       console.error('Failed to load courses:', error);
       setCourses([]);
-      setSortedCourses([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Sort handler
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  // Apply filtering and sorting
-  useEffect(() => {
+  // Filter data based on filters
+  const filteredData = useMemo(() => {
     let filtered = [...courses];
 
     // Apply status filter
@@ -162,79 +120,14 @@ const CoursesScreen = () => {
       filtered = filtered.filter(course => course.level === levelFilter);
     }
 
-    // Apply search filter (client-side)
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(course => {
-        const name = (course.name || '').toLowerCase();
-        const code = (course.code || '').toLowerCase();
-        return name.includes(searchLower) || code.includes(searchLower);
-      });
-    }
+    // Add search text for DataTable - include all searchable fields
+    filtered = filtered.map(course => ({
+      ...course,
+      _searchText: `${course.name || ''} ${course.code || ''} ${course.name_ar || ''} ${course.description || ''} ${course.level || ''} ${course.status || ''} ${course.sub_category?.name || ''} ${course.sub_category?.category?.name || ''}`.toLowerCase()
+    }));
 
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'name') {
-          aValue = (a.name || '').toLowerCase();
-          bValue = (b.name || '').toLowerCase();
-        } else if (sortConfig.key === 'duration_hours') {
-          aValue = a.duration_hours || 0;
-          bValue = b.duration_hours || 0;
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (sortConfig.key === 'duration_hours') {
-          // Already numbers
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    setSortedCourses(filtered);
-    setFilteredTotal(filtered.length);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortConfig, courses, statusFilter, levelFilter, searchTerm]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setPagination(prev => {
-      if (prev.currentPage !== 1) {
-        return { ...prev, currentPage: 1 };
-      }
-      return prev;
-    });
-  }, [statusFilter, levelFilter, searchTerm]);
-
-  // Apply pagination to filtered data
-  useEffect(() => {
-    const startIndex = (pagination.currentPage - 1) * pagination.perPage;
-    const endIndex = startIndex + pagination.perPage;
-    const paginated = sortedCourses.slice(startIndex, endIndex);
-    setPaginatedData(paginated);
-  }, [sortedCourses, pagination.currentPage, pagination.perPage]);
-  
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
+    return filtered;
+  }, [courses, statusFilter, levelFilter]);
 
   const loadSubCategories = async () => {
     try {
@@ -246,7 +139,7 @@ const CoursesScreen = () => {
     }
   };
 
-  const handleOpenModal = (course = null) => {
+  const handleOpenModal = useCallback((course = null) => {
     if (course) {
       setSelectedCourse(course);
       setFormData({
@@ -295,7 +188,7 @@ const CoursesScreen = () => {
     }
     setErrors({});
     setIsModalOpen(true);
-  };
+  }, []);
 
   // Update ref when handleOpenModal is defined
   useEffect(() => {
@@ -477,8 +370,8 @@ const CoursesScreen = () => {
       }
 
       handleCloseModal();
-      // Reset to first page after creating/updating and reload courses
-      await loadCourses(1);
+      // Reload courses
+      await loadCourses();
       alert(selectedCourse ? 'Course updated successfully!' : 'Course created successfully!');
     } catch (error) {
       console.error('Failed to save course:', error);
@@ -510,10 +403,10 @@ const CoursesScreen = () => {
     }
   };
 
-  const handleDelete = (course) => {
+  const handleDelete = useCallback((course) => {
     setSelectedCourse(course);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
   const confirmDelete = async () => {
     try {
@@ -531,7 +424,7 @@ const CoursesScreen = () => {
   const handleViewDetails = async (course) => {
     try {
       const data = await accAPI.getCourseDetails(course.id);
-      setSelectedCourse(data.course);
+      setSelectedCourse(data.course || data);
       setDetailModalOpen(true);
     } catch (error) {
       console.error('Failed to load course details:', error);
@@ -540,248 +433,142 @@ const CoursesScreen = () => {
     }
   };
 
+  const handleRowClick = (course) => {
+    handleViewDetails(course);
+  };
+
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Course',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <GraduationCap className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+            {row.code && <div className="text-xs text-gray-400 mt-1">Code: {row.code}</div>}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Level',
+      accessor: 'level',
+      sortable: true,
+      render: (value) => (
+        <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
+          {value || 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Duration',
+      accessor: 'duration_hours',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center text-sm text-gray-600">
+          <Clock className="h-4 w-4 mr-2 text-gray-400" />
+          {value ? `${value} hrs` : 'N/A'}
+        </div>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+          value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+          'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+        }`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Pricing',
+      accessor: 'pricing',
+      sortable: false,
+      render: (value, row) => {
+        const pricing = row.current_price || row.pricing || 
+                       (row.certificate_pricing && row.certificate_pricing.length > 0 
+                         ? row.certificate_pricing[0] 
+                         : null);
+        return pricing ? (
+          <div className="flex items-center text-sm font-semibold text-gray-900">
+            <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
+            {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">Not set</span>
+        );
+      }
+    },
+    {
+      header: 'Assessor',
+      accessor: 'assessor_required',
+      sortable: true,
+      render: (value) => (
+        value ? (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+            Required
+          </span>
+        ) : (
+          <span className="text-sm text-gray-400">Not Required</span>
+        )
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenModal(row)}
+            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="Edit"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(row)}
+            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
+  ], [handleOpenModal, handleDelete]);
+
 
   return (
     <div>
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name or code..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-
-          {/* Level Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <select
-              value={levelFilter}
-              onChange={(e) => {
-                setLevelFilter(e.target.value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
-              }}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-            >
-              <option value="all">All Levels</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
+      {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Course
-                    {sortConfig.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('level')}
-                >
-                  <div className="flex items-center gap-2">
-                    Level
-                    {sortConfig.key === 'level' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('duration_hours')}
-                >
-                  <div className="flex items-center gap-2">
-                    Duration
-                    {sortConfig.key === 'duration_hours' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Pricing</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Assessor</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : sortedCourses.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <GraduationCap className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">No courses found</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm || statusFilter !== 'all' || levelFilter !== 'all' ? 'Try adjusting your filters' : 'Create your first course!'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedData.map((course, index) => (
-                  <tr
-                    key={course.id || index}
-                    className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 cursor-pointer group table-row-animated"
-                    onClick={() => handleViewDetails(course)}
-                    style={{ '--animation-delay': `${index * 0.03}s` }}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                          <GraduationCap className="h-5 w-5 text-primary-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{course.name}</div>
-                          {course.code && <div className="text-xs text-gray-400 mt-1">Code: {course.code}</div>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
-                        {course.level || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                        {course.duration_hours ? `${course.duration_hours} hrs` : 'N/A'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                        course.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                        'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                      }`}>
-                        {course.status ? course.status.charAt(0).toUpperCase() + course.status.slice(1) : 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {(() => {
-                        const pricing = course.current_price || 
-                                       course.pricing || 
-                                       (course.certificate_pricing && course.certificate_pricing.length > 0 
-                                         ? course.certificate_pricing[0] 
-                                         : null);
-                        return pricing ? (
-                          <div className="flex items-center text-sm font-semibold text-gray-900">
-                            <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
-                            {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">Not set</span>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-center">
-                      {course.assessor_required ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                          Required
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-400">Not Required</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenModal(course);
-                          }}
-                          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(course);
-                          }}
-                          className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        {!loading && filteredTotal > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={Math.ceil(filteredTotal / pagination.perPage)}
-            totalItems={filteredTotal}
-            perPage={pagination.perPage}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-          />
-        )}
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          isLoading={loading}
+          searchable={true}
+          sortable={true}
+          filterable={true}
+          searchPlaceholder="Search by name or code..."
+          emptyMessage="No courses found"
+          filterOptions={[
+            { value: 'all', label: 'All Status', filterFn: () => true },
+            { value: 'active', label: 'Active', filterFn: (course) => course.status === 'active' },
+            { value: 'inactive', label: 'Inactive', filterFn: (course) => course.status === 'inactive' }
+          ]}
+          defaultFilter={statusFilter}
+          onRowClick={(course) => handleRowClick(course)}
+        />
       </div>
 
       {/* Add/Edit Modal */}
@@ -997,70 +784,165 @@ const CoursesScreen = () => {
       >
         {selectedCourse && (
           <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Course Name (English)</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.name || 'N/A'}</p>
-              </div>
-              {selectedCourse.name_ar && (
+            {/* Course Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <GraduationCap className="mr-2" size={20} />
+                Course Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedCourse.id && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Hash size={14} className="mr-1" />
+                      Course ID
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      #{selectedCourse.id}
+                    </p>
+                  </div>
+                )}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Course Name (Arabic)</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedCourse.name_ar}</p>
+                  <p className="text-sm text-gray-500 mb-1">Course Name (English)</p>
+                  <p className="text-base font-semibold text-gray-900">{selectedCourse.name || 'N/A'}</p>
                 </div>
-              )}
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Course Code</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.code || 'N/A'}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Level</p>
-                <p className="text-base font-semibold text-gray-900 capitalize">{selectedCourse.level || 'N/A'}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Duration</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.duration_hours ? `${selectedCourse.duration_hours} hours` : 'N/A'}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Max Capacity</p>
-                <p className="text-base font-semibold text-gray-900">{selectedCourse.max_capacity ? `${selectedCourse.max_capacity} trainees` : 'N/A'}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedCourse.status === 'active' ? 'bg-green-100 text-green-800' : 
-                  selectedCourse.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedCourse.status ? selectedCourse.status.charAt(0).toUpperCase() + selectedCourse.status.slice(1) : 'N/A'}
-                </span>
+                {selectedCourse.name_ar && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Course Name (Arabic)</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedCourse.name_ar}</p>
+                  </div>
+                )}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Course Code</p>
+                  <p className="text-base font-semibold text-gray-900">{selectedCourse.code || 'N/A'}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Level</p>
+                  <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
+                    {selectedCourse.level || 'N/A'}
+                  </span>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center">
+                    <Clock size={14} className="mr-1" />
+                    Duration
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">{selectedCourse.duration_hours ? `${selectedCourse.duration_hours} hours` : 'N/A'}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Max Capacity</p>
+                  <p className="text-base font-semibold text-gray-900">{selectedCourse.max_capacity ? `${selectedCourse.max_capacity} trainees` : 'N/A'}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Status</p>
+                  <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+                    selectedCourse.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' : 
+                    selectedCourse.status === 'inactive' ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300' :
+                    'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+                  }`}>
+                    {selectedCourse.status ? selectedCourse.status.charAt(0).toUpperCase() + selectedCourse.status.slice(1) : 'N/A'}
+                  </span>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Assessor Required</p>
+                  <span className={`px-3 py-1.5 inline-flex text-xs font-medium rounded-full ${
+                    selectedCourse.assessor_required 
+                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' 
+                      : 'bg-gray-100 text-gray-600 border border-gray-200'
+                  }`}>
+                    {selectedCourse.assessor_required ? 'Required' : 'Not Required'}
+                  </span>
+                </div>
+                {selectedCourse.created_at && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Calendar size={14} className="mr-1" />
+                      Created At
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {new Date(selectedCourse.created_at).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+                {selectedCourse.updated_at && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Calendar size={14} className="mr-1" />
+                      Updated At
+                    </p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {new Date(selectedCourse.updated_at).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Category Information */}
             {selectedCourse.sub_category && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-500 mb-2">Category</p>
-                <div className="space-y-1">
-                  {selectedCourse.sub_category.category && (
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedCourse.sub_category.category.name}
-                    </p>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  Category Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedCourse.sub_category.id && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1 flex items-center">
+                        <Hash size={14} className="mr-1" />
+                        Sub Category ID
+                      </p>
+                      <p className="text-base font-semibold text-gray-900">
+                        #{selectedCourse.sub_category.id}
+                      </p>
+                    </div>
                   )}
-                  <p className="text-sm text-gray-700">
-                    Sub Category: {selectedCourse.sub_category.name}
-                  </p>
+                  {selectedCourse.sub_category.category && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1">Category</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedCourse.sub_category.category.name || 'N/A'}
+                      </p>
+                    </div>
+                  )}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Sub Category</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedCourse.sub_category.name || 'N/A'}
+                    </p>
+                  </div>
+                  {selectedCourse.sub_category.description && (
+                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
+                      <p className="text-sm text-gray-500 mb-1">Sub Category Description</p>
+                      <p className="text-base text-gray-900">{selectedCourse.sub_category.description}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Description */}
             {selectedCourse.description && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Description</p>
-                <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedCourse.description}</p>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedCourse.description}</p>
+                </div>
               </div>
             )}
+            {/* Pricing Information */}
             {(() => {
               // Check for pricing in multiple possible locations
               const pricing = selectedCourse.current_price || 
@@ -1070,38 +952,137 @@ const CoursesScreen = () => {
                                : null);
               
               return pricing ? (
-                <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-                  <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <DollarSign size={18} className="text-primary-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <DollarSign size={20} className="mr-2" />
                     Pricing Information
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Base Price</p>
-                      <p className="text-lg font-bold text-gray-900">
-                        {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
-                      </p>
-                    </div>
-                    {pricing.created_at && (
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Set On</p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {new Date(pricing.created_at).toLocaleDateString()}
+                  </h3>
+                  <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {pricing.id && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Hash size={14} className="mr-1" />
+                            Pricing ID
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            #{pricing.id}
+                          </p>
+                        </div>
+                      )}
+                      <div className="p-4 bg-white rounded-lg">
+                        <p className="text-sm text-gray-500 mb-1">Base Price</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
                         </p>
                       </div>
-                    )}
+                      {pricing.group_commission_percentage !== undefined && pricing.group_commission_percentage !== null && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1">Group Commission</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {parseFloat(pricing.group_commission_percentage || 0).toFixed(2)}%
+                          </p>
+                        </div>
+                      )}
+                      {pricing.training_center_commission_percentage !== undefined && pricing.training_center_commission_percentage !== null && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1">Training Center Commission</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {parseFloat(pricing.training_center_commission_percentage || 0).toFixed(2)}%
+                          </p>
+                        </div>
+                      )}
+                      {pricing.instructor_commission_percentage !== undefined && pricing.instructor_commission_percentage !== null && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1">Instructor Commission</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {parseFloat(pricing.instructor_commission_percentage || 0).toFixed(2)}%
+                          </p>
+                        </div>
+                      )}
+                      {pricing.effective_from && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Calendar size={14} className="mr-1" />
+                            Effective From
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(pricing.effective_from).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      {pricing.effective_to && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Calendar size={14} className="mr-1" />
+                            Effective To
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(pricing.effective_to).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      {pricing.created_at && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Calendar size={14} className="mr-1" />
+                            Created At
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(pricing.created_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                      {pricing.updated_at && (
+                        <div className="p-4 bg-white rounded-lg">
+                          <p className="text-sm text-gray-500 mb-1 flex items-center">
+                            <Calendar size={14} className="mr-1" />
+                            Updated At
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(pricing.updated_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3">
+                      Note: Commission percentages are managed by Group Admins. Pricing is effective immediately when set.
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3">
-                    Note: Commission percentages are managed by Group Admins. Pricing is effective immediately when set.
-                  </p>
                 </div>
               ) : (
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="text-gray-400" size={20} />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">No pricing set</p>
-                      <p className="text-xs text-gray-500 mt-1">You can add pricing when editing the course</p>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <DollarSign size={20} className="mr-2" />
+                    Pricing Information
+                  </h3>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="text-gray-400" size={20} />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">No pricing set</p>
+                        <p className="text-xs text-gray-500 mt-1">You can add pricing when editing the course</p>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, FileText, Edit, Trash2, Layers, ChevronUp, ChevronDown, Search, Eye, RefreshCw } from 'lucide-react';
+import { Plus, FileText, Layers, RefreshCw, Edit, Trash2 } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Button from '../../../components/Button/Button';
-import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import DataTable from '../../../components/DataTable/DataTable';
 import './CategoriesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -15,7 +17,6 @@ const CategoriesScreen = () => {
   const [prevActiveTab, setPrevActiveTab] = useState('categories');
   
   const [categories, setCategories] = useState([]);
-  const [sortedCategories, setSortedCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -28,18 +29,8 @@ const CategoriesScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [categorySortConfig, setCategorySortConfig] = useState({ key: null, direction: 'asc' });
-  const [categorySearchTerm, setCategorySearchTerm] = useState('');
-  const [categoryStatusFilter, setCategoryStatusFilter] = useState('all');
-  const [categoryPagination, setCategoryPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
   const [subCategories, setSubCategories] = useState([]);
-  const [sortedSubCategories, setSortedSubCategories] = useState([]);
   const [subCategoriesLoading, setSubCategoriesLoading] = useState(true);
   const [isSubCategoryModalOpen, setIsSubCategoryModalOpen] = useState(false);
   const [isSubCategoryDeleteDialogOpen, setIsSubCategoryDeleteDialogOpen] = useState(false);
@@ -53,19 +44,10 @@ const CategoriesScreen = () => {
   });
   const [subCategoryErrors, setSubCategoryErrors] = useState({});
   const [subCategorySaving, setSubCategorySaving] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [subCategoryPagination, setSubCategoryPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
   useEffect(() => {
     loadCategories();
-  }, [categoryPagination.currentPage, categoryPagination.perPage, categorySearchTerm, categoryStatusFilter]);
+  }, []);
 
   useEffect(() => {
     setHeaderTitle('Categories');
@@ -89,17 +71,8 @@ const CategoriesScreen = () => {
     try {
       setLoading(true);
       const params = {
-        page: categoryPagination.currentPage,
-        per_page: categoryPagination.perPage,
+        per_page: 1000, // Load all data
       };
-      
-      if (categorySearchTerm) {
-        params.search = categorySearchTerm;
-      }
-      
-      if (categoryStatusFilter !== 'all') {
-        params.status = categoryStatusFilter;
-      }
       
       const data = await accAPI.listCategories(params);
       
@@ -107,32 +80,27 @@ const CategoriesScreen = () => {
       let catsList = [];
       if (data?.data) {
         catsList = Array.isArray(data.data) ? data.data : [];
-        setCategoryPagination(prev => ({
-          ...prev,
-          totalPages: data.last_page || data.total_pages || 1,
-          totalItems: data.total || 0,
-        }));
       } else if (data?.categories && Array.isArray(data.categories)) {
         catsList = data.categories;
-        setCategoryPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: data.categories?.length || 0,
-        }));
       } else if (Array.isArray(data)) {
         catsList = data;
       } else {
         console.warn('Unexpected API response structure:', data);
         catsList = [];
-        setCategoryPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: 0,
-        }));
       }
       
+      // Add _searchText for better search functionality
+      catsList = catsList.map(cat => ({
+        ...cat,
+        _searchText: [
+          cat.name,
+          cat.name_ar,
+          cat.description,
+          cat.status
+        ].filter(Boolean).join(' ').toLowerCase()
+      }));
+      
       setCategories(catsList);
-      setSortedCategories(catsList);
       
       // Extract sub_categories from categories (they come nested in the response)
       const allSubCats = [];
@@ -147,8 +115,16 @@ const CategoriesScreen = () => {
         await loadSubCategories();
       } else if (allSubCats.length > 0) {
         // If we got sub_categories from categories, use them
-        setSubCategories(allSubCats);
-        setSortedSubCategories(allSubCats);
+        const subCatsWithSearch = allSubCats.map(subCat => ({
+          ...subCat,
+          _searchText: [
+            subCat.name,
+            subCat.name_ar,
+            subCat.description,
+            subCat.status
+          ].filter(Boolean).join(' ').toLowerCase()
+        }));
+        setSubCategories(subCatsWithSearch);
         setSubCategoriesLoading(false);
       }
     } catch (error) {
@@ -156,7 +132,6 @@ const CategoriesScreen = () => {
       console.error('Error details:', error.response?.data || error.message);
       // Set empty arrays on error to prevent UI issues
       setCategories([]);
-      setSortedCategories([]);
     } finally {
       setLoading(false);
     }
@@ -217,7 +192,6 @@ const CategoriesScreen = () => {
       }
       await loadCategories();
       handleCloseModal();
-      setCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
     } catch (error) {
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
@@ -240,7 +214,6 @@ const CategoriesScreen = () => {
     try {
       await accAPI.deleteCategory(selectedCategory.id);
       await loadCategories();
-      setCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
     } catch (error) {
       alert('Failed to delete category: ' + (error.response?.data?.message || error.message || 'Unknown error'));
     }
@@ -252,20 +225,11 @@ const CategoriesScreen = () => {
     setSubCategoriesLoading(true);
     try {
       const params = {
-        page: subCategoryPagination.currentPage,
-        per_page: subCategoryPagination.perPage,
+        per_page: 1000, // Load all data
       };
       
       if (categoryId) {
         params.category_id = categoryId;
-      }
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
       }
       
       const data = await accAPI.listSubCategories(params);
@@ -273,175 +237,43 @@ const CategoriesScreen = () => {
       let subCatsList = [];
       if (data?.data) {
         subCatsList = Array.isArray(data.data) ? data.data : [];
-        setSubCategoryPagination(prev => ({
-          ...prev,
-          totalPages: data.last_page || data.total_pages || 1,
-          totalItems: data.total || 0,
-        }));
       } else if (data?.sub_categories) {
         subCatsList = Array.isArray(data.sub_categories) ? data.sub_categories : [];
-        setSubCategoryPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: data.sub_categories?.length || 0,
-        }));
       } else {
         subCatsList = Array.isArray(data) ? data : [];
-        setSubCategoryPagination(prev => ({
-          ...prev,
-          totalPages: 1,
-          totalItems: subCatsList.length,
-        }));
       }
       
+      // Add _searchText for better search functionality
+      subCatsList = subCatsList.map(subCat => {
+        const category = categories.find(cat => cat.id === subCat.category_id);
+        return {
+          ...subCat,
+          _searchText: [
+            subCat.name,
+            subCat.name_ar,
+            subCat.description,
+            subCat.status,
+            category?.name || ''
+          ].filter(Boolean).join(' ').toLowerCase()
+        };
+      });
+      
       setSubCategories(subCatsList);
-      setSortedSubCategories(subCatsList);
     } catch (error) {
       console.error('Failed to load sub categories:', error);
       setSubCategories([]);
-      setSortedSubCategories([]);
     } finally {
       setSubCategoriesLoading(false);
     }
   };
   
-  const handleCategoryPageChange = (page) => {
-    setCategoryPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handleCategoryPerPageChange = (perPage) => {
-    setCategoryPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
-  
-  const handleSubCategoryPageChange = (page) => {
-    setSubCategoryPagination(prev => ({ ...prev, currentPage: page }));
-  };
-  
-  const handleSubCategoryPerPageChange = (perPage) => {
-    setSubCategoryPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
-  };
-
-  // Sort categories
-  const handleCategorySort = (key) => {
-    let direction = 'asc';
-    if (categorySortConfig.key === key && categorySortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setCategorySortConfig({ key, direction });
-  };
-
-  // Sort sub categories
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  // Apply sorting when sortConfig or categories change (filtering is now server-side)
-  useEffect(() => {
-    if (activeTab !== 'categories') return;
-    
-    let sorted = [...categories];
-
-    // Apply sorting
-    if (categorySortConfig.key) {
-      sorted.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (categorySortConfig.key === 'name') {
-          aValue = (a.name || '').toLowerCase();
-          bValue = (b.name || '').toLowerCase();
-        } else {
-          aValue = a[categorySortConfig.key] || '';
-          bValue = b[categorySortConfig.key] || '';
-        }
-        
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return categorySortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return categorySortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    setSortedCategories(sorted);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categorySortConfig, categories, activeTab]);
-  
-  // Load sub categories when tab changes or pagination/filters change
+  // Load sub categories when tab changes
   useEffect(() => {
     if (activeTab === 'sub-categories') {
       loadSubCategories();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, subCategoryPagination.currentPage, subCategoryPagination.perPage, searchTerm, statusFilter]);
-
-  // Apply filtering and sorting when filters, sortConfig, or subCategories change
-  useEffect(() => {
-    if (activeTab !== 'sub-categories') return;
-    
-    let filtered = [...subCategories];
-
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(subCat => {
-        const name = subCat.name || '';
-        const nameAr = subCat.name_ar || '';
-        return name.toLowerCase().includes(term) || nameAr.toLowerCase().includes(term);
-      });
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(subCat => subCat.status === statusFilter);
-    }
-
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-        
-        if (sortConfig.key === 'name') {
-          aValue = (a.name || '').toLowerCase();
-          bValue = (b.name || '').toLowerCase();
-        } else if (sortConfig.key === 'category_id') {
-          const aCat = categories.find(cat => cat.id === a.category_id);
-          const bCat = categories.find(cat => cat.id === b.category_id);
-          aValue = aCat ? (aCat.name || '').toLowerCase() : '';
-          bValue = bCat ? (bCat.name || '').toLowerCase() : '';
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-        
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    
-    setSortedSubCategories(filtered);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortConfig, subCategories, searchTerm, statusFilter, activeTab, categories]);
+  }, [activeTab]);
 
   const handleOpenSubCategoryModal = (subCategory = null) => {
     if (subCategory) {
@@ -501,7 +333,6 @@ const CategoriesScreen = () => {
       }
       await loadSubCategories();
       handleCloseSubCategoryModal();
-      setSubCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
     } catch (error) {
       if (error.response?.data?.errors) {
         setSubCategoryErrors(error.response.data.errors);
@@ -524,7 +355,6 @@ const CategoriesScreen = () => {
     try {
       await accAPI.deleteSubCategory(selectedSubCategory.id);
       await loadSubCategories();
-      setSubCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
     } catch (error) {
       alert('Failed to delete sub category: ' + (error.response?.data?.message || error.message || 'Unknown error'));
     }
@@ -538,17 +368,6 @@ const CategoriesScreen = () => {
   const activeCategories = categories.filter(c => c.status === 'active').length;
   const totalSubCategories = subCategories.length;
   const activeSubCategories = subCategories.filter(sc => sc.status === 'active').length;
-  
-  // Helper function to check if category can be edited/deleted (only if created by this ACC)
-  // According to API: ACC can only update/delete categories they created
-  // We check created_by to determine if ACC can manage it
-  // Note: The API will also validate this, but we can hide buttons for better UX
-  const canManageCategory = (category) => {
-    // If created_by exists, it means this ACC created it (assuming created_by matches current user)
-    // For now, we'll show buttons and let API handle the actual permission check
-    // This provides better UX - user can try to edit, API will reject if not allowed
-    return true;
-  };
   
   // Check if category was created by current ACC (for UI display)
   const isCategoryCreatedByMe = (category) => {
@@ -564,6 +383,222 @@ const CategoriesScreen = () => {
     return subCategory.created_by != null && subCategory.created_by !== undefined && subCategory.created_by !== 1;
   };
 
+  // Define columns for Categories DataTable
+  const categoryColumns = useMemo(() => [
+    {
+      header: 'Category',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <FileText className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">
+              {value || 'N/A'}
+            </div>
+            {row.name_ar && (
+              <div className="text-xs text-gray-500">{row.name_ar}</div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Description',
+      accessor: 'description',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-600 max-w-xs truncate">
+          {value || '-'}
+        </div>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+          value === 'active' 
+            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
+            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+        }`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Type',
+      accessor: 'created_by',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex flex-col gap-1">
+          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+            isCategoryCreatedByMe(row)
+              ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' 
+              : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
+          }`}>
+            {isCategoryCreatedByMe(row) ? 'Created by Me' : 'Assigned by Admin'}
+          </span>
+          {row.sub_categories && row.sub_categories.length > 0 && (
+            <span className="text-xs text-gray-500">
+              {row.sub_categories.length} sub-categor{row.sub_categories.length === 1 ? 'y' : 'ies'}
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenModal(row)}
+            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+              isCategoryCreatedByMe(row)
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+            }`}
+            title={isCategoryCreatedByMe(row) ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
+            disabled={!isCategoryCreatedByMe(row)}
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(row)}
+            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+              isCategoryCreatedByMe(row)
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+            }`}
+            title={isCategoryCreatedByMe(row) ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
+            disabled={!isCategoryCreatedByMe(row)}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
+  ], [handleOpenModal, handleDelete]);
+
+  // Define columns for Sub Categories DataTable
+  const subCategoryColumns = useMemo(() => [
+    {
+      header: 'Sub Category',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <FileText className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">
+              {value || 'N/A'}
+            </div>
+            {row.name_ar && (
+              <div className="text-xs text-gray-500">{row.name_ar}</div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Category',
+      accessor: 'category_id',
+      sortable: true,
+      render: (value, row) => {
+        const category = categories.find(cat => cat.id === value);
+        return (
+          <div className="text-sm text-gray-600">
+            {category ? category.name : `Category ID: ${value}`}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
+          value === 'active' 
+            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
+            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+        }`}>
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenSubCategoryModal(row)}
+            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+              isSubCategoryCreatedByMe(row)
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+            }`}
+            title={isSubCategoryCreatedByMe(row) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
+            disabled={!isSubCategoryCreatedByMe(row)}
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDeleteSubCategory(row)}
+            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+              isSubCategoryCreatedByMe(row)
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+            }`}
+            title={isSubCategoryCreatedByMe(row) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
+            disabled={!isSubCategoryCreatedByMe(row)}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
+  ], [categories, handleOpenSubCategoryModal, handleDeleteSubCategory]);
+
+  // Filter options for categories
+  const categoryFilterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { 
+      value: 'active', 
+      label: 'Active', 
+      filterFn: (cat) => cat.status === 'active' 
+    },
+    { 
+      value: 'inactive', 
+      label: 'Inactive', 
+      filterFn: (cat) => cat.status === 'inactive' 
+    }
+  ], []);
+
+  // Filter options for sub categories
+  const subCategoryFilterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { 
+      value: 'active', 
+      label: 'Active', 
+      filterFn: (subCat) => subCat.status === 'active' 
+    },
+    { 
+      value: 'inactive', 
+      label: 'Inactive', 
+      filterFn: (subCat) => subCat.status === 'inactive' 
+    }
+  ], []);
+
   if (loading && activeTab === 'categories') {
     return (
       <div className="flex items-center justify-center h-64">
@@ -576,59 +611,40 @@ const CategoriesScreen = () => {
     <div className="space-y-4">
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Total Categories */}
-        <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-primary-700 mb-2">Total Categories</p>
-              <p className="text-3xl font-bold text-primary-900">{totalCategories}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Active Categories */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700 mb-2">Active Categories</p>
-              <p className="text-3xl font-bold text-green-900">{activeCategories}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Total Sub Categories */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-700 mb-2">Sub Categories</p>
-              <p className="text-3xl font-bold text-blue-900">{totalSubCategories}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Layers className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-
-        {/* Active Sub Categories */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-purple-700 mb-2">Active Sub Categories</p>
-              <p className="text-3xl font-bold text-purple-900">{activeSubCategories}</p>
-            </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Layers className="text-white" size={32} />
-            </div>
-          </div>
-        </div>
-      </div>
+      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }} className="mb-6">
+        <TabCard
+          name="Total Categories"
+          value={totalCategories}
+          icon={FileText}
+          colorType="indigo"
+          isActive={activeTab === 'categories'}
+          onClick={() => setActiveTab('categories')}
+        />
+        <TabCard
+          name="Active Categories"
+          value={activeCategories}
+          icon={FileText}
+          colorType="green"
+          isActive={activeTab === 'categories'}
+          onClick={() => setActiveTab('categories')}
+        />
+        <TabCard
+          name="Sub Categories"
+          value={totalSubCategories}
+          icon={Layers}
+          colorType="blue"
+          isActive={activeTab === 'sub-categories'}
+          onClick={() => setActiveTab('sub-categories')}
+        />
+        <TabCard
+          name="Active Sub Categories"
+          value={activeSubCategories}
+          icon={Layers}
+          colorType="purple"
+          isActive={activeTab === 'sub-categories'}
+          onClick={() => setActiveTab('sub-categories')}
+        />
+      </TabCardsGrid>
 
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-1.5">
@@ -683,188 +699,18 @@ const CategoriesScreen = () => {
             </div>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Input */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={categorySearchTerm}
-                  onChange={(e) => {
-                    setCategorySearchTerm(e.target.value);
-                    setCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
-                  }}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-              </div>
-              
-              {/* Status Filter */}
-              <div className="relative">
-                <Layers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <select
-                  value={categoryStatusFilter}
-                  onChange={(e) => {
-                    setCategoryStatusFilter(e.target.value);
-                    setCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
-                  }}
-                  className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="table-header-gradient">
-                    <tr>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleCategorySort('name')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Category
-                          {categorySortConfig.key === 'name' && (
-                            categorySortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleCategorySort('description')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Description
-                          {categorySortConfig.key === 'description' && (
-                            categorySortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleCategorySort('status')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Status
-                          {categorySortConfig.key === 'status' && (
-                            categorySortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {sortedCategories.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-12 text-center">
-                          <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                              <FileText className="text-gray-400" size={32} />
-                            </div>
-                            <p className="text-gray-500 font-medium">No categories found</p>
-                            <p className="text-sm text-gray-400 mt-1">Create your first category to get started</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      sortedCategories.map((category, index) => (
-                        <tr
-                          key={category.id || index}
-                          className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 group table-row-animated"
-                          style={{ '--animation-delay': `${index * 0.03}s` }}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                                <FileText className="h-5 w-5 text-primary-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{category.name}</div>
-                                {category.name_ar && <div className="text-xs text-gray-500">{category.name_ar}</div>}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm text-gray-600 max-w-xs truncate">
-                              {category.description || '-'}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                              category.status === 'active' 
-                                ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
-                                : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                            }`}>
-                              {category.status.charAt(0).toUpperCase() + category.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex flex-col gap-1">
-                              <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                                isCategoryCreatedByMe(category)
-                                  ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' 
-                                  : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
-                              }`}>
-                                {isCategoryCreatedByMe(category) ? 'Created by Me' : 'Assigned by Admin'}
-                              </span>
-                              {category.sub_categories && category.sub_categories.length > 0 && (
-                                <span className="text-xs text-gray-500">
-                                  {category.sub_categories.length} sub-categor{category.sub_categories.length === 1 ? 'y' : 'ies'}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleOpenModal(category)}
-                                className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                  isCategoryCreatedByMe(category)
-                                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                    : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                                }`}
-                                title={isCategoryCreatedByMe(category) ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
-                                disabled={!isCategoryCreatedByMe(category)}
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(category)}
-                                className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                  isCategoryCreatedByMe(category)
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                    : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                                }`}
-                                title={isCategoryCreatedByMe(category) ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
-                                disabled={!isCategoryCreatedByMe(category)}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          <DataTable
+            columns={categoryColumns}
+            data={categories}
+            isLoading={loading}
+            searchable={true}
+            searchPlaceholder="Search by name..."
+            filterable={true}
+            filterOptions={categoryFilterOptions}
+            defaultFilter="all"
+            sortable={true}
+            emptyMessage="No categories found. Create your first category to get started!"
+          />
         </>
       )}
 
@@ -881,186 +727,18 @@ const CategoriesScreen = () => {
             </Button>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Input */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setSubCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
-                  }}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-              </div>
-              
-              {/* Status Filter */}
-              <div className="relative">
-                <Layers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setSubCategoryPagination(prev => ({ ...prev, currentPage: 1 }));
-                  }}
-                  className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          {subCategoriesLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="table-header-gradient">
-                    <tr>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleSort('name')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Sub Category
-                          {sortConfig.key === 'name' && (
-                            sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleSort('category_id')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Category
-                          {sortConfig.key === 'category_id' && (
-                            sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-700 transition-colors select-none"
-                        onClick={() => handleSort('status')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Status
-                          {sortConfig.key === 'status' && (
-                            sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {sortedSubCategories.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-12 text-center">
-                          <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                              <Layers className="text-gray-400" size={32} />
-                            </div>
-                            <p className="text-gray-500 font-medium">No sub categories found</p>
-                            <p className="text-sm text-gray-400 mt-1">Create your first sub category to get started</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      sortedSubCategories.map((subCategory, index) => {
-                        const category = categories.find(cat => cat.id === subCategory.category_id);
-                        return (
-                          <tr
-                            key={subCategory.id || index}
-                            className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 group table-row-animated"
-                            style={{ '--animation-delay': `${index * 0.03}s` }}
-                          >
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                                  <FileText className="h-5 w-5 text-primary-600" />
-                                </div>
-                                <div>
-                                  <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{subCategory.name}</div>
-                                  {subCategory.name_ar && <div className="text-xs text-gray-500">{subCategory.name_ar}</div>}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
-                                {category ? category.name : `Category ID: ${subCategory.category_id}`}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                                subCategory.status === 'active' 
-                                  ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
-                                  : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                              }`}>
-                                {subCategory.status.charAt(0).toUpperCase() + subCategory.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleOpenSubCategoryModal(subCategory)}
-                                  className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                    isSubCategoryCreatedByMe(subCategory)
-                                      ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                      : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                                  }`}
-                                  title={isSubCategoryCreatedByMe(subCategory) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
-                                  disabled={!isSubCategoryCreatedByMe(subCategory)}
-                                >
-                                  <Edit size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteSubCategory(subCategory)}
-                                  className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                                    isSubCategoryCreatedByMe(subCategory)
-                                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                      : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                                  }`}
-                                  title={isSubCategoryCreatedByMe(subCategory) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
-                                  disabled={!isSubCategoryCreatedByMe(subCategory)}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* Pagination for Sub Categories */}
-              {!subCategoriesLoading && activeTab === 'sub-categories' && subCategoryPagination.totalItems > 0 && (
-                <Pagination
-                  currentPage={subCategoryPagination.currentPage}
-                  totalPages={subCategoryPagination.totalPages}
-                  totalItems={subCategoryPagination.totalItems}
-                  perPage={subCategoryPagination.perPage}
-                  onPageChange={handleSubCategoryPageChange}
-                  onPerPageChange={handleSubCategoryPerPageChange}
-                />
-              )}
-            </div>
-          )}
+          <DataTable
+            columns={subCategoryColumns}
+            data={subCategories}
+            isLoading={subCategoriesLoading}
+            searchable={true}
+            searchPlaceholder="Search by name..."
+            filterable={true}
+            filterOptions={subCategoryFilterOptions}
+            defaultFilter="all"
+            sortable={true}
+            emptyMessage="No sub categories found. Create your first sub category to get started!"
+          />
         </>
       )}
 
