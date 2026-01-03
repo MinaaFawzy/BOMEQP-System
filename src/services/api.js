@@ -29,6 +29,11 @@ const api = axios.create({
   },
 });
 
+// Helper to check if data is FormData
+const isFormData = (data) => {
+  return data instanceof FormData;
+};
+
 // Store original methods for deduplication
 const originalGet = api.get.bind(api);
 const originalPost = api.post.bind(api);
@@ -68,12 +73,17 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
+    // If FormData, remove Content-Type to let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     // Log API request details
     console.log('📤 API Request:', {
       method: config.method?.toUpperCase(),
       url: `${config.baseURL}${config.url}`,
       headers: config.headers,
-      data: config.data,
+      data: config.data instanceof FormData ? 'FormData' : config.data,
       params: config.params,
     });
     
@@ -135,6 +145,9 @@ export const adminAPI = {
   assignCategoryToACC: (id, data) => api.post(`/admin/accs/${id}/assign-category`, data),
   removeCategoryFromACC: (id, data) => api.delete(`/admin/accs/${id}/remove-category`, { data }),
   getACCCategories: (id) => api.get(`/admin/accs/${id}/categories`),
+  // Stripe Account Management
+  addStripeAccountToACC: (id, data) => api.put(`/admin/accs/${id}/stripe-account`, data),
+  removeStripeAccountFromACC: (id) => api.delete(`/admin/accs/${id}/stripe-account`),
   
   // Training Centers
   listTrainingCenters: (params) => api.get('/admin/training-centers', { params }),
@@ -197,7 +210,11 @@ export const adminAPI = {
 export const accAPI = {
   getDashboard: () => api.get('/acc/dashboard'),
   getProfile: () => api.get('/acc/profile'),
-  updateProfile: (data) => api.put('/acc/profile', data),
+  updateProfile: (data) => {
+    // If data is FormData, axios will handle Content-Type automatically with boundary
+    // The interceptor will remove Content-Type header for FormData
+    return api.put('/acc/profile', data);
+  },
   verifyStripeAccount: (stripeAccountId) => api.post('/acc/profile/verify-stripe-account', { stripe_account_id: stripeAccountId }),
   getSubscription: () => api.get('/acc/subscription'),
   createSubscriptionPaymentIntent: (data) => api.post('/acc/subscription/payment-intent', data),

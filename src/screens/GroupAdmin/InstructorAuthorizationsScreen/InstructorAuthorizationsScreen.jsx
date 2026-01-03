@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, DollarSign, Percent, Building2, Clock, CheckCircle, Eye, Search, Mail, Phone, FileText, Globe, Calendar, Award, BookOpen } from 'lucide-react';
+import { Users, DollarSign, Percent, Building2, Clock, CheckCircle, Eye, Mail, Phone, FileText, Globe, Calendar, Award, BookOpen } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
+import Button from '../../../components/Button/Button';
+import DataTable from '../../../components/DataTable/DataTable';
+import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
@@ -16,7 +19,6 @@ const InstructorAuthorizationsScreen = () => {
   const [commissionPercentage, setCommissionPercentage] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
@@ -96,134 +98,112 @@ const InstructorAuthorizationsScreen = () => {
     }
   };
 
-  const filteredAuthorizations = authorizations.filter(auth => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      (auth.instructor?.first_name || '').toLowerCase().includes(term) ||
-      (auth.instructor?.last_name || '').toLowerCase().includes(term) ||
-      (auth.acc?.name || '').toLowerCase().includes(term) ||
-      (auth.training_center?.name || '').toLowerCase().includes(term)
-    );
-  });
+  // Prepare data for DataTable with search text
+  const tableData = useMemo(() => {
+    return authorizations.map(auth => ({
+      ...auth,
+      _searchText: `${auth.instructor?.first_name || ''} ${auth.instructor?.last_name || ''} ${auth.instructor?.email || ''} ${auth.acc?.name || ''} ${auth.training_center?.name || ''}`.toLowerCase()
+    }));
+  }, [authorizations]);
+
+  // DataTable columns
+  const columns = useMemo(() => [
+    {
+      header: 'Instructor',
+      accessor: 'instructor',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <Users className="h-5 w-5 text-primary-600" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">
+              {row.instructor?.first_name} {row.instructor?.last_name}
+            </div>
+            {row.instructor?.email && (
+              <div className="text-xs text-gray-500">{row.instructor.email}</div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'ACC',
+      accessor: 'acc',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center text-sm text-gray-600">
+          <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+          {value?.name || 'N/A'}
+        </div>
+      )
+    },
+    {
+      header: 'Training Center',
+      accessor: 'training_center',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-600">
+          {value?.name || 'N/A'}
+        </div>
+      )
+    },
+    {
+      header: 'Authorization Price',
+      accessor: 'authorization_price',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center text-sm font-semibold text-gray-900">
+          <DollarSign className="h-4 w-4 mr-1 text-green-600" />
+          {parseFloat(value || 0).toFixed(2)}
+        </div>
+      )
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: false,
+      render: () => (
+        <span className="px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300">
+          <Clock size={12} className="mr-1" />
+          Pending Commission
+        </span>
+      )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleSetCommission(row)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md font-medium flex items-center gap-2"
+          >
+            <Percent size={16} />
+            Set Commission
+          </button>
+        </div>
+      )
+    }
+  ], []);
 
   return (
     <div>
-
-      {/* Search Bar */}
-      <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search by instructor name, ACC, or training center..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="table-header-gradient">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Instructor</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">ACC</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Training Center</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Authorization Price</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredAuthorizations.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircle className="text-gray-400" size={32} />
-                      </div>
-                      <p className="text-gray-500 font-medium">
-                        {searchTerm ? 'No authorizations found matching your search' : 'No pending commission requests'}
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {searchTerm ? 'Try adjusting your search terms' : 'All authorizations have commission percentages set'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredAuthorizations.map((auth, index) => (
-                  <tr
-                    key={auth.id}
-                    className="hover:bg-gradient-to-r hover:from-primary-50/30 hover:to-white transition-all duration-200 table-row-animated cursor-pointer"
-                    style={{ '--animation-delay': `${index * 0.03}s` }}
-                    onClick={() => handleViewDetails(auth)}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-                          <Users className="h-5 w-5 text-primary-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900">
-                            {auth.instructor?.first_name} {auth.instructor?.last_name}
-                          </div>
-                          {auth.instructor?.email && (
-                            <div className="text-xs text-gray-500">{auth.instructor.email}</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                        {auth.acc?.name || 'N/A'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">
-                        {auth.training_center?.name || 'N/A'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center text-sm font-semibold text-gray-900">
-                        <DollarSign className="h-4 w-4 mr-1 text-green-600" />
-                        {parseFloat(auth.authorization_price || 0).toFixed(2)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <span className="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300">
-                        <Clock size={12} className="mr-1" />
-                        Pending Commission
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleSetCommission(auth)}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md font-medium flex items-center gap-2"
-                      >
-                        <Percent size={16} />
-                        Set Commission
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        <DataTable
+          columns={columns}
+          data={tableData}
+          onView={handleViewDetails}
+          onRowClick={handleViewDetails}
+          isLoading={loading}
+          emptyMessage="No pending commission requests"
+          searchable={true}
+          filterable={false}
+          searchPlaceholder="Search by instructor name, email, ACC, or training center..."
+        />
       </div>
 
       {/* Set Commission Modal */}
@@ -283,25 +263,27 @@ const InstructorAuthorizationsScreen = () => {
           )}
 
           <div className="flex space-x-3 pt-4 border-t border-gray-200">
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              fullWidth
               onClick={() => {
                 setCommissionModalOpen(false);
                 setSelectedAuthorization(null);
                 setCommissionPercentage('');
                 setErrors({});
               }}
-              className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              fullWidth
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
+              loading={saving}
             >
-              {saving ? 'Saving...' : 'Set Commission'}
-            </button>
+              Set Commission
+            </Button>
           </div>
         </form>
       </Modal>
@@ -313,342 +295,17 @@ const InstructorAuthorizationsScreen = () => {
           setDetailModalOpen(false);
           setSelectedAuthorization(null);
         }}
-        title="Instructor Details"
+        title="Instructor Authorization Details"
         size="lg"
       >
-        {selectedAuthorization && selectedAuthorization.instructor && (
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="mr-2" size={20} />
-                Basic Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Users size={14} className="mr-1" />
-                    First Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedAuthorization.instructor.first_name || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Users size={14} className="mr-1" />
-                    Last Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedAuthorization.instructor.last_name || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Mail size={14} className="mr-1" />
-                    Email
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedAuthorization.instructor.email || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Phone size={14} className="mr-1" />
-                    Phone
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedAuthorization.instructor.phone || 'N/A'}
-                  </p>
-                </div>
-                {selectedAuthorization.instructor.id_number && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">ID Number</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedAuthorization.instructor.id_number}
-                    </p>
-                  </div>
-                )}
-                {selectedAuthorization.training_center?.name && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Building2 size={14} className="mr-1" />
-                      Training Center
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedAuthorization.training_center.name}
-                    </p>
-                  </div>
-                )}
-                {selectedAuthorization.acc?.name && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Building2 size={14} className="mr-1" />
-                      ACC
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedAuthorization.acc.name}
-                    </p>
-                  </div>
-                )}
-                {selectedAuthorization.request_date && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Request Date
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedAuthorization.request_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                )}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <DollarSign size={14} className="mr-1" />
-                    Authorization Price
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    ${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Specializations/Languages */}
-            {selectedAuthorization.instructor.specializations && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Globe className="mr-2" size={20} />
-                  Languages / Specializations
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const specializations = selectedAuthorization.instructor.specializations;
-                    const specArray = Array.isArray(specializations) 
-                      ? specializations 
-                      : (typeof specializations === 'string' ? specializations.split(',').map(s => s.trim()).filter(s => s) : []);
-                    return specArray.length > 0 ? (
-                      specArray.map((spec, index) => (
-                        <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 border border-primary-200">
-                          <Globe size={12} className="mr-1" />
-                          {spec}
-                        </span>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No specializations listed</p>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* CV / Resume */}
-            {selectedAuthorization.instructor.cv_url && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  CV / Resume
-                </h3>
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <FileText className="text-white" size={24} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Curriculum Vitae</p>
-                        <p className="text-xs text-gray-600">Click to view the instructor's CV</p>
-                      </div>
-                    </div>
-                    <a
-                      href={selectedAuthorization.instructor.cv_url.startsWith('http') 
-                        ? selectedAuthorization.instructor.cv_url
-                        : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${selectedAuthorization.instructor.cv_url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                      <FileText size={18} className="mr-2" />
-                      View CV
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Sub-Category or Courses Requested */}
-            {(selectedAuthorization.sub_category_id || selectedAuthorization.sub_category || selectedAuthorization.courses || selectedAuthorization.requested_courses) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <BookOpen className="mr-2" size={20} />
-                  Course Authorization Request
-                </h3>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  {selectedAuthorization.sub_category_id || selectedAuthorization.sub_category ? (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">Sub-Category Selected:</p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {(() => {
-                          if (selectedAuthorization.sub_category?.name) {
-                            return selectedAuthorization.sub_category.name;
-                          }
-                          if (selectedAuthorization.sub_category_name) {
-                            return selectedAuthorization.sub_category_name;
-                          }
-                          if (typeof selectedAuthorization.sub_category === 'string') {
-                            return selectedAuthorization.sub_category;
-                          }
-                          if (selectedAuthorization.sub_category?.name_ar) {
-                            return selectedAuthorization.sub_category.name_ar;
-                          }
-                          if (selectedAuthorization.sub_category_id) {
-                            return `Sub-Category (ID: ${selectedAuthorization.sub_category_id})`;
-                          }
-                          return 'N/A';
-                        })()}
-                      </p>
-                      {selectedAuthorization.sub_category?.description && (
-                        <p className="text-sm text-gray-600 mt-1">{selectedAuthorization.sub_category.description}</p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        All active courses in this sub-category will be authorized
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">Specific Courses Selected:</p>
-                      {(() => {
-                        const courses = selectedAuthorization.courses || selectedAuthorization.requested_courses || [];
-                        const courseArray = Array.isArray(courses) ? courses : [];
-                        return courseArray.length > 0 ? (
-                          <div className="space-y-2">
-                            {courseArray.map((course, index) => (
-                              <div key={index} className="p-2 bg-white rounded border border-gray-200">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {course.name || course.code || `Course ${course.id || index + 1}`}
-                                </p>
-                                {course.sub_category && (
-                                  <p className="text-xs text-gray-500">
-                                    Sub-Category: {typeof course.sub_category === 'object' 
-                                      ? (course.sub_category.name || course.sub_category.name_ar || course.sub_category)
-                                      : course.sub_category}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">No courses specified</p>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Documents */}
-            {selectedAuthorization.documents_json && Array.isArray(selectedAuthorization.documents_json) && selectedAuthorization.documents_json.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  Documents
-                </h3>
-                <div className="space-y-2">
-                  {selectedAuthorization.documents_json.map((doc, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `Document ${index + 1}`}</p>
-                          {doc.description && (
-                            <p className="text-sm text-gray-500">{doc.description}</p>
-                          )}
-                        </div>
-                        {doc.url && (
-                          <a
-                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                          >
-                            View Document
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Certificates */}
-            {selectedAuthorization.instructor.certificates_json && Array.isArray(selectedAuthorization.instructor.certificates_json) && selectedAuthorization.instructor.certificates_json.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Award className="mr-2" size={20} />
-                  Certificates
-                </h3>
-                <div className="space-y-2">
-                  {selectedAuthorization.instructor.certificates_json.map((cert, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="font-medium text-gray-900">{cert.name || cert.certificate_name || `Certificate ${index + 1}`}</p>
-                      {cert.issued_by && (
-                        <p className="text-sm text-gray-500">Issued by: {cert.issued_by}</p>
-                      )}
-                      {cert.year && (
-                        <p className="text-sm text-gray-500">Year: {cert.year}</p>
-                      )}
-                      {cert.url && (
-                        <a
-                          href={cert.url.startsWith('http') ? cert.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${cert.url}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-2 inline-block"
-                        >
-                          View Certificate
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Commission Information */}
-            {selectedAuthorization.commission_percentage !== null && selectedAuthorization.commission_percentage !== undefined && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Percent className="mr-2" size={20} />
-                  Commission Information
-                </h3>
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-500 mb-1">Commission Percentage</p>
-                  <p className="text-2xl font-bold text-green-900">
-                    {parseFloat(selectedAuthorization.commission_percentage).toFixed(2)}%
-                  </p>
-                  {selectedAuthorization.authorization_price && (
-                    <div className="mt-3 space-y-1 text-sm">
-                      <p className="text-gray-700">
-                        Group receives: <span className="font-semibold">${(parseFloat(selectedAuthorization.authorization_price) * parseFloat(selectedAuthorization.commission_percentage) / 100).toFixed(2)}</span>
-                      </p>
-                      <p className="text-gray-700">
-                        ACC receives: <span className="font-semibold">${(parseFloat(selectedAuthorization.authorization_price) * (100 - parseFloat(selectedAuthorization.commission_percentage)) / 100).toFixed(2)}</span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        <PresentDataForm
+          data={selectedAuthorization}
+          isLoading={false}
+          emptyMessage="No authorization data available"
+        />
       </Modal>
     </div>
   );
 };
 
 export default InstructorAuthorizationsScreen;
-

@@ -201,7 +201,6 @@ const Layout = ({ children }) => {
             icon: CreditCard,
             label: 'Financial & Settings',
             items: [
-              { path: '/admin/financial', icon: CreditCard, label: 'Financial' },
               { path: '/admin/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
               { path: '/admin/stripe-settings', icon: Sliders, label: 'Stripe Settings' },
             ]
@@ -329,7 +328,6 @@ const Layout = ({ children }) => {
     if (path === '/admin/all-courses') return 'Courses';
     if (path === '/admin/categories') return 'Course Categories';
     if (path === '/admin/instructor-authorizations') return 'Instructor Commissions';
-    if (path === '/admin/financial') return 'Financial';
     if (path === '/admin/payment-transactions') return 'Payment Transactions';
     if (path === '/admin/stripe-settings') return 'Stripe Settings';
     

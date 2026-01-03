@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, DollarSign, School, ArrowRight, Users } from 'lucide-react';
+import { Building2, DollarSign, School, Users } from 'lucide-react';
+import DashboardCard from '../../../components/DashboardCard/DashboardCard';
 import './GroupAdminDashboard.css';
 
 const GroupAdminDashboard = () => {
@@ -65,85 +66,45 @@ const GroupAdminDashboard = () => {
         <>
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Revenue Card - First */}
+            <DashboardCard
+              icon={DollarSign}
+              colorType="acc"
+              label="Commission Revenue"
+              value={`$${(dashboard.revenue?.total || 0).toLocaleString()}`}
+              hint="Total commission received"
+              onClick={() => navigate('/admin/payment-transactions')}
+            />
+
             {/* Accreditation Bodies Card */}
-            <div 
+            <DashboardCard
+              icon={Building2}
+              colorType="instructors"
+              label="Accreditation Bodies"
+              value={dashboard.accreditation_bodies || 0}
+              hint="Click to view details"
               onClick={() => navigate('/admin/all-accs')}
-              className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-4 border border-green-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <Building2 className="text-white w-6 h-6" />
-                </div>
-                <ArrowRight className="text-green-600 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-green-700 mb-1">Accreditation Bodies</p>
-                <p className="text-2xl font-bold text-green-900 mb-1">
-                  {dashboard.accreditation_bodies || 0}
-                </p>
-                <p className="text-xs text-green-600">Click to view details</p>
-              </div>
-            </div>
+            />
 
             {/* Training Centers Card */}
-            <div 
+            <DashboardCard
+              icon={School}
+              colorType="certificates"
+              label="Training Centers"
+              value={dashboard.training_centers || 0}
+              hint="Click to view details"
               onClick={() => navigate('/admin/all-training-centers')}
-              className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-4 border border-purple-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <School className="text-white w-6 h-6" />
-                </div>
-                <ArrowRight className="text-purple-600 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-purple-700 mb-1">Training Centers</p>
-                <p className="text-2xl font-bold text-purple-900 mb-1">
-                  {dashboard.training_centers || 0}
-                </p>
-                <p className="text-xs text-purple-600">Click to view details</p>
-              </div>
-            </div>
+            />
 
             {/* Instructors Card */}
-            <div 
+            <DashboardCard
+              icon={Users}
+              colorType="classes"
+              label="Instructors"
+              value={dashboard.instructors || 0}
+              hint="Click to view details"
               onClick={() => navigate('/admin/all-instructors')}
-              className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-4 border border-yellow-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <Users className="text-white w-6 h-6" />
-                </div>
-                <ArrowRight className="text-yellow-600 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-yellow-700 mb-1">Instructors</p>
-                <p className="text-2xl font-bold text-yellow-900 mb-1">
-                  {dashboard.instructors || 0}
-                </p>
-                <p className="text-xs text-yellow-600">Click to view details</p>
-              </div>
-            </div>
-
-            {/* Total Revenue Card */}
-            <div 
-              onClick={() => navigate('/admin/financial')}
-              className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl shadow-lg p-4 border border-amber-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <DollarSign className="text-white w-6 h-6" />
-                </div>
-                <ArrowRight className="text-amber-600 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-amber-700 mb-1">💰 Commission Revenue</p>
-                <p className="text-2xl font-bold text-amber-900 mb-1">
-                  ${(dashboard.revenue?.total || 0).toLocaleString()}
-                </p>
-                <p className="text-xs text-amber-600">Total commission received</p>
-              </div>
-            </div>
+            />
           </div>
 
           {/* Revenue Section */}

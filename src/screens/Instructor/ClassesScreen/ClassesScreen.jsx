@@ -182,6 +182,16 @@ const InstructorClassesScreen = () => {
       render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
     },
     {
+      header: 'Exam Date',
+      accessor: 'exam_date',
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'Not set',
+    },
+    {
+      header: 'Exam Score',
+      accessor: 'exam_score',
+      render: (value) => value !== null && value !== undefined ? `${parseFloat(value).toFixed(2)}%` : 'N/A',
+    },
+    {
       header: 'Status',
       accessor: 'status',
       render: (value) => (
@@ -281,6 +291,27 @@ const InstructorClassesScreen = () => {
                   {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
+              {selectedClass.exam_date && (
+                <div className="modal-field" style={{ backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }}>
+                  <p className="modal-field-label" style={{ color: '#9333ea' }}>
+                    <Calendar size={16} className="modal-field-label-icon" />
+                    Exam Date
+                  </p>
+                  <p className="modal-field-value" style={{ color: '#7e22ce' }}>
+                    {new Date(selectedClass.exam_date).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
+                <div className="modal-field" style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe' }}>
+                  <p className="modal-field-label" style={{ color: '#4f46e5' }}>
+                    Exam Score
+                  </p>
+                  <p className="modal-field-value" style={{ color: '#4338ca', fontWeight: 'bold' }}>
+                    {parseFloat(selectedClass.exam_score).toFixed(2)}%
+                  </p>
+                </div>
+              )}
               <div className="modal-field">
                 <p className="modal-field-label">
                   <Users size={16} className="modal-field-label-icon" />

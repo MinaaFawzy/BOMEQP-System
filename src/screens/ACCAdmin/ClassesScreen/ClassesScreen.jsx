@@ -141,6 +141,40 @@ const ClassesScreen = () => {
       )
     },
     {
+      header: 'Exam Date',
+      accessor: 'exam_date',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-900">
+          {value ? (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4 text-purple-400" />
+              <span className="font-medium">{formatDate(value)}</span>
+            </div>
+          ) : (
+            <span className="text-gray-400">Not set</span>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Exam Score',
+      accessor: 'exam_score',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-900">
+          {value !== null && value !== undefined ? (
+            <div className="flex items-center gap-1">
+              <FileText className="h-4 w-4 text-indigo-400" />
+              <span className="font-semibold">{parseFloat(value).toFixed(2)}%</span>
+            </div>
+          ) : (
+            <span className="text-gray-400">N/A</span>
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Location',
       accessor: 'location',
       sortable: true,
@@ -592,6 +626,28 @@ const ClassesScreen = () => {
                     </p>
                     <p className="text-base font-semibold text-gray-900">
                       {formatDateTime(selectedClass.end_date)}
+                    </p>
+                  </div>
+                )}
+                {selectedClass.exam_date && (
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <Calendar size={14} className="mr-1 text-purple-600" />
+                      Exam Date
+                    </p>
+                    <p className="text-base font-semibold text-purple-900">
+                      {formatDateTime(selectedClass.exam_date)}
+                    </p>
+                  </div>
+                )}
+                {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
+                  <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <p className="text-sm text-gray-500 mb-1 flex items-center">
+                      <FileText size={14} className="mr-1 text-indigo-600" />
+                      Exam Score
+                    </p>
+                    <p className="text-base font-semibold text-indigo-900">
+                      {parseFloat(selectedClass.exam_score).toFixed(2)}%
                     </p>
                   </div>
                 )}

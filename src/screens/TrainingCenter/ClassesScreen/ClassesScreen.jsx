@@ -31,6 +31,8 @@ const ClassesScreen = () => {
     instructor_id: '',
     start_date: '',
     end_date: '',
+    exam_date: '',
+    exam_score: '',
     location: 'physical',
   });
   const [errors, setErrors] = useState({});
@@ -296,6 +298,8 @@ const ClassesScreen = () => {
         instructor_id: classItem.instructor_id || '',
         start_date: classItem.start_date ? classItem.start_date.split('T')[0] : '',
         end_date: classItem.end_date ? classItem.end_date.split('T')[0] : '',
+        exam_date: classItem.exam_date ? classItem.exam_date.split('T')[0] : '',
+        exam_score: classItem.exam_score || '',
         location: classItem.location || 'physical',
       });
     } else {
@@ -306,6 +310,8 @@ const ClassesScreen = () => {
         instructor_id: '',
         start_date: '',
         end_date: '',
+        exam_date: '',
+        exam_score: '',
         location: 'physical',
       });
     }
@@ -324,6 +330,8 @@ const ClassesScreen = () => {
       instructor_id: '',
       start_date: '',
       end_date: '',
+      exam_date: '',
+      exam_score: '',
       location: 'physical',
     });
     setErrors({});
@@ -377,6 +385,8 @@ const ClassesScreen = () => {
         instructor_id: parseInt(formData.instructor_id),
         start_date: formData.start_date,
         end_date: formData.end_date,
+        exam_date: formData.exam_date || null,
+        exam_score: formData.exam_score ? parseFloat(formData.exam_score) : null,
         location: formData.location,
       };
 
@@ -521,6 +531,31 @@ const ClassesScreen = () => {
         <div className="date-container">
           <Calendar className="date-icon" />
           {row.end_date ? new Date(row.end_date).toLocaleDateString() : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Exam Date',
+      accessor: 'exam_date',
+      sortable: true,
+      render: (value) => (
+        <div className="date-container">
+          <Calendar className="date-icon" style={{ color: '#9333ea' }} />
+          {value ? new Date(value).toLocaleDateString() : 'Not set'}
+        </div>
+      ),
+    },
+    {
+      header: 'Exam Score',
+      accessor: 'exam_score',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm">
+          {value !== null && value !== undefined ? (
+            <span className="font-semibold text-indigo-600">{parseFloat(value).toFixed(2)}%</span>
+          ) : (
+            <span className="text-gray-400">N/A</span>
+          )}
         </div>
       ),
     },
@@ -823,6 +858,31 @@ const ClassesScreen = () => {
             />
           </div>
 
+          <div className="form-grid">
+            <FormInput
+              label="Exam Date (Optional)"
+              name="exam_date"
+              type="date"
+              value={formData.exam_date}
+              onChange={handleChange}
+              error={errors.exam_date}
+              helpText="Date when the exam is scheduled (must be after or equal to start date)"
+            />
+
+            <FormInput
+              label="Exam Score (Optional)"
+              name="exam_score"
+              type="number"
+              value={formData.exam_score}
+              onChange={handleChange}
+              error={errors.exam_score}
+              helpText="Exam score (0-100)"
+              min="0"
+              max="100"
+              step="0.01"
+            />
+          </div>
+
           <div>
             <label className="form-label">
               Location <span className="form-label-required">*</span>
@@ -1025,6 +1085,26 @@ const ClassesScreen = () => {
                   </p>
                 )}
               </div>
+              {selectedClass.exam_date && (
+                <div className="detail-modal-item" style={{ backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }}>
+                  <p className="detail-modal-label" style={{ color: '#9333ea' }}>Exam Date</p>
+                  <p className="detail-modal-value" style={{ color: '#7e22ce' }}>
+                    {new Date(selectedClass.exam_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              )}
+              {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
+                <div className="detail-modal-item" style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe' }}>
+                  <p className="detail-modal-label" style={{ color: '#4f46e5' }}>Exam Score</p>
+                  <p className="detail-modal-value" style={{ color: '#4338ca', fontWeight: 'bold' }}>
+                    {parseFloat(selectedClass.exam_score).toFixed(2)}%
+                  </p>
+                </div>
+              )}
               </div>
 
             {/* Additional Information */}
