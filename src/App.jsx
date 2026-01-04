@@ -24,6 +24,7 @@ import GroupAdminPaymentTransactionsScreen from './screens/GroupAdmin/PaymentTra
 import ReportsScreen from './screens/GroupAdmin/ReportsScreen/ReportsScreen';
 import InstructorAuthorizationsScreen from './screens/GroupAdmin/InstructorAuthorizationsScreen/InstructorAuthorizationsScreen';
 import StripeSettingsScreen from './screens/GroupAdmin/StripeSettingsScreen/StripeSettingsScreen';
+import GroupAdminPendingPaymentsScreen from './screens/GroupAdmin/PendingPaymentsScreen/PendingPaymentsScreen';
 
 // ACC Admin screens
 import ACCDashboardScreen from './screens/ACCAdmin/DashboardScreen/DashboardScreen';
@@ -38,6 +39,7 @@ import DiscountCodesScreen from './screens/ACCAdmin/DiscountCodesScreen/Discount
 import ACCCategoriesScreen from './screens/ACCAdmin/CategoriesScreen/CategoriesScreen';
 import ACCPaymentTransactionsScreen from './screens/ACCAdmin/PaymentTransactionsScreen/PaymentTransactionsScreen';
 import ACCClassesScreen from './screens/ACCAdmin/ClassesScreen/ClassesScreen';
+import ACCPendingPaymentsScreen from './screens/ACCAdmin/PendingPaymentsScreen/PendingPaymentsScreen';
 
 // Training Center screens
 import TrainingCenterDashboardScreen from './screens/TrainingCenter/DashboardScreen/DashboardScreen';
@@ -68,7 +70,13 @@ const ProfileRoute = () => {
   
   return (
     <Layout>
-      {user?.role === 'acc_admin' ? <ACCProfileScreen /> : <ProfileScreen />}
+      {user?.role === 'acc_admin' ? (
+        <ACCProfileScreen />
+      ) : user?.role === 'instructor' ? (
+        <InstructorProfileScreen />
+      ) : (
+        <ProfileScreen />
+      )}
     </Layout>
   );
 };
@@ -140,6 +148,7 @@ function App() {
                     <Route path="reports" element={<ReportsScreen />} />
                     <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
                     <Route path="stripe-settings" element={<StripeSettingsScreen />} />
+                    <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -164,6 +173,7 @@ function App() {
                     <Route path="categories" element={<ACCCategoriesScreen />} />
                     <Route path="classes" element={<ACCClassesScreen />} />
                     <Route path="payment-transactions" element={<ACCPaymentTransactionsScreen />} />
+                    <Route path="pending-payments" element={<ACCPendingPaymentsScreen />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

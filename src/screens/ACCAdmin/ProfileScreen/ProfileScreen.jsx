@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
-import { accAPI, authAPI } from '../../../services/api';
+import { accAPI, authAPI, publicAPI } from '../../../services/api';
 import { User, Mail, Phone, MapPin, CheckCircle, AlertCircle, Globe, Building2, FileText, Edit, X, Save, Lock, KeyRound, Upload, File, Trash2, Eye, Image as ImageIcon, Shield, Calendar, Clock, CreditCard } from 'lucide-react';
 import FormInput from '../../../components/FormInput/FormInput';
 import './ProfileScreen.css';
@@ -53,10 +53,43 @@ const ProfileScreen = () => {
   const [stripeAccountInfo, setStripeAccountInfo] = useState(null);
   const [stripeAccountError, setStripeAccountError] = useState('');
   const [newDocumentType, setNewDocumentType] = useState('license');
+  
+  // Countries and Cities
+  const [countries, setCountries] = useState([]);
+  const [mailingCities, setMailingCities] = useState([]);
+  const [physicalCities, setPhysicalCities] = useState([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingMailingCities, setLoadingMailingCities] = useState(false);
+  const [loadingPhysicalCities, setLoadingPhysicalCities] = useState(false);
 
   useEffect(() => {
-    loadProfile();
+    loadCountries();
   }, []);
+
+  useEffect(() => {
+    if (countries.length > 0) {
+      loadProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countries.length]);
+
+  // Load cities when mailing country changes
+  useEffect(() => {
+    if (formData.mailing_country) {
+      loadMailingCities(formData.mailing_country);
+    } else {
+      setMailingCities([]);
+    }
+  }, [formData.mailing_country]);
+
+  // Load cities when physical country changes
+  useEffect(() => {
+    if (formData.physical_country) {
+      loadPhysicalCities(formData.physical_country);
+    } else {
+      setPhysicalCities([]);
+    }
+  }, [formData.physical_country]);
 
   const loadProfile = async () => {
     try {
@@ -69,12 +102,38 @@ const ProfileScreen = () => {
       // Set documents
       setDocuments(profile.documents || []);
       
+      // Find country codes if countries are loaded
+      let countryCode = profile.country || '';
+      let mailingCountryCode = profile.mailing_address?.country || '';
+      let physicalCountryCode = profile.physical_address?.country || '';
+      
+      if (countries.length > 0) {
+        if (countryCode) {
+          const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
+          if (countryObj) {
+            countryCode = countryObj.code;
+          }
+        }
+        if (mailingCountryCode) {
+          const countryObj = countries.find(c => c.name === mailingCountryCode || c.code === mailingCountryCode);
+          if (countryObj) {
+            mailingCountryCode = countryObj.code;
+          }
+        }
+        if (physicalCountryCode) {
+          const countryObj = countries.find(c => c.name === physicalCountryCode || c.code === physicalCountryCode);
+          if (countryObj) {
+            physicalCountryCode = countryObj.code;
+          }
+        }
+      }
+      
       setFormData({
         name: profile.name || user?.name || '',
         legal_name: profile.legal_name || '',
         email: profile.email || user?.email || '',
         phone: profile.phone || user?.phone || '',
-        country: profile.country || '',
+        country: countryCode,
         address: profile.address || user?.address || '',
         website: profile.website || '',
         registration_number: profile.registration_number || '',
@@ -82,14 +141,22 @@ const ProfileScreen = () => {
         // Mailing Address
         mailing_street: profile.mailing_address?.street || '',
         mailing_city: profile.mailing_address?.city || '',
-        mailing_country: profile.mailing_address?.country || '',
+        mailing_country: mailingCountryCode,
         mailing_postal_code: profile.mailing_address?.postal_code || '',
         // Physical Address
         physical_street: profile.physical_address?.street || '',
         physical_city: profile.physical_address?.city || '',
-        physical_country: profile.physical_address?.country || '',
+        physical_country: physicalCountryCode,
         physical_postal_code: profile.physical_address?.postal_code || '',
       });
+      
+      // Load cities if countries are set
+      if (mailingCountryCode) {
+        await loadMailingCities(mailingCountryCode);
+      }
+      if (physicalCountryCode) {
+        await loadPhysicalCities(physicalCountryCode);
+      }
       
       // Set logo preview if logo_url exists
       if (profile.logo_url) {
@@ -137,12 +204,98 @@ const ProfileScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  const loadCountries = async () => {
+    setLoadingCountries(true);
+    try {
+      const response = await publicAPI.getCountries();
+      setCountries(response.countries || response.data || []);
+    } catch (error) {
+      console.error('Failed to load countries:', error);
+      setCountries([]);
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
+
+  const loadMailingCities = async (countryCode) => {
+    if (!countryCode) {
+      setMailingCities([]);
+      return;
+    }
+    
+    setLoadingMailingCities(true);
+    try {
+      const response = await publicAPI.getCities(countryCode);
+      let citiesData = response.cities || response.data?.cities || response.data || response || [];
+      
+      // Convert object to array if needed
+      if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
+        citiesData = Object.values(citiesData);
+      }
+      
+      setMailingCities(Array.isArray(citiesData) ? citiesData : []);
+    } catch (error) {
+      console.error('Failed to load mailing cities:', error);
+      setMailingCities([]);
+    } finally {
+      setLoadingMailingCities(false);
+    }
+  };
+
+  const loadPhysicalCities = async (countryCode) => {
+    if (!countryCode) {
+      setPhysicalCities([]);
+      return;
+    }
+    
+    setLoadingPhysicalCities(true);
+    try {
+      const response = await publicAPI.getCities(countryCode);
+      let citiesData = response.cities || response.data?.cities || response.data || response || [];
+      
+      // Convert object to array if needed
+      if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
+        citiesData = Object.values(citiesData);
+      }
+      
+      setPhysicalCities(Array.isArray(citiesData) ? citiesData : []);
+    } catch (error) {
+      console.error('Failed to load physical cities:', error);
+      setPhysicalCities([]);
+    } finally {
+      setLoadingPhysicalCities(false);
+    }
+  };
+
+  // Helper function to get country name from code
+  const getCountryName = (countryCode) => {
+    if (!countryCode) return '';
+    const country = countries.find(c => c.code === countryCode || c.name === countryCode);
+    return country ? country.name : countryCode;
+  };
+
+  // Helper function to get city name
+  const getCityName = (cityName) => {
+    return cityName || '';
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+    
+    // Reset city when country changes
+    const updatedFormData = {
       ...formData,
       [name]: value,
-    });
+    };
+    
+    if (name === 'mailing_country') {
+      updatedFormData.mailing_city = '';
+    } else if (name === 'physical_country') {
+      updatedFormData.physical_city = '';
+    }
+    
+    setFormData(updatedFormData);
+    
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -240,16 +393,18 @@ const ProfileScreen = () => {
   const handleLogoChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      // Validate file type - According to API: JPG, JPEG, PNG only
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        setErrors({ logo: 'Logo must be an image file (JPG, PNG, GIF, or WEBP)' });
+        setErrors({ logo: 'Logo must be an image file (JPG, JPEG, or PNG only)' });
+        e.target.value = ''; // Reset input
         return;
       }
       
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrors({ logo: 'Logo size must not exceed 5MB' });
+        e.target.value = ''; // Reset input
         return;
       }
       
@@ -316,16 +471,12 @@ const ProfileScreen = () => {
         // Use FormData for file uploads (multipart/form-data)
         const formDataToSend = new FormData();
         
-        // Add only changed text fields (partial update)
+        // Add all text fields (when sending files, send all fields in FormData)
         Object.keys(formData).forEach(key => {
           const value = formData[key];
-          const originalValue = profileData?.[key] || 
-                              (key.startsWith('mailing_') ? profileData?.mailing_address?.[key.replace('mailing_', '')] : null) ||
-                              (key.startsWith('physical_') ? profileData?.physical_address?.[key.replace('physical_', '')] : null) ||
-                              '';
-          
-          // Only append if value changed or is new
-          if (value !== originalValue && value !== null && value !== undefined && value !== '') {
+          // Only append if value is not empty (null, undefined, or empty string are skipped)
+          // But we should send all non-empty values for consistency
+          if (value !== null && value !== undefined && value !== '') {
             formDataToSend.append(key, value);
           }
         });
@@ -364,6 +515,8 @@ const ProfileScreen = () => {
         // Update logo preview if logo_url is returned
         if (updatedProfile.logo_url) {
           setLogoPreview(updatedProfile.logo_url);
+        } else {
+          setLogoPreview(null);
         }
         
         // Clear document arrays and logo file
@@ -399,6 +552,8 @@ const ProfileScreen = () => {
           // Update logo preview if logo_url is returned
           if (updatedProfile.logo_url) {
             setLogoPreview(updatedProfile.logo_url);
+          } else {
+            setLogoPreview(null);
           }
         }
       }
@@ -420,15 +575,39 @@ const ProfileScreen = () => {
       } else if (error.response?.status === 404) {
         setErrors({ general: 'ACC profile not found.' });
       } else if (error.response?.status === 422) {
-        // Validation errors
+        // Validation errors - Handle nested document errors
         const errorData = error.response.data;
         if (errorData.errors) {
-          // Flatten nested errors
+          // Flatten nested errors (e.g., documents.0.document_type, documents.0.file)
           const flattenedErrors = {};
           Object.keys(errorData.errors).forEach(key => {
-            flattenedErrors[key] = Array.isArray(errorData.errors[key]) 
-              ? errorData.errors[key][0] 
-              : errorData.errors[key];
+            // Handle document-specific errors
+            if (key.startsWith('documents.')) {
+              // Extract the field name (e.g., "documents.0.file" -> "documents")
+              const fieldMatch = key.match(/^documents\.\d+\.(.+)$/);
+              if (fieldMatch) {
+                // Use a general documents error or the specific field
+                const fieldName = fieldMatch[1];
+                const errorMsg = Array.isArray(errorData.errors[key]) 
+                  ? errorData.errors[key][0] 
+                  : errorData.errors[key];
+                
+                // Add to documents error or create it
+                if (!flattenedErrors.documents) {
+                  flattenedErrors.documents = errorMsg;
+                } else {
+                  flattenedErrors.documents += `; ${errorMsg}`;
+                }
+              } else {
+                flattenedErrors[key] = Array.isArray(errorData.errors[key]) 
+                  ? errorData.errors[key][0] 
+                  : errorData.errors[key];
+              }
+            } else {
+              flattenedErrors[key] = Array.isArray(errorData.errors[key]) 
+                ? errorData.errors[key][0] 
+                : errorData.errors[key];
+            }
           });
           setErrors(flattenedErrors);
         } else if (errorData.message) {
@@ -458,23 +637,49 @@ const ProfileScreen = () => {
     setLogoFile(null);
     // Reset form data to original profile
     if (profileData) {
+      // Find country codes if countries are loaded
+      let countryCode = profileData.country || '';
+      let mailingCountryCode = profileData.mailing_address?.country || '';
+      let physicalCountryCode = profileData.physical_address?.country || '';
+      
+      if (countries.length > 0) {
+        if (countryCode) {
+          const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
+          if (countryObj) {
+            countryCode = countryObj.code;
+          }
+        }
+        if (mailingCountryCode) {
+          const countryObj = countries.find(c => c.name === mailingCountryCode || c.code === mailingCountryCode);
+          if (countryObj) {
+            mailingCountryCode = countryObj.code;
+          }
+        }
+        if (physicalCountryCode) {
+          const countryObj = countries.find(c => c.name === physicalCountryCode || c.code === physicalCountryCode);
+          if (countryObj) {
+            physicalCountryCode = countryObj.code;
+          }
+        }
+      }
+      
       setFormData({
         name: profileData.name || user?.name || '',
         legal_name: profileData.legal_name || '',
         email: profileData.email || user?.email || '',
         phone: profileData.phone || user?.phone || '',
-        country: profileData.country || '',
+        country: countryCode,
         address: profileData.address || user?.address || '',
         website: profileData.website || '',
         registration_number: profileData.registration_number || '',
         stripe_account_id: profileData.stripe_account_id || '',
         mailing_street: profileData.mailing_address?.street || '',
         mailing_city: profileData.mailing_address?.city || '',
-        mailing_country: profileData.mailing_address?.country || '',
+        mailing_country: mailingCountryCode,
         mailing_postal_code: profileData.mailing_address?.postal_code || '',
         physical_street: profileData.physical_address?.street || '',
         physical_city: profileData.physical_address?.city || '',
-        physical_country: profileData.physical_address?.country || '',
+        physical_country: physicalCountryCode,
         physical_postal_code: profileData.physical_address?.postal_code || '',
       });
       setDocuments(profileData.documents || []);
@@ -771,7 +976,7 @@ const ProfileScreen = () => {
                   <Upload size={20} />
                   <input
                     type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    accept="image/jpeg,image/jpg,image/png"
                     onChange={handleLogoChange}
                     style={{ display: 'none' }}
                   />
@@ -962,15 +1167,31 @@ const ProfileScreen = () => {
                 disabled={!isEditing}
                 error={errors.address}
               />
-              <FormInput
-                label="Country"
-                name="country"
-                type="text"
-                value={formData.country}
-                onChange={handleChange}
-                disabled={!isEditing}
-                error={errors.country}
-              />
+              {isEditing ? (
+                <FormInput
+                  label="Country"
+                  name="country"
+                  type="select"
+                  value={formData.country}
+                  onChange={handleChange}
+                  disabled={loadingCountries}
+                  options={[
+                    { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
+                    ...countries.map(country => ({
+                      value: country.code,
+                      label: country.name,
+                    })),
+                  ]}
+                  error={errors.country}
+                />
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
+                    {getCountryName(formData.country) || 'Not specified'}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Mailing Address */}
@@ -989,24 +1210,57 @@ const ProfileScreen = () => {
                   disabled={!isEditing}
                   error={errors.mailing_street}
                 />
-                <FormInput
-                  label="City"
-                  name="mailing_city"
-                  type="text"
-                  value={formData.mailing_city}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.mailing_city}
-                />
-                <FormInput
-                  label="Country"
-                  name="mailing_country"
-                  type="text"
-                  value={formData.mailing_country}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.mailing_country}
-                />
+                {isEditing ? (
+                  <>
+                    <FormInput
+                      label="Country"
+                      name="mailing_country"
+                      type="select"
+                      value={formData.mailing_country}
+                      onChange={handleChange}
+                      disabled={loadingCountries}
+                      options={[
+                        { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
+                        ...countries.map(country => ({
+                          value: country.code,
+                          label: country.name,
+                        })),
+                      ]}
+                      error={errors.mailing_country}
+                    />
+                    <FormInput
+                      label="City"
+                      name="mailing_city"
+                      type="select"
+                      value={formData.mailing_city}
+                      onChange={handleChange}
+                      disabled={!formData.mailing_country || loadingMailingCities}
+                      options={[
+                        { value: '', label: !formData.mailing_country ? 'Select country first' : loadingMailingCities ? 'Loading cities...' : 'Select City' },
+                        ...mailingCities.map(city => ({
+                          value: city.name || city,
+                          label: city.name || city,
+                        })),
+                      ]}
+                      error={errors.mailing_city}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
+                        {getCountryName(formData.mailing_country) || 'Not specified'}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
+                        {getCityName(formData.mailing_city) || 'Not specified'}
+                      </div>
+                    </div>
+                  </>
+                )}
                 <FormInput
                   label="Postal Code"
                   name="mailing_postal_code"
@@ -1035,24 +1289,57 @@ const ProfileScreen = () => {
                   disabled={!isEditing}
                   error={errors.physical_street}
                 />
-                <FormInput
-                  label="City"
-                  name="physical_city"
-                  type="text"
-                  value={formData.physical_city}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.physical_city}
-                />
-                <FormInput
-                  label="Country"
-                  name="physical_country"
-                  type="text"
-                  value={formData.physical_country}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.physical_country}
-                />
+                {isEditing ? (
+                  <>
+                    <FormInput
+                      label="Country"
+                      name="physical_country"
+                      type="select"
+                      value={formData.physical_country}
+                      onChange={handleChange}
+                      disabled={loadingCountries}
+                      options={[
+                        { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
+                        ...countries.map(country => ({
+                          value: country.code,
+                          label: country.name,
+                        })),
+                      ]}
+                      error={errors.physical_country}
+                    />
+                    <FormInput
+                      label="City"
+                      name="physical_city"
+                      type="select"
+                      value={formData.physical_city}
+                      onChange={handleChange}
+                      disabled={!formData.physical_country || loadingPhysicalCities}
+                      options={[
+                        { value: '', label: !formData.physical_country ? 'Select country first' : loadingPhysicalCities ? 'Loading cities...' : 'Select City' },
+                        ...physicalCities.map(city => ({
+                          value: city.name || city,
+                          label: city.name || city,
+                        })),
+                      ]}
+                      error={errors.physical_city}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
+                        {getCountryName(formData.physical_country) || 'Not specified'}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
+                        {getCityName(formData.physical_city) || 'Not specified'}
+                      </div>
+                    </div>
+                  </>
+                )}
                 <FormInput
                   label="Postal Code"
                   name="physical_postal_code"

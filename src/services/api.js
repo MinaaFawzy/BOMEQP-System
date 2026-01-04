@@ -204,6 +204,11 @@ export const adminAPI = {
   createStripeSetting: (data) => api.post('/admin/stripe-settings', data),
   updateStripeSetting: (id, data) => api.put(`/admin/stripe-settings/${id}`, data),
   deleteStripeSetting: (id) => api.delete(`/admin/stripe-settings/${id}`),
+  
+  // Code Batches - Manual Payment
+  getPendingPayments: (params) => api.get('/admin/code-batches/pending-payments', { params }),
+  approvePayment: (id, data) => api.put(`/admin/code-batches/${id}/approve-payment`, data),
+  rejectPayment: (id, data) => api.put(`/admin/code-batches/${id}/reject-payment`, data),
 };
 
 // ACC Admin APIs
@@ -292,6 +297,11 @@ export const accAPI = {
   createSubCategory: (data) => api.post('/acc/sub-categories', data),
   updateSubCategory: (id, data) => api.put(`/acc/sub-categories/${id}`, data),
   deleteSubCategory: (id) => api.delete(`/acc/sub-categories/${id}`),
+  
+  // Code Batches - Manual Payment
+  getPendingPayments: (params) => api.get('/acc/code-batches/pending-payments', { params }),
+  approvePayment: (id, data) => api.put(`/acc/code-batches/${id}/approve-payment`, data),
+  rejectPayment: (id, data) => api.put(`/acc/code-batches/${id}/reject-payment`, data),
 };
 
 // Training Center APIs
@@ -419,8 +429,14 @@ export const trainingCenterAPI = {
   payInstructorAuthorization: (id, data) => api.post(`/training-center/instructors/authorizations/${id}/pay`, data),
   
   // Codes
-  createPaymentIntent: (data) => api.post('/training-center/codes/payment-intent', data),
-  purchaseCodes: (data) => api.post('/training-center/codes/purchase', data),
+  // Note: Using create-payment-intent endpoint as recommended in API documentation
+  // Both /payment-intent and /create-payment-intent work, but /create-payment-intent is primary
+  createPaymentIntent: (data) => api.post('/training-center/codes/create-payment-intent', data),
+  purchaseCodes: (data) => {
+    // Use api.post for both JSON and FormData
+    // The interceptor will handle FormData by removing Content-Type header
+    return api.post('/training-center/codes/purchase', data);
+  },
   getCodeInventory: (params) => api.get('/training-center/codes/inventory', { params }),
   getCodeBatches: (params) => api.get('/training-center/codes/batches', { params }),
   

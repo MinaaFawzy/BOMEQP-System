@@ -100,15 +100,32 @@ const PaymentForm = ({ clientSecret, amount, currency, onPaymentSuccess, onPayme
         return;
       }
 
-      if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Clear card element after successful payment
-        if (cardElement) {
-          cardElement.clear();
+      // Only proceed if payment was successful
+      if (!paymentIntent) {
+        setError('Payment intent not returned from Stripe. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Double-check payment intent status - must be 'succeeded'
+      if (paymentIntent.status !== 'succeeded') {
+        const errorMsg = `Payment not completed. Status: ${paymentIntent.status}. Please complete the payment and try again.`;
+        setError(errorMsg);
+        if (onPaymentError) {
+          onPaymentError(errorMsg);
         }
-        
-        if (onPaymentSuccess) {
-          onPaymentSuccess(paymentIntent);
-        }
+        setLoading(false);
+        return;
+      }
+
+      // Clear card element after successful payment
+      if (cardElement) {
+        cardElement.clear();
+      }
+      
+      // Pass paymentIntent to onPaymentSuccess
+      if (onPaymentSuccess) {
+        onPaymentSuccess(paymentIntent);
       }
     } catch (err) {
       const errorMessage = err.message || 'Payment failed. Please try again.';

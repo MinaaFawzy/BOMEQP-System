@@ -29,6 +29,7 @@ import {
   UserCheck,
   Sliders,
   Receipt,
+  Clock,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './Layout.css';
@@ -202,6 +203,7 @@ const Layout = ({ children }) => {
             label: 'Financial & Settings',
             items: [
               { path: '/admin/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
+              { path: '/admin/pending-payments', icon: Clock, label: 'Pending Payments' },
               { path: '/admin/stripe-settings', icon: Sliders, label: 'Stripe Settings' },
             ]
           },
@@ -247,6 +249,7 @@ const Layout = ({ children }) => {
             label: 'Financial',
             items: [
               { path: '/acc/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
+              { path: '/acc/pending-payments', icon: Clock, label: 'Pending Payments' },
             ]
           },
         ];
@@ -329,6 +332,7 @@ const Layout = ({ children }) => {
     if (path === '/admin/categories') return 'Course Categories';
     if (path === '/admin/instructor-authorizations') return 'Instructor Commissions';
     if (path === '/admin/payment-transactions') return 'Payment Transactions';
+    if (path === '/admin/pending-payments') return 'Pending Payments';
     if (path === '/admin/stripe-settings') return 'Stripe Settings';
     
     // ACC Admin routes
@@ -343,6 +347,7 @@ const Layout = ({ children }) => {
     if (path === '/acc/categories') return 'Course Categories';
     if (path === '/acc/classes') return 'Classes';
     if (path === '/acc/payment-transactions') return 'Payment Transactions';
+    if (path === '/acc/pending-payments') return 'Pending Payments';
     
     // Training Center routes
     if (path === '/training-center/dashboard') return 'Dashboard';

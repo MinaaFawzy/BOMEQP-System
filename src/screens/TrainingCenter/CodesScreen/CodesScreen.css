@@ -689,3 +689,48 @@
   transform: scale(1);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
+
+/* File Input Styles */
+.form-input-file {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: white;
+  cursor: pointer;
+}
+
+.form-input-file:hover {
+  border-color: #9ca3af;
+}
+
+.form-input-file:focus {
+  outline: none;
+  border-color: var(--primary-color, #1a2c49);
+  box-shadow: 0 0 0 3px rgba(26, 44, 73, 0.1);
+}
+
+.form-input-group {
+  margin-bottom: 1rem;
+}
+
+.form-input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.required-asterisk {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.form-input-help {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}

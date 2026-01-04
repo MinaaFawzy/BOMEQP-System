@@ -1,0 +1,226 @@
+/* PendingPaymentsScreen Styles */
+
+.pending-payments-screen {
+  width: 100%;
+}
+
+.batch-tc-container,
+.batch-course-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.batch-tc-icon,
+.batch-course-icon,
+.batch-amount-icon,
+.batch-date-icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.batch-amount-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+.batch-date-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn-view {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.action-btn-view:hover {
+  background-color: #bfdbfe;
+}
+
+.receipt-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.receipt-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.receipt-icon {
+  color: #6b7280;
+}
+
+.receipt-container {
+  display: flex;
+  align-items: center;
+}
+
+.receipt-link {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.receipt-link:hover {
+  background-color: #2563eb;
+}
+
+.approve-info,
+.reject-info {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.approve-info-text,
+.reject-info-text {
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.approve-info-text:last-child,
+.reject-info-text:last-child {
+  margin-bottom: 0;
+}
+
+.form-error-general {
+  padding: 0.75rem 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.form-error-general-text {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.form-btn-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.form-btn-cancel:hover {
+  background-color: #e5e7eb;
+}
+
+.form-btn-submit {
+  background-color: #10b981;
+  color: white;
+}
+
+.form-btn-submit:hover {
+  background-color: #059669;
+}
+
+.form-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.form-btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.form-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+}
+
+.empty-state-icon-container {
+  width: 4rem;
+  height: 4rem;
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.empty-state-icon {
+  color: #9ca3af;
+}
+
+.empty-state-title {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+

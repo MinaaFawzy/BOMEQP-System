@@ -45,16 +45,27 @@ const FormInput = ({
           value={value}
           onChange={onChange}
           required={required}
+          disabled={disabled}
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${
             error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
-          }`}
+          } ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
         >
-          <option value="">Select {label}</option>
-          {options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {options && options.length > 0 && options[0].value === '' ? (
+            options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))
+          ) : (
+            <>
+              <option value="">Select {label}</option>
+              {options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </>
+          )}
         </select>
       ) : (
         <input
