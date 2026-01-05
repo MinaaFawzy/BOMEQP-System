@@ -9,6 +9,7 @@ import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
 import DataTable from '../../../components/DataTable/DataTable';
+import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import './CodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
@@ -55,9 +56,16 @@ const CodesScreen = () => {
   }, [activeTab]); // Load all data once, search and filtering are handled client-side
 
   // Load batches on initial mount and when searchTerm changes (to show count in Purchase History tab)
+  // NOTE: This is only for showing the count in the tab button, not for the main data display
   useEffect(() => {
     // Don't load batches if activeTab is 'batches' - loadData will handle it
     if (activeTab === 'batches') {
+      return;
+    }
+
+    // Only load batches if we don't have any yet (to show count in tab)
+    // This prevents duplicate loading when switching tabs
+    if (batches.length > 0) {
       return;
     }
 
@@ -90,7 +98,7 @@ const CodesScreen = () => {
         setBatches(enrichedBatches);
       } catch (error) {
         console.error('Failed to load batches:', error);
-        setBatches([]);
+        // Don't set empty array here to avoid clearing existing data
       }
     };
 
@@ -1298,11 +1306,7 @@ const CodesScreen = () => {
       {/* Inventory Table - Statistics View */}
       {activeTab === 'inventory' ? (
         loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner">
-              <div className="loading-spinner-icon"></div>
-            </div>
-          </div>
+          <LoadingSpinner />
         ) : currentData.length === 0 ? (
           <div className="empty-state-container">
             <div className="empty-state-content">

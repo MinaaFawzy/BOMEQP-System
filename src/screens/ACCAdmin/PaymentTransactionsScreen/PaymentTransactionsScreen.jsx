@@ -395,7 +395,6 @@ const PaymentTransactionsScreen = () => {
             defaultFilter="all"
             sortable={true}
             emptyMessage="No transactions found"
-            onView={handleViewDetails}
             customFilters={
               <div className="data-table-filter-wrapper" ref={typeFilterRef}>
                 <button

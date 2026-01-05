@@ -197,16 +197,42 @@ const InstructorsScreen = () => {
       header: 'Instructor',
       accessor: '_normalizedName',
       sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <Users className="h-5 w-5 text-primary-600" />
+      render: (value, row) => {
+        const photoUrl = row.photo_url || row.instructor?.photo_url;
+        return (
+          <div className="flex items-center">
+            <div className="w-10 h-10 mr-3 relative">
+              {photoUrl ? (
+                <>
+                  <img 
+                    src={photoUrl} 
+                    alt={value || 'Instructor Photo'} 
+                    className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.parentElement?.querySelector('.photo-fallback');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div 
+                    className="photo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
+                    style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                  >
+                    <Users className="h-5 w-5 text-primary-600" />
+                  </div>
+                </>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary-600" />
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       header: 'Email',

@@ -507,8 +507,36 @@ const TraineesScreen = () => {
       sortable: true,
       render: (value, row) => (
         <div className="trainees-column-trainee">
-          <div className="trainees-column-icon-wrapper">
-            <UserCheck className="trainees-column-icon" />
+          <div className="trainees-column-icon-wrapper" style={{ position: 'relative' }}>
+            {row.id_image_url ? (
+              <>
+                <img 
+                  src={row.id_image_url} 
+                  alt={`${row.first_name} ${row.last_name}` || 'Trainee ID Image'} 
+                  className="trainees-column-icon"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement?.querySelector('.id-image-fallback');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="id-image-fallback trainees-column-icon-wrapper"
+                  style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                >
+                  <UserCheck className="trainees-column-icon" />
+                </div>
+              </>
+            ) : (
+              <UserCheck className="trainees-column-icon" />
+            )}
           </div>
           <div>
             <div className="trainees-column-name">

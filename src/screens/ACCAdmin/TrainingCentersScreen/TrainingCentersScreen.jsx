@@ -196,16 +196,42 @@ const TrainingCentersScreen = () => {
       header: 'Training Center',
       accessor: '_normalizedName',
       sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <Building2 className="h-5 w-5 text-primary-600" />
+      render: (value, row) => {
+        const logoUrl = row.logo_url || row.training_center?.logo_url;
+        return (
+          <div className="flex items-center">
+            <div className="w-10 h-10 mr-3 relative">
+              {logoUrl ? (
+                <>
+                  <img 
+                    src={logoUrl} 
+                    alt={value || 'Training Center Logo'} 
+                    className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.parentElement?.querySelector('.logo-fallback');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div 
+                    className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
+                    style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                  >
+                    <Building2 className="h-5 w-5 text-primary-600" />
+                  </div>
+                </>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-primary-600" />
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       header: 'Email',

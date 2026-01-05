@@ -128,8 +128,36 @@ const ACCsScreen = () => {
       sortable: true,
       render: (value, row) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className="accs-table-row-icon-wrapper">
-            <Building2 className="accs-table-row-icon" />
+          <div className="accs-table-row-icon-wrapper" style={{ position: 'relative' }}>
+            {row.logo_url ? (
+              <>
+                <img 
+                  src={row.logo_url} 
+                  alt={value || 'ACC Logo'} 
+                  className="accs-table-row-icon"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement?.querySelector('.logo-fallback');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="logo-fallback accs-table-row-icon-wrapper"
+                  style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                >
+                  <Building2 className="accs-table-row-icon" />
+                </div>
+              </>
+            ) : (
+              <Building2 className="accs-table-row-icon" />
+            )}
           </div>
           <div>
             <div className="accs-table-row-name">{value || 'N/A'}</div>
@@ -217,8 +245,36 @@ const ACCsScreen = () => {
       sortable: true,
       render: (value) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className="accs-table-row-icon-wrapper">
-            <Building2 className="accs-table-row-icon" />
+          <div className="accs-table-row-icon-wrapper" style={{ position: 'relative' }}>
+            {value?.logo_url ? (
+              <>
+                <img 
+                  src={value.logo_url} 
+                  alt={value?.name || 'ACC Logo'} 
+                  className="accs-table-row-icon"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement?.querySelector('.logo-fallback');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="logo-fallback accs-table-row-icon-wrapper"
+                  style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                >
+                  <Building2 className="accs-table-row-icon" />
+                </div>
+              </>
+            ) : (
+              <Building2 className="accs-table-row-icon" />
+            )}
           </div>
           <div>
             <div className="accs-table-row-name">

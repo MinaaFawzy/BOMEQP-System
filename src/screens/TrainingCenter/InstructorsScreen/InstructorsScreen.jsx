@@ -620,8 +620,36 @@ const TrainingCenterInstructorsScreen = () => {
       sortable: true,
       render: (value, row) => (
         <div className="instructors-column-instructor">
-          <div className="instructors-column-icon-wrapper">
-            <Users className="instructors-column-icon" />
+          <div className="instructors-column-icon-wrapper" style={{ position: 'relative' }}>
+            {row.photo_url ? (
+              <>
+                <img 
+                  src={row.photo_url} 
+                  alt={`${row.first_name} ${row.last_name}` || 'Instructor Photo'} 
+                  className="instructors-column-icon"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement?.querySelector('.photo-fallback');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="photo-fallback instructors-column-icon-wrapper"
+                  style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+                >
+                  <Users className="instructors-column-icon" />
+                </div>
+              </>
+            ) : (
+              <Users className="instructors-column-icon" />
+            )}
             </div>
             <div>
             <div className="instructors-column-name">
