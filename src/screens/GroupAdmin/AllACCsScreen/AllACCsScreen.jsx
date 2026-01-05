@@ -321,6 +321,10 @@ const AllACCsScreen = () => {
                   src={row.logo_url} 
                   alt={value || 'ACC Logo'} 
                   className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     const fallback = e.target.parentElement?.querySelector('.logo-fallback');

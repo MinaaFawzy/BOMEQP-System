@@ -135,6 +135,10 @@ const ACCsScreen = () => {
                   src={row.logo_url} 
                   alt={value || 'ACC Logo'} 
                   className="accs-table-row-icon"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
                   style={{ 
                     width: '100%', 
                     height: '100%', 
@@ -252,6 +256,10 @@ const ACCsScreen = () => {
                   src={value.logo_url} 
                   alt={value?.name || 'ACC Logo'} 
                   className="accs-table-row-icon"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
                   style={{ 
                     width: '100%', 
                     height: '100%', 

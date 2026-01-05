@@ -514,6 +514,10 @@ const TraineesScreen = () => {
                   src={row.id_image_url} 
                   alt={`${row.first_name} ${row.last_name}` || 'Trainee ID Image'} 
                   className="trainees-column-icon"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
                   style={{ 
                     width: '100%', 
                     height: '100%', 
@@ -1110,7 +1114,7 @@ const TraineesScreen = () => {
                 <div className="trainees-detail-image-box">
                   <p className="trainees-detail-image-label">ID Image</p>
                   <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
-                    <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" />
+                    <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>
                 </div>
               )}
@@ -1118,7 +1122,7 @@ const TraineesScreen = () => {
                 <div className="trainees-detail-image-box">
                   <p className="trainees-detail-image-label">Card Image</p>
                   <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
-                    <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" />
+                    <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>
                 </div>
               )}

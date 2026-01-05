@@ -627,6 +627,10 @@ const TrainingCenterInstructorsScreen = () => {
                   src={row.photo_url} 
                   alt={`${row.first_name} ${row.last_name}` || 'Instructor Photo'} 
                   className="instructors-column-icon"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
                   style={{ 
                     width: '100%', 
                     height: '100%', 
