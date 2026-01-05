@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
-import { authAPI, instructorAPI, publicAPI } from '../../../services/api';
+import { authAPI, instructorAPI, publicAPI, trainingCenterAPI } from '../../../services/api';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
@@ -48,6 +48,8 @@ const ProfileScreen = () => {
     specializations: [],
     // Training Center fields
     name: '',
+    legal_name: '',
+    registration_number: '',
     address: '',
     state: '',
     postal_code: '',
@@ -66,30 +68,61 @@ const ProfileScreen = () => {
     loadCountries();
   }, []);
 
+  // Use ref to track if profile has been loaded to prevent duplicate calls
+  const profileLoadedRef = useRef(false);
+  const lastRoleRef = useRef(user?.role);
+  
   useEffect(() => {
-    if (countries.length > 0 || (!isInstructor && !isTrainingCenter)) {
-      loadProfile();
-    } else if (isTrainingCenter && countries.length > 0) {
-      loadProfile();
+    const currentRole = user?.role;
+    const roleChanged = currentRole !== lastRoleRef.current;
+    
+    // Reset profile loaded flag if role changed
+    if (roleChanged) {
+      profileLoadedRef.current = false;
+      lastRoleRef.current = currentRole;
+    }
+    
+    // Only load profile once per role
+    if (!profileLoadedRef.current) {
+      // For training center and instructor, wait for countries to load first
+      if (isTrainingCenter || isInstructor) {
+        if (countries.length > 0) {
+          profileLoadedRef.current = true;
+          loadProfile();
+        }
+      } else {
+        // For regular users, load immediately
+        profileLoadedRef.current = true;
+        loadProfile();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries.length, isInstructor, isTrainingCenter]);
+  }, [countries.length, user?.role]);
 
+  // Use ref to track last loaded country to prevent duplicate city API calls
+  const lastLoadedCountryRef = useRef(null);
+  
   useEffect(() => {
-    if (isTrainingCenter && formData.country) {
+    if (isTrainingCenter && formData.country && formData.country !== lastLoadedCountryRef.current) {
+      lastLoadedCountryRef.current = formData.country;
       loadCities(formData.country);
     } else if (isTrainingCenter && !formData.country) {
+      lastLoadedCountryRef.current = null;
       setCities([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.country, isTrainingCenter]);
 
   useEffect(() => {
-    if (isInstructor && formData.country) {
+    if (isInstructor && formData.country && formData.country !== lastLoadedCountryRef.current) {
+      lastLoadedCountryRef.current = formData.country;
       loadCities(formData.country);
     } else if (isInstructor && !formData.country) {
+      lastLoadedCountryRef.current = null;
       setCities([]);
       setFormData(prev => ({ ...prev, city: '' }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.country, isInstructor]);
 
   useEffect(() => {
@@ -135,22 +168,19 @@ const ProfileScreen = () => {
           specializations: instructorProfile.specializations || [],
         });
         
-        // Load cities if country exists
-        if (countryCode) {
-          await loadCities(countryCode);
-        }
-        
         // Set CV URL if exists
         if (instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume) {
           setCvUrl(instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume);
         }
+        
+        // Note: loadCities will be called by useEffect when formData.country changes
       } else if (isTrainingCenter) {
-        // Load Training Center profile
-        const response = await authAPI.getProfile();
-        const tcData = response.training_center || response.user || response;
+        // Load Training Center profile using trainingCenterAPI.getProfile()
+        const response = await trainingCenterAPI.getProfile();
+        const profileData = response.profile || response.training_center || response;
         
         // Find country code if country is a name (not code)
-        let countryCode = tcData.country || '';
+        let countryCode = profileData.country || '';
         if (countryCode && countries.length > 0) {
           const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
           if (countryObj) {
@@ -159,28 +189,26 @@ const ProfileScreen = () => {
         }
         
         setFormData({
-          name: tcData.name || tcData.training_center_name || '',
-          email: tcData.email || user?.email || '',
-          phone: tcData.phone || tcData.phone_number || '',
-          address: tcData.address || '',
-          city: tcData.city || '',
-          state: tcData.state || tcData.province || '',
+          name: profileData.name || profileData.training_center_name || '',
+          legal_name: profileData.legal_name || '',
+          registration_number: profileData.registration_number || '',
+          email: profileData.email || user?.email || '',
+          phone: profileData.phone || profileData.phone_number || '',
+          address: profileData.address || '',
+          city: profileData.city || '',
+          state: profileData.state || profileData.province || '',
           country: countryCode,
-          postal_code: tcData.postal_code || tcData.zip_code || '',
-          website: tcData.website || tcData.website_url || '',
-          description: tcData.description || tcData.bio || '',
+          postal_code: profileData.postal_code || profileData.zip_code || '',
+          website: profileData.website || profileData.website_url || '',
+          description: profileData.description || profileData.bio || '',
         });
         
-        if (tcData.logo || tcData.logo_url || tcData.avatar) {
-          setLogoUrl(tcData.logo || tcData.logo_url || tcData.avatar);
+        if (profileData.logo_url || profileData.logo || profileData.avatar) {
+          setLogoUrl(profileData.logo_url || profileData.logo || profileData.avatar);
         }
         
-        // Load cities if country exists
-        if (countryCode) {
-          await loadCities(countryCode);
-        }
-        
-        updateUser(response.user || tcData);
+        // Note: loadCities will be called by useEffect when formData.country changes
+        // Note: Don't call updateUser here to avoid triggering re-renders
       } else {
         // Load regular user profile
         const response = await authAPI.getProfile();
@@ -256,24 +284,34 @@ const ProfileScreen = () => {
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setErrors({ ...errors, logo: 'Please select an image file' });
+      // Clear previous errors
+      setErrors({ ...errors, logo: undefined });
+      
+      // Validate file type - only allow jpg, jpeg, png
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      const fileType = file.type.toLowerCase();
+      if (!allowedTypes.includes(fileType)) {
+        setErrors({ ...errors, logo: 'Please select a valid image file (JPG, JPEG, or PNG only)' });
         return;
       }
+      
       // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
         setErrors({ ...errors, logo: 'Image size must be less than 5MB' });
         return;
       }
       
+      // Set logo file and create preview
       setLogoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoUrl(reader.result);
       };
+      reader.onerror = () => {
+        setErrors({ ...errors, logo: 'Failed to load image preview' });
+      };
       reader.readAsDataURL(file);
-      setErrors({ ...errors, logo: null });
     }
   };
 
@@ -330,41 +368,63 @@ const ProfileScreen = () => {
         }
       } else if (isTrainingCenter) {
         // Update Training Center profile
-        const submitData = new FormData();
+        const hasLogoFile = logoFile instanceof File;
         
-        // Add all form fields
-        Object.keys(formData).forEach(key => {
-          if (formData[key] !== null && formData[key] !== '') {
-            submitData.append(key, formData[key]);
-          }
-        });
-        
-        // Add logo if selected
-        if (logoFile instanceof File) {
+        // Use FormData if logo file is being uploaded (POST method required for file uploads)
+        // Otherwise, we can use regular JSON (PUT method) for text-only updates
+        if (hasLogoFile) {
+          // Use FormData for file uploads (POST method with multipart/form-data)
+          const submitData = new FormData();
+          
+          // Add all form fields (only send fields that have values)
+          if (formData.name) submitData.append('name', formData.name);
+          if (formData.legal_name) submitData.append('legal_name', formData.legal_name);
+          if (formData.registration_number) submitData.append('registration_number', formData.registration_number);
+          if (formData.email) submitData.append('email', formData.email);
+          if (formData.phone) submitData.append('phone', formData.phone);
+          if (formData.address) submitData.append('address', formData.address);
+          if (formData.country) submitData.append('country', formData.country);
+          if (formData.city) submitData.append('city', formData.city);
+          if (formData.website) submitData.append('website', formData.website);
+          
+          // Add logo file (POST method required for file uploads)
           submitData.append('logo', logoFile);
+          
+          // Use trainingCenterAPI.updateProfile (uses POST with _method=PUT for FormData)
+          const response = await trainingCenterAPI.updateProfile(submitData);
+          const updatedProfile = response.profile || response.training_center || response;
+          
+          // Update logo URL from response
+          if (updatedProfile.logo_url || updatedProfile.logo) {
+            setLogoUrl(updatedProfile.logo_url || updatedProfile.logo);
+          }
+          setLogoFile(null);
+          setIsEditing(false);
+          setSuccess(response.message || 'Profile updated successfully!');
+        } else {
+          // Text-only update - use PUT method (can use JSON)
+          // Note: Currently using FormData even for text-only to maintain consistency
+          // But we could optimize this to use PUT with JSON in the future
+          const submitData = new FormData();
+          
+          // Add all form fields (only send fields that have values)
+          if (formData.name) submitData.append('name', formData.name);
+          if (formData.legal_name) submitData.append('legal_name', formData.legal_name);
+          if (formData.registration_number) submitData.append('registration_number', formData.registration_number);
+          if (formData.email) submitData.append('email', formData.email);
+          if (formData.phone) submitData.append('phone', formData.phone);
+          if (formData.address) submitData.append('address', formData.address);
+          if (formData.country) submitData.append('country', formData.country);
+          if (formData.city) submitData.append('city', formData.city);
+          if (formData.website) submitData.append('website', formData.website);
+          
+          // Use trainingCenterAPI.updateProfile (uses POST with _method=PUT for FormData)
+          const response = await trainingCenterAPI.updateProfile(submitData);
+          const updatedProfile = response.profile || response.training_center || response;
+          
+          setIsEditing(false);
+          setSuccess(response.message || 'Profile updated successfully!');
         }
-        
-        // Use POST with _method=PUT for FormData (Laravel style)
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || 
-                     sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-        
-        const response = await axios.post(`${API_BASE_URL}/auth/profile?_method=PUT`, submitData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-          },
-        });
-        
-        const updatedData = response.data.training_center || response.data.user || response.data;
-        updateUser(response.data.user || updatedData);
-        
-        if (updatedData.logo || updatedData.logo_url) {
-          setLogoUrl(updatedData.logo || updatedData.logo_url);
-        }
-        setLogoFile(null);
-        setIsEditing(false);
-        setSuccess('Profile updated successfully!');
       } else {
         // Update regular user profile
         const response = await authAPI.updateProfile(formData);
@@ -593,7 +653,7 @@ const ProfileScreen = () => {
                           <Upload size={16} />
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/jpg,image/png"
                             onChange={handleLogoChange}
                             className="hidden"
                           />
@@ -639,6 +699,28 @@ const ProfileScreen = () => {
                       required
                       disabled={!isEditing}
                       error={errors.email}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Legal Name"
+                      name="legal_name"
+                      value={formData.legal_name}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.legal_name}
+                      placeholder="Official legal name of the training center"
+                    />
+
+                    <FormInput
+                      label="Registration Number"
+                      name="registration_number"
+                      value={formData.registration_number}
+                      onChange={handleProfileChange}
+                      disabled={!isEditing}
+                      error={errors.registration_number}
+                      placeholder="Unique registration number"
                     />
                   </div>
 

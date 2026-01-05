@@ -443,34 +443,6 @@ const InstructorAuthorizationsScreen = () => {
       ),
     },
     {
-      header: 'Courses',
-      accessor: 'courses',
-      sortable: false,
-      render: (value, row) => (
-        <div className="courses-container">
-          {row.courses && Array.isArray(row.courses) && row.courses.length > 0 ? (
-            row.courses.map((course, idx) => (
-              <div key={idx} className="course-item">
-                <BookOpen className="course-icon" />
-                <span className="course-text">
-                  {typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'}
-                </span>
-              </div>
-            ))
-          ) : row.course ? (
-            <div className="course-item">
-              <BookOpen className="course-icon" />
-              <span className="course-text">
-                {typeof row.course === 'object' ? row.course?.name || row.course?.course_name || 'N/A' : row.course || 'N/A'}
-              </span>
-            </div>
-          ) : (
-            <span className="course-na">N/A</span>
-          )}
-        </div>
-      ),
-    },
-    {
       header: 'Authorization Price',
       accessor: 'authorization_price',
       sortable: true,

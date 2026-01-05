@@ -23,6 +23,8 @@ const InstructorProfileScreen = () => {
   const [cvUrl, setCvUrl] = useState(null);
   const [uploadingCv, setUploadingCv] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState(null);
   
   // Countries and Cities
   const [countries, setCountries] = useState([]);
@@ -131,6 +133,13 @@ const InstructorProfileScreen = () => {
       if (instructorProfile.cv_url || instructorProfile.cv) {
         setCvUrl(instructorProfile.cv_url || instructorProfile.cv);
       }
+      
+      // Set photo URL if available
+      if (instructorProfile.photo_url || instructorProfile.photo) {
+        setPhotoUrl(instructorProfile.photo_url || instructorProfile.photo);
+      } else {
+        setPhotoUrl(null);
+      }
     } catch (error) {
       console.error('Failed to load profile:', error);
     } finally {
@@ -204,10 +213,11 @@ const InstructorProfileScreen = () => {
     try {
       let updatedInstructor;
       
-      // Check if we have certificates to upload
+      // Check if we have certificates to upload or photo file
       const hasCertificates = newCertificates.length > 0;
+      const hasPhotoFile = photoFile instanceof File;
       
-      if (hasCertificates) {
+      if (hasCertificates || hasPhotoFile) {
         // Use FormData for file uploads
         const formDataToSend = new FormData();
         
@@ -224,6 +234,11 @@ const InstructorProfileScreen = () => {
           });
         }
         
+        // Add photo if selected
+        if (hasPhotoFile) {
+          formDataToSend.append('photo', photoFile);
+        }
+        
         // Add new certificates only
         newCertificates.forEach((cert, index) => {
           formDataToSend.append(`certificates[${index}][name]`, cert.name);
@@ -233,25 +248,46 @@ const InstructorProfileScreen = () => {
           }
         });
         
+        // Print FormData contents
+        console.log('📦 FormData Contents:');
+        console.log('📋 FormData object:', formDataToSend);
+        for (const [key, value] of formDataToSend.entries()) {
+          if (value instanceof File) {
+            console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          } else {
+            console.log(`  ${key}:`, value);
+          }
+        }
+        console.log('📤 Sending POST request to /instructor/profile');
+        
         const response = await instructorAPI.updateProfile(formDataToSend);
         updatedInstructor = response.profile || response.instructor || response;
         setInstructorData(updatedInstructor);
         setCertificates(updatedInstructor.certificates || []);
         setNewCertificates([]);
+        if (hasPhotoFile && (updatedInstructor.photo_url || updatedInstructor.photo)) {
+          setPhotoUrl(updatedInstructor.photo_url || updatedInstructor.photo);
+          setPhotoFile(null);
+        }
         setSuccess('Profile updated successfully!');
       } else {
         // Regular JSON update
-      const updatePayload = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        phone: formData.phone || null,
-        country: formData.country || null,
-        city: formData.city || null,
-        id_number: formData.id_number || null,
-        specializations: formData.specializations || [],
-      };
-      
-      const response = await instructorAPI.updateProfile(updatePayload);
+        const updatePayload = {
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone || null,
+          country: formData.country || null,
+          city: formData.city || null,
+          id_number: formData.id_number || null,
+          specializations: formData.specializations || [],
+        };
+        
+        // Print update payload
+        console.log('📄 JSON Update Payload:');
+        console.log(JSON.stringify(updatePayload, null, 2));
+        console.log('📤 Sending POST request to /instructor/profile');
+        
+        const response = await instructorAPI.updateProfile(updatePayload);
         updatedInstructor = response.profile || response.instructor || response;
       setInstructorData(updatedInstructor);
       setSuccess('Profile updated successfully!');
@@ -272,6 +308,11 @@ const InstructorProfileScreen = () => {
       
       if (updatedInstructor.cv_url || updatedInstructor.cv) {
         setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
+      }
+      
+      // Update photo URL if changed
+      if (updatedInstructor.photo_url || updatedInstructor.photo) {
+        setPhotoUrl(updatedInstructor.photo_url || updatedInstructor.photo);
       }
       
       // Reload profile to get latest data
@@ -399,6 +440,97 @@ const InstructorProfileScreen = () => {
     }
   };
 
+  // Resize image function
+  const resizeImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.9) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to resize image'));
+              }
+            },
+            file.type || 'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Clear previous errors
+    setErrors({ ...errors, photo: undefined });
+
+    // Validate file type - only allow jpg, jpeg, png
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const fileType = file.type.toLowerCase();
+    if (!allowedTypes.includes(fileType)) {
+      setErrors({ ...errors, photo: 'Please select a valid image file (JPG, JPEG, or PNG only)' });
+      e.target.value = '';
+      return;
+    }
+
+    // Resize image before setting it
+    try {
+      const resizedBlob = await resizeImage(file);
+      const resizedFile = new File([resizedBlob], file.name, { type: file.type });
+      
+      // Set photo file and create preview
+      setPhotoFile(resizedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoUrl(reader.result);
+      };
+      reader.onerror = () => {
+        setErrors({ ...errors, photo: 'Failed to load image preview' });
+      };
+      reader.readAsDataURL(resizedFile);
+    } catch (error) {
+      console.error('Failed to resize image:', error);
+      setErrors({ ...errors, photo: 'Failed to process image' });
+      e.target.value = '';
+    }
+
+    e.target.value = '';
+  };
+
+
   // Certificate handlers
   const handleAddNewCertificate = () => {
     setNewCertificates([...newCertificates, { name: '', issue_date: '', file: null }]);
@@ -467,6 +599,54 @@ const InstructorProfileScreen = () => {
             </div>
 
           <form onSubmit={handleUpdateProfile} className="space-y-5">
+            {/* Profile Photo Section */}
+            <div className="pb-4 border-b border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Profile Photo
+              </label>
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
+                    {photoUrl ? (
+                      <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="text-gray-400" size={40} />
+                    )}
+                  </div>
+                  {saving && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+                    </div>
+                  )}
+                </div>
+                {isEditingProfile && (
+                  <div className="flex items-center gap-3">
+                    <label className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        onChange={handlePhotoFileSelect}
+                        disabled={saving}
+                        className="hidden"
+                      />
+                      <Upload className="h-4 w-4 text-gray-600 mr-2" />
+                      <span className="text-sm text-gray-700">
+                        {photoFile ? 'Change Photo' : 'Select Photo'}
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+              {isEditingProfile && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500">JPG, JPEG, PNG only, max 5MB</p>
+                  {errors.photo && (
+                    <p className="text-sm text-red-600 mt-1">{errors.photo}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <FormInput
                   label="First Name"

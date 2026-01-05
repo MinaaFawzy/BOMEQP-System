@@ -9,6 +9,7 @@ import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
@@ -468,404 +469,74 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
-            {/* Request Information */}
-            {selectedRequest._isRequest && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  Request Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedRequest.id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Hash size={14} className="mr-1" />
-                        Request ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.instructor_id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <UserCircle size={14} className="mr-1" />
-                        Instructor ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.instructor_id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.acc_id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Building2 size={14} className="mr-1" />
-                        ACC ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.acc_id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.sub_category_id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <BookOpen size={14} className="mr-1" />
-                        Sub-Category ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.sub_category_id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.created_at && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Created At
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.created_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.updated_at && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Updated At
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.updated_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Prepare data for PresentDataForm - Only nested sections, no duplicate data */}
+            {(() => {
+              // Prepare instructor object with names (without cv_url, certificates_json, specializations - these are displayed at top level)
+              let instructorData = null;
+              if (selectedRequest.instructor) {
+                const { cv_url, certificates_json, specializations, ...instructorRest } = selectedRequest.instructor;
+                instructorData = instructorRest;
+              } else if (selectedRequest.first_name || selectedRequest.last_name) {
+                instructorData = {
+                  first_name: selectedRequest.first_name,
+                  last_name: selectedRequest.last_name,
+                  email: selectedRequest.email || selectedRequest._normalizedEmail,
+                  phone: selectedRequest.phone,
+                  id_number: selectedRequest.id_number,
+                  country: selectedRequest.country,
+                  city: selectedRequest.city,
+                };
+              }
 
-            {/* Basic Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="mr-2" size={20} />
-                Instructor Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Users size={14} className="mr-1" />
-                    First Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.instructor?.first_name || selectedRequest.first_name || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Users size={14} className="mr-1" />
-                    Last Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.instructor?.last_name || selectedRequest.last_name || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Mail size={14} className="mr-1" />
-                    Email
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.instructor?.email || selectedRequest.email || selectedRequest._normalizedEmail || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Phone size={14} className="mr-1" />
-                    Phone
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.instructor?.phone || selectedRequest.phone || 'N/A'}
-                  </p>
-                </div>
-                {(selectedRequest.instructor?.id_number || selectedRequest.id_number) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">ID Number</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.instructor?.id_number || selectedRequest.id_number}
-                    </p>
-                  </div>
-                )}
-                {selectedRequest.instructor?.country && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      Country
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.instructor.country}
-                    </p>
-                  </div>
-                )}
-                {selectedRequest.instructor?.city && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      City
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.instructor.city}
-                    </p>
-                  </div>
-                )}
-                {selectedRequest._normalizedDate && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Request Date
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedRequest._normalizedDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                )}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Clock size={14} className="mr-1" />
-                    Status
-                  </p>
-                  <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-                    selectedRequest.status === 'approved' || selectedRequest.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                    selectedRequest.status === 'rejected' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
-                    selectedRequest.status === 'returned' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
-                    'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
-                  }`}>
-                    {selectedRequest.status === 'pending' && <Clock size={12} className="mr-1" />}
-                    {selectedRequest.status === 'returned' && <ArrowLeft size={12} className="mr-1" />}
-                    {selectedRequest.status === 'approved' && <CheckCircle size={12} className="mr-1" />}
-                    {selectedRequest.status ? selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1) : 'N/A'}
-                  </span>
-                </div>
-              </div>
-            </div>
+              // Prepare training center object with names (not ID)
+              const trainingCenterData = selectedRequest.training_center ? {
+                name: selectedRequest.training_center.name || selectedRequest.training_center.legal_name || selectedRequest._normalizedTrainingCenter,
+                email: selectedRequest.training_center.email,
+                phone: selectedRequest.training_center.phone,
+                address: selectedRequest.training_center.address,
+                city: selectedRequest.training_center.city,
+                country: selectedRequest.training_center.country,
+              } : (selectedRequest._normalizedTrainingCenter ? { name: selectedRequest._normalizedTrainingCenter } : null);
 
-            {/* Training Center Information */}
-            {(selectedRequest.training_center || selectedRequest._normalizedTrainingCenter) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Building2 className="mr-2" size={20} />
-                  Training Center Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedRequest.training_center?.id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Hash size={14} className="mr-1" />
-                        Training Center ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.training_center.id}
-                      </p>
-                    </div>
-                  )}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Building2 size={14} className="mr-1" />
-                      Name
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.name || selectedRequest.training_center?.legal_name || selectedRequest._normalizedTrainingCenter || 'N/A'}
-                    </p>
-                  </div>
-                  {selectedRequest.training_center?.email && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Mail size={14} className="mr-1" />
-                        Email
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.training_center.email}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.training_center?.phone && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Phone size={14} className="mr-1" />
-                        Phone
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.training_center.phone}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.training_center?.address && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        Address
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.training_center.address}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.training_center?.city && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        City
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.training_center.city}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.training_center?.country && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        Country
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.training_center.country}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+              // Prepare sub category object with names (not ID)
+              const subCategoryData = selectedRequest.sub_category ? {
+                name: selectedRequest.sub_category.name,
+                name_ar: selectedRequest.sub_category.name_ar,
+                description: selectedRequest.sub_category.description,
+                category: selectedRequest.sub_category.category,
+              } : null;
 
-            {/* Sub-Category Information */}
-            {(selectedRequest.sub_category || selectedRequest.sub_category_id) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <BookOpen className="mr-2" size={20} />
-                  Sub-Category Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedRequest.sub_category?.name && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <BookOpen size={14} className="mr-1" />
-                        Name
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedRequest.sub_category.name}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.sub_category?.description && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Description</p>
-                      <p className="text-base text-gray-900">
-                        {selectedRequest.sub_category.description}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.sub_category?.courses && Array.isArray(selectedRequest.sub_category.courses) && selectedRequest.sub_category.courses.length > 0 && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-2 font-medium">Courses</p>
-                      <div className="space-y-2">
-                        {selectedRequest.sub_category.courses.map((course, index) => (
-                          <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-gray-900">
-                                  {course.name || course.code || `Course ${course.id || index + 1}`}
-                                </p>
-                                {course.code && (
-                                  <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+              // Prepare display data with only nested sections and non-duplicate fields
+              const displayData = {
+                // Nested sections only
+                ...(instructorData && { instructor: instructorData }),
+                ...(trainingCenterData && { training_center: trainingCenterData }),
+                ...(subCategoryData && { sub_category: subCategoryData }),
+                
+                // Non-duplicate fields (not in nested sections)
+                ...((selectedRequest._normalizedDate || selectedRequest.request_date || selectedRequest.created_at) && {
+                  request_date: selectedRequest._normalizedDate || selectedRequest.request_date || selectedRequest.created_at
+                }),
+                ...(selectedRequest.documents_json && { documents_json: selectedRequest.documents_json }),
+                ...((selectedRequest.instructor?.cv_url || selectedRequest.cv_url) && {
+                  cv_url: selectedRequest.instructor?.cv_url || selectedRequest.cv_url
+                }),
+                ...((selectedRequest.instructor?.certificates_json || selectedRequest.certificates_json) && {
+                  certificates_json: selectedRequest.instructor?.certificates_json || selectedRequest.certificates_json
+                }),
+                ...((selectedRequest.instructor?.specializations || selectedRequest.specializations) && {
+                  specializations: selectedRequest.instructor?.specializations || selectedRequest.specializations
+                }),
+              };
 
-            {/* Specializations/Languages */}
-            {(selectedRequest.instructor?.specializations || selectedRequest.specializations) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Globe className="mr-2" size={20} />
-                  Languages / Specializations
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const specializations = selectedRequest.instructor?.specializations || selectedRequest.specializations;
-                    const specArray = Array.isArray(specializations) 
-                      ? specializations 
-                      : (typeof specializations === 'string' ? specializations.split(',').map(s => s.trim()).filter(s => s) : []);
-                    return specArray.length > 0 ? (
-                      specArray.map((spec, index) => (
-                        <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 border border-primary-200">
-                          <Globe size={12} className="mr-1" />
-                          {spec}
-                        </span>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No specializations listed</p>
+              return (
+                <PresentDataForm
+                  data={displayData}
+                  isLoading={false}
+                  emptyMessage="No instructor data available"
+                />
                     );
                   })()}
-                </div>
-              </div>
-            )}
-
-            {/* CV / Resume */}
-            {(selectedRequest.instructor?.cv_url || selectedRequest.cv_url) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  CV / Resume
-                </h3>
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <FileText className="text-white" size={24} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Curriculum Vitae</p>
-                        <p className="text-xs text-gray-600">Click to view the instructor's CV</p>
-                      </div>
-                    </div>
-                    <a
-                      href={(selectedRequest.instructor?.cv_url || selectedRequest.cv_url).startsWith('http') 
-                        ? (selectedRequest.instructor?.cv_url || selectedRequest.cv_url)
-                        : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${selectedRequest.instructor?.cv_url || selectedRequest.cv_url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                      <FileText size={18} className="mr-2" />
-                      View CV
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Sub-Category or Courses Requested */}
             {selectedRequest._isRequest && (selectedRequest.sub_category_id || selectedRequest.sub_category || selectedRequest.courses || selectedRequest.requested_courses) && (
@@ -892,10 +563,6 @@ const InstructorsScreen = () => {
                           }
                           if (selectedRequest.sub_category?.name_ar) {
                             return selectedRequest.sub_category.name_ar;
-                          }
-                          // If we only have ID, show a message
-                          if (selectedRequest.sub_category_id) {
-                            return `Sub-Category (ID: ${selectedRequest.sub_category_id})`;
                           }
                           return 'N/A';
                         })()}
@@ -976,71 +643,6 @@ const InstructorsScreen = () => {
               </div>
             )}
 
-            {/* Documents */}
-            {selectedRequest._isRequest && selectedRequest.documents_json && Array.isArray(selectedRequest.documents_json) && selectedRequest.documents_json.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  Documents
-                </h3>
-                <div className="space-y-2">
-                  {selectedRequest.documents_json.map((doc, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `Document ${index + 1}`}</p>
-                          {doc.description && (
-                            <p className="text-sm text-gray-500">{doc.description}</p>
-                          )}
-                        </div>
-                        {doc.url && (
-                          <a
-                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                          >
-                            View Document
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {/* Certificates */}
-            {selectedRequest.instructor?.certificates_json && Array.isArray(selectedRequest.instructor.certificates_json) && selectedRequest.instructor.certificates_json.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Award className="mr-2" size={20} />
-                  Certificates
-                </h3>
-                <div className="space-y-2">
-                  {selectedRequest.instructor.certificates_json.map((cert, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="font-medium text-gray-900">{cert.name || cert.certificate_name || `Certificate ${index + 1}`}</p>
-                      {cert.issued_by && (
-                        <p className="text-sm text-gray-500">Issued by: {cert.issued_by}</p>
-                      )}
-                      {cert.year && (
-                        <p className="text-sm text-gray-500">Year: {cert.year}</p>
-                      )}
-                      {cert.url && (
-                        <a
-                          href={cert.url.startsWith('http') ? cert.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${cert.url}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-2 inline-block"
-                        >
-                          View Certificate
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Authorization Price (if approved) */}
             {selectedRequest.authorization_price && (

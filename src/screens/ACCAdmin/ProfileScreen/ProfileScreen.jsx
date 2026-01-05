@@ -1407,19 +1407,14 @@ const ProfileScreen = () => {
                           <h3 className="document-title">{getDocumentTypeLabel(currentType)}</h3>
                           <p className="document-date">Uploaded: {formatDate(doc.uploaded_at)}</p>
                         </div>
-                        <div className="document-status">
-                          {doc.verified ? (
+                        {doc.verified && (
+                          <div className="document-status">
                             <span className="status-badge verified">
                               <CheckCircle size={14} />
                               Verified
                             </span>
-                          ) : (
-                            <span className="status-badge pending">
-                              <Clock size={14} />
-                              Pending
-                            </span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                       
                       {doc.verified && doc.verified_by && (

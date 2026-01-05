@@ -215,10 +215,13 @@ export const adminAPI = {
 export const accAPI = {
   getDashboard: () => api.get('/acc/dashboard'),
   getProfile: () => api.get('/acc/profile'),
+  // Use POST method (recommended for FormData/file uploads) - Laravel method spoofing handles PUT semantics
   updateProfile: (data) => {
-    // If data is FormData, axios will handle Content-Type automatically with boundary
-    // The interceptor will remove Content-Type header for FormData
-    return api.put('/acc/profile', data);
+    // If FormData, add _method: 'PUT' for Laravel method spoofing and use POST
+    if (data instanceof FormData) {
+      data.append('_method', 'PUT');
+    }
+    return api.post('/acc/profile', data);
   },
   verifyStripeAccount: (stripeAccountId) => api.post('/acc/profile/verify-stripe-account', { stripe_account_id: stripeAccountId }),
   getSubscription: () => api.get('/acc/subscription'),
@@ -308,22 +311,13 @@ export const accAPI = {
 export const trainingCenterAPI = {
   getDashboard: () => api.get('/training-center/dashboard'),
   getProfile: () => api.get('/training-center/profile'),
+  // Use POST method (recommended for FormData/file uploads) - Laravel method spoofing handles PUT semantics
   updateProfile: (data) => {
-    // If data is FormData, use axios directly with proper headers
+    // If FormData, add _method: 'PUT' for Laravel method spoofing and use POST
     if (data instanceof FormData) {
-      const token = getAuthToken();
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        // Don't set Content-Type - let browser set it with boundary for multipart/form-data
-      };
-      
-      // Use POST with _method=PUT for FormData (Laravel style)
-      return axios.post(`${API_BASE_URL}/training-center/profile?_method=PUT`, data, {
-        headers,
-      }).then(response => response.data);
+      data.append('_method', 'PUT');
     }
-    return api.put('/training-center/profile', data);
+    return api.post('/training-center/profile', data);
   },
   
   // ACCs
@@ -360,61 +354,13 @@ export const trainingCenterAPI = {
   },
   listInstructors: (params) => api.get('/training-center/instructors', params ? { params } : {}),
   getInstructorDetails: (id) => api.get(`/training-center/instructors/${id}`),
+  // Use POST method (recommended for FormData/file uploads) - Laravel method spoofing handles PUT semantics
   updateInstructor: (id, data) => {
-    // If data is FormData, use axios directly with proper headers
+    // If FormData, add _method: 'PUT' for Laravel method spoofing and use POST
     if (data instanceof FormData) {
-      const token = getAuthToken();
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        // Don't set Content-Type - let browser set it with boundary for multipart/form-data
-      };
-      
-      // Log FormData contents before sending
-      console.log('📦 FormData contents before sending:');
-      const formDataEntries = [];
-      for (let pair of data.entries()) {
-        if (pair[1] instanceof File) {
-          formDataEntries.push(`${pair[0]}: [File] ${pair[1].name} (${pair[1].size} bytes, type: ${pair[1].type})`);
-        } else {
-          formDataEntries.push(`${pair[0]}: ${pair[1]} (type: ${typeof pair[1]})`);
-        }
-      }
-      console.log(formDataEntries);
-      
-      // Log request manually since it bypasses interceptor
-      console.log('📤 API Request:', {
-        method: 'POST (with _method=PUT)',
-        url: `${API_BASE_URL}/training-center/instructors/${id}?_method=PUT`,
-        headers: { ...headers, 'Content-Type': 'multipart/form-data (auto-set by browser)' },
-        data: 'FormData (see contents above)',
-      });
-      
-      // Use POST with _method=PUT for FormData (Laravel style)
-      return axios.post(`${API_BASE_URL}/training-center/instructors/${id}?_method=PUT`, data, {
-        headers,
-      })
-      .then(response => {
-        console.log('📥 API Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          url: `/training-center/instructors/${id}`,
-          data: response.data,
-        });
-        return response.data;
-      })
-      .catch(error => {
-        console.error('❌ API Error:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: `/training-center/instructors/${id}`,
-          data: error.response?.data,
-          message: error.message,
-        });
-        throw error;
-      });
+      data.append('_method', 'PUT');
     }
-    return api.put(`/training-center/instructors/${id}`, data);
+    return api.post(`/training-center/instructors/${id}`, data);
   },
   deleteInstructor: (id) => api.delete(`/training-center/instructors/${id}`),
   requestInstructorAuthorization: (instructorId, data) => api.post(`/training-center/instructors/${instructorId}/request-authorization`, data),
@@ -466,31 +412,16 @@ export const trainingCenterAPI = {
   getLibrary: (params) => api.get('/training-center/library', { params }),
   
   // Trainees
-  createTrainee: (formData) => {
-    const token = getAuthToken();
-    const headers = {
-      'Accept': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    return axios.post(`${API_BASE_URL}/training-center/trainees`, formData, {
-      headers,
-    }).then(response => response.data);
-  },
+  createTrainee: (formData) => api.post('/training-center/trainees', formData),
   listTrainees: (params) => api.get('/training-center/trainees', { params }),
   getTraineeDetails: (id) => api.get(`/training-center/trainees/${id}`),
+  // Use POST method (recommended for FormData/file uploads) - Laravel method spoofing handles PUT semantics
   updateTrainee: (id, formData) => {
-    const token = getAuthToken();
-    const headers = {
-      'Accept': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    // If FormData, add _method: 'PUT' for Laravel method spoofing
+    if (formData instanceof FormData) {
+      formData.append('_method', 'PUT');
     }
-    return axios.put(`${API_BASE_URL}/training-center/trainees/${id}`, formData, {
-      headers,
-    }).then(response => response.data);
+    return api.post(`/training-center/trainees/${id}`, formData);
   },
   deleteTrainee: (id) => api.delete(`/training-center/trainees/${id}`),
 };
@@ -499,60 +430,13 @@ export const trainingCenterAPI = {
 export const instructorAPI = {
   getDashboard: () => api.get('/instructor/dashboard'),
   getProfile: () => api.get('/instructor/profile'),
+  // Use POST method (recommended for FormData/file uploads) - Laravel method spoofing handles PUT semantics
   updateProfile: (data) => {
+    // If FormData, add _method: 'PUT' for Laravel method spoofing and use POST
     if (data instanceof FormData) {
-      const token = getAuthToken();
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      };
-      
-      // Log FormData contents before sending
-      console.log('📦 FormData contents before sending:');
-      const formDataEntries = [];
-      for (let pair of data.entries()) {
-        if (pair[1] instanceof File) {
-          formDataEntries.push(`${pair[0]}: [File] ${pair[1].name} (${pair[1].size} bytes, type: ${pair[1].type})`);
-        } else {
-          formDataEntries.push(`${pair[0]}: ${pair[1]} (type: ${typeof pair[1]})`);
-        }
-      }
-      console.log(formDataEntries);
-      
-      // Log request manually since it bypasses interceptor
-      console.log('📤 API Request:', {
-        method: 'POST (with _method=PUT)',
-        url: `${API_BASE_URL}/instructor/profile?_method=PUT`,
-        headers: { ...headers, 'Content-Type': 'multipart/form-data (auto-set by browser)' },
-        data: 'FormData (see contents above)',
-      });
-      
-      // Use POST with _method=PUT for FormData (Laravel style)
-      return axios.post(`${API_BASE_URL}/instructor/profile?_method=PUT`, data, {
-        headers,
-      })
-      .then(response => {
-        console.log('📥 API Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          url: '/instructor/profile',
-          data: response.data,
-        });
-        return response.data;
-      })
-      .catch(error => {
-        console.error('❌ API Error:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: '/instructor/profile',
-          data: error.response?.data,
-          message: error.message,
-        });
-        throw error;
-      });
+      data.append('_method', 'PUT');
     }
-    // Use the axios instance with interceptors for JSON data
-    return api.put('/instructor/profile', data);
+    return api.post('/instructor/profile', data);
   },
   listClasses: (params) => api.get('/instructor/classes', { params }),
   getClassDetails: (id) => api.get(`/instructor/classes/${id}`),

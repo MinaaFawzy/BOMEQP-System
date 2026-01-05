@@ -555,28 +555,52 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             <Award className="mr-2" size={20} />
             Certificates
           </h3>
-          <div className="space-y-2">
-            {data.certificates_json.map((cert, index) => (
-              <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="font-medium text-gray-900">{cert.name || cert.certificate_name || `Certificate ${index + 1}`}</p>
-                {cert.issued_by && (
-                  <p className="text-sm text-gray-500">Issued by: {cert.issued_by}</p>
-                )}
-                {cert.year && (
-                  <p className="text-sm text-gray-500">Year: {cert.year}</p>
-                )}
-                {cert.url && (
-                  <a
-                    href={cert.url.startsWith('http') ? cert.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${cert.url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-2 inline-block"
-                  >
-                    View Certificate
-                  </a>
-                )}
-              </div>
-            ))}
+          <div className="space-y-3">
+            {data.certificates_json.map((cert, index) => {
+              const certName = typeof cert === 'object' ? (cert.name || cert.title || cert.certificate_name || `Certificate ${index + 1}`) : cert;
+              const certDate = typeof cert === 'object' && cert.date ? cert.date : null;
+              const certUrl = typeof cert === 'object' && cert.url ? cert.url : (typeof cert === 'object' && cert.file_url ? cert.file_url : null);
+              
+              return (
+                <div key={index} className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <Award className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{certName}</p>
+                        {certDate && (
+                          <p className="text-xs text-gray-600">
+                            {new Date(certDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        )}
+                        {!certDate && (
+                          <p className="text-xs text-gray-600">Certificate document</p>
+                        )}
+                      </div>
+                    </div>
+                    {certUrl && (
+                      <a
+                        href={certUrl.startsWith('http') 
+                          ? certUrl
+                          : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${certUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                      >
+                        <FileText size={18} className="mr-2" />
+                        View PDF
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

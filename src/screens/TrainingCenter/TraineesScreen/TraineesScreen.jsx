@@ -305,6 +305,8 @@ const TraineesScreen = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 handleSubmit called - UPDATE mode:', !!selectedTrainee);
+    console.log('📋 Current formData:', formData);
     setSaving(true);
     setErrors({});
 
@@ -312,37 +314,84 @@ const TraineesScreen = () => {
       const submitFormData = new FormData();
       
       if (selectedTrainee) {
-        // For updates: Only send fields that have non-empty values
-        const trimmedFirstName = formData.first_name?.trim();
-        const trimmedLastName = formData.last_name?.trim();
-        const trimmedEmail = formData.email?.trim();
-        const trimmedPhone = formData.phone?.trim();
-        const trimmedIdNumber = formData.id_number?.trim();
+        console.log('🔄 Starting UPDATE for trainee ID:', selectedTrainee.id);
         
-        if (trimmedFirstName) submitFormData.append('first_name', trimmedFirstName);
-        if (trimmedLastName) submitFormData.append('last_name', trimmedLastName);
-        if (trimmedEmail) submitFormData.append('email', trimmedEmail);
-        if (trimmedPhone) submitFormData.append('phone', trimmedPhone);
-        if (trimmedIdNumber) submitFormData.append('id_number', trimmedIdNumber);
-        if (formData.status) submitFormData.append('status', formData.status);
-
-        // Only append files if they are new (File objects)
+        // Step 1: Build FormData - Only include fields you want to update (partial updates)
+        // Text fields - only append if field has value
+        if (formData.first_name !== undefined && formData.first_name !== null && formData.first_name.trim()) {
+          submitFormData.append('first_name', formData.first_name.trim());
+        }
+        if (formData.last_name !== undefined && formData.last_name !== null && formData.last_name.trim()) {
+          submitFormData.append('last_name', formData.last_name.trim());
+        }
+        if (formData.email !== undefined && formData.email !== null && formData.email.trim()) {
+          submitFormData.append('email', formData.email.trim());
+        }
+        if (formData.phone !== undefined && formData.phone !== null && formData.phone.trim()) {
+          submitFormData.append('phone', formData.phone.trim());
+        }
+        if (formData.id_number !== undefined && formData.id_number !== null && formData.id_number.trim()) {
+          submitFormData.append('id_number', formData.id_number.trim());
+        }
+        if (formData.status !== undefined && formData.status !== null) {
+          submitFormData.append('status', formData.status);
+        }
+        
+        // File fields - only append if new file has been selected (File objects)
+        // If field is omitted, existing file remains unchanged
         if (formData.id_image instanceof File) {
           submitFormData.append('id_image', formData.id_image);
         }
         if (formData.card_image instanceof File) {
           submitFormData.append('card_image', formData.card_image);
         }
-
-        // Only append enrolled classes if array is not empty
-        if (formData.enrolled_classes && formData.enrolled_classes.length > 0) {
-          formData.enrolled_classes.forEach(classId => {
+        
+        // Array field - enrolled_classes
+        // Only append if array is present and is actually an array
+        // Use array notation: enrolled_classes[] for each element
+        if (formData.enrolled_classes !== undefined && Array.isArray(formData.enrolled_classes)) {
+          // Append each class ID separately with array notation
+          formData.enrolled_classes.forEach((classId) => {
             submitFormData.append('enrolled_classes[]', classId);
           });
         }
         
+        // Debug: Log FormData contents - Multiple ways to ensure visibility
+        console.log('========================================');
+        console.log('📤 UPDATE Trainee - FormData Contents');
+        console.log('========================================');
+        console.log('Trainee ID:', selectedTrainee.id);
+        console.log('FormData entries:');
+        
+        // Method 1: Using forEach
+        submitFormData.forEach((value, key) => {
+          if (value instanceof File) {
+            console.log(`  ${key}: File - ${value.name} (${value.size} bytes, type: ${value.type})`);
+          } else {
+            console.log(`  ${key}: ${value}`);
+          }
+        });
+        
+        // Method 2: Using entries
+        const entries = Array.from(submitFormData.entries());
+        console.log('FormData entries array:', entries.map(([key, value]) => ({
+          key,
+          value: value instanceof File ? `File: ${value.name}` : value
+        })));
+        
+        // Method 3: Object.fromEntries (may not work for files)
+        try {
+          const formDataObj = Object.fromEntries(submitFormData.entries());
+          console.log('FormData as object:', formDataObj);
+        } catch (err) {
+          console.log('Could not convert FormData to object:', err.message);
+        }
+        
+        console.log('========================================');
+        
         await trainingCenterAPI.updateTrainee(selectedTrainee.id, submitFormData);
       } else {
+        console.log('🆕 Starting CREATE new trainee');
         // For creates: Send all required fields
         submitFormData.append('first_name', formData.first_name.trim());
         submitFormData.append('last_name', formData.last_name.trim());
@@ -350,19 +399,53 @@ const TraineesScreen = () => {
         submitFormData.append('phone', formData.phone.trim());
         submitFormData.append('id_number', formData.id_number.trim());
         submitFormData.append('status', formData.status);
-
-        // Only append files if they are new (File objects)
+        
+        // Add files if provided
         if (formData.id_image instanceof File) {
           submitFormData.append('id_image', formData.id_image);
         }
         if (formData.card_image instanceof File) {
           submitFormData.append('card_image', formData.card_image);
         }
-
-        // Append enrolled classes
-        formData.enrolled_classes.forEach(classId => {
-          submitFormData.append('enrolled_classes[]', classId);
+        
+        // Add enrolled classes
+        if (formData.enrolled_classes && Array.isArray(formData.enrolled_classes)) {
+          formData.enrolled_classes.forEach((classId) => {
+            submitFormData.append('enrolled_classes[]', classId);
+          });
+        }
+        
+        // Debug: Log FormData contents - Multiple ways to ensure visibility
+        console.log('========================================');
+        console.log('📤 CREATE Trainee - FormData Contents');
+        console.log('========================================');
+        console.log('FormData entries:');
+        
+        // Method 1: Using forEach
+        submitFormData.forEach((value, key) => {
+          if (value instanceof File) {
+            console.log(`  ${key}: File - ${value.name} (${value.size} bytes, type: ${value.type})`);
+          } else {
+            console.log(`  ${key}: ${value}`);
+          }
         });
+        
+        // Method 2: Using entries
+        const entries = Array.from(submitFormData.entries());
+        console.log('FormData entries array:', entries.map(([key, value]) => ({
+          key,
+          value: value instanceof File ? `File: ${value.name}` : value
+        })));
+        
+        // Method 3: Object.fromEntries (may not work for files)
+        try {
+          const formDataObj = Object.fromEntries(submitFormData.entries());
+          console.log('FormData as object:', formDataObj);
+        } catch (err) {
+          console.log('Could not convert FormData to object:', err.message);
+        }
+        
+        console.log('========================================');
         
         await trainingCenterAPI.createTrainee(submitFormData);
       }
@@ -564,7 +647,7 @@ const TraineesScreen = () => {
           name="Inactive"
           value={inactiveCount}
           icon={Clock}
-          colorType="gray"
+          colorType="blue"
           isActive={statusFilter === 'inactive'}
           onClick={() => setStatusFilter('inactive')}
         />
