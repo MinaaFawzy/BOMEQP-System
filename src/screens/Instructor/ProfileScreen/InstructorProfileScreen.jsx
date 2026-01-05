@@ -440,8 +440,8 @@ const InstructorProfileScreen = () => {
     }
   };
 
-  // Resize image function
-  const resizeImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.9) => {
+  // Resize image function (resize only, no compression)
+  const resizeImage = (file, maxWidth = 800, maxHeight = 800) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -451,16 +451,18 @@ const InstructorProfileScreen = () => {
           let width = img.width;
           let height = img.height;
 
-          // Calculate new dimensions
-          if (width > height) {
-            if (width > maxWidth) {
-              height = (height * maxWidth) / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width = (width * maxHeight) / height;
-              height = maxHeight;
+          // Calculate new dimensions only if image exceeds max dimensions
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
             }
           }
 
@@ -470,6 +472,7 @@ const InstructorProfileScreen = () => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
+          // Use quality = 1.0 (100%) to avoid compression, only resize
           canvas.toBlob(
             (blob) => {
               if (blob) {
@@ -479,7 +482,7 @@ const InstructorProfileScreen = () => {
               }
             },
             file.type || 'image/jpeg',
-            quality
+            1.0 // No compression - quality = 100%
           );
         };
         img.onerror = reject;

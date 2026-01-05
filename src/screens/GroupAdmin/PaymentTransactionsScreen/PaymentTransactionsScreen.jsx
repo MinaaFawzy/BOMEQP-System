@@ -247,7 +247,7 @@ const PaymentTransactionsScreen = () => {
     <div className="space-y-4">
       {/* Summary Cards */}
       {summary && (
-        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }}>
           <TabCard
             name="Total Transactions"
             value={summary.total_transactions || 0}
@@ -265,12 +265,6 @@ const PaymentTransactionsScreen = () => {
             value={formatCurrency(summary.completed_amount || 0)}
             icon={TrendingUp}
             colorType="blue"
-          />
-          <TabCard
-            name="Pending"
-            value={formatCurrency(summary.pending_amount || 0)}
-            icon={Calendar}
-            colorType="yellow"
           />
         </TabCardsGrid>
       )}

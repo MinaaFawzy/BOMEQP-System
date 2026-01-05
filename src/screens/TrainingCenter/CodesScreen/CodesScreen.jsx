@@ -1002,6 +1002,18 @@ const CodesScreen = () => {
         formData.append('discount_code', purchaseForm.discount_code.trim());
       }
 
+      // Print FormData contents for debugging
+      console.log('📦 FormData Contents for Code Purchase:');
+      console.log('📋 FormData object:', formData);
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`  ${key}:`, value);
+        }
+      }
+      console.log('📤 Sending POST request to /training-center/codes/purchase (FormData - Content-Type will be set automatically by browser)');
+
       const response = await trainingCenterAPI.purchaseCodes(formData);
 
       // Success
