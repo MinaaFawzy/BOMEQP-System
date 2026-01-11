@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, CheckCircle, XCircle, Clock, Eye, Mail, ClipboardList } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Clock, Eye, Mail, ClipboardList, Phone, MapPin, Globe, Hash, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './ACCApplicationsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -237,11 +237,42 @@ const ACCApplicationsScreen = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <PresentDataForm
-            data={selectedApp}
-            isLoading={false}
-            emptyMessage="No application data available"
-          />
+          {selectedApp && (
+            <>
+              <DetailForm
+                data={{
+                  name: selectedApp.name,
+                  legal_name: selectedApp.legal_name,
+                  registration_number: selectedApp.registration_number,
+                  email: selectedApp.email,
+                  phone: selectedApp.phone,
+                  website: selectedApp.website,
+                  address: selectedApp.address,
+                  country: selectedApp.country,
+                  status: selectedApp.status,
+                  created_at: selectedApp.created_at,
+                  updated_at: selectedApp.updated_at,
+                  request_date: selectedApp.request_date,
+                  reviewed_at: selectedApp.reviewed_at,
+                }}
+                fields={[
+                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', icon: Hash, showEmpty: false },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'status', label: 'Status', type: 'status' },
+                  { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
+                ]}
+              />
+            </>
+          )}
           {selectedApp && selectedApp.status === 'pending' && (
             <div className="flex space-x-3 pt-4 border-t border-gray-200">
               <Button

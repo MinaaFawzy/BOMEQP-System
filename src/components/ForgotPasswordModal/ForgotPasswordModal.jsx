@@ -12,6 +12,7 @@ import {
 import { Email as EmailIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import CustomInput from '../CustomInput/CustomInput';
+import { validateEmail } from '../../utils/validation';
 import './ForgotPasswordModal.css';
 
 const ForgotPasswordModal = ({ open, onClose }) => {
@@ -19,12 +20,21 @@ const ForgotPasswordModal = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const { forgotPassword } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    // Validate email
+    const emailValidationError = validateEmail(email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await forgotPassword(email);
@@ -44,6 +54,7 @@ const ForgotPasswordModal = ({ open, onClose }) => {
     setEmail('');
     setSuccess(false);
     setError('');
+    setEmailError('');
     onClose();
   };
 
@@ -75,12 +86,17 @@ const ForgotPasswordModal = ({ open, onClose }) => {
             </Typography>
             <form onSubmit={handleSubmit}>
               <CustomInput
-                placeholder="Email"
+                placeholder="example@example.com"
                 name="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
                 required
+                error={!!emailError}
+                helperText={emailError}
                 startIcon={<EmailIcon />}
               />
               {error && (

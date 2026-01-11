@@ -8,6 +8,7 @@ import FormInput from '../../../components/FormInput/FormInput';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './TrainingCentersScreen.css';
 
 const TrainingCentersScreen = () => {
@@ -480,115 +481,18 @@ const TrainingCentersScreen = () => {
                   <FileText className="mr-2" size={20} />
                   Request Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedRequest.id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Hash size={14} className="mr-1" />
-                        Request ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.training_center_id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Building2 size={14} className="mr-1" />
-                        Training Center ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedRequest.training_center_id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.request_date && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Request Date
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.request_date).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.created_at && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Created At
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.created_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.updated_at && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Updated At
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.updated_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  {selectedRequest.reviewed_at && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        Reviewed At
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {new Date(selectedRequest.reviewed_at).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Clock size={14} className="mr-1" />
-                      Status
-                    </p>
-                    <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-                      selectedRequest.status === 'approved' || selectedRequest.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                      selectedRequest.status === 'rejected' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
-                      selectedRequest.status === 'returned' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
-                      'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
-                    }`}>
-                      {selectedRequest.status === 'pending' && <Clock size={12} className="mr-1" />}
-                      {selectedRequest.status === 'returned' && <ArrowLeft size={12} className="mr-1" />}
-                      {selectedRequest.status === 'approved' && <CheckCircle size={12} className="mr-1" />}
-                      {selectedRequest.status ? selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1) : 'N/A'}
-                    </span>
-                  </div>
-                </div>
+                <DetailForm
+                  data={selectedRequest}
+                  fields={[
+                    { key: 'id', label: 'Request ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                    { key: 'training_center_id', label: 'Training Center ID', icon: Building2, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                    { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'status', label: 'Status', type: 'status', icon: Clock },
+                    { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  ]}
+                />
               </div>
             )}
 
@@ -598,138 +502,43 @@ const TrainingCentersScreen = () => {
                 <Building2 className="mr-2" size={20} />
                 Training Center Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Building2 size={14} className="mr-1" />
-                    Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.training_center?.name || selectedRequest.name || selectedRequest._normalizedName || 'N/A'}
+              <DetailForm
+                data={{
+                  name: selectedRequest.training_center?.name || selectedRequest.name || selectedRequest._normalizedName,
+                  email: selectedRequest.training_center?.email || selectedRequest.email || selectedRequest._normalizedEmail,
+                  legal_name: selectedRequest.training_center?.legal_name || selectedRequest.legal_name,
+                  registration_number: selectedRequest.training_center?.registration_number || selectedRequest.registration_number,
+                  phone: selectedRequest.training_center?.phone || selectedRequest.phone,
+                  website: selectedRequest.training_center?.website || selectedRequest.website,
+                  address: selectedRequest.training_center?.address || selectedRequest.address,
+                  city: selectedRequest.training_center?.city || selectedRequest.city,
+                  country: selectedRequest.training_center?.country || selectedRequest.country,
+                  postal_code: selectedRequest.training_center?.postal_code || selectedRequest.postal_code,
+                  description: selectedRequest.training_center?.description || selectedRequest.description,
+                  authorized_at: selectedRequest.authorized_at,
+                }}
+                fields={[
+                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
+                  { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'postal_code', label: 'Postal Code', showEmpty: false },
+                  { key: 'authorized_at', label: 'Authorized At', type: 'datetime', icon: Calendar, showEmpty: false },
+                ]}
+              />
+              {(selectedRequest.training_center?.description || selectedRequest.description) && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Description</p>
+                  <p className="text-base text-gray-900">
+                    {selectedRequest.training_center?.description || selectedRequest.description}
                   </p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Mail size={14} className="mr-1" />
-                    Email
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedRequest.training_center?.email || selectedRequest.email || selectedRequest._normalizedEmail || 'N/A'}
-                  </p>
-                </div>
-                {(selectedRequest.training_center?.legal_name || selectedRequest.legal_name) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Legal Name</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.legal_name || selectedRequest.legal_name}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.registration_number || selectedRequest.registration_number) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Registration Number</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.registration_number || selectedRequest.registration_number}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.phone || selectedRequest.phone) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Phone size={14} className="mr-1" />
-                      Phone
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.phone || selectedRequest.phone}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.website || selectedRequest.website) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Globe size={14} className="mr-1" />
-                      Website
-                    </p>
-                    <a 
-                      href={(selectedRequest.training_center?.website || selectedRequest.website).startsWith('http') 
-                        ? (selectedRequest.training_center?.website || selectedRequest.website)
-                        : `https://${selectedRequest.training_center?.website || selectedRequest.website}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700 text-base font-semibold"
-                    >
-                      {selectedRequest.training_center?.website || selectedRequest.website}
-                    </a>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.address || selectedRequest.address) && (
-                  <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      Address
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.address || selectedRequest.address}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.city || selectedRequest.city) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      City
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.city || selectedRequest.city}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.country || selectedRequest.country) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      Country
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.country || selectedRequest.country}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.postal_code || selectedRequest.postal_code) && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Postal Code</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedRequest.training_center?.postal_code || selectedRequest.postal_code}
-                    </p>
-                  </div>
-                )}
-                {(selectedRequest.training_center?.description || selectedRequest.description) && (
-                  <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                    <p className="text-sm text-gray-500 mb-1">Description</p>
-                    <p className="text-base text-gray-900">
-                      {selectedRequest.training_center?.description || selectedRequest.description}
-                    </p>
-                  </div>
-                )}
-                {selectedRequest.authorized_at && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Authorized At
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedRequest.authorized_at).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
 
             {/* Documents */}

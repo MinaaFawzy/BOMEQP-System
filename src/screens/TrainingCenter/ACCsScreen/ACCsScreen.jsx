@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, MessageSquare, Download } from 'lucide-react';
+import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, MessageSquare, Download, MapPin, Globe, Phone } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -9,11 +9,9 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import AuthorizationRequestForm from '../../../components/AuthorizationRequestForm/AuthorizationRequestForm';
-import DetailItem from '../../../components/DetailItem/DetailItem';
-import DetailGrid from '../../../components/DetailGrid/DetailGrid';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import InfoBox from '../../../components/InfoBox/InfoBox';
 import DocumentsList from '../../../components/DocumentsList/DocumentsList';
-import StatusBadge from '../../../components/StatusBadge/StatusBadge';
 import { validateFile, validateArray, validateMaxLength } from '../../../utils/validation';
 import './ACCsScreen.css';
 
@@ -550,41 +548,22 @@ const ACCsScreen = () => {
       >
         {selectedACC && (
           <div className="accs-detail-section">
-            <DetailGrid>
-              {selectedACC.id && (
-                <DetailItem label="ID" value={selectedACC.id} />
-              )}
-              <DetailItem label="Name" value={selectedACC.name} />
-              <DetailItem label="Email" value={selectedACC.email} icon={Mail} />
-              {selectedACC.phone && (
-                <DetailItem label="Phone" value={selectedACC.phone} />
-              )}
-              {selectedACC.country && (
-                <DetailItem label="Country" value={selectedACC.country} />
-              )}
-              {selectedACC.address && (
-                <DetailItem label="Address" value={selectedACC.address} />
-              )}
-              {selectedACC.website && (
-                <DetailItem label="Website">
-                  <a href={selectedACC.website} target="_blank" rel="noopener noreferrer" className="accs-detail-link">
-                    {selectedACC.website}
-                  </a>
-                </DetailItem>
-              )}
-              <DetailItem label="Status">
-                <StatusBadge status={selectedACC.status} variant="detail" />
-              </DetailItem>
-              {selectedACC.description && (
-                <DetailItem label="Description" value={selectedACC.description} fullWidth />
-              )}
-              {selectedACC.created_at && (
-                <DetailItem label="Created At" value={new Date(selectedACC.created_at).toLocaleString()} />
-              )}
-              {selectedACC.updated_at && (
-                <DetailItem label="Updated At" value={new Date(selectedACC.updated_at).toLocaleString()} />
-              )}
-            </DetailGrid>
+            <DetailForm
+              data={selectedACC}
+              fields={[
+                { key: 'id', label: 'ID', showEmpty: false },
+                { key: 'name', label: 'Name', icon: Building2 },
+                { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                { key: 'address', label: 'Address', icon: MapPin, showEmpty: false },
+                { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'description', label: 'Description', fullWidth: true, showEmpty: false },
+                { key: 'created_at', label: 'Created At', type: 'datetime', icon: Clock, showEmpty: false },
+                { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Clock, showEmpty: false },
+              ]}
+            />
             {selectedACC.status === 'active' && (
               <div className="accs-detail-actions">
                 <button
@@ -616,32 +595,23 @@ const ACCsScreen = () => {
         {selectedAuthorization && (
           <div className="accs-detail-section">
             {/* ACC Information */}
-            <DetailGrid>
-              <DetailItem label="ACC Name" value={selectedAuthorization.acc?.name} />
-              <DetailItem label="Email" value={selectedAuthorization.acc?.email} icon={Mail} />
-              {selectedAuthorization.acc?.country && (
-                <DetailItem label="Country" value={selectedAuthorization.acc.country} />
-              )}
-              <DetailItem label="Status">
-                <StatusBadge status={selectedAuthorization.status} variant="detail" />
-              </DetailItem>
-            </DetailGrid>
-
-            {/* Dates */}
-            <DetailGrid>
-              <DetailItem 
-                label="Request Date" 
-                value={selectedAuthorization.request_date ? new Date(selectedAuthorization.request_date).toLocaleString() : 'N/A'}
-                icon={Clock}
-              />
-              {selectedAuthorization.reviewed_at && (
-                <DetailItem 
-                  label="Reviewed At" 
-                  value={new Date(selectedAuthorization.reviewed_at).toLocaleString()}
-                  icon={CheckCircle}
-                />
-              )}
-            </DetailGrid>
+            <DetailForm
+              data={selectedAuthorization.acc || {}}
+              fields={[
+                { key: 'name', label: 'ACC Name', icon: Building2 },
+                { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+              ]}
+            />
+            
+            <DetailForm
+              data={selectedAuthorization}
+              fields={[
+                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Clock },
+                { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: CheckCircle, showEmpty: false },
+              ]}
+            />
 
             {/* Additional Information */}
             {selectedAuthorization.additional_info && (

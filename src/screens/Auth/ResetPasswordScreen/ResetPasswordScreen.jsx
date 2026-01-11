@@ -15,6 +15,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/AuthContext';
 import CustomInput from '../../../components/CustomInput/CustomInput';
+import PasswordHints from '../../../components/PasswordHints/PasswordHints';
+import { validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
 import logo from '../../../assets/logo-circle.png';
 import './ResetPasswordScreen.css';
 
@@ -36,6 +38,7 @@ const ResetPasswordScreen = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isValidLink, setIsValidLink] = useState(true);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     // Check if token and email are present
@@ -50,26 +53,32 @@ const ResetPasswordScreen = () => {
   }, [token, email, isAuthenticated, navigate]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
     setError('');
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrors({});
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+    // Validate form
+    const validationErrors = {};
+    const passwordError = validatePassword(formData.password, 8, true); // isNewPassword = true
+    const confirmPasswordError = validatePasswordConfirmation(formData.password, formData.confirmPassword);
+    
+    if (passwordError) validationErrors.password = passwordError;
+    if (confirmPasswordError) validationErrors.confirmPassword = confirmPasswordError;
 
-    // Validate password length
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -166,12 +175,16 @@ const ResetPasswordScreen = () => {
 
           <form onSubmit={handleSubmit}>
             <CustomInput
-              placeholder="New Password"
+              placeholder="Enter your new password"
               name="password"
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange}
               required
+              error={!!errors.password}
+              helperText={errors.password}
+              showPasswordHints={true}
+              passwordHintsComponent={<PasswordHints password={formData.password} />}
               startIcon={<LockIcon />}
               endIcon={
                 <IconButton
@@ -185,12 +198,14 @@ const ResetPasswordScreen = () => {
             />
 
             <CustomInput
-              placeholder="Confirm New Password"
+              placeholder="Confirm your new password"
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={handleChange}
               required
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
               startIcon={<LockIcon />}
               endIcon={
                 <IconButton

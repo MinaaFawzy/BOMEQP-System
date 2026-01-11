@@ -24,6 +24,8 @@ import {
 import { useAuth } from '../../../context/AuthContext';
 import CustomInput from '../../../components/CustomInput/CustomInput';
 import ForgotPasswordModal from '../../../components/ForgotPasswordModal/ForgotPasswordModal';
+import PasswordHints from '../../../components/PasswordHints/PasswordHints';
+import { validateEmail, validatePassword, validatePasswordConfirmation, validateRequired } from '../../../utils/validation';
 import logo from '../../../assets/logo-circle.png';
 import './AuthScreen.css';
 
@@ -67,30 +69,56 @@ function AuthScreen() {
     const [loginLoading, setLoginLoading] = useState(false);
     const [registerLoading, setRegisterLoading] = useState(false);
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+    const [loginErrors, setLoginErrors] = useState({});
+    const [registerErrors, setRegisterErrors] = useState({});
 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
     const handleClickShowConfirmPassword = () => setShowConfirmPassword(!showConfirmPassword);
 
     const handleLoginChange = (e) => {
+        const { name, value } = e.target;
         setLoginData({
             ...loginData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
         setLoginError('');
+        // Clear field-specific error
+        if (loginErrors[name]) {
+            setLoginErrors({ ...loginErrors, [name]: '' });
+        }
     };
 
     const handleRegisterChange = (e) => {
+        const { name, value } = e.target;
         setRegisterData({
             ...registerData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
         setRegisterError('');
+        // Clear field-specific error
+        if (registerErrors[name]) {
+            setRegisterErrors({ ...registerErrors, [name]: '' });
+        }
     };
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setLoginError('');
         setLoginLoading(true);
+
+        // Validate form
+        const errors = {};
+        const emailError = validateEmail(loginData.email);
+        const passwordError = validateRequired(loginData.password, 'Password');
+        
+        if (emailError) errors.email = emailError;
+        if (passwordError) errors.password = passwordError;
+
+        if (Object.keys(errors).length > 0) {
+            setLoginErrors(errors);
+            setLoginLoading(false);
+            return;
+        }
 
         try {
             const result = await login(loginData.email, loginData.password);
@@ -115,16 +143,22 @@ function AuthScreen() {
     const handleRegisterSubmit = async (e) => {
         e.preventDefault();
         setRegisterError('');
+        setRegisterErrors({});
 
-        // Validate passwords match
-        if (registerData.password !== registerData.confirmPassword) {
-            setRegisterError('Passwords do not match.');
-            return;
-        }
+        // Validate form
+        const errors = {};
+        const nameError = validateRequired(registerData.fullName, 'Name');
+        const emailError = validateEmail(registerData.email);
+        const passwordError = validatePassword(registerData.password, 8, true); // isNewPassword = true
+        const confirmPasswordError = validatePasswordConfirmation(registerData.password, registerData.confirmPassword);
+        
+        if (nameError) errors.fullName = nameError;
+        if (emailError) errors.email = emailError;
+        if (passwordError) errors.password = passwordError;
+        if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
 
-        // Validate password length
-        if (registerData.password.length < 8) {
-            setRegisterError('Password must be at least 8 characters long.');
+        if (Object.keys(errors).length > 0) {
+            setRegisterErrors(errors);
             return;
         }
 
@@ -171,29 +205,37 @@ function AuthScreen() {
                         <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>Register</Typography>
 
                         <CustomInput
-                            placeholder="Name"
+                            placeholder="Enter your full name"
                             name="fullName"
                             value={registerData.fullName}
                             onChange={handleRegisterChange}
                             required
+                            error={!!registerErrors.fullName}
+                            helperText={registerErrors.fullName}
                             startIcon={<PersonIcon />}
                         />
                         <CustomInput
-                            placeholder="Email"
+                            placeholder="example@example.com"
                             name="email"
                             type="email"
                             value={registerData.email}
                             onChange={handleRegisterChange}
                             required
+                            error={!!registerErrors.email}
+                            helperText={registerErrors.email}
                             startIcon={<EmailIcon />}
                         />
                         <CustomInput
-                            placeholder="Password"
+                            placeholder="Enter your password"
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             value={registerData.password}
                             onChange={handleRegisterChange}
                             required
+                            error={!!registerErrors.password}
+                            helperText={registerErrors.password}
+                            showPasswordHints={true}
+                            passwordHintsComponent={<PasswordHints password={registerData.password} />}
                             startIcon={<LockIcon />}
                             endIcon={
                                 <IconButton
@@ -206,12 +248,14 @@ function AuthScreen() {
                             }
                         />
                         <CustomInput
-                            placeholder="Confirm Password"
+                            placeholder="Confirm your password"
                             name="confirmPassword"
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={registerData.confirmPassword}
                             onChange={handleRegisterChange}
                             required
+                            error={!!registerErrors.confirmPassword}
+                            helperText={registerErrors.confirmPassword}
                             startIcon={<LockIcon />}
                             endIcon={
                                 <IconButton
@@ -381,20 +425,25 @@ function AuthScreen() {
 
 
                         <CustomInput
-                            placeholder="Email"
+                            placeholder="example@example.com"
                             name="email"
+                            type="email"
                             value={loginData.email}
                             onChange={handleLoginChange}
                             required
+                            error={!!loginErrors.email}
+                            helperText={loginErrors.email}
                             startIcon={<EmailIcon />}
                         />
                         <CustomInput
-                            placeholder="Password"
+                            placeholder="Enter your password"
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             value={loginData.password}
                             onChange={handleLoginChange}
                             required
+                            error={!!loginErrors.password}
+                            helperText={loginErrors.password}
                             startIcon={<LockIcon />}
                             endIcon={
                                 <IconButton

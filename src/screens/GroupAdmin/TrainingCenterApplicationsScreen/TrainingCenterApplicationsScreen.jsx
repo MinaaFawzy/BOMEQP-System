@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, CheckCircle, XCircle, Clock, Eye, Mail, ClipboardList } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Clock, Eye, Mail, ClipboardList, Phone, MapPin, Globe, FileText, Hash, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './TrainingCenterApplicationsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -241,11 +241,55 @@ const TrainingCenterApplicationsScreen = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <PresentDataForm
-            data={selectedApp}
-            isLoading={false}
-            emptyMessage="No application data available"
-          />
+          {selectedApp && (
+            <>
+              <DetailForm
+                data={{
+                  name: selectedApp.training_center?.name || selectedApp.name || selectedApp._normalizedName,
+                  email: selectedApp.training_center?.email || selectedApp.email || selectedApp._normalizedEmail,
+                  legal_name: selectedApp.training_center?.legal_name || selectedApp.legal_name,
+                  registration_number: selectedApp.training_center?.registration_number || selectedApp.registration_number,
+                  phone: selectedApp.training_center?.phone || selectedApp.phone,
+                  website: selectedApp.training_center?.website || selectedApp.website,
+                  address: selectedApp.training_center?.address || selectedApp.address,
+                  city: selectedApp.training_center?.city || selectedApp.city,
+                  country: selectedApp.training_center?.country || selectedApp.country,
+                  postal_code: selectedApp.training_center?.postal_code || selectedApp.postal_code,
+                  description: selectedApp.training_center?.description || selectedApp.description,
+                  status: selectedApp.status,
+                  created_at: selectedApp.created_at,
+                  updated_at: selectedApp.updated_at,
+                  request_date: selectedApp.request_date,
+                  reviewed_at: selectedApp.reviewed_at,
+                }}
+                fields={[
+                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
+                  { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'postal_code', label: 'Postal Code', showEmpty: false },
+                  { key: 'status', label: 'Status', type: 'status' },
+                  { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
+                ]}
+              />
+              {(selectedApp.training_center?.description || selectedApp.description) && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Description</p>
+                  <p className="text-base text-gray-900">
+                    {selectedApp.training_center?.description || selectedApp.description}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
           {selectedApp && selectedApp.status === 'pending' && (
             <div className="flex space-x-3 pt-4 border-t border-gray-200">
               <Button

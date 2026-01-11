@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, Award } from 'lucide-react';
+import { Plus, Award, Eye, FileText, User, BookOpen, Calendar, Hash } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './CertificatesScreen.css';
 
 const CertificatesScreen = () => {
@@ -12,6 +13,8 @@ const CertificatesScreen = () => {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [formData, setFormData] = useState({
     trainee_name: '',
     course: '',
@@ -139,6 +142,15 @@ const CertificatesScreen = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleViewDetails = useCallback((cert) => {
+    setSelectedCertificate(cert);
+    setDetailModalOpen(true);
+  }, []);
+
+  const handleRowClick = useCallback((cert) => {
+    handleViewDetails(cert);
+  }, [handleViewDetails]);
+
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
@@ -200,8 +212,24 @@ const CertificatesScreen = () => {
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       )
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleViewDetails(row)}
+            className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      )
     }
-  ], []);
+  ], [handleViewDetails]);
 
   // Filter options for status
   const filterOptions = useMemo(() => [
@@ -232,6 +260,7 @@ const CertificatesScreen = () => {
         defaultFilter="all"
         sortable={true}
         emptyMessage="No certificates found. Create your first certificate!"
+        onRowClick={handleRowClick}
       />
 
       {/* Create Certificate Modal */}
@@ -308,6 +337,39 @@ const CertificatesScreen = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Certificate Detail Modal */}
+      <Modal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedCertificate(null);
+        }}
+        title="Certificate Details"
+        size="lg"
+      >
+        {selectedCertificate && (
+          <div className="detail-modal-container">
+            <DetailForm
+              data={selectedCertificate}
+              fields={[
+                { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
+                { key: 'verification_code', label: 'Verification Code', icon: Hash, showEmpty: false },
+                { key: 'trainee_name', label: 'Trainee Name', icon: User },
+                { 
+                  key: 'course', 
+                  label: 'Course', 
+                  icon: BookOpen,
+                  render: (value) => typeof value === 'object' ? value?.name : value
+                },
+                { key: 'issue_date', label: 'Issue Date', type: 'date', icon: Calendar },
+                { key: 'expiry_date', label: 'Expiry Date', type: 'date', icon: Calendar, showEmpty: false },
+                { key: 'status', label: 'Status', type: 'status' },
+              ]}
+            />
+          </div>
+        )}
       </Modal>
     </div>
   );

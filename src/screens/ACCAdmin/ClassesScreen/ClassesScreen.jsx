@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { GraduationCap, Eye, Clock, Calendar, MapPin, Users, User, Building2, BookOpen, Mail, Phone, Globe, CheckCircle, XCircle, FileText, Image as ImageIcon } from 'lucide-react';
+import { GraduationCap, Eye, Clock, Calendar, MapPin, Users, User, Building2, BookOpen, Mail, Phone, Globe, CheckCircle, XCircle, FileText, Image as ImageIcon, Hash } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './ClassesScreen.css';
 
 const ClassesScreen = () => {
@@ -349,36 +350,14 @@ const ClassesScreen = () => {
                 <GraduationCap className="mr-2" size={20} />
                 Class Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Status</p>
-                  <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(selectedClass.status)}`}>
-                    {selectedClass.status ? selectedClass.status.charAt(0).toUpperCase() + selectedClass.status.slice(1).replace('_', ' ') : 'N/A'}
-                  </span>
-                </div>
-                {selectedClass.created_at && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Created At
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {formatDateTime(selectedClass.created_at)}
-                    </p>
-                  </div>
-                )}
-                {selectedClass.updated_at && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Updated At
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {formatDateTime(selectedClass.updated_at)}
-                    </p>
-                  </div>
-                )}
-              </div>
+              <DetailForm
+                data={selectedClass}
+                fields={[
+                  { key: 'status', label: 'Status', type: 'status', icon: Clock },
+                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                ]}
+              />
             </div>
 
             {/* Course Information */}
@@ -388,77 +367,37 @@ const ClassesScreen = () => {
                   <BookOpen className="mr-2" size={20} />
                   Course Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Course Name</p>
-                    <p className="text-base font-semibold text-gray-900">{selectedClass.course.name || 'N/A'}</p>
+                <DetailForm
+                  data={selectedClass.course}
+                  fields={[
+                    { key: 'name', label: 'Course Name', icon: BookOpen },
+                    { key: 'code', label: 'Course Code', icon: Hash, showEmpty: false },
+                    { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
+                    { key: 'duration_hours', label: 'Duration', icon: Clock, render: (value) => value ? `${value} hours` : 'N/A', showEmpty: false },
+                    { key: 'level', label: 'Level', render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A', showEmpty: false },
+                    { key: 'max_capacity', label: 'Max Capacity', render: (value) => value ? `${value} trainees` : 'N/A', showEmpty: false },
+                    { key: 'status', label: 'Course Status', type: 'status', showEmpty: false },
+                  ]}
+                />
+                {selectedClass.course.description && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Description</p>
+                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedClass.course.description}</p>
                   </div>
-                  {selectedClass.course.code && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Course Code</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.course.code}</p>
-                    </div>
-                  )}
-                  {selectedClass.course.name_ar && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Course Name (Arabic)</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.course.name_ar}</p>
-                    </div>
-                  )}
-                  {selectedClass.course.duration_hours && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Clock size={14} className="mr-1" />
-                        Duration
+                )}
+                {selectedClass.course.sub_category && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Sub Category</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedClass.course.sub_category.name || 'N/A'}
+                    </p>
+                    {selectedClass.course.sub_category.category && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Category: {selectedClass.course.sub_category.category.name || 'N/A'}
                       </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.course.duration_hours} hours</p>
-                    </div>
-                  )}
-                  {selectedClass.course.level && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Level</p>
-                      <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
-                        {selectedClass.course.level}
-                      </span>
-                    </div>
-                  )}
-                  {selectedClass.course.max_capacity && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Max Capacity</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.course.max_capacity} trainees</p>
-                    </div>
-                  )}
-                  {selectedClass.course.status && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Course Status</p>
-                      <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                        selectedClass.course.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                        'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                      }`}>
-                        {selectedClass.course.status.charAt(0).toUpperCase() + selectedClass.course.status.slice(1)}
-                      </span>
-                    </div>
-                  )}
-                  {selectedClass.course.description && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Description</p>
-                      <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedClass.course.description}</p>
-                    </div>
-                  )}
-                  {selectedClass.course.sub_category && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Sub Category</p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedClass.course.sub_category.name || 'N/A'}
-                      </p>
-                      {selectedClass.course.sub_category.category && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          Category: {selectedClass.course.sub_category.category.name || 'N/A'}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -469,76 +408,18 @@ const ClassesScreen = () => {
                   <Building2 className="mr-2" size={20} />
                   Training Center Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Name</p>
-                    <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.name || 'N/A'}</p>
-                  </div>
-                  {selectedClass.training_center.email && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Mail size={14} className="mr-1" />
-                        Email
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.email}</p>
-                    </div>
-                  )}
-                  {selectedClass.training_center.phone && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Phone size={14} className="mr-1" />
-                        Phone
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.phone}</p>
-                    </div>
-                  )}
-                  {selectedClass.training_center.website && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Globe size={14} className="mr-1" />
-                        Website
-                      </p>
-                      <a 
-                        href={selectedClass.training_center.website.startsWith('http') 
-                          ? selectedClass.training_center.website
-                          : `https://${selectedClass.training_center.website}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-700 text-base font-semibold"
-                      >
-                        {selectedClass.training_center.website}
-                      </a>
-                    </div>
-                  )}
-                  {selectedClass.training_center.address && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        Address
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.address}</p>
-                    </div>
-                  )}
-                  {selectedClass.training_center.city && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        City
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.city}</p>
-                    </div>
-                  )}
-                  {selectedClass.training_center.country && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        Country
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.training_center.country}</p>
-                    </div>
-                  )}
-                </div>
+                <DetailForm
+                  data={selectedClass.training_center}
+                  fields={[
+                    { key: 'name', label: 'Name', icon: Building2 },
+                    { key: 'email', label: 'Email', type: 'email', icon: Mail, showEmpty: false },
+                    { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                    { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                    { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                    { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                    { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  ]}
+                />
               </div>
             )}
 
@@ -549,56 +430,17 @@ const ClassesScreen = () => {
                   <User className="mr-2" size={20} />
                   Instructor Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">First Name</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedClass.instructor.first_name || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Last Name</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {selectedClass.instructor.last_name || 'N/A'}
-                    </p>
-                  </div>
-                  {selectedClass.instructor.email && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Mail size={14} className="mr-1" />
-                        Email
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.instructor.email}</p>
-                    </div>
-                  )}
-                  {selectedClass.instructor.phone && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Phone size={14} className="mr-1" />
-                        Phone
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.instructor.phone}</p>
-                    </div>
-                  )}
-                  {selectedClass.instructor.country && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        Country
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.instructor.country}</p>
-                    </div>
-                  )}
-                  {selectedClass.instructor.city && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <MapPin size={14} className="mr-1" />
-                        City
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">{selectedClass.instructor.city}</p>
-                    </div>
-                  )}
-                </div>
+                <DetailForm
+                  data={selectedClass.instructor}
+                  fields={[
+                    { key: 'first_name', label: 'First Name', icon: User },
+                    { key: 'last_name', label: 'Last Name', icon: User },
+                    { key: 'email', label: 'Email', type: 'email', icon: Mail, showEmpty: false },
+                    { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                    { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                    { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                  ]}
+                />
               </div>
             )}
 
@@ -608,68 +450,17 @@ const ClassesScreen = () => {
                 <Calendar className="mr-2" size={20} />
                 Schedule Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Calendar size={14} className="mr-1" />
-                    Start Date
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">
-                    {selectedClass.start_date ? formatDateTime(selectedClass.start_date) : 'N/A'}
-                  </p>
-                </div>
-                {selectedClass.end_date && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      End Date
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {formatDateTime(selectedClass.end_date)}
-                    </p>
-                  </div>
-                )}
-                {selectedClass.exam_date && (
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1 text-purple-600" />
-                      Exam Date
-                    </p>
-                    <p className="text-base font-semibold text-purple-900">
-                      {formatDateTime(selectedClass.exam_date)}
-                    </p>
-                  </div>
-                )}
-                {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
-                  <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <FileText size={14} className="mr-1 text-indigo-600" />
-                      Exam Score
-                    </p>
-                    <p className="text-base font-semibold text-indigo-900">
-                      {parseFloat(selectedClass.exam_score).toFixed(2)}%
-                    </p>
-                  </div>
-                )}
-                {selectedClass.start_time && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Clock size={14} className="mr-1" />
-                      Start Time
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">{selectedClass.start_time}</p>
-                  </div>
-                )}
-                {selectedClass.end_time && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Clock size={14} className="mr-1" />
-                      End Time
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">{selectedClass.end_time}</p>
-                  </div>
-                )}
-              </div>
+              <DetailForm
+                data={selectedClass}
+                fields={[
+                  { key: 'start_date', label: 'Start Date', type: 'datetime', icon: Calendar },
+                  { key: 'end_date', label: 'End Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'exam_date', label: 'Exam Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'exam_score', label: 'Exam Score', icon: FileText, render: (value) => value !== null && value !== undefined ? `${parseFloat(value).toFixed(2)}%` : 'N/A', showEmpty: false },
+                  { key: 'start_time', label: 'Start Time', icon: Clock, showEmpty: false },
+                  { key: 'end_time', label: 'End Time', icon: Clock, showEmpty: false },
+                ]}
+              />
               {selectedClass.schedule_json && Object.keys(selectedClass.schedule_json).length > 0 && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-700 mb-3">Weekly Schedule</p>

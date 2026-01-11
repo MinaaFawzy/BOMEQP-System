@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
 import { User, Building2, Mail, Phone, MapPin, Globe, Save, Edit, X, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
@@ -116,6 +117,23 @@ const TCProfileScreen = () => {
     setSaving(true);
     setErrors({});
     setSuccessMessage('');
+
+    // Validation
+    const validationErrors = {};
+    const nameError = validateRequired(formData.name, 'Training Center Name');
+    if (nameError) validationErrors.name = nameError;
+    const emailError = validateEmail(formData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (formData.phone) {
+      const phoneError = validatePhone(formData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       const submitData = new FormData();

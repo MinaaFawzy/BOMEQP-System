@@ -1,14 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, Eye, Edit, Tag, Mail, CheckCircle, Clock, ClipboardList, X, Plus, CreditCard, Trash2, AlertCircle } from 'lucide-react';
+import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
+import { Building2, Eye, Edit, Tag, Mail, CheckCircle, Clock, ClipboardList, X, Plus, CreditCard, Trash2, AlertCircle, Phone, MapPin, Globe } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './AllACCsScreen.css';
 
 const AllACCsScreen = () => {
@@ -180,6 +181,27 @@ const AllACCsScreen = () => {
     e.preventDefault();
     setSaving(true);
     setAccErrors({});
+
+    // Validation
+    const validationErrors = {};
+    const nameError = validateRequired(accFormData.name, 'Name');
+    if (nameError) validationErrors.name = nameError;
+    const emailError = validateEmail(accFormData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (accFormData.phone) {
+      const phoneError = validatePhone(accFormData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (accFormData.registration_number) {
+      const regError = validateMinLength(accFormData.registration_number, 5, 'Registration number');
+      if (regError) validationErrors.registration_number = regError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setAccErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       await adminAPI.updateACC(selectedACC.id, accFormData);
@@ -489,11 +511,30 @@ const AllACCsScreen = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <PresentDataForm
-            data={selectedACC}
-            isLoading={false}
-            emptyMessage="No ACC data available"
-          />
+          {selectedACC && (
+            <>
+              <DetailForm
+                data={selectedACC}
+                fields={[
+                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'status', label: 'Status', type: 'status' },
+                  { key: 'commission_percentage', label: 'Commission Percentage', transform: (value) => value ? `${value}%` : 'Not Set', showEmpty: false },
+                  { key: 'stripe_account_configured', label: 'Stripe Account', transform: (value) => value ? 'Configured' : 'Not Configured', render: (value) => (
+                    <span className={`detail-form-badge ${value === 'Configured' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {value}
+                    </span>
+                  ), showEmpty: false },
+                ]}
+              />
+            </>
+          )}
           {selectedACC && (
             <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
               <Button
@@ -620,6 +661,7 @@ const AllACCsScreen = () => {
               value={accFormData.registration_number}
               onChange={handleAccFormChange}
               error={accErrors.registration_number}
+              placeholder="Enter registration number (minimum 5 characters)"
             />
             <FormInput
               label="Country"
@@ -643,6 +685,7 @@ const AllACCsScreen = () => {
               value={accFormData.phone}
               onChange={handleAccFormChange}
               error={accErrors.phone}
+              placeholder="Enter phone number (10-13 digits)"
             />
             <FormInput
               label="Email"
@@ -651,6 +694,7 @@ const AllACCsScreen = () => {
               value={accFormData.email}
               onChange={handleAccFormChange}
               error={accErrors.email}
+              placeholder="example@example.com"
             />
             <FormInput
               label="Website"

@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, CheckCircle, XCircle, Hash } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
@@ -528,44 +529,23 @@ const TrainingCenterCertificatesScreen = () => {
       >
         {selectedCertificate && (
           <div className="detail-modal-container">
-            <div className="detail-modal-grid">
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Certificate Number</p>
-                <p className="detail-modal-value">{selectedCertificate.certificate_number}</p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Verification Code</p>
-                <p className="detail-modal-value detail-modal-value-mono">{selectedCertificate.verification_code || 'N/A'}</p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Trainee Name</p>
-                <p className="detail-modal-value">{selectedCertificate.trainee_name}</p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Course</p>
-                <p className="detail-modal-value">
-                  {typeof selectedCertificate.course === 'object' ? selectedCertificate.course?.name : selectedCertificate.course}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Issue Date</p>
-                <p className="detail-modal-value">
-                  {selectedCertificate.issue_date ? new Date(selectedCertificate.issue_date).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Expiry Date</p>
-                <p className="detail-modal-value">
-                  {selectedCertificate.expiry_date ? new Date(selectedCertificate.expiry_date).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Status</p>
-                <span className={`detail-modal-badge ${selectedCertificate.status === 'valid' ? 'valid' : 'expired'}`}>
-                  {selectedCertificate.status}
-                </span>
-              </div>
-            </div>
+            <DetailForm
+              data={selectedCertificate}
+              fields={[
+                { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
+                { key: 'verification_code', label: 'Verification Code', icon: Hash, showEmpty: false },
+                { key: 'trainee_name', label: 'Trainee Name', icon: User },
+                { 
+                  key: 'course', 
+                  label: 'Course', 
+                  icon: BookOpen,
+                  render: (value) => typeof value === 'object' ? value?.name : value
+                },
+                { key: 'issue_date', label: 'Issue Date', type: 'date', icon: Calendar },
+                { key: 'expiry_date', label: 'Expiry Date', type: 'date', icon: Calendar, showEmpty: false },
+                { key: 'status', label: 'Status', type: 'status' },
+              ]}
+            />
             {selectedCertificate.certificate_pdf_url && (
               <div className="detail-modal-actions">
                 <button

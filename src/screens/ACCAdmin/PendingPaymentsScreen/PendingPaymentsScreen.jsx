@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText } from 'lucide-react';
+import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import Button from '../../../components/Button/Button';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './PendingPaymentsScreen.css';
 
 const PendingPaymentsScreen = () => {
@@ -314,10 +314,45 @@ const PendingPaymentsScreen = () => {
       >
         {selectedBatch && (
           <div className="space-y-6">
-            <PresentDataForm
+            <DetailForm
               data={selectedBatch}
-              isLoading={false}
-              emptyMessage="No payment data available"
+              fields={[
+                { 
+                  key: 'training_center', 
+                  label: 'Training Center', 
+                  icon: Building2,
+                  render: (value) => value?.name || 'N/A'
+                },
+                { 
+                  key: 'course', 
+                  label: 'Course', 
+                  icon: BookOpen,
+                  render: (value) => value?.name || 'N/A'
+                },
+                { key: 'quantity', label: 'Quantity', render: (value) => `${value || 0} codes` },
+                { 
+                  key: 'total_amount', 
+                  label: 'Total Amount', 
+                  icon: DollarSign,
+                  render: (value) => formatCurrency(value)
+                },
+                { 
+                  key: 'payment_amount', 
+                  label: 'Payment Amount', 
+                  icon: DollarSign,
+                  render: (value) => formatCurrency(value),
+                  showEmpty: false
+                },
+                { 
+                  key: 'final_amount', 
+                  label: 'Final Amount', 
+                  icon: DollarSign,
+                  render: (value) => formatCurrency(value),
+                  showEmpty: false
+                },
+                { key: 'created_at', label: 'Submitted Date', type: 'datetime', icon: Calendar },
+                { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+              ]}
             />
             
             {selectedBatch.payment_receipt_url && (

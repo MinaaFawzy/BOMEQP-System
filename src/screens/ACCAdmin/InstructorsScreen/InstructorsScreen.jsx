@@ -2,14 +2,14 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
@@ -499,15 +499,24 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
-            {/* Prepare data for PresentDataForm - Only nested sections, no duplicate data */}
-            {(() => {
-              // Prepare instructor object with names (without cv_url, certificates_json, specializations - these are displayed at top level)
-              let instructorData = null;
-              if (selectedRequest.instructor) {
-                const { cv_url, certificates_json, specializations, ...instructorRest } = selectedRequest.instructor;
-                instructorData = instructorRest;
-              } else if (selectedRequest.first_name || selectedRequest.last_name) {
-                instructorData = {
+            {/* Instructor Basic Information */}
+            {selectedRequest.instructor ? (
+              <DetailForm
+                data={selectedRequest.instructor}
+                fields={[
+                  { key: 'first_name', label: 'First Name', icon: User },
+                  { key: 'last_name', label: 'Last Name', icon: User },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'id_number', label: 'ID Number', showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                  { key: 'status', label: 'Status', type: 'status' },
+                ]}
+              />
+            ) : (
+              <DetailForm
+                data={{
                   first_name: selectedRequest.first_name,
                   last_name: selectedRequest.last_name,
                   email: selectedRequest.email || selectedRequest._normalizedEmail,
@@ -515,58 +524,18 @@ const InstructorsScreen = () => {
                   id_number: selectedRequest.id_number,
                   country: selectedRequest.country,
                   city: selectedRequest.city,
-                };
-              }
-
-              // Prepare training center object with names (not ID)
-              const trainingCenterData = selectedRequest.training_center ? {
-                name: selectedRequest.training_center.name || selectedRequest.training_center.legal_name || selectedRequest._normalizedTrainingCenter,
-                email: selectedRequest.training_center.email,
-                phone: selectedRequest.training_center.phone,
-                address: selectedRequest.training_center.address,
-                city: selectedRequest.training_center.city,
-                country: selectedRequest.training_center.country,
-              } : (selectedRequest._normalizedTrainingCenter ? { name: selectedRequest._normalizedTrainingCenter } : null);
-
-              // Prepare sub category object with names (not ID)
-              const subCategoryData = selectedRequest.sub_category ? {
-                name: selectedRequest.sub_category.name,
-                name_ar: selectedRequest.sub_category.name_ar,
-                description: selectedRequest.sub_category.description,
-                category: selectedRequest.sub_category.category,
-              } : null;
-
-              // Prepare display data with only nested sections and non-duplicate fields
-              const displayData = {
-                // Nested sections only
-                ...(instructorData && { instructor: instructorData }),
-                ...(trainingCenterData && { training_center: trainingCenterData }),
-                ...(subCategoryData && { sub_category: subCategoryData }),
-                
-                // Non-duplicate fields (not in nested sections)
-                ...((selectedRequest._normalizedDate || selectedRequest.request_date || selectedRequest.created_at) && {
-                  request_date: selectedRequest._normalizedDate || selectedRequest.request_date || selectedRequest.created_at
-                }),
-                ...(selectedRequest.documents_json && { documents_json: selectedRequest.documents_json }),
-                ...((selectedRequest.instructor?.cv_url || selectedRequest.cv_url) && {
-                  cv_url: selectedRequest.instructor?.cv_url || selectedRequest.cv_url
-                }),
-                ...((selectedRequest.instructor?.certificates_json || selectedRequest.certificates_json) && {
-                  certificates_json: selectedRequest.instructor?.certificates_json || selectedRequest.certificates_json
-                }),
-                ...((selectedRequest.instructor?.specializations || selectedRequest.specializations) && {
-                  specializations: selectedRequest.instructor?.specializations || selectedRequest.specializations
-                }),
-              };
-
-              return (
-                <PresentDataForm
-                  data={displayData}
-                  isLoading={false}
-                  emptyMessage="No instructor data available"
-                />
-                    );
-                  })()}
+                }}
+                fields={[
+                  { key: 'first_name', label: 'First Name', icon: User },
+                  { key: 'last_name', label: 'Last Name', icon: User },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'id_number', label: 'ID Number', showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                ]}
+              />
+            )}
 
             {/* Sub-Category or Courses Requested */}
             {selectedRequest._isRequest && (selectedRequest.sub_category_id || selectedRequest.sub_category || selectedRequest.courses || selectedRequest.requested_courses) && (

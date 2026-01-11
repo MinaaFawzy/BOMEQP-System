@@ -1,14 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, Mail, Phone, Building2, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X } from 'lucide-react';
+import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
+import { Users, Mail, Phone, Building2, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import './AllInstructorsScreen.css';
 
@@ -181,6 +182,29 @@ const AllInstructorsScreen = () => {
     e.preventDefault();
     setSaving(true);
     setInstructorErrors({});
+
+    // Validation
+    const validationErrors = {};
+    const firstNameError = validateRequired(instructorFormData.first_name, 'First name');
+    if (firstNameError) validationErrors.first_name = firstNameError;
+    const lastNameError = validateRequired(instructorFormData.last_name, 'Last name');
+    if (lastNameError) validationErrors.last_name = lastNameError;
+    const emailError = validateEmail(instructorFormData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (instructorFormData.phone) {
+      const phoneError = validatePhone(instructorFormData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (instructorFormData.id_number) {
+      const idError = validateUKID(instructorFormData.id_number, 'ID number');
+      if (idError) validationErrors.id_number = idError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setInstructorErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       let dataToSend = { ...instructorFormData };
@@ -502,11 +526,27 @@ const AllInstructorsScreen = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <PresentDataForm
-            data={selectedInstructor}
-            isLoading={detailLoading}
-            emptyMessage="No instructor data available"
-          />
+          {selectedInstructor && (
+            <>
+              {detailLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                </div>
+              ) : (
+                <DetailForm
+                  data={selectedInstructor}
+                  fields={[
+                    { key: 'first_name', label: 'First Name', icon: User },
+                    { key: 'last_name', label: 'Last Name', icon: User },
+                    { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                    { key: 'phone', label: 'Phone', icon: Phone },
+                    { key: 'id_number', label: 'ID Number', showEmpty: false },
+                    { key: 'status', label: 'Status', type: 'status' },
+                  ]}
+                />
+              )}
+            </>
+          )}
           {selectedInstructor && (
             <div className="flex space-x-3 pt-4 border-t border-gray-200">
               <Button
@@ -572,6 +612,7 @@ const AllInstructorsScreen = () => {
               value={instructorFormData.email}
               onChange={handleInstructorFormChange}
               error={instructorErrors.email}
+              placeholder="example@example.com"
             />
             <FormInput
               label="Phone"
@@ -579,6 +620,7 @@ const AllInstructorsScreen = () => {
               value={instructorFormData.phone}
               onChange={handleInstructorFormChange}
               error={instructorErrors.phone}
+              placeholder="Enter phone number (10-13 digits)"
             />
             <FormInput
               label="ID Number"
@@ -586,6 +628,7 @@ const AllInstructorsScreen = () => {
               value={instructorFormData.id_number}
               onChange={handleInstructorFormChange}
               error={instructorErrors.id_number}
+              placeholder="Enter ID number (minimum 8 characters)"
             />
             
             {/* CV File Upload */}

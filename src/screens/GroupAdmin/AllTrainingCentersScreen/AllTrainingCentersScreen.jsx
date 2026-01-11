@@ -1,14 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, Eye, Mail, MapPin, School, CheckCircle, Clock, Edit, ClipboardList, XCircle } from 'lucide-react';
+import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
+import { Building2, Eye, Mail, MapPin, School, CheckCircle, Clock, Edit, ClipboardList, XCircle, Phone, Globe } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './AllTrainingCentersScreen.css';
 
 const AllTrainingCentersScreen = () => {
@@ -183,6 +184,27 @@ const AllTrainingCentersScreen = () => {
     e.preventDefault();
     setSaving(true);
     setTcErrors({});
+
+    // Validation
+    const validationErrors = {};
+    const nameError = validateRequired(tcFormData.name, 'Name');
+    if (nameError) validationErrors.name = nameError;
+    const emailError = validateEmail(tcFormData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (tcFormData.phone) {
+      const phoneError = validatePhone(tcFormData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (tcFormData.registration_number) {
+      const regError = validateMinLength(tcFormData.registration_number, 5, 'Registration number');
+      if (regError) validationErrors.registration_number = regError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setTcErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       await adminAPI.updateTrainingCenter(selectedTC.id, tcFormData);
@@ -397,11 +419,25 @@ const AllTrainingCentersScreen = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <PresentDataForm
-            data={selectedTC}
-            isLoading={false}
-            emptyMessage="No training center data available"
-          />
+          {selectedTC && (
+            <>
+              <DetailForm
+                data={selectedTC}
+                fields={[
+                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
+                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'status', label: 'Status', type: 'status' },
+                ]}
+              />
+            </>
+          )}
           {selectedTC && (
             <div className="flex space-x-3 pt-4 border-t border-gray-200">
               <Button
@@ -467,6 +503,7 @@ const AllTrainingCentersScreen = () => {
               value={tcFormData.registration_number}
               onChange={handleTcFormChange}
               error={tcErrors.registration_number}
+              placeholder="Enter registration number (minimum 5 characters)"
             />
             <FormInput
               label="Country"
@@ -528,6 +565,7 @@ const AllTrainingCentersScreen = () => {
               value={tcFormData.phone}
               onChange={handleTcFormChange}
               error={tcErrors.phone}
+              placeholder="Enter phone number (10-13 digits)"
             />
             <FormInput
               label="Email"
@@ -536,6 +574,7 @@ const AllTrainingCentersScreen = () => {
               value={tcFormData.email}
               onChange={handleTcFormChange}
               error={tcErrors.email}
+              placeholder="example@example.com"
             />
             <FormInput
               label="Website"

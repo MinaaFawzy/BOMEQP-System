@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 import './CustomInput.css';
 
@@ -13,10 +13,13 @@ const CustomInput = ({
   endIcon,
   error,
   helperText,
+  showPasswordHints = false,
+  passwordHintsComponent,
   InputProps: customInputProps,
   ...props 
 }) => {
   const containerRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Remove browser's default password reveal button aggressively
   useEffect(() => {
@@ -269,6 +272,8 @@ const CustomInput = ({
         type={type}
         value={value}
         onChange={onChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         required={required}
         error={error}
         helperText={helperText}
@@ -278,6 +283,11 @@ const CustomInput = ({
         inputProps={mergedInputPropsLower}
         {...restProps}
       />
+      {showPasswordHints && passwordHintsComponent && isFocused && (
+        <div className="password-hints-container">
+          {passwordHintsComponent}
+        </div>
+      )}
     </div>
   );
 };

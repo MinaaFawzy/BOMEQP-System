@@ -5,6 +5,7 @@ import { authAPI, instructorAPI, publicAPI, trainingCenterAPI } from '../../../s
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
+import { validateEmail, validatePhone, validatePassword, validatePasswordConfirmation, validateRequired, validateUKID } from '../../../utils/validation';
 import { 
   User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound,
   Phone, MapPin, FileText, Upload, X, Award, Building2, Globe, Edit
@@ -330,6 +331,49 @@ const ProfileScreen = () => {
     setErrors({});
     setSuccess('');
 
+    // Validation
+    const validationErrors = {};
+    if (isTrainingCenter) {
+      const nameError = validateRequired(formData.name, 'Name');
+      if (nameError) validationErrors.name = nameError;
+      const emailError = validateEmail(formData.email);
+      if (emailError) validationErrors.email = emailError;
+      if (formData.phone) {
+        const phoneError = validatePhone(formData.phone, 10);
+        if (phoneError) validationErrors.phone = phoneError;
+      }
+      if (formData.registration_number) {
+        const regError = validateMinLength(formData.registration_number, 5, 'Registration number');
+        if (regError) validationErrors.registration_number = regError;
+      }
+    } else if (isInstructor) {
+      const firstNameError = validateRequired(formData.first_name, 'First name');
+      if (firstNameError) validationErrors.first_name = firstNameError;
+      const lastNameError = validateRequired(formData.last_name, 'Last name');
+      if (lastNameError) validationErrors.last_name = lastNameError;
+      const emailError = validateEmail(formData.email);
+      if (emailError) validationErrors.email = emailError;
+      if (formData.phone) {
+        const phoneError = validatePhone(formData.phone, 10);
+        if (phoneError) validationErrors.phone = phoneError;
+      }
+      if (formData.id_number) {
+        const idError = validateUKID(formData.id_number, 'ID number');
+        if (idError) validationErrors.id_number = idError;
+      }
+    } else {
+      const nameError = validateRequired(formData.name, 'Name');
+      if (nameError) validationErrors.name = nameError;
+      const emailError = validateEmail(formData.email);
+      if (emailError) validationErrors.email = emailError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
+
     try {
       if (isInstructor) {
         // Update instructor profile
@@ -449,6 +493,22 @@ const ProfileScreen = () => {
     setSaving(true);
     setErrors({});
     setSuccess('');
+
+    // Validation
+    const passwordErrors = {};
+    if (!passwordData.current_password) {
+      passwordErrors.current_password = 'Current password is required';
+    }
+    const newPasswordError = validatePassword(passwordData.password, 8, true);
+    if (newPasswordError) passwordErrors.password = newPasswordError;
+    const confirmPasswordError = validatePasswordConfirmation(passwordData.password, passwordData.password_confirmation);
+    if (confirmPasswordError) passwordErrors.password_confirmation = confirmPasswordError;
+
+    if (Object.keys(passwordErrors).length > 0) {
+      setErrors(passwordErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       await authAPI.changePassword(passwordData);
@@ -686,7 +746,7 @@ const ProfileScreen = () => {
                       value={formData.name}
                       onChange={handleProfileChange}
                       required
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.name}
                     />
 
@@ -697,8 +757,9 @@ const ProfileScreen = () => {
                       value={formData.email}
                       onChange={handleProfileChange}
                       required
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.email}
+                      placeholder="example@example.com"
                     />
                   </div>
 
@@ -708,7 +769,7 @@ const ProfileScreen = () => {
                       name="legal_name"
                       value={formData.legal_name}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.legal_name}
                       placeholder="Official legal name of the training center"
                     />
@@ -718,9 +779,9 @@ const ProfileScreen = () => {
                       name="registration_number"
                       value={formData.registration_number}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.registration_number}
-                      placeholder="Unique registration number"
+                      placeholder="Enter registration number (minimum 5 characters)"
                     />
                   </div>
 
@@ -731,8 +792,9 @@ const ProfileScreen = () => {
                       type="tel"
                       value={formData.phone}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.phone}
+                      placeholder="Enter phone number (10-13 digits)"
                     />
 
                     <FormInput
@@ -741,7 +803,7 @@ const ProfileScreen = () => {
                       type="url"
                       value={formData.website}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.website}
                       placeholder="https://example.com"
                     />
@@ -753,7 +815,7 @@ const ProfileScreen = () => {
                       name="address"
                       value={formData.address}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.address}
                     />
                   </div>
@@ -811,14 +873,22 @@ const ProfileScreen = () => {
                       )}
                     </div>
 
-                    <FormInput
-                      label="State/Province"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleProfileChange}
-                      disabled={!isEditing}
-                      error={errors.state}
-                    />
+                    {!isEditing ? (
+                      <FormInput
+                        label="State/Province"
+                        name="state"
+                        value={formData.state}
+                        viewMode={true}
+                      />
+                    ) : (
+                      <FormInput
+                        label="State/Province"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleProfileChange}
+                        error={errors.state}
+                      />
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -827,7 +897,7 @@ const ProfileScreen = () => {
                       name="postal_code"
                       value={formData.postal_code}
                       onChange={handleProfileChange}
-                      disabled={!isEditing}
+                      viewMode={!isEditing}
                       error={errors.postal_code}
                     />
                   </div>
@@ -839,7 +909,7 @@ const ProfileScreen = () => {
                     rows={6}
                     value={formData.description}
                     onChange={handleProfileChange}
-                    disabled={!isEditing}
+                    viewMode={!isEditing}
                     error={errors.description}
                     placeholder="Tell us about your training center..."
                   />
@@ -902,6 +972,7 @@ const ProfileScreen = () => {
                       onChange={handleProfileChange}
                       required
                       error={errors.email}
+                      placeholder="example@example.com"
                     />
 
                     <FormInput
@@ -911,6 +982,7 @@ const ProfileScreen = () => {
                       value={formData.phone}
                       onChange={handleProfileChange}
                       error={errors.phone}
+                      placeholder="Enter phone number (10-13 digits)"
                     />
                   </div>
 
@@ -975,6 +1047,7 @@ const ProfileScreen = () => {
                       value={formData.id_number}
                       onChange={handleProfileChange}
                       error={errors.id_number}
+                      placeholder="Enter ID number (minimum 8 characters)"
                     />
                   </div>
 
@@ -1008,6 +1081,7 @@ const ProfileScreen = () => {
                     onChange={handleProfileChange}
                     required
                     error={errors.email}
+                    placeholder="example@example.com"
                   />
                 </div>
               )}
@@ -1056,6 +1130,7 @@ const ProfileScreen = () => {
                 onChange={handlePasswordChange}
                 required
                 error={errors.current_password}
+                placeholder="Enter your current password"
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1067,6 +1142,7 @@ const ProfileScreen = () => {
                   onChange={handlePasswordChange}
                   required
                   error={errors.password}
+                  placeholder="Must include uppercase, numbers & special characters"
                 />
 
                 <FormInput
@@ -1077,6 +1153,7 @@ const ProfileScreen = () => {
                   onChange={handlePasswordChange}
                   required
                   error={errors.password_confirmation}
+                  placeholder="Confirm your new password"
                 />
               </div>
 

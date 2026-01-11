@@ -2,11 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import axios from 'axios';
-import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2 } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -1305,24 +1306,17 @@ const ClassesScreen = () => {
         {selectedClass && (
           <div className="detail-modal-container">
             {/* Basic Information */}
-            <div className="detail-modal-grid">
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Class ID</p>
-                <p className="detail-modal-value">
-                  {selectedClass.class_id || selectedClass.id || 'N/A'}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Status</p>
-                <span className={`detail-modal-badge ${
-                  selectedClass.status === 'completed' ? 'completed' :
-                  selectedClass.status === 'scheduled' ? 'scheduled' :
-                  selectedClass.status === 'cancelled' ? 'cancelled' : 'default'
-                }`}>
-                  {selectedClass.status ? selectedClass.status.charAt(0).toUpperCase() + selectedClass.status.slice(1) : 'N/A'}
-                </span>
-              </div>
-            </div>
+            <DetailForm
+              data={selectedClass}
+              fields={[
+                { 
+                  key: 'class_id', 
+                  label: 'Class ID', 
+                  render: (value, data) => data.class_id || data.id || 'N/A'
+                },
+                { key: 'status', label: 'Status', type: 'status' },
+              ]}
+            />
 
             {/* Course Information */}
             <div className="detail-modal-section detail-modal-section-blue">

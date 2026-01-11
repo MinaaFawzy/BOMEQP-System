@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
 import { accAPI, authAPI, publicAPI } from '../../../services/api';
+import { validateEmail, validatePhone, validateRequired, validateMinLength, validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
 import { User, Mail, Phone, MapPin, CheckCircle, AlertCircle, Globe, Building2, FileText, Edit, X, Save, Lock, KeyRound, Upload, File, Trash2, Eye, Image as ImageIcon, Shield, Calendar, Clock, CreditCard } from 'lucide-react';
 import FormInput from '../../../components/FormInput/FormInput';
 import './ProfileScreen.css';
@@ -442,6 +443,27 @@ const ProfileScreen = () => {
     setErrors({});
     setSuccessMessage('');
 
+    // Validation
+    const validationErrors = {};
+    const nameError = validateRequired(formData.name, 'Name');
+    if (nameError) validationErrors.name = nameError;
+    const emailError = validateEmail(formData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (formData.phone) {
+      const phoneError = validatePhone(formData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (formData.registration_number) {
+      const regError = validateMinLength(formData.registration_number, 5, 'Registration number');
+      if (regError) validationErrors.registration_number = regError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
+
     try {
       // Check if we have documents or logo to upload/update
       const hasDocuments = newDocuments.length > 0 || updatingDocuments.length > 0;
@@ -812,9 +834,18 @@ const ProfileScreen = () => {
       e.preventDefault();
     }
     
-    // Validate that password fields are not empty
-    if (!passwordData.current_password || !passwordData.password || !passwordData.password_confirmation) {
-      setErrors({ password: 'All password fields are required' });
+    // Validation
+    const passwordErrors = {};
+    if (!passwordData.current_password) {
+      passwordErrors.current_password = 'Current password is required';
+    }
+    const newPasswordError = validatePassword(passwordData.password, 8, true);
+    if (newPasswordError) passwordErrors.password = newPasswordError;
+    const confirmPasswordError = validatePasswordConfirmation(passwordData.password, passwordData.password_confirmation);
+    if (confirmPasswordError) passwordErrors.password_confirmation = confirmPasswordError;
+
+    if (Object.keys(passwordErrors).length > 0) {
+      setErrors(passwordErrors);
       return;
     }
     
@@ -1059,6 +1090,7 @@ const ProfileScreen = () => {
             required
                 disabled={!isEditing}
             error={errors.email}
+            placeholder="example@example.com"
           />
           <FormInput
             label="Phone"
@@ -1068,6 +1100,7 @@ const ProfileScreen = () => {
             onChange={handleChange}
                 disabled={!isEditing}
             error={errors.phone}
+            placeholder="Enter phone number (10-13 digits)"
           />
           <FormInput
             label="Website"
@@ -1087,6 +1120,7 @@ const ProfileScreen = () => {
                 onChange={handleChange}
                 disabled={!isEditing}
                 error={errors.registration_number}
+                placeholder="Enter registration number (minimum 5 characters)"
                 helpText="Official registration number of your organization"
               />
             </div>
@@ -1758,6 +1792,7 @@ const ProfileScreen = () => {
                   onChange={handlePasswordChange}
                   required
                   error={errors.current_password}
+                  placeholder="Enter your current password"
                 />
 
                 <div className="profile-form-grid">
@@ -1769,6 +1804,7 @@ const ProfileScreen = () => {
                     onChange={handlePasswordChange}
                     required
                     error={errors.password}
+                    placeholder="Must include uppercase, numbers & special characters"
                   />
 
                   <FormInput
@@ -1779,6 +1815,7 @@ const ProfileScreen = () => {
                     onChange={handlePasswordChange}
                     required
                     error={errors.password_confirmation}
+                    placeholder="Confirm your new password"
                   />
                 </div>
 

@@ -2,10 +2,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { getAuthToken } from '../../../config/api';
+import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -15,6 +16,7 @@ import DataTable from '../../../components/DataTable/DataTable';
 import './InstructorsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 
 const TrainingCenterInstructorsScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -252,6 +254,29 @@ const TrainingCenterInstructorsScreen = () => {
     e.preventDefault();
     setSaving(true);
     setErrors({});
+
+    // Validation
+    const validationErrors = {};
+    const firstNameError = validateRequired(formData.first_name, 'First name');
+    if (firstNameError) validationErrors.first_name = firstNameError;
+    const lastNameError = validateRequired(formData.last_name, 'Last name');
+    if (lastNameError) validationErrors.last_name = lastNameError;
+    const emailError = validateEmail(formData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (formData.phone) {
+      const phoneError = validatePhone(formData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (formData.id_number) {
+      const idError = validateUKID(formData.id_number, 'ID number');
+      if (idError) validationErrors.id_number = idError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       // Check if we need FormData (if there's a file to upload)
@@ -940,6 +965,7 @@ const TrainingCenterInstructorsScreen = () => {
               onChange={handleChange}
               required
               error={errors.email}
+              placeholder="example@example.com"
             />
 
             <FormInput
@@ -949,6 +975,7 @@ const TrainingCenterInstructorsScreen = () => {
               value={formData.phone}
               onChange={handleChange}
               error={errors.phone}
+              placeholder="Enter phone number (10-13 digits)"
             />
           </div>
 
@@ -958,6 +985,7 @@ const TrainingCenterInstructorsScreen = () => {
             value={formData.id_number}
             onChange={handleChange}
             error={errors.id_number}
+            placeholder="Enter ID number (minimum 8 characters)"
           />
 
           <div>
@@ -1118,59 +1146,27 @@ const TrainingCenterInstructorsScreen = () => {
       >
         {selectedInstructor && (
           <div className="instructors-detail-container">
-            <div className="instructors-detail-grid">
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">First Name</p>
-                <p className="instructors-detail-value">{selectedInstructor.first_name || 'N/A'}</p>
-              </div>
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">Last Name</p>
-                <p className="instructors-detail-value">{selectedInstructor.last_name || 'N/A'}</p>
-              </div>
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">
-                  <Mail size={16} className="instructors-detail-label-icon" />
-                  Email
-                </p>
-                <p className="instructors-detail-value">{selectedInstructor.email || 'N/A'}</p>
-              </div>
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">
-                  <Phone size={16} className="instructors-detail-label-icon" />
-                  Phone
-                </p>
-                <p className="instructors-detail-value">{selectedInstructor.phone || 'N/A'}</p>
-              </div>
-              {selectedInstructor.id_number && (
-                <div className="instructors-detail-item">
-                  <p className="instructors-detail-label">ID Number</p>
-                  <p className="instructors-detail-value">{selectedInstructor.id_number}</p>
-                </div>
-              )}
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">Type</p>
-                {selectedInstructor.is_assessor ? (
-                  <span className="instructors-detail-badge-blue">
-                    Assessor
-                  </span>
-                ) : (
-                  <span className="instructors-detail-badge-gray">
-                    Instructor
-                  </span>
-                )}
-              </div>
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">Status</p>
-                <span className={`instructors-detail-status ${
-                  selectedInstructor.status === 'active' ? 'instructors-detail-status-active' :
-                  selectedInstructor.status === 'pending' ? 'instructors-detail-status-pending' :
-                  selectedInstructor.status === 'suspended' ? 'instructors-detail-status-suspended' :
-                  'instructors-detail-status-inactive'
-                }`}>
-                  {selectedInstructor.status}
-                </span>
-              </div>
-            </div>
+            <DetailForm
+              data={selectedInstructor}
+              fields={[
+                { key: 'first_name', label: 'First Name', icon: User },
+                { key: 'last_name', label: 'Last Name', icon: User },
+                { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                { key: 'phone', label: 'Phone', icon: Phone },
+                { key: 'id_number', label: 'ID Number', showEmpty: false },
+                { 
+                  key: 'is_assessor', 
+                  label: 'Type',
+                  transform: (value) => value ? 'Assessor' : 'Instructor',
+                  render: (value) => (
+                    <span className={`detail-form-badge ${value === 'Assessor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {value}
+                    </span>
+                  )
+                },
+                { key: 'status', label: 'Status', type: 'status' },
+              ]}
+            />
             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
               <div>
                 <h3 className="instructors-specializations-title">Specializations / Languages</h3>

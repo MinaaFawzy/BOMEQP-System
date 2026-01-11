@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
 import { instructorAPI, publicAPI } from '../../../services/api';
+import { validateEmail, validatePhone, validateRequired, validateUKID, validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
@@ -210,6 +211,27 @@ const InstructorProfileScreen = () => {
     setErrors({});
     setSuccess('');
 
+    // Validation
+    const validationErrors = {};
+    const firstNameError = validateRequired(formData.first_name, 'First name');
+    if (firstNameError) validationErrors.first_name = firstNameError;
+    const lastNameError = validateRequired(formData.last_name, 'Last name');
+    if (lastNameError) validationErrors.last_name = lastNameError;
+    if (formData.phone) {
+      const phoneError = validatePhone(formData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (formData.id_number) {
+      const idError = validateUKID(formData.id_number, 'ID number');
+      if (idError) validationErrors.id_number = idError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
+
     try {
       let updatedInstructor;
       
@@ -338,6 +360,22 @@ const InstructorProfileScreen = () => {
     setSaving(true);
     setErrors({});
     setSuccess('');
+
+    // Validation
+    const passwordErrors = {};
+    if (!passwordData.current_password) {
+      passwordErrors.current_password = 'Current password is required';
+    }
+    const newPasswordError = validatePassword(passwordData.password, 8, true);
+    if (newPasswordError) passwordErrors.password = newPasswordError;
+    const confirmPasswordError = validatePasswordConfirmation(passwordData.password, passwordData.password_confirmation);
+    if (confirmPasswordError) passwordErrors.password_confirmation = confirmPasswordError;
+
+    if (Object.keys(passwordErrors).length > 0) {
+      setErrors(passwordErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       const { authAPI } = await import('../../../services/api');
@@ -758,6 +796,7 @@ const InstructorProfileScreen = () => {
                   onChange={handleProfileChange}
                 disabled={!isEditingProfile}
                   error={errors.id_number}
+                  placeholder="Enter ID number (minimum 8 characters)"
                 />
                 
                 {/* Assessor Status (Read-only) */}
@@ -1115,6 +1154,7 @@ const InstructorProfileScreen = () => {
                   onChange={handlePasswordChange}
                   required
                   error={errors.current_password}
+                  placeholder="Enter your current password"
                 />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1126,6 +1166,7 @@ const InstructorProfileScreen = () => {
                     onChange={handlePasswordChange}
                     required
                     error={errors.password}
+                    placeholder="Must include uppercase, numbers & special characters"
                   />
 
                   <FormInput
@@ -1136,6 +1177,7 @@ const InstructorProfileScreen = () => {
                     onChange={handlePasswordChange}
                     required
                     error={errors.password_confirmation}
+                    placeholder="Confirm your new password"
                   />
                 </div>
 

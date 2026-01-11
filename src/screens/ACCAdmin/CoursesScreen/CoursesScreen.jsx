@@ -6,6 +6,7 @@ import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import { validateRequired, validateNumber, validateMinLength, validateMaxLength } from '../../../utils/validation';
 import './CoursesScreen.css';
 
@@ -790,104 +791,22 @@ const CoursesScreen = () => {
                 <GraduationCap className="mr-2" size={20} />
                 Course Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedCourse.id && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Hash size={14} className="mr-1" />
-                      Course ID
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      #{selectedCourse.id}
-                    </p>
-                  </div>
-                )}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Course Name (English)</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedCourse.name || 'N/A'}</p>
-                </div>
-                {selectedCourse.name_ar && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Course Name (Arabic)</p>
-                    <p className="text-base font-semibold text-gray-900">{selectedCourse.name_ar}</p>
-                  </div>
-                )}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Course Code</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedCourse.code || 'N/A'}</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Level</p>
-                  <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
-                    {selectedCourse.level || 'N/A'}
-                  </span>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1 flex items-center">
-                    <Clock size={14} className="mr-1" />
-                    Duration
-                  </p>
-                  <p className="text-base font-semibold text-gray-900">{selectedCourse.duration_hours ? `${selectedCourse.duration_hours} hours` : 'N/A'}</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Max Capacity</p>
-                  <p className="text-base font-semibold text-gray-900">{selectedCourse.max_capacity ? `${selectedCourse.max_capacity} trainees` : 'N/A'}</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Status</p>
-                  <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-                    selectedCourse.status === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' : 
-                    selectedCourse.status === 'inactive' ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300' :
-                    'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                  }`}>
-                    {selectedCourse.status ? selectedCourse.status.charAt(0).toUpperCase() + selectedCourse.status.slice(1) : 'N/A'}
-                  </span>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Assessor Required</p>
-                  <span className={`px-3 py-1.5 inline-flex text-xs font-medium rounded-full ${
-                    selectedCourse.assessor_required 
-                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' 
-                      : 'bg-gray-100 text-gray-600 border border-gray-200'
-                  }`}>
-                    {selectedCourse.assessor_required ? 'Required' : 'Not Required'}
-                  </span>
-                </div>
-                {selectedCourse.created_at && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Created At
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedCourse.created_at).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                )}
-                {selectedCourse.updated_at && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1 flex items-center">
-                      <Calendar size={14} className="mr-1" />
-                      Updated At
-                    </p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedCourse.updated_at).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                )}
-              </div>
+              <DetailForm
+                data={selectedCourse}
+                fields={[
+                  { key: 'id', label: 'Course ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                  { key: 'name', label: 'Course Name (English)', icon: BookOpen },
+                  { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
+                  { key: 'code', label: 'Course Code', icon: Hash },
+                  { key: 'level', label: 'Level', render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A' },
+                  { key: 'duration_hours', label: 'Duration', icon: Clock, render: (value) => value ? `${value} hours` : 'N/A' },
+                  { key: 'max_capacity', label: 'Max Capacity', render: (value) => value ? `${value} trainees` : 'N/A' },
+                  { key: 'status', label: 'Status', type: 'status' },
+                  { key: 'assessor_required', label: 'Assessor Required', render: (value) => value ? 'Required' : 'Not Required' },
+                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                ]}
+              />
             </div>
 
             {/* Category Information */}
@@ -897,39 +816,22 @@ const CoursesScreen = () => {
                   <BookOpen className="mr-2" size={20} />
                   Category Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedCourse.sub_category.id && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1 flex items-center">
-                        <Hash size={14} className="mr-1" />
-                        Sub Category ID
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        #{selectedCourse.sub_category.id}
-                      </p>
-                    </div>
-                  )}
-                  {selectedCourse.sub_category.category && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Category</p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {selectedCourse.sub_category.category.name || 'N/A'}
-                      </p>
-                    </div>
-                  )}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Sub Category</p>
+                <DetailForm
+                  data={selectedCourse.sub_category}
+                  fields={[
+                    { key: 'id', label: 'Sub Category ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                    { key: 'name', label: 'Sub Category', icon: BookOpen },
+                    { key: 'description', label: 'Sub Category Description', fullWidth: true, showEmpty: false },
+                  ]}
+                />
+                {selectedCourse.sub_category.category && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Category</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {selectedCourse.sub_category.name || 'N/A'}
+                      {selectedCourse.sub_category.category.name || 'N/A'}
                     </p>
                   </div>
-                  {selectedCourse.sub_category.description && (
-                    <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Sub Category Description</p>
-                      <p className="text-base text-gray-900">{selectedCourse.sub_category.description}</p>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
 

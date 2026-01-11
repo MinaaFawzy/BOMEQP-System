@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, BookOpen } from 'lucide-react';
+import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, BookOpen, Mail, Phone } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
 import DataTable from '../../../components/DataTable/DataTable';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
@@ -705,61 +706,51 @@ const InstructorAuthorizationsScreen = () => {
       >
         {selectedAuthorization && (
           <div className="detail-modal-container">
-            <div className="detail-modal-grid">
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Instructor</p>
-                <p className="detail-modal-value">
-                  {selectedAuthorization.instructor?.first_name} {selectedAuthorization.instructor?.last_name}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">ACC</p>
-                <p className="detail-modal-value">{selectedAuthorization.acc?.name || 'N/A'}</p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Courses</p>
-                <div className="detail-modal-courses-list">
-                  {selectedAuthorization.courses && Array.isArray(selectedAuthorization.courses) && selectedAuthorization.courses.length > 0 ? (
-                    selectedAuthorization.courses.map((course, idx) => (
-                      <p key={idx} className="detail-modal-value">
-                        {typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'}
-                      </p>
-                    ))
-                  ) : selectedAuthorization.course ? (
-                    <p className="detail-modal-value">
-                      {typeof selectedAuthorization.course === 'object' ? selectedAuthorization.course?.name || selectedAuthorization.course?.course_name || 'N/A' : selectedAuthorization.course || 'N/A'}
-                    </p>
-                  ) : (
-                    <p className="detail-modal-value">N/A</p>
-                  )}
-                </div>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Authorization Price</p>
-                <p className="detail-modal-value">
-                  ${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Status</p>
-                <span className={`detail-modal-badge ${
-                  selectedAuthorization.status === 'approved' ? 'approved' :
-                  selectedAuthorization.status === 'rejected' ? 'rejected' :
-                  selectedAuthorization.status === 'returned' ? 'returned' : 'pending'
-                }`}>
-                  {selectedAuthorization.status}
-                </span>
-              </div>
-              <div className="detail-modal-item">
-                <p className="detail-modal-label">Payment Status</p>
-                <span className={`detail-modal-badge ${
-                  selectedAuthorization.payment_status === 'paid' ? 'paid' :
-                  selectedAuthorization.payment_status === 'failed' ? 'failed' : 'pending'
-                }`}>
-                  {selectedAuthorization.payment_status || 'pending'}
-                </span>
-              </div>
-            </div>
+            <DetailForm
+              data={selectedAuthorization}
+              fields={[
+                { 
+                  key: 'instructor', 
+                  label: 'Instructor', 
+                  icon: Users,
+                  render: (value) => {
+                    if (!value) return 'N/A';
+                    return `${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A';
+                  }
+                },
+                { 
+                  key: 'acc', 
+                  label: 'ACC', 
+                  icon: Building2,
+                  render: (value) => value?.name || 'N/A'
+                },
+                { 
+                  key: 'courses', 
+                  label: 'Courses', 
+                  icon: BookOpen,
+                  render: (value, data) => {
+                    if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
+                      return data.courses.map((course, idx) => 
+                        typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'
+                      ).join(', ');
+                    } else if (data.course) {
+                      return typeof data.course === 'object' 
+                        ? data.course?.name || data.course?.course_name || 'N/A' 
+                        : data.course || 'N/A';
+                    }
+                    return 'N/A';
+                  }
+                },
+                { 
+                  key: 'authorization_price', 
+                  label: 'Authorization Price', 
+                  icon: DollarSign,
+                  render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
+                },
+                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'payment_status', label: 'Payment Status', type: 'status' },
+              ]}
+            />
             {selectedAuthorization.group_admin_status && (
               <div className="detail-modal-group-admin">
                 <p className="detail-modal-group-admin-title">Group Admin Status</p>

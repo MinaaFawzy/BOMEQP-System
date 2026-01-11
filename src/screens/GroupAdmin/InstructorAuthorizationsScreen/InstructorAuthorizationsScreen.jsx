@@ -6,7 +6,7 @@ import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
@@ -298,11 +298,56 @@ const InstructorAuthorizationsScreen = () => {
         title="Instructor Authorization Details"
         size="lg"
       >
-        <PresentDataForm
-          data={selectedAuthorization}
-          isLoading={false}
-          emptyMessage="No authorization data available"
-        />
+        {selectedAuthorization && (
+          <div className="detail-modal-container">
+            <DetailForm
+              data={selectedAuthorization}
+              fields={[
+                { 
+                  key: 'instructor', 
+                  label: 'Instructor', 
+                  icon: Users,
+                  render: (value) => {
+                    if (!value) return 'N/A';
+                    return `${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A';
+                  }
+                },
+                { 
+                  key: 'acc', 
+                  label: 'ACC', 
+                  icon: Building2,
+                  render: (value) => value?.name || 'N/A'
+                },
+                { 
+                  key: 'courses', 
+                  label: 'Courses', 
+                  icon: BookOpen,
+                  render: (value, data) => {
+                    if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
+                      return data.courses.map((course, idx) => 
+                        typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'
+                      ).join(', ');
+                    } else if (data.course) {
+                      return typeof data.course === 'object' 
+                        ? data.course?.name || data.course?.course_name || 'N/A' 
+                        : data.course || 'N/A';
+                    }
+                    return 'N/A';
+                  }
+                },
+                { 
+                  key: 'authorization_price', 
+                  label: 'Authorization Price', 
+                  icon: DollarSign,
+                  render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
+                },
+                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+              ]}
+            />
+          </div>
+        )}
       </Modal>
     </div>
   );

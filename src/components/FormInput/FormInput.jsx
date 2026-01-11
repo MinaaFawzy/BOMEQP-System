@@ -15,10 +15,66 @@ const FormInput = ({
   rows = 4,
   className = '',
   disabled = false,
+  viewMode = false, // New prop for read-only display mode
   min,
   max,
   step,
 }) => {
+  // View mode - display data in a nice read-only format
+  if (viewMode) {
+    const displayValue = value || value === 0 || value === false ? value : 'N/A';
+    let formattedValue = displayValue;
+    
+    // Format select values
+    if (type === 'select' && options && displayValue !== 'N/A') {
+      const selectedOption = options.find(opt => opt.value === displayValue);
+      formattedValue = selectedOption ? selectedOption.label : displayValue;
+    }
+    
+    // Format email and URL as links
+    const isEmail = type === 'email' && displayValue !== 'N/A';
+    const isUrl = type === 'url' && displayValue !== 'N/A';
+    
+    return (
+      <div className={className}>
+        {label && (
+          <label className="block text-sm font-medium text-gray-500 mb-1.5">
+            {label}
+          </label>
+        )}
+        <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+          {textarea ? (
+            <p className="text-base text-gray-900 whitespace-pre-wrap min-h-[60px]">
+              {formattedValue}
+            </p>
+          ) : isEmail ? (
+            <a 
+              href={`mailto:${formattedValue}`}
+              className="text-primary-600 hover:text-primary-700 hover:underline font-medium"
+            >
+              {formattedValue}
+            </a>
+          ) : isUrl ? (
+            <a 
+              href={formattedValue.startsWith('http') ? formattedValue : `https://${formattedValue}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:text-primary-700 hover:underline font-medium break-all"
+            >
+              {formattedValue}
+            </a>
+          ) : (
+            <p className="text-base text-gray-900 font-medium">
+              {formattedValue}
+            </p>
+          )}
+        </div>
+        {helpText && <p className="mt-1.5 text-xs text-gray-400">{helpText}</p>}
+      </div>
+    );
+  }
+  
+  // Edit mode - normal input fields
   return (
     <div className={className}>
       {label && (

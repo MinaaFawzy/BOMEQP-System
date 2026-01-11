@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload } from 'lucide-react';
+import { validateEmail, validatePhone, validateRequired, validateUKID } from '../../../utils/validation';
+import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -10,6 +11,7 @@ import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import './TraineesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 
 const TraineesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -309,6 +311,32 @@ const TraineesScreen = () => {
     console.log('📋 Current formData:', formData);
     setSaving(true);
     setErrors({});
+
+    // Validation
+    const validationErrors = {};
+    if (!selectedTrainee) {
+      // For create mode, validate required fields
+      const firstNameError = validateRequired(formData.first_name, 'First name');
+      if (firstNameError) validationErrors.first_name = firstNameError;
+      const lastNameError = validateRequired(formData.last_name, 'Last name');
+      if (lastNameError) validationErrors.last_name = lastNameError;
+    }
+    const emailError = validateEmail(formData.email);
+    if (emailError) validationErrors.email = emailError;
+    if (formData.phone) {
+      const phoneError = validatePhone(formData.phone, 10);
+      if (phoneError) validationErrors.phone = phoneError;
+    }
+    if (formData.id_number) {
+      const idError = validateUKID(formData.id_number, 'ID number');
+      if (idError) validationErrors.id_number = idError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSaving(false);
+      return;
+    }
 
     try {
       const submitFormData = new FormData();
@@ -786,6 +814,7 @@ const TraineesScreen = () => {
               required
               error={errors.id_number}
               disabled={saving}
+              placeholder="Enter ID number (minimum 8 characters)"
             />
 
             <FormInput
@@ -1067,46 +1096,17 @@ const TraineesScreen = () => {
       >
         {selectedTrainee && (
           <div className="trainees-detail-container">
-            <div className="trainees-detail-grid">
-              <div className="trainees-detail-item">
-                <p className="trainees-detail-label">First Name</p>
-                <p className="trainees-detail-value">{selectedTrainee.first_name || 'N/A'}</p>
-              </div>
-              <div className="trainees-detail-item">
-                <p className="trainees-detail-label">Last Name</p>
-                <p className="trainees-detail-value">{selectedTrainee.last_name || 'N/A'}</p>
-              </div>
-              <div className="trainees-detail-item">
-                <p className="trainees-detail-label">
-                  <Mail size={16} className="trainees-detail-label-icon" />
-                  Email
-                </p>
-                <p className="trainees-detail-value">{selectedTrainee.email || 'N/A'}</p>
-              </div>
-              <div className="trainees-detail-item">
-                <p className="trainees-detail-label">
-                  <Phone size={16} className="trainees-detail-label-icon" />
-                  Phone
-                </p>
-                <p className="trainees-detail-value">{selectedTrainee.phone || 'N/A'}</p>
-              </div>
-              {selectedTrainee.id_number && (
-                <div className="trainees-detail-item">
-                  <p className="trainees-detail-label">ID Number</p>
-                  <p className="trainees-detail-value">{selectedTrainee.id_number}</p>
-                </div>
-              )}
-              <div className="trainees-detail-item">
-                <p className="trainees-detail-label">Status</p>
-                <span className={`trainees-detail-status ${
-                  selectedTrainee.status === 'active' ? 'trainees-detail-status-active' :
-                  selectedTrainee.status === 'inactive' ? 'trainees-detail-status-inactive' :
-                  'trainees-detail-status-suspended'
-                }`}>
-                  {selectedTrainee.status}
-                </span>
-              </div>
-            </div>
+            <DetailForm
+              data={selectedTrainee}
+              fields={[
+                { key: 'first_name', label: 'First Name', icon: User },
+                { key: 'last_name', label: 'Last Name', icon: User },
+                { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                { key: 'phone', label: 'Phone', icon: Phone },
+                { key: 'id_number', label: 'ID Number', showEmpty: false },
+                { key: 'status', label: 'Status', type: 'status' },
+              ]}
+            />
 
             {/* ID and Card Images */}
             <div className="trainees-detail-images-grid">

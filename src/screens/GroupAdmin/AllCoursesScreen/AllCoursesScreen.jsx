@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { GraduationCap, Eye, Building2, Clock, CheckCircle, XCircle, Layers, FileText, ClipboardList } from 'lucide-react';
+import { GraduationCap, Eye, Building2, Clock, CheckCircle, XCircle, Layers, FileText, ClipboardList, BookOpen, Hash, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
-import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './AllCoursesScreen.css';
 
 const AllCoursesScreen = () => {
@@ -255,13 +255,44 @@ const AllCoursesScreen = () => {
           setSelectedCourse(null);
         }}
         title="Course Details"
-        size="xl"
+        size="lg"
       >
-        <PresentDataForm
-          data={selectedCourse}
-          isLoading={detailLoading}
-          emptyMessage="No course data available"
-        />
+        {detailLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        ) : selectedCourse ? (
+          <DetailForm
+            data={selectedCourse}
+            fields={[
+              { key: 'name', label: 'Course Name', icon: GraduationCap },
+              { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
+              { key: 'code', label: 'Course Code', icon: Hash, showEmpty: false },
+              { 
+                key: 'acc', 
+                label: 'ACC', 
+                icon: Building2,
+                render: (value) => value && typeof value === 'object' ? value.name : (value || 'N/A'),
+                showEmpty: false
+              },
+              { 
+                key: 'sub_category', 
+                label: 'Sub Category', 
+                icon: Layers,
+                render: (value) => value && typeof value === 'object' ? value.name : (value || 'N/A'),
+                showEmpty: false
+              },
+              { key: 'level', label: 'Level', render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A', showEmpty: false },
+              { key: 'duration_hours', label: 'Duration', icon: Clock, render: (value) => value ? `${value} hours` : 'N/A', showEmpty: false },
+              { key: 'max_capacity', label: 'Max Capacity', render: (value) => value ? `${value} trainees` : 'N/A', showEmpty: false },
+              { key: 'status', label: 'Status', type: 'status' },
+              { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+              { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+            ]}
+          />
+        ) : (
+          <div className="text-center py-12 text-gray-500">No course data available</div>
+        )}
       </Modal>
     </div>
   );
