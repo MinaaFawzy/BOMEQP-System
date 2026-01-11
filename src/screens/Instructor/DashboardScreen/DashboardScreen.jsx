@@ -15,6 +15,7 @@ import {
   Phone,
   User
 } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './DashboardScreen.css';
 
 const InstructorDashboardScreen = () => {
@@ -192,6 +193,129 @@ const InstructorDashboardScreen = () => {
           </div>
         </div>
       </div>
+
+      {/* Charts Section */}
+      {dashboardData?.charts && (
+        <div className="charts-grid">
+          {/* Earnings Over Time Chart */}
+          {dashboardData.charts.earnings_over_time && dashboardData.charts.earnings_over_time.length > 0 && (
+            <div className="card chart-card">
+              <div className="card-header">
+                <h2 className="card-title">
+                  <BookOpen className="card-title-icon" size={24} />
+                  Earnings Over Time
+                </h2>
+              </div>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={dashboardData.charts.earnings_over_time} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                    <XAxis 
+                      dataKey="month_name" 
+                      stroke="#374151"
+                      style={{ fontSize: '13px', fontWeight: '500' }}
+                      tick={{ fill: '#374151' }}
+                    />
+                    <YAxis 
+                      stroke="#374151"
+                      style={{ fontSize: '13px', fontWeight: '500' }}
+                      tick={{ fill: '#374151' }}
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Earnings']}
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '2px solid #EC4899',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        padding: '10px'
+                      }}
+                      labelStyle={{ fontWeight: '600', color: '#111827', marginBottom: '5px' }}
+                    />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="earnings" 
+                      stroke="#EC4899" 
+                      strokeWidth={3}
+                      dot={{ fill: '#EC4899', r: 5, strokeWidth: 2, stroke: '#fff' }}
+                      activeDot={{ r: 7, fill: '#EC4899', stroke: '#fff', strokeWidth: 2 }}
+                      name="Earnings"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Classes Status Distribution Chart */}
+          {dashboardData.charts.classes_status_distribution && dashboardData.charts.classes_status_distribution.length > 0 && (
+            <div className="card chart-card">
+              <div className="card-header">
+                <h2 className="card-title">
+                  <BookOpen className="card-title-icon" size={24} />
+                  Classes Status Distribution
+                </h2>
+              </div>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={dashboardData.charts.classes_status_distribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      stroke="#fff"
+                      strokeWidth={2}
+                    >
+                      {dashboardData.charts.classes_status_distribution.map((entry, index) => {
+                        const colors = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+                        return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                      })}
+                    </Pie>
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{
+                              backgroundColor: '#fff',
+                              border: '2px solid #6366F1',
+                              borderRadius: '8px',
+                              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                              padding: '10px'
+                            }}>
+                              <p style={{ fontWeight: '600', color: '#111827', marginBottom: '5px' }}>
+                                {data.label || data.name}
+                              </p>
+                              <p style={{ color: '#374151' }}>
+                                Count: <span style={{ fontWeight: '600' }}>{data.value}</span>
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                      iconType="circle"
+                      formatter={(value, entry) => {
+                        return entry.payload?.label || entry.payload?.name || value;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="main-grid">
         {/* Recent Classes */}
