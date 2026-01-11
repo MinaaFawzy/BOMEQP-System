@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import axios from 'axios';
-import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
@@ -25,7 +25,25 @@ const ClassesScreen = () => {
   const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedClassForEnrollment, setSelectedClassForEnrollment] = useState(null);
+  
+  // Cascade selection states
+  const [availableACCs, setAvailableACCs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  
+  // Trainees selection
+  const [availableTrainees, setAvailableTrainees] = useState([]);
+  const [loadingTrainees, setLoadingTrainees] = useState(false);
+  const [traineeSearchTerm, setTraineeSearchTerm] = useState('');
+  const [selectedTraineeIds, setSelectedTraineeIds] = useState([]);
+  
   const [formData, setFormData] = useState({
+    acc_id: '',
+    category_id: '',
+    sub_category_id: '',
     course_id: '',
     class_id: '',
     instructor_id: '',
@@ -45,12 +63,58 @@ const ClassesScreen = () => {
 
   useEffect(() => {
     if (isModalOpen) {
-      loadAvailableCourses();
+      loadAvailableACCs();
+      loadAvailableTrainees();
       // Initialize filtered instructors with all instructors when modal opens
       setFilteredInstructors(instructors);
       setSelectedCourseData(null);
     }
   }, [isModalOpen, instructors]);
+
+  // When ACC is selected, load categories
+  useEffect(() => {
+    if (formData.acc_id && isModalOpen) {
+      loadCategories(formData.acc_id);
+    } else if (!formData.acc_id) {
+      setCategories([]);
+      setSubCategories([]);
+      setAvailableCourses([]);
+      setFormData(prev => ({
+        ...prev,
+        category_id: '',
+        sub_category_id: '',
+        course_id: ''
+      }));
+    }
+  }, [formData.acc_id, isModalOpen]);
+
+  // When category is selected, load sub-categories
+  useEffect(() => {
+    if (formData.category_id && isModalOpen) {
+      loadSubCategories(formData.category_id);
+    } else if (!formData.category_id) {
+      setSubCategories([]);
+      setAvailableCourses([]);
+      setFormData(prev => ({
+        ...prev,
+        sub_category_id: '',
+        course_id: ''
+      }));
+    }
+  }, [formData.category_id, isModalOpen]);
+
+  // When sub-category is selected, load courses
+  useEffect(() => {
+    if (formData.sub_category_id && formData.acc_id && isModalOpen) {
+      loadCoursesForSubCategory(formData.acc_id, formData.sub_category_id);
+    } else if (!formData.sub_category_id) {
+      setAvailableCourses([]);
+      setFormData(prev => ({
+        ...prev,
+        course_id: ''
+      }));
+    }
+  }, [formData.sub_category_id, formData.acc_id, isModalOpen]);
 
   // When course is selected, load course details and filter instructors
   useEffect(() => {
@@ -182,16 +246,16 @@ const ClassesScreen = () => {
     }
   };
 
-  const loadAvailableCourses = async () => {
+  // Load available ACCs from authorizations
+  const loadAvailableACCs = async () => {
     try {
-      // Get approved authorizations from /training-center/authorizations
       const authData = await trainingCenterAPI.getAuthorizationStatus();
       console.log('Authorization data:', authData);
       
       const allAuthorizations = authData.authorizations || authData.data || [];
       console.log('All authorizations:', allAuthorizations);
       
-      // Check for approved/active authorizations - try multiple status values
+      // Check for approved/active authorizations
       const approvedAuthorizations = allAuthorizations.filter(
         auth => {
           const status = auth.status?.toLowerCase();
@@ -205,87 +269,100 @@ const ClassesScreen = () => {
       console.log('Approved authorizations:', approvedAuthorizations);
 
       if (approvedAuthorizations.length === 0) {
-        console.log('No approved authorizations found. All authorizations:', allAuthorizations);
+        console.log('No approved authorizations found.');
         setHasAuthorizations(false);
-        setAvailableCourses([]);
+        setAvailableACCs([]);
         return;
       }
       
       setHasAuthorizations(true);
 
-      // Get courses from each approved ACC
-      const coursePromises = approvedAuthorizations.map(async (auth) => {
-        try {
-          // Try multiple ways to get acc_id
-          const accId = auth.acc_id || auth.acc?.id || auth.id;
-          const accName = auth.acc?.name || auth.acc_name || auth.name || 'Unknown ACC';
-          
-          console.log(`Processing authorization for ACC:`, { accId, accName, auth });
-          
-          if (!accId) {
-            console.warn('No ACC ID found in authorization:', auth);
-            return [];
-          }
-          
-          // Get courses from authorized ACC
-          const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-          const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-          
-          // Try multiple endpoints
-          const endpoints = [
-            `${baseURL}/training-center/accs/${accId}/courses`,
-            `${baseURL}/acc/${accId}/courses`,
-            `${baseURL}/training-center/courses?acc_id=${accId}`,
-          ];
-          
-          for (const endpoint of endpoints) {
-            try {
-              console.log(`Trying endpoint: ${endpoint}`);
-              const response = await axios.get(endpoint, {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Accept': 'application/json',
-                },
-              });
-              
-              const data = response.data;
-              const courses = data.courses || data.data || data || [];
-              
-              if (courses.length > 0) {
-                console.log(`Successfully loaded ${courses.length} courses from ACC ${accId} using ${endpoint}`);
-                return courses.map(course => ({
-                  ...course,
-                  acc_id: accId,
-                  acc_name: accName,
-                }));
-              }
-            } catch (error) {
-              console.log(`Endpoint ${endpoint} failed:`, error.response?.status, error.message);
-              // Continue to next endpoint
-            }
-          }
-          
-          console.warn(`All endpoints failed for ACC ${accId}`);
-          return [];
-        } catch (error) {
-          console.error(`Failed to load courses from authorization:`, error, auth);
-        }
-        return [];
-      });
+      // Extract ACCs from authorizations
+      const accs = approvedAuthorizations.map(auth => ({
+        id: auth.acc_id || auth.acc?.id || auth.id,
+        name: auth.acc?.name || auth.acc_name || auth.name || 'Unknown ACC',
+        ...(auth.acc || {})
+      })).filter(acc => acc.id);
 
-      const coursesArrays = await Promise.all(coursePromises);
-      const allCourses = coursesArrays.flat();
-      setAvailableCourses(allCourses);
+      setAvailableACCs(accs);
+      console.log(`Loaded ${accs.length} authorized ACC(s)`);
+    } catch (error) {
+      console.error('Failed to load ACCs:', error);
+      setAvailableACCs([]);
+      setHasAuthorizations(false);
+    }
+  };
+
+  // Load categories for selected ACC
+  const loadCategories = async (accId) => {
+    try {
+      setLoadingCategories(true);
+      console.log(`Loading categories for ACC ${accId}`);
       
-      console.log(`Loaded ${allCourses.length} courses from ${approvedAuthorizations.length} authorized ACC(s)`);
+      const data = await trainingCenterAPI.getCategoriesForACC(accId);
+      const categoriesList = data.categories || data.data || data || [];
       
-      if (allCourses.length === 0 && approvedAuthorizations.length > 0) {
-        console.warn('No courses found despite having approved authorizations. Check endpoint availability.');
-      }
+      setCategories(categoriesList);
+      console.log(`Loaded ${categoriesList.length} categories for ACC ${accId}`);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      setCategories([]);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  // Load sub-categories for selected category
+  const loadSubCategories = async (categoryId) => {
+    try {
+      setLoadingSubCategories(true);
+      console.log(`Loading sub-categories for category ${categoryId}`);
+      
+      const data = await trainingCenterAPI.getSubCategoriesForCategory(categoryId);
+      const subCategoriesList = data.sub_categories || data.data || data || [];
+      
+      setSubCategories(subCategoriesList);
+      console.log(`Loaded ${subCategoriesList.length} sub-categories for category ${categoryId}`);
+    } catch (error) {
+      console.error('Failed to load sub-categories:', error);
+      setSubCategories([]);
+    } finally {
+      setLoadingSubCategories(false);
+    }
+  };
+
+  // Load courses for selected sub-category
+  const loadCoursesForSubCategory = async (accId, subCategoryId) => {
+    try {
+      setLoadingCourses(true);
+      console.log(`Loading courses for ACC ${accId} and sub-category ${subCategoryId}`);
+      
+      const data = await trainingCenterAPI.getCoursesForACC(accId, { sub_category_id: subCategoryId });
+      const coursesList = data.courses || data.data || data || [];
+      
+      setAvailableCourses(coursesList);
+      console.log(`Loaded ${coursesList.length} courses for sub-category ${subCategoryId}`);
     } catch (error) {
       console.error('Failed to load courses:', error);
-      console.error('Error details:', error.response?.data || error.message);
       setAvailableCourses([]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  // Load available trainees for the training center
+  const loadAvailableTrainees = async () => {
+    try {
+      setLoadingTrainees(true);
+      const data = await trainingCenterAPI.listTrainees({ per_page: 1000 });
+      const traineesList = data.trainees || data.data || data || [];
+      setAvailableTrainees(traineesList);
+      console.log(`Loaded ${traineesList.length} trainees`);
+    } catch (error) {
+      console.error('Failed to load trainees:', error);
+      setAvailableTrainees([]);
+    } finally {
+      setLoadingTrainees(false);
     }
   };
 
@@ -293,6 +370,9 @@ const ClassesScreen = () => {
     if (classItem) {
       setSelectedClass(classItem);
       setFormData({
+        acc_id: classItem.acc_id || classItem.course?.acc_id || '',
+        category_id: classItem.category_id || classItem.course?.category_id || '',
+        sub_category_id: classItem.sub_category_id || classItem.course?.sub_category_id || '',
         course_id: classItem.course_id || '',
         class_id: classItem.class_id || '',
         instructor_id: classItem.instructor_id || '',
@@ -302,9 +382,18 @@ const ClassesScreen = () => {
         exam_score: classItem.exam_score || '',
         location: classItem.location || 'physical',
       });
+      // Set selected trainees from existing class
+      if (classItem.trainees && Array.isArray(classItem.trainees)) {
+        setSelectedTraineeIds(classItem.trainees.map(t => t.id || t.trainee_id).filter(Boolean));
+      } else {
+        setSelectedTraineeIds([]);
+      }
     } else {
       setSelectedClass(null);
       setFormData({
+        acc_id: '',
+        category_id: '',
+        sub_category_id: '',
         course_id: '',
         class_id: '',
         instructor_id: '',
@@ -314,9 +403,14 @@ const ClassesScreen = () => {
         exam_score: '',
         location: 'physical',
       });
+      setSelectedTraineeIds([]);
     }
+    setCategories([]);
+    setSubCategories([]);
+    setAvailableCourses([]);
     setSelectedCourseData(null);
     setFilteredInstructors(instructors);
+    setTraineeSearchTerm('');
     setErrors({});
     setIsModalOpen(true);
   };
@@ -325,6 +419,9 @@ const ClassesScreen = () => {
     setIsModalOpen(false);
     setSelectedClass(null);
     setFormData({
+      acc_id: '',
+      category_id: '',
+      sub_category_id: '',
       course_id: '',
       class_id: '',
       instructor_id: '',
@@ -334,14 +431,60 @@ const ClassesScreen = () => {
       exam_score: '',
       location: 'physical',
     });
+    setCategories([]);
+    setSubCategories([]);
+    setAvailableCourses([]);
+    setSelectedTraineeIds([]);
+    setTraineeSearchTerm('');
     setErrors({});
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    
+    // Handle cascade selection - clear dependent fields
+    if (name === 'acc_id') {
+      setFormData({
+        ...formData,
+        acc_id: value,
+        category_id: '',
+        sub_category_id: '',
+        course_id: '',
+        instructor_id: '', // Clear instructor when course changes
+      });
+      setCategories([]);
+      setSubCategories([]);
+      setAvailableCourses([]);
+    } else if (name === 'category_id') {
+      setFormData({
+        ...formData,
+        category_id: value,
+        sub_category_id: '',
+        course_id: '',
+        instructor_id: '', // Clear instructor when course changes
+      });
+      setSubCategories([]);
+      setAvailableCourses([]);
+    } else if (name === 'sub_category_id') {
+      setFormData({
+        ...formData,
+        sub_category_id: value,
+        course_id: '',
+        instructor_id: '', // Clear instructor when course changes
+      });
+      setAvailableCourses([]);
+    } else if (name === 'course_id') {
+      setFormData({
+        ...formData,
+        course_id: value,
+        instructor_id: '', // Clear instructor when course changes
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
     setErrors({});
   };
 
@@ -351,12 +494,32 @@ const ClassesScreen = () => {
     setErrors({});
 
     try {
-      // Validate required fields
-      if (!formData.course_id) {
-        setErrors({ course_id: 'Course is required' });
-        setSaving(false);
-        return;
+      // Validate required fields - only validate ACC, Category, Sub-Category, Course when creating (not editing)
+      if (!selectedClass) {
+        // When creating, validate all required fields
+        if (!formData.acc_id) {
+          setErrors({ acc_id: 'ACC is required' });
+          setSaving(false);
+          return;
+        }
+        if (!formData.category_id) {
+          setErrors({ category_id: 'Category is required' });
+          setSaving(false);
+          return;
+        }
+        if (!formData.sub_category_id) {
+          setErrors({ sub_category_id: 'Sub-Category is required' });
+          setSaving(false);
+          return;
+        }
+        if (!formData.course_id) {
+          setErrors({ course_id: 'Course is required' });
+          setSaving(false);
+          return;
+        }
       }
+
+      // These fields are always required (both create and update)
       if (!formData.class_id) {
         setErrors({ class_id: 'Class ID is required' });
         setSaving(false);
@@ -379,8 +542,13 @@ const ClassesScreen = () => {
       }
 
       // Prepare submit data exactly as specified
+      // When updating, use course_id from selectedClass if not in formData
+      const courseId = selectedClass 
+        ? (formData.course_id || selectedClass.course_id) 
+        : formData.course_id;
+
       const submitData = {
-        course_id: parseInt(formData.course_id),
+        course_id: parseInt(courseId),
         class_id: parseInt(formData.class_id),
         instructor_id: parseInt(formData.instructor_id),
         start_date: formData.start_date,
@@ -389,6 +557,11 @@ const ClassesScreen = () => {
         exam_score: formData.exam_score ? parseFloat(formData.exam_score) : null,
         location: formData.location,
       };
+
+      // Add trainee_ids if any trainees are selected
+      if (selectedTraineeIds.length > 0) {
+        submitData.trainee_ids = selectedTraineeIds;
+      }
 
       console.log('Submitting class data:', submitData);
 
@@ -667,6 +840,26 @@ const ClassesScreen = () => {
   const completedCount = classes.filter(c => c.status === 'completed').length;
   const cancelledCount = classes.filter(c => c.status === 'cancelled').length;
 
+  // Filter trainees based on search term
+  const filteredTrainees = useMemo(() => {
+    if (!traineeSearchTerm.trim()) {
+      return availableTrainees;
+    }
+    
+    const searchLower = traineeSearchTerm.toLowerCase().trim();
+    return availableTrainees.filter(trainee => {
+      const fullName = `${trainee.first_name || ''} ${trainee.last_name || ''}`.toLowerCase();
+      const email = (trainee.email || '').toLowerCase();
+      const idNumber = (trainee.id_number || '').toLowerCase();
+      const id = String(trainee.id || '').toLowerCase();
+      
+      return fullName.includes(searchLower) ||
+             email.includes(searchLower) ||
+             idNumber.includes(searchLower) ||
+             id.includes(searchLower);
+    });
+  }, [availableTrainees, traineeSearchTerm]);
+
 
   if (loading) {
     return (
@@ -744,43 +937,108 @@ const ClassesScreen = () => {
         size="lg"
       >
         <form onSubmit={handleSubmit} className="modal-form">
-          <div>
-            <label className="form-label">
-              Course <span className="form-label-required">*</span>
-            </label>
-            <select
-              name="course_id"
-              value={formData.course_id}
-              onChange={handleChange}
-              required
-              className="form-select"
-            >
-              <option value="">Select a course...</option>
-              {availableCourses.map(course => {
-                    const courseName = course.name || course.code || `Course ${course.id}`;
-                const accName = course.acc_name || course.acc?.name || '';
-                const label = accName ? `${courseName} - ${accName}` : courseName;
-                return (
-                  <option key={course.id} value={course.id}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.course_id && (
-              <p className="form-error">{errors.course_id}</p>
-            )}
-            {availableCourses.length === 0 && !loading && (
-              <div className="form-warning">
-                <p className="form-warning-title">No courses available</p>
-                <p className="form-warning-text">
-                  {hasAuthorizations 
-                    ? 'No courses found from your authorized ACCs. Please check if the ACCs have published courses.'
-                    : 'Please ensure you have authorization from at least one ACC. Courses from authorized ACCs will appear here.'}
-                </p>
+          {/* Only show ACC, Category, Sub-Category, and Course fields when creating (not editing) */}
+          {!selectedClass && (
+            <>
+              {/* ACC Selection */}
+              <FormInput
+                label="ACC"
+                name="acc_id"
+                type="select"
+                value={formData.acc_id}
+                onChange={handleChange}
+                required
+                error={errors.acc_id}
+                options={[
+                  { value: '', label: 'Select an ACC...' },
+                  ...availableACCs.map(acc => ({
+                    value: acc.id,
+                    label: acc.name || `ACC ${acc.id}`
+                  }))
+                ]}
+              />
+              {availableACCs.length === 0 && !loading && (
+                <div className="form-warning">
+                  <p className="form-warning-title">No ACCs available</p>
+                  <p className="form-warning-text">
+                    Please ensure you have authorization from at least one ACC. Authorized ACCs will appear here.
+                  </p>
+                </div>
+              )}
+
+              {/* Category Selection */}
+              <FormInput
+                label="Category"
+                name="category_id"
+                type="select"
+                value={formData.category_id}
+                onChange={handleChange}
+                required
+                disabled={!formData.acc_id || loadingCategories}
+                error={errors.category_id}
+                options={[
+                  { value: '', label: !formData.acc_id ? 'Please select ACC first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+                  ...categories
+                    .filter(cat => cat.id != null && cat.id !== '')
+                    .map(cat => ({
+                      value: cat.id,
+                      label: cat.name || cat.name_ar || `Category ${cat.id}`
+                    }))
+                ]}
+              />
+
+              {/* Sub-Category Selection */}
+              <FormInput
+                label="Sub-Category"
+                name="sub_category_id"
+                type="select"
+                value={formData.sub_category_id}
+                onChange={handleChange}
+                required
+                disabled={!formData.acc_id || !formData.category_id || loadingSubCategories}
+                error={errors.sub_category_id}
+                options={[
+                  { value: '', label: !formData.acc_id ? 'Please select ACC first' : (!formData.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+                  ...subCategories
+                    .filter(subCat => subCat.id != null && subCat.id !== '')
+                    .map(subCat => ({
+                      value: subCat.id,
+                      label: subCat.name || subCat.name_ar || `Sub-Category ${subCat.id}`
+                    }))
+                ]}
+              />
+
+              {/* Course Selection */}
+              <div>
+                <FormInput
+                  label="Course"
+                  name="course_id"
+                  type="select"
+                  value={formData.course_id}
+                  onChange={handleChange}
+                  required
+                  disabled={!formData.acc_id || !formData.category_id || !formData.sub_category_id || loadingCourses}
+                  error={errors.course_id}
+                  options={[
+                    { value: '', label: !formData.acc_id ? 'Please select ACC first' : (!formData.category_id ? 'Please select Category first' : (!formData.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                    ...availableCourses.map(course => {
+                      const courseName = course.name || course.code || `Course ${course.id}`;
+                      return { value: course.id, label: courseName };
+                    })
+                  ]}
+                />
+                {availableCourses.length === 0 && !loadingCourses && formData.sub_category_id && (
+                  <div className="form-warning">
+                    <p className="form-warning-title">No courses available</p>
+                    <p className="form-warning-text">
+                      No courses found for the selected sub-category. Please select a different sub-category.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
+
 
           <FormInput
             label="Class ID"
@@ -789,36 +1047,31 @@ const ClassesScreen = () => {
             value={formData.class_id}
             onChange={handleChange}
             required
+            disabled={!!selectedClass}
             placeholder="Enter class ID"
             error={errors.class_id}
           />
 
           <div>
-            <label className="form-label">
-              Instructor <span className="form-label-required">*</span>
-            </label>
-            <select
-            name="instructor_id"
-            value={formData.instructor_id}
-            onChange={handleChange}
-            required
-              className="form-select"
-            >
-              <option value="">Select an instructor...</option>
-              {filteredInstructors.length > 0 ? (
-                filteredInstructors.map(inst => (
-                  <option key={inst.id} value={inst.id}>
-                    {inst.first_name} {inst.last_name}
-                    {inst.is_assessor && ' (Assessor)'}
-                  </option>
-                ))
-              ) : (
-                <option value="" disabled>No instructors available</option>
-              )}
-            </select>
-            {errors.instructor_id && (
-              <p className="form-error">{errors.instructor_id}</p>
-            )}
+            <FormInput
+              label="Instructor"
+              name="instructor_id"
+              type="select"
+              value={formData.instructor_id}
+              onChange={handleChange}
+              required
+              error={errors.instructor_id}
+              options={[
+                { value: '', label: 'Select an instructor...' },
+                ...(filteredInstructors.length > 0
+                  ? filteredInstructors.map(inst => ({
+                      value: inst.id,
+                      label: `${inst.first_name} ${inst.last_name}${inst.is_assessor ? ' (Assessor)' : ''}`
+                    }))
+                  : [{ value: '', label: 'No instructors available', disabled: true }]
+                )
+              ]}
+            />
             {selectedCourseData?.assessor_required && filteredInstructors.length === 0 && (
               <div className="form-warning">
                 <p className="form-warning-title">
@@ -883,24 +1136,120 @@ const ClassesScreen = () => {
             />
           </div>
 
-          <div>
+          <FormInput
+            label="Location"
+            name="location"
+            type="select"
+            value={formData.location}
+            onChange={handleChange}
+            required
+            error={errors.location}
+            options={[
+              { value: 'physical', label: 'Physical' },
+              { value: 'online', label: 'Online' },
+              { value: 'hybrid', label: 'Hybrid' }
+            ]}
+          />
+
+          {/* Trainees Selection */}
+          <div className="form-group">
             <label className="form-label">
-              Location <span className="form-label-required">*</span>
+              Trainees (Optional)
             </label>
-            <select
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              required
-              className="form-select"
-            >
-              <option value="physical">Physical</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
-            {errors.location && (
-              <p className="form-error">{errors.location}</p>
-            )}
+            <div className="trainees-selection-container">
+              {/* Search Input */}
+              <div className="trainees-search-container">
+                <Search size={18} className="trainees-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search trainees by name, email, or ID..."
+                  value={traineeSearchTerm}
+                  onChange={(e) => setTraineeSearchTerm(e.target.value)}
+                  className="trainees-search-input"
+                />
+                {traineeSearchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setTraineeSearchTerm('')}
+                    className="trainees-search-clear"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Selected Trainees Count */}
+              {selectedTraineeIds.length > 0 && (
+                <div className="trainees-selected-count">
+                  <Users size={16} />
+                  <span>{selectedTraineeIds.length} trainee{selectedTraineeIds.length !== 1 ? 's' : ''} selected</span>
+                </div>
+              )}
+
+              {/* Trainees List */}
+              <div className="trainees-list-container">
+                {loadingTrainees ? (
+                  <div className="trainees-loading">
+                    <div className="loading-spinner-small"></div>
+                    <span>Loading trainees...</span>
+                  </div>
+                ) : filteredTrainees.length === 0 ? (
+                  <div className="trainees-empty">
+                    <Users size={24} className="trainees-empty-icon" />
+                    <p className="trainees-empty-text">
+                      {traineeSearchTerm ? 'No trainees found matching your search.' : 'No trainees available.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="trainees-list">
+                    {filteredTrainees.map((trainee) => {
+                      const isSelected = selectedTraineeIds.includes(trainee.id);
+                      return (
+                        <div
+                          key={trainee.id}
+                          className={`trainee-item ${isSelected ? 'selected' : ''}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedTraineeIds(selectedTraineeIds.filter(id => id !== trainee.id));
+                            } else {
+                              setSelectedTraineeIds([...selectedTraineeIds, trainee.id]);
+                            }
+                          }}
+                        >
+                          <div className="trainee-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {}}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                          <div className="trainee-info">
+                            <div className="trainee-name">
+                              {trainee.first_name} {trainee.last_name}
+                            </div>
+                            <div className="trainee-details">
+                              {trainee.email && (
+                                <span className="trainee-detail-item">
+                                  <Mail size={12} />
+                                  {trainee.email}
+                                </span>
+                              )}
+                              {trainee.id_number && (
+                                <span className="trainee-detail-item">
+                                  <Hash size={12} />
+                                  {trainee.id_number}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {errors.general && (

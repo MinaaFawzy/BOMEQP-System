@@ -34,7 +34,6 @@ const AllACCsScreen = () => {
     phone: '',
     email: '',
     website: '',
-    logo_url: '',
     status: 'active',
     registration_fee_paid: false,
     registration_fee_amount: '',
@@ -155,7 +154,6 @@ const AllACCsScreen = () => {
         phone: accData.phone || '',
         email: accData.email || '',
         website: accData.website || '',
-        logo_url: accData.logo_url || '',
         status: accData.status || 'active',
         registration_fee_paid: accData.registration_fee_paid || false,
         registration_fee_amount: accData.registration_fee_amount || '',
@@ -335,7 +333,7 @@ const AllACCsScreen = () => {
                   className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
-                  <Building2 className="h-5 w-5 text-primary-600" />
+            <Building2 className="h-5 w-5 text-primary-600" />
                 </div>
               </>
             ) : (
@@ -590,7 +588,6 @@ const AllACCsScreen = () => {
             phone: '',
             email: '',
             website: '',
-            logo_url: '',
             status: 'active',
             registration_fee_paid: false,
             registration_fee_amount: '',
@@ -662,14 +659,6 @@ const AllACCsScreen = () => {
               value={accFormData.website}
               onChange={handleAccFormChange}
               error={accErrors.website}
-            />
-            <FormInput
-              label="Logo URL"
-              name="logo_url"
-              type="url"
-              value={accFormData.logo_url}
-              onChange={handleAccFormChange}
-              error={accErrors.logo_url}
             />
             <FormInput
               label="Status"

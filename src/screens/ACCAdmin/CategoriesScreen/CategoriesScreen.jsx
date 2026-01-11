@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, FileText, Layers, RefreshCw, Edit, Trash2 } from 'lucide-react';
+import { Plus, FileText, Layers, RefreshCw, Edit, Trash2, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Button from '../../../components/Button/Button';
@@ -13,8 +13,6 @@ import FormInput from '../../../components/FormInput/FormInput';
 
 const CategoriesScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
-  const [activeTab, setActiveTab] = useState('categories');
-  const [prevActiveTab, setPrevActiveTab] = useState('categories');
   
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,14 +56,6 @@ const CategoriesScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  // Reload categories when switching to categories tab from another tab to ensure fresh data (including newly assigned categories)
-  useEffect(() => {
-    if (activeTab === 'categories' && prevActiveTab !== 'categories' && !loading) {
-      loadCategories();
-    }
-    setPrevActiveTab(activeTab);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
 
   const loadCategories = async () => {
     try {
@@ -267,13 +257,13 @@ const CategoriesScreen = () => {
     }
   };
   
-  // Load sub categories when tab changes
+  // Load sub categories when categories are loaded
   useEffect(() => {
-    if (activeTab === 'sub-categories') {
+    if (categories.length > 0) {
       loadSubCategories();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [categories.length]);
 
   const handleOpenSubCategoryModal = (subCategory = null) => {
     if (subCategory) {
@@ -383,27 +373,61 @@ const CategoriesScreen = () => {
     return subCategory.created_by != null && subCategory.created_by !== undefined && subCategory.created_by !== 1;
   };
 
-  // Define columns for Categories DataTable
-  const categoryColumns = useMemo(() => [
+  // Get sub categories for a specific category
+  const getSubCategoriesForCategory = (categoryId) => {
+    return subCategories.filter(subCat => subCat.category_id === categoryId);
+  };
+
+  // Prepare data for DataTable with search text
+  const categoriesData = useMemo(() => {
+    return categories.map(category => ({
+      ...category,
+      _searchText: `${category.name || ''} ${category.name_ar || ''} ${category.description || ''} ${category.status || ''}`.toLowerCase()
+    }));
+  }, [categories]);
+
+  // Define columns for DataTable
+  const columns = useMemo(() => [
     {
       header: 'Category',
       accessor: 'name',
       sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <FileText className="h-5 w-5 text-primary-600" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">
-              {value || 'N/A'}
+      render: (value, row, { isExpanded, toggleExpand }) => {
+        const categorySubCats = getSubCategoriesForCategory(row.id);
+        return (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (toggleExpand) toggleExpand(e);
+              }}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronUp size={18} className="text-gray-600" />
+              ) : (
+                <ChevronDown size={18} className="text-gray-600" />
+              )}
+            </button>
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+              <FileText className="h-5 w-5 text-primary-600" />
             </div>
-            {row.name_ar && (
-              <div className="text-xs text-gray-500">{row.name_ar}</div>
-            )}
+            <div>
+              <div className="text-sm font-semibold text-gray-900">
+                {row.name || 'N/A'}
+              </div>
+              {row.name_ar && (
+                <div className="text-xs text-gray-500">{row.name_ar}</div>
+              )}
+              {categorySubCats.length > 0 && (
+                <div className="text-xs text-gray-400 mt-0.5">
+                  {categorySubCats.length} sub-categor{categorySubCats.length === 1 ? 'y' : 'ies'}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )
+        );
+      },
     },
     {
       header: 'Description',
@@ -413,7 +437,7 @@ const CategoriesScreen = () => {
         <div className="text-sm text-gray-600 max-w-xs truncate">
           {value || '-'}
         </div>
-      )
+      ),
     },
     {
       header: 'Status',
@@ -427,11 +451,11 @@ const CategoriesScreen = () => {
         }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
-      )
+      ),
     },
     {
       header: 'Type',
-      accessor: 'created_by',
+      accessor: 'type',
       sortable: false,
       render: (value, row) => (
         <div className="flex flex-col gap-1">
@@ -442,147 +466,161 @@ const CategoriesScreen = () => {
           }`}>
             {isCategoryCreatedByMe(row) ? 'Created by Me' : 'Assigned by Admin'}
           </span>
-          {row.sub_categories && row.sub_categories.length > 0 && (
-            <span className="text-xs text-gray-500">
-              {row.sub_categories.length} sub-categor{row.sub_categories.length === 1 ? 'y' : 'ies'}
-            </span>
-          )}
         </div>
-      )
+      ),
     },
     {
       header: 'Actions',
       accessor: 'actions',
       sortable: false,
-      render: (value, row) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleOpenModal(row)}
-            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-              isCategoryCreatedByMe(row)
-                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-            }`}
-            title={isCategoryCreatedByMe(row) ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
-            disabled={!isCategoryCreatedByMe(row)}
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={() => handleDelete(row)}
-            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-              isCategoryCreatedByMe(row)
-                ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-            }`}
-            title={isCategoryCreatedByMe(row) ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
-            disabled={!isCategoryCreatedByMe(row)}
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      )
-    }
-  ], [handleOpenModal, handleDelete]);
-
-  // Define columns for Sub Categories DataTable
-  const subCategoryColumns = useMemo(() => [
-    {
-      header: 'Sub Category',
-      accessor: 'name',
-      sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <FileText className="h-5 w-5 text-primary-600" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">
-              {value || 'N/A'}
-            </div>
-            {row.name_ar && (
-              <div className="text-xs text-gray-500">{row.name_ar}</div>
-            )}
-          </div>
-        </div>
-      )
-    },
-    {
-      header: 'Category',
-      accessor: 'category_id',
-      sortable: true,
       render: (value, row) => {
-        const category = categories.find(cat => cat.id === value);
+        const canEdit = isCategoryCreatedByMe(row);
         return (
-          <div className="text-sm text-gray-600">
-            {category ? category.name : `Category ID: ${value}`}
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => {
+                if (canEdit) {
+                  handleOpenModal(row);
+                }
+              }}
+              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+                canEdit
+                  ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+              }`}
+              title={canEdit ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
+              disabled={!canEdit}
+            >
+              <Edit size={16} />
+            </button>
+            <button
+              onClick={() => {
+                if (canEdit) {
+                  handleDelete(row);
+                }
+              }}
+              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+                canEdit
+                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+              }`}
+              title={canEdit ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
+              disabled={!canEdit}
+            >
+              <Trash2 size={16} />
+            </button>
           </div>
         );
-      }
+      },
     },
-    {
-      header: 'Status',
-      accessor: 'status',
-      sortable: true,
-      render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'active' 
-            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
-            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
-        </span>
-      )
-    },
-    {
-      header: 'Actions',
-      accessor: 'actions',
-      sortable: false,
-      render: (value, row) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+  ], [subCategories]);
+
+  // Filter options for DataTable
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
+    { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+  ], []);
+
+  // Render expanded row content
+  const renderExpandedRow = (category) => {
+    const categorySubCats = getSubCategoriesForCategory(category.id);
+    return (
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Sub Categories for "{category.name}"
+          </h3>
+        </div>
+        {categorySubCats.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 text-sm bg-white rounded-lg border border-gray-200">
+            No sub categories found for this category.
+          </div>
+        ) : (
+          <div className="space-y-2 mb-4">
+            {categorySubCats.map(subCat => (
+              <div
+                key={subCat.id}
+                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                      <Layers className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {subCat.name || 'N/A'}
+                      </div>
+                      {subCat.name_ar && (
+                        <div className="text-xs text-gray-500">{subCat.name_ar}</div>
+                      )}
+                      {subCat.description && (
+                        <div className="text-xs text-gray-400 mt-1">{subCat.description}</div>
+                      )}
+                    </div>
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                      subCat.status === 'active' 
+                        ? 'bg-green-100 text-green-800 border border-green-300' 
+                        : 'bg-gray-100 text-gray-800 border border-gray-300'
+                    }`}>
+                      {subCat.status ? subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handleOpenSubCategoryModal(subCat)}
+                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+                        isSubCategoryCreatedByMe(subCat)
+                          ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                      }`}
+                      title={isSubCategoryCreatedByMe(subCat) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
+                      disabled={!isSubCategoryCreatedByMe(subCat)}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSubCategory(subCat)}
+                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
+                        isSubCategoryCreatedByMe(subCat)
+                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                      }`}
+                      title={isSubCategoryCreatedByMe(subCat) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
+                      disabled={!isSubCategoryCreatedByMe(subCat)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="pt-4 border-t border-gray-200">
           <button
-            onClick={() => handleOpenSubCategoryModal(row)}
-            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-              isSubCategoryCreatedByMe(row)
-                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-            }`}
-            title={isSubCategoryCreatedByMe(row) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
-            disabled={!isSubCategoryCreatedByMe(row)}
+            onClick={() => {
+              setSubCategoryFormData({
+                category_id: category.id,
+                name: '',
+                name_ar: '',
+                description: '',
+                status: 'active',
+              });
+              setSelectedSubCategory(null);
+              setSubCategoryErrors({});
+              setIsSubCategoryModalOpen(true);
+            }}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={() => handleDeleteSubCategory(row)}
-            className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-              isSubCategoryCreatedByMe(row)
-                ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-            }`}
-            title={isSubCategoryCreatedByMe(row) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
-            disabled={!isSubCategoryCreatedByMe(row)}
-          >
-            <Trash2 size={16} />
+            <Plus size={16} />
+            Add Sub Category
           </button>
         </div>
-      )
-    }
-  ], [categories, handleOpenSubCategoryModal, handleDeleteSubCategory]);
-
-  // Filter options for categories
-  const categoryFilterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { 
-      value: 'active', 
-      label: 'Active', 
-      filterFn: (cat) => cat.status === 'active' 
-    },
-    { 
-      value: 'inactive', 
-      label: 'Inactive', 
-      filterFn: (cat) => cat.status === 'inactive' 
-    }
-  ], []);
+      </div>
+    );
+  };
 
   // Filter options for sub categories
   const subCategoryFilterOptions = useMemo(() => [
@@ -599,13 +637,6 @@ const CategoriesScreen = () => {
     }
   ], []);
 
-  if (loading && activeTab === 'categories') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -617,130 +648,65 @@ const CategoriesScreen = () => {
           value={totalCategories}
           icon={FileText}
           colorType="indigo"
-          isActive={activeTab === 'categories'}
-          onClick={() => setActiveTab('categories')}
         />
         <TabCard
           name="Active Categories"
           value={activeCategories}
           icon={FileText}
           colorType="green"
-          isActive={activeTab === 'categories'}
-          onClick={() => setActiveTab('categories')}
         />
         <TabCard
           name="Sub Categories"
           value={totalSubCategories}
           icon={Layers}
           colorType="blue"
-          isActive={activeTab === 'sub-categories'}
-          onClick={() => setActiveTab('sub-categories')}
         />
         <TabCard
           name="Active Sub Categories"
           value={activeSubCategories}
           icon={Layers}
           colorType="purple"
-          isActive={activeTab === 'sub-categories'}
-          onClick={() => setActiveTab('sub-categories')}
         />
       </TabCardsGrid>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-1.5">
-        <div className="flex space-x-2">
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-            activeTab === 'categories' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-          }`}
-        >
-            <FileText size={20} className={activeTab === 'categories' ? 'text-white' : 'text-gray-500'} />
-          Categories
-        </button>
-        <button
-          onClick={() => setActiveTab('sub-categories')}
-          className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-            activeTab === 'sub-categories' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-          }`}
-        >
-            <Layers size={20} className={activeTab === 'sub-categories' ? 'text-white' : 'text-gray-500'} />
-          Sub Categories
-        </button>
-        </div>
-      </div>
-
-      {/* Categories Tab Content */}
-      {activeTab === 'categories' && (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => loadCategories()}
-                icon={<RefreshCw size={20} />}
-                variant="outline"
-                disabled={loading}
-                loading={loading}
-                title="Refresh categories list"
-              >
-                Refresh
-              </Button>
-              <Button
-                onClick={() => handleOpenModal()}
-                icon={<Plus size={20} />}
-              >
-                Add Category
-              </Button>
-            </div>
-          </div>
-
-          <DataTable
-            columns={categoryColumns}
-            data={categories}
-            isLoading={loading}
-            searchable={true}
-            searchPlaceholder="Search by name..."
-            filterable={true}
-            filterOptions={categoryFilterOptions}
-            defaultFilter="all"
-            sortable={true}
-            emptyMessage="No categories found. Create your first category to get started!"
-          />
-        </>
-      )}
-
-      {/* Sub Categories Tab Content */}
-      {activeTab === 'sub-categories' && (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Sub Categories</h2>
+      {/* Categories Table with Expandable Sub Categories */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
+          <div className="flex gap-2">
             <Button
-              onClick={() => handleOpenSubCategoryModal()}
+              onClick={() => loadCategories()}
+              icon={<RefreshCw size={20} />}
+              variant="outline"
+              disabled={loading}
+              loading={loading}
+              title="Refresh categories list"
+            >
+              Refresh
+            </Button>
+            <Button
+              onClick={() => handleOpenModal()}
               icon={<Plus size={20} />}
             >
-              Add Sub Category
+              Add Category
             </Button>
           </div>
+        </div>
 
-          <DataTable
-            columns={subCategoryColumns}
-            data={subCategories}
-            isLoading={subCategoriesLoading}
-            searchable={true}
-            searchPlaceholder="Search by name..."
-            filterable={true}
-            filterOptions={subCategoryFilterOptions}
-            defaultFilter="all"
-            sortable={true}
-            emptyMessage="No sub categories found. Create your first sub category to get started!"
-          />
-        </>
-      )}
+        <DataTable
+          columns={columns}
+          data={categoriesData}
+          isLoading={loading}
+          emptyMessage="No categories found. Create your first category to get started!"
+          searchable={true}
+          filterable={true}
+          searchPlaceholder="Search by name..."
+          filterOptions={filterOptions}
+          sortable={true}
+          expandable={true}
+          renderExpandedRow={renderExpandedRow}
+        />
+      </div>
 
       {/* Add/Edit Category Modal */}
       <Modal
@@ -843,6 +809,7 @@ const CategoriesScreen = () => {
             value={subCategoryFormData.category_id}
             onChange={handleSubCategoryChange}
             required
+            disabled={true}
             options={categories
               .filter(cat => cat.id) // Only show categories with valid IDs
               .map(cat => ({

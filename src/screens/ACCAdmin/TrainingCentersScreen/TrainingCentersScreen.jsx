@@ -199,7 +199,7 @@ const TrainingCentersScreen = () => {
       render: (value, row) => {
         const logoUrl = row.logo_url || row.training_center?.logo_url;
         return (
-          <div className="flex items-center">
+        <div className="flex items-center">
             <div className="w-10 h-10 mr-3 relative">
               {logoUrl ? (
                 <>
@@ -221,7 +221,7 @@ const TrainingCentersScreen = () => {
                     className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                     style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                   >
-                    <Building2 className="h-5 w-5 text-primary-600" />
+            <Building2 className="h-5 w-5 text-primary-600" />
                   </div>
                 </>
               ) : (
@@ -229,11 +229,11 @@ const TrainingCentersScreen = () => {
                   <Building2 className="h-5 w-5 text-primary-600" />
                 </div>
               )}
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-            </div>
           </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+          </div>
+        </div>
         );
       }
     },

@@ -160,7 +160,7 @@ const ACCsScreen = () => {
                 </div>
               </>
             ) : (
-              <Building2 className="accs-table-row-icon" />
+            <Building2 className="accs-table-row-icon" />
             )}
           </div>
           <div>
@@ -281,7 +281,7 @@ const ACCsScreen = () => {
                 </div>
               </>
             ) : (
-              <Building2 className="accs-table-row-icon" />
+            <Building2 className="accs-table-row-icon" />
             )}
           </div>
           <div>

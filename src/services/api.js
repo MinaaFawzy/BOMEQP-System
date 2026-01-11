@@ -162,7 +162,14 @@ export const adminAPI = {
   // Instructors
   listInstructors: (params) => api.get('/admin/instructors', { params }),
   getInstructorDetails: (id) => api.get(`/admin/instructors/${id}`),
-  updateInstructor: (id, data) => api.put(`/admin/instructors/${id}`, data),
+  updateInstructor: (id, data) => {
+    // If FormData, add _method: 'PUT' for Laravel method spoofing and use POST
+    if (data instanceof FormData) {
+      data.append('_method', 'PUT');
+      return api.post(`/admin/instructors/${id}`, data);
+    }
+    return api.put(`/admin/instructors/${id}`, data);
+  },
   
   // Instructor Authorizations
   getPendingCommissionRequests: (params) => api.get('/admin/instructor-authorizations/pending-commission', { params }),
@@ -365,8 +372,9 @@ export const trainingCenterAPI = {
   deleteInstructor: (id) => api.delete(`/training-center/instructors/${id}`),
   requestInstructorAuthorization: (instructorId, data) => api.post(`/training-center/instructors/${instructorId}/request-authorization`, data),
   
-  // ACC Sub-Categories and Courses
-  getSubCategoriesForACC: (accId) => api.get(`/training-center/accs/${accId}/sub-categories`),
+  // ACC Categories, Sub-Categories and Courses
+  getCategoriesForACC: (accId) => api.get(`/training-center/accs/${accId}/categories`),
+  getSubCategoriesForCategory: (categoryId) => api.get(`/training-center/accs/${categoryId}/sub-categories`),
   getCoursesForACC: (accId, params) => api.get(`/training-center/accs/${accId}/courses`, { params }),
   
   // Instructor Authorizations
@@ -451,6 +459,7 @@ export const instructorAPI = {
 export const publicAPI = {
   getCountries: () => api.get('/countries'),
   getCities: (countryCode) => api.get('/cities', { params: countryCode ? { country: countryCode } : {} }),
+  getLanguages: () => api.get('/languages'),
   verifyCertificate: (code) => api.get(`/certificates/verify/${code}`),
 };
 

@@ -9,6 +9,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import PresentDataForm from '../../../components/PresentDataForm/PresentDataForm';
+import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import './AllInstructorsScreen.css';
 
 const AllInstructorsScreen = () => {
@@ -100,7 +101,7 @@ const AllInstructorsScreen = () => {
         id_number: instData.id_number || '',
         certificates_json: instData.certificates_json || [],
         specializations: instData.specializations || [],
-        languages: instData.languages || [],
+        languages: instData.specializations || instData.languages || [], // Use specializations as languages
         status: instData.status || 'active',
       });
       setCvFile(null);
@@ -164,21 +165,15 @@ const AllInstructorsScreen = () => {
     if (fileInput) fileInput.value = '';
   };
 
-  const handleSpecializationsChange = (e) => {
-    const value = e.target.value;
-    const specializations = value.split(',').map(s => s.trim()).filter(s => s);
+  const handleLanguagesChange = (languages) => {
     setInstructorFormData({
       ...instructorFormData,
-      specializations,
+      languages: Array.isArray(languages) ? languages : [],
     });
-  };
-
-  const handleLanguagesChange = (e) => {
-    const value = e.target.value;
-    const languages = value.split(',').map(s => s.trim()).filter(s => s);
-    setInstructorFormData({
-      ...instructorFormData,
-      languages,
+    setInstructorErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.languages;
+      return newErrors;
     });
   };
 
@@ -190,27 +185,71 @@ const AllInstructorsScreen = () => {
     try {
       let dataToSend = { ...instructorFormData };
       
+      // Use languages as specializations (since specializations is used for languages)
+      const specializationsArray = Array.isArray(dataToSend.languages) 
+        ? dataToSend.languages 
+        : (dataToSend.languages ? dataToSend.languages.split(',').map(s => s.trim()).filter(s => s) : []);
+      
       // If CV file is selected, use FormData
       if (cvFile) {
         const formData = new FormData();
-        Object.keys(dataToSend).forEach(key => {
-          if (key === 'certificates_json' || key === 'specializations' || key === 'languages') {
-            formData.append(key, JSON.stringify(dataToSend[key]));
-          } else {
-            formData.append(key, dataToSend[key]);
-          }
-        });
-        formData.append('cv_file', cvFile);
         
+        // Append basic fields
+        if (dataToSend.first_name) formData.append('first_name', dataToSend.first_name);
+        if (dataToSend.last_name) formData.append('last_name', dataToSend.last_name);
+        if (dataToSend.email) formData.append('email', dataToSend.email);
+        if (dataToSend.phone) formData.append('phone', dataToSend.phone);
+        if (dataToSend.id_number) formData.append('id_number', dataToSend.id_number);
+        if (dataToSend.status) formData.append('status', dataToSend.status);
+        
+        // Append certificates_json as JSON string (only if not empty)
+        if (dataToSend.certificates_json && Array.isArray(dataToSend.certificates_json) && dataToSend.certificates_json.length > 0) {
+          formData.append('certificates_json', JSON.stringify(dataToSend.certificates_json));
+        } else if (dataToSend.certificates_json && !Array.isArray(dataToSend.certificates_json)) {
+          formData.append('certificates_json', JSON.stringify(dataToSend.certificates_json));
+        }
+        
+        // Append specializations as array (specializations[])
+        if (specializationsArray.length > 0) {
+          specializationsArray.forEach(spec => {
+            formData.append('specializations[]', spec);
+          });
+        }
+        
+        formData.append('cv', cvFile);
+        
+        console.log('📡 [AllInstructorsScreen] Updating instructor with FormData');
+        console.log('📦 [AllInstructorsScreen] FormData contents:');
+        for (const [key, value] of formData.entries()) {
+          if (value instanceof File) {
+            console.log(`  📄 ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          } else {
+            console.log(`  📝 ${key}:`, value);
+          }
+        }
+        console.log('📦 [AllInstructorsScreen] Specializations:', specializationsArray);
         await adminAPI.updateInstructor(selectedInstructor.id, formData);
       } else {
-        // Convert arrays to JSON strings if needed by API
+        // Use JSON object (no file upload)
         const formattedData = {
-          ...dataToSend,
-          certificates_json: JSON.stringify(dataToSend.certificates_json),
-          specializations: JSON.stringify(dataToSend.specializations),
-          languages: JSON.stringify(dataToSend.languages),
+          first_name: dataToSend.first_name,
+          last_name: dataToSend.last_name,
+          email: dataToSend.email,
+          phone: dataToSend.phone || null,
+          id_number: dataToSend.id_number || null,
+          status: dataToSend.status,
+          specializations: specializationsArray, // Send as array, not JSON string
         };
+        
+        // Only include certificates_json if it's not empty
+        if (dataToSend.certificates_json && Array.isArray(dataToSend.certificates_json) && dataToSend.certificates_json.length > 0) {
+          formattedData.certificates_json = dataToSend.certificates_json;
+        } else if (dataToSend.certificates_json && !Array.isArray(dataToSend.certificates_json)) {
+          formattedData.certificates_json = dataToSend.certificates_json;
+        }
+        
+        console.log('📡 [AllInstructorsScreen] Updating instructor with JSON');
+        console.log('📦 [AllInstructorsScreen] Formatted data:', formattedData);
         await adminAPI.updateInstructor(selectedInstructor.id, formattedData);
       }
       
@@ -221,10 +260,20 @@ const AllInstructorsScreen = () => {
       setCvPreview(null);
       alert('Instructor updated successfully!');
     } catch (error) {
+      console.error('❌ [AllInstructorsScreen] Failed to update instructor:', error);
+      console.error('❌ [AllInstructorsScreen] Error response:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       if (error.response?.data?.errors) {
+        console.error('❌ [AllInstructorsScreen] Validation errors:', error.response.data.errors);
         setInstructorErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setInstructorErrors({ general: error.response.data.message });
       } else {
-        setInstructorErrors({ general: error.response?.data?.message || error.message || 'Failed to update instructor' });
+        setInstructorErrors({ general: error.message || 'Failed to update instructor' });
       }
     } finally {
       setSaving(false);
@@ -292,7 +341,7 @@ const AllInstructorsScreen = () => {
               </>
             ) : (
               <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary-600" />
+            <Users className="h-5 w-5 text-primary-600" />
               </div>
             )}
           </div>
@@ -626,39 +675,16 @@ const AllInstructorsScreen = () => {
               ]}
               error={instructorErrors.status}
             />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Languages (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={Array.isArray(instructorFormData.languages) ? instructorFormData.languages.join(', ') : instructorFormData.languages || ''}
+            <div className="md:col-span-2">
+              <LanguageSelector
+                value={instructorFormData.languages || []}
                 onChange={handleLanguagesChange}
-                placeholder="e.g., English, Arabic, French"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
-                  instructorErrors.languages ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
-                }`}
+                label="Languages"
+                error={instructorErrors.languages || instructorErrors.specializations}
+                disabled={false}
+                placeholder="Select a language..."
+                useAPI={false}
               />
-              {instructorErrors.languages && (
-                <p className="mt-1 text-sm text-red-600">{instructorErrors.languages}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Specializations (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={Array.isArray(instructorFormData.specializations) ? instructorFormData.specializations.join(', ') : instructorFormData.specializations || ''}
-                onChange={handleSpecializationsChange}
-                placeholder="e.g., Aviation Safety, Aircraft Maintenance"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
-                  instructorErrors.specializations ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              />
-              {instructorErrors.specializations && (
-                <p className="mt-1 text-sm text-red-600">{instructorErrors.specializations}</p>
-              )}
             </div>
           </div>
 

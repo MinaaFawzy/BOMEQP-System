@@ -30,6 +30,7 @@ import {
   Sliders,
   Receipt,
   Clock,
+  User,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './Layout.css';
@@ -402,7 +403,23 @@ const Layout = ({ children }) => {
         className="lg:hidden fixed top-0 left-0 right-0 z-50 backdrop-blur-sm shadow-lg px-4 py-3 flex items-center justify-between layout-gradient-primary"
       >
         <h1 className="text-xl font-bold text-white">BOMEQP</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* User Name with Profile */}
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 transition-all duration-200 hover:opacity-80"
+          >
+            <span className="text-white font-bold text-sm">
+              {user?.name || 'User'}
+            </span>
+            <div
+              className="p-1 transition-all duration-200"
+              title="Profile Settings"
+            >
+              <User size={16} className="text-white" />
+            </div>
+          </Link>
+          {/* Notification Icon */}
           <NotificationBell />
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -416,7 +433,7 @@ const Layout = ({ children }) => {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed lg:static inset-y-0 left-0 z-40 border-r shadow-xl lg:shadow-none transform transition-all duration-300 ease-out layout-gradient-sidebar ${
+          className={`fixed lg:static inset-y-0 left-0 z-50 border-r shadow-xl lg:shadow-none transform transition-all duration-300 ease-out layout-gradient-sidebar ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           } ${
             sidebarCollapsed ? 'w-16' : 'w-64'
@@ -436,10 +453,7 @@ const Layout = ({ children }) => {
                     <h1 className="text-xl font-bold text-white">
                       BOMEQP
                     </h1>
-                    <p className="text-xs text-primary-100 mt-1 font-medium truncate">
-                      {user?.name || 'User'}
-                    </p>
-                    <p className="text-xs text-primary-200 mt-0.5 capitalize">
+                    <p className="text-xs text-primary-200 mt-1 capitalize">
                       {user?.role === 'instructor' 
                         ? (isAssessor ? 'Assessor' : 'Instructor')
                         : (user?.role?.replace('_', ' ') || '')}
@@ -649,22 +663,42 @@ const Layout = ({ children }) => {
         {/* Main content */}
         <div className={`flex-1 min-w-0 transition-all duration-300 overflow-y-auto h-screen ${sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'}`}>
           {/* Fixed Full-Width Header */}
-          <header className="sticky top-0 z-40 w-full px-8">
+          <header className="sticky top-0 z-30 w-full px-8">
             <div className="rounded-b-2xl shadow-xl p-4 lg:p-6 relative overflow-hidden screen-header-gradient">
               <div className="absolute inset-0 opacity-20 screen-pattern-overlay"></div>
-              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="relative z-10 flex flex-col gap-1">
+                {/* Top Row: Title and User Info */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 truncate">{getPageTitle()}</h1>
                   <p className="text-white/80 text-sm sm:text-base">{getPageSubtitle()}</p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    {/* User Name with Profile */}
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2 transition-all duration-200 cursor-pointer group hover:opacity-80"
+                    >
+                      <span className="text-white font-bold text-base">
+                        {user?.name || 'User'}
+                      </span>
+                      <div
+                        className="p-1.5 transition-all duration-200 group-hover:scale-110"
+                        title="Profile Settings"
+                      >
+                        <User size={20} className="text-white" />
+                      </div>
+                    </Link>
+                    {/* Notification Icon */}
+                    <NotificationBell />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                {/* Bottom Row: Header Actions (if they exist) */}
                   {headerActions && (
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2 scale-90 origin-top-right">
                       {headerActions}
                     </div>
                   )}
-                  <NotificationBell />
-                </div>
               </div>
             </div>
           </header>

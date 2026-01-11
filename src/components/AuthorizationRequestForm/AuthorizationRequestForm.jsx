@@ -271,25 +271,23 @@ const AuthorizationRequestForm = ({
                   </div>
                   <div className="authorization-request-form-document-grid">
                     <div>
-                      <label className="authorization-request-form-label">
-                        Document Type <span className="authorization-request-form-label-required">*</span>
-                      </label>
-                      <select
+                      <FormInput
+                        label="Document Type"
+                        name={`documents.${index}.type`}
+                        type="select"
                         value={doc.type || ''}
                         onChange={(e) => handleDocumentChange(index, 'type', e.target.value)}
                         required
                         disabled={submitting}
-                        className={`authorization-request-form-select ${errors[`documents.${index}.type`] ? 'error' : ''}`}
-                      >
-                        <option value="">Select document type</option>
-                        <option value="license">License</option>
-                        <option value="certificate">Certificate</option>
-                        <option value="registration">Registration</option>
-                        <option value="other">Other</option>
-                      </select>
-                      {errors[`documents.${index}.type`] && (
-                        <p className="authorization-request-form-error">{errors[`documents.${index}.type`]}</p>
-                      )}
+                        error={errors[`documents.${index}.type`]}
+                        options={[
+                          { value: '', label: 'Select document type' },
+                          { value: 'license', label: 'License' },
+                          { value: 'certificate', label: 'Certificate' },
+                          { value: 'registration', label: 'Registration' },
+                          { value: 'other', label: 'Other' }
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="authorization-request-form-label">

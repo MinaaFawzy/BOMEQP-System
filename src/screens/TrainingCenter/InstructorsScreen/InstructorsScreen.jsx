@@ -26,11 +26,16 @@ const TrainingCenterInstructorsScreen = () => {
   const [requestAuthModalOpen, setRequestAuthModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [accs, setAccs] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [courses, setCourses] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
   const [requestForm, setRequestForm] = useState({
     acc_id: '',
+    category_id: '',
     sub_category_id: '',
     course_ids: [],
   });
@@ -375,10 +380,15 @@ const TrainingCenterInstructorsScreen = () => {
     setSelectedInstructor(instructor);
     setRequestForm({
       acc_id: '',
+      category_id: '',
       sub_category_id: '',
       course_ids: [],
     });
+    setCategories([]);
+    setCourses([]);
+    setSubCategories([]);
     setExpandedCategories(new Set());
+    setCourseSearchTerm('');
     setRequestErrors({});
     setRequestAuthModalOpen(true);
   };
@@ -410,33 +420,75 @@ const TrainingCenterInstructorsScreen = () => {
 
   const handleAccChange = async (accId) => {
     // Clear everything when ACC changes
-    setRequestForm({ ...requestForm, acc_id: accId, sub_category_id: '', course_ids: [] });
+    setRequestForm({ ...requestForm, acc_id: accId, category_id: '', sub_category_id: '', course_ids: [] });
+    setCategories([]);
     setCourses([]);
     setSubCategories([]);
     setExpandedCategories(new Set());
+    setCourseSearchTerm('');
     
     if (!accId) {
       return;
     }
 
     try {
-      // Load sub-categories and courses in parallel
-      const [subCategoriesData, coursesData] = await Promise.all([
-        trainingCenterAPI.getSubCategoriesForACC(accId).catch(() => ({ sub_categories: [] })),
-        trainingCenterAPI.getCoursesForACC(accId).catch(() => ({ courses: [] })),
-      ]);
-
-      // Set sub-categories
-      const subCats = subCategoriesData?.sub_categories || [];
-      setSubCategories(subCats);
-
-      // Set courses - organize by sub_category
-      const coursesList = coursesData?.courses || [];
-      setCourses(coursesList);
+      setLoadingCategories(true);
+      console.log(`Loading categories for ACC ${accId}`);
+      
+      const data = await trainingCenterAPI.getCategoriesForACC(accId);
+      const categoriesList = data.categories || data.data || data || [];
+      
+      setCategories(categoriesList);
+      console.log(`Loaded ${categoriesList.length} categories for ACC ${accId}`);
     } catch (error) {
-      console.error('Failed to load ACC data:', error);
-      setCourses([]);
+      console.error('Failed to load categories:', error);
+      setCategories([]);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const handleCategoryChange = async (categoryId) => {
+    // Get acc_id before clearing state
+    const currentAccId = requestForm.acc_id;
+    
+    // Clear sub-categories and courses when category changes
+    setRequestForm(prev => ({ ...prev, category_id: categoryId, sub_category_id: '', course_ids: [] }));
+    setCourses([]);
+    setSubCategories([]);
+    setExpandedCategories(new Set());
+    
+    if (!categoryId) {
+      return;
+    }
+
+    try {
+      setLoadingSubCategories(true);
+      console.log(`Loading sub-categories for category ${categoryId}`);
+      
+      const data = await trainingCenterAPI.getSubCategoriesForCategory(categoryId);
+      const subCategoriesList = data.sub_categories || data.data || data || [];
+      
+      setSubCategories(subCategoriesList);
+      console.log(`Loaded ${subCategoriesList.length} sub-categories for category ${categoryId}`);
+      
+      // Load courses for the selected ACC (courses will be filtered by sub-category)
+      if (currentAccId) {
+        try {
+          const coursesData = await trainingCenterAPI.getCoursesForACC(currentAccId);
+          const coursesList = coursesData?.courses || coursesData?.data || coursesData || [];
+          setCourses(coursesList);
+          console.log(`Loaded ${coursesList.length} courses for ACC ${currentAccId}`);
+        } catch (error) {
+          console.error('Failed to load courses:', error);
+          setCourses([]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load sub-categories:', error);
       setSubCategories([]);
+    } finally {
+      setLoadingSubCategories(false);
     }
   };
 
@@ -575,10 +627,15 @@ const TrainingCenterInstructorsScreen = () => {
       setRequestAuthModalOpen(false);
       setRequestForm({
         acc_id: '',
+        category_id: '',
         sub_category_id: '',
         course_ids: [],
       });
       setExpandedCategories(new Set());
+      setCategories([]);
+      setCourses([]);
+      setSubCategories([]);
+      setCourseSearchTerm('');
       setSelectedInstructor(null);
       
       const coursesCount = response?.courses_count || requestForm.course_ids.length;
@@ -1292,13 +1349,16 @@ const TrainingCenterInstructorsScreen = () => {
           setRequestAuthModalOpen(false);
           setRequestForm({
             acc_id: '',
+            category_id: '',
             sub_category_id: '',
             course_ids: [],
           });
           setExpandedCategories(new Set());
           setRequestErrors({});
+          setCategories([]);
           setCourses([]);
           setSubCategories([]);
+          setCourseSearchTerm('');
         }}
         title={`Request Authorization for ${selectedInstructor ? `${selectedInstructor.first_name} ${selectedInstructor.last_name}` : 'Instructor'}`}
         size="lg"
@@ -1333,199 +1393,205 @@ const TrainingCenterInstructorsScreen = () => {
             </p>
           )}
 
-          {requestForm.acc_id && (
-            <div>
-              <label className="instructors-request-label">
-                Select Categories & Courses <span className="instructors-request-label-required">*</span>
-              </label>
-              {subCategories.length === 0 && courses.length === 0 ? (
-                <p className="instructors-request-warning">No categories or courses available for the selected ACC</p>
-              ) : (
-                <>
-                  <div className="instructors-categories-container">
-                    {subCategories.map(category => {
-                      const categoryCourses = courses.filter(course => 
-                        course.sub_category_id === category.id || 
-                        course.sub_category?.id === category.id ||
-                        (typeof course.sub_category === 'object' && course.sub_category?.id === category.id)
-                      );
-                      // Filter out already authorized courses
-                      const authorizedCourseIds = new Set(
-                        selectedInstructor?.courses
-                          ?.filter(instCourse => 
-                            instCourse.pivot?.acc_id === parseInt(requestForm.acc_id) &&
-                            instCourse.pivot?.status === 'active'
-                          )
-                          .map(instCourse => instCourse.id) || []
-                      );
-                      
-                      const selectableCategoryCourses = categoryCourses.filter(c => !authorizedCourseIds.has(c.id));
-                      const categoryCourseIds = selectableCategoryCourses.map(c => c.id);
-                      const allSelected = categoryCourseIds.length > 0 && 
-                        categoryCourseIds.every(id => requestForm.course_ids?.includes(id));
-                      const someSelected = categoryCourseIds.some(id => requestForm.course_ids?.includes(id));
-                      const isExpanded = expandedCategories.has(category.id);
-                      const allAuthorized = categoryCourses.length > 0 && categoryCourses.every(c => authorizedCourseIds.has(c.id));
-                      
-                      return (
-                        <div key={category.id} className="instructors-category-group">
-                          <div 
-                            className="instructors-category-header"
-                            onClick={(e) => {
-                              // Don't toggle if clicking on checkbox or expand button
-                              if (e.target.type === 'checkbox' || e.target.closest('.instructors-category-expand-btn') || e.target.closest('.instructors-course-checkbox')) {
-                                return;
-                              }
-                              if (categoryCourses.length > 0) {
-                                toggleCategoryExpansion(category.id);
-                              }
-                            }}
-                          >
-                            <div className="instructors-category-header-left">
-                              <input
-                                type="checkbox"
-                                data-category-id={category.id}
-                                checked={allSelected}
-                                disabled={allAuthorized}
-                                ref={(input) => {
-                                  if (input) input.indeterminate = someSelected && !allSelected;
-                                }}
-                                onChange={() => handleCategoryToggle(category.id)}
-                                className="instructors-course-checkbox"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <span className={`instructors-category-name ${allAuthorized ? 'instructors-category-name-disabled' : ''}`}>
-                                {category.name || `Category ${category.id}`}
-                              </span>
-                              <span className={`instructors-category-count ${allAuthorized ? 'instructors-category-count-disabled' : ''}`}>
-                                ({categoryCourses.length} {categoryCourses.length === 1 ? 'course' : 'courses'})
-                                {allAuthorized && ' (All Authorized)'}
-                              </span>
-                            </div>
-                            {categoryCourses.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
+          {/* Category Selection */}
+          <FormInput
+            label="Category"
+            name="category_id"
+            type="select"
+            value={requestForm.category_id}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            required
+            disabled={!requestForm.acc_id || loadingCategories}
+            error={requestErrors.category_id}
+            options={[
+              { value: '', label: !requestForm.acc_id ? 'Please select ACC first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+              ...categories
+                .filter(cat => cat.id != null && cat.id !== '')
+                .map(cat => ({
+                  value: cat.id,
+                  label: cat.name || cat.name_ar || `Category ${cat.id}`
+                }))
+            ]}
+          />
+
+          {/* Sub-Categories and Courses */}
+          <div>
+            <label className="instructors-request-label">
+              Select Sub-Categories & Courses <span className="instructors-request-label-required">*</span>
+            </label>
+            
+            {!requestForm.acc_id ? (
+              <p className="instructors-request-warning">Please select ACC first</p>
+            ) : !requestForm.category_id ? (
+              <p className="instructors-request-warning">Please select Category first</p>
+            ) : (
+              <>
+                {/* Search bar for courses */}
+                {courses.length > 0 && (
+                  <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+                    <FormInput
+                      label=""
+                      name="course_search"
+                      type="text"
+                      value={courseSearchTerm}
+                      onChange={(e) => setCourseSearchTerm(e.target.value)}
+                      placeholder="Search courses..."
+                    />
+                  </div>
+                )}
+                {subCategories.length === 0 && courses.length === 0 && !loadingSubCategories ? (
+                  <p className="instructors-request-warning">No sub-categories or courses available for the selected category</p>
+                ) : loadingSubCategories ? (
+                  <p className="instructors-request-warning">Loading sub-categories...</p>
+                ) : (
+                  <>
+                    <div className="instructors-categories-container">
+                      {subCategories.map(category => {
+                        const categoryCourses = courses.filter(course => {
+                          const matchesCategory = course.sub_category_id === category.id || 
+                            course.sub_category?.id === category.id ||
+                            (typeof course.sub_category === 'object' && course.sub_category?.id === category.id);
+                          
+                          // Filter by search term if provided
+                          if (courseSearchTerm && matchesCategory) {
+                            const courseName = (course.name || course.code || '').toLowerCase();
+                            const courseCode = (course.code || '').toLowerCase();
+                            const searchLower = courseSearchTerm.toLowerCase();
+                            return courseName.includes(searchLower) || courseCode.includes(searchLower);
+                          }
+                          
+                          return matchesCategory;
+                        });
+                        // Filter out already authorized courses
+                        const authorizedCourseIds = new Set(
+                          selectedInstructor?.courses
+                            ?.filter(instCourse => 
+                              instCourse.pivot?.acc_id === parseInt(requestForm.acc_id) &&
+                              instCourse.pivot?.status === 'active'
+                            )
+                            .map(instCourse => instCourse.id) || []
+                        );
+                        
+                        const selectableCategoryCourses = categoryCourses.filter(c => !authorizedCourseIds.has(c.id));
+                        const categoryCourseIds = selectableCategoryCourses.map(c => c.id);
+                        const allSelected = categoryCourseIds.length > 0 && 
+                          categoryCourseIds.every(id => requestForm.course_ids?.includes(id));
+                        const someSelected = categoryCourseIds.some(id => requestForm.course_ids?.includes(id));
+                        const isExpanded = expandedCategories.has(category.id);
+                        const allAuthorized = categoryCourses.length > 0 && categoryCourses.every(c => authorizedCourseIds.has(c.id));
+                        
+                        return (
+                          <div key={category.id} className="instructors-category-group">
+                            <div 
+                              className="instructors-category-header"
+                              onClick={(e) => {
+                                // Don't toggle if clicking on checkbox or expand button
+                                if (e.target.type === 'checkbox' || e.target.closest('.instructors-category-expand-btn') || e.target.closest('.instructors-course-checkbox')) {
+                                  return;
+                                }
+                                if (categoryCourses.length > 0) {
                                   toggleCategoryExpansion(category.id);
-                                }}
-                                className="instructors-category-expand-btn"
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp size={18} />
-                                ) : (
-                                  <ChevronDown size={18} />
-                                )}
-                              </button>
+                                }
+                              }}
+                            >
+                              <div className="instructors-category-header-left">
+                                <input
+                                  type="checkbox"
+                                  data-category-id={category.id}
+                                  checked={allSelected}
+                                  disabled={allAuthorized}
+                                  ref={(input) => {
+                                    if (input) input.indeterminate = someSelected && !allSelected;
+                                  }}
+                                  onChange={() => handleCategoryToggle(category.id)}
+                                  className="instructors-course-checkbox"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className={`instructors-category-name ${allAuthorized ? 'instructors-category-name-disabled' : ''}`}>
+                                  {category.name || `Category ${category.id}`}
+                                </span>
+                                <span className={`instructors-category-count ${allAuthorized ? 'instructors-category-count-disabled' : ''}`}>
+                                  ({categoryCourses.length} {categoryCourses.length === 1 ? 'course' : 'courses'})
+                                  {allAuthorized && ' (All Authorized)'}
+                                </span>
+                              </div>
+                              {categoryCourses.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleCategoryExpansion(category.id);
+                                  }}
+                                  className="instructors-category-expand-btn"
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp size={18} />
+                                  ) : (
+                                    <ChevronDown size={18} />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            {isExpanded && categoryCourses.length > 0 && (
+                              <div className="instructors-category-courses">
+                                {categoryCourses.map(course => {
+                                  // Check if this course is already authorized for the selected ACC
+                                  const isAuthorized = selectedInstructor?.courses?.some(instCourse => 
+                                    instCourse.id === course.id && 
+                                    instCourse.pivot?.acc_id === parseInt(requestForm.acc_id) &&
+                                    instCourse.pivot?.status === 'active'
+                                  ) || false;
+                                  
+                                  return (
+                                    <div
+                                      key={course.id}
+                                      className={`instructors-course-item instructors-course-item-nested ${isAuthorized ? 'instructors-course-item-disabled' : ''}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={requestForm.course_ids?.includes(course.id) || false}
+                                        onChange={() => handleCourseToggle(course.id, category.id)}
+                                        className="instructors-course-checkbox"
+                                        onClick={(e) => e.stopPropagation()}
+                                        disabled={isAuthorized}
+                                      />
+                                      <div className="instructors-course-info">
+                                        <span className={`instructors-course-name ${isAuthorized ? 'instructors-course-name-disabled' : ''}`}>
+                                          {course.name || course.code || `Course ${course.id}`}
+                                        </span>
+                                        {course.code && course.name !== course.code && (
+                                          <span className={`instructors-course-subcategory ${isAuthorized ? 'instructors-course-subcategory-disabled' : ''}`}>
+                                            ({course.code})
+                                          </span>
+                                        )}
+                                        {isAuthorized && (
+                                          <span className="instructors-course-authorized-badge">
+                                            Already Authorized
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             )}
                           </div>
-                          {isExpanded && categoryCourses.length > 0 && (
-                            <div className="instructors-category-courses">
-                              {categoryCourses.map(course => {
-                                // Check if this course is already authorized for the selected ACC
-                                const isAuthorized = selectedInstructor?.courses?.some(instCourse => 
-                                  instCourse.id === course.id && 
-                                  instCourse.pivot?.acc_id === parseInt(requestForm.acc_id) &&
-                                  instCourse.pivot?.status === 'active'
-                                ) || false;
-                                
-                                return (
-                                  <div
-                                    key={course.id}
-                                    className={`instructors-course-item instructors-course-item-nested ${isAuthorized ? 'instructors-course-item-disabled' : ''}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={requestForm.course_ids?.includes(course.id) || false}
-                                      onChange={() => handleCourseToggle(course.id, category.id)}
-                                      className="instructors-course-checkbox"
-                                      onClick={(e) => e.stopPropagation()}
-                                      disabled={isAuthorized}
-                                    />
-                                    <div className="instructors-course-info">
-                                      <span className={`instructors-course-name ${isAuthorized ? 'instructors-course-name-disabled' : ''}`}>
-                                        {course.name || course.code || `Course ${course.id}`}
-                                      </span>
-                                      {course.code && course.name !== course.code && (
-                                        <span className={`instructors-course-subcategory ${isAuthorized ? 'instructors-course-subcategory-disabled' : ''}`}>
-                                          ({course.code})
-                                        </span>
-                                      )}
-                                      {isAuthorized && (
-                                        <span className="instructors-course-authorized-badge">
-                                          Already Authorized
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    
-                    {/* Show courses without category if any */}
-                    {courses.filter(course => {
-                      const hasCategory = subCategories.some(cat => 
-                        course.sub_category_id === cat.id || 
-                        course.sub_category?.id === cat.id
-                      );
-                      return !hasCategory;
-                    }).length > 0 && (
-                      <div className="instructors-category-group">
-                        <div className="instructors-category-header">
-                          <span className="instructors-category-name">Other Courses</span>
-                        </div>
-                        <div className="instructors-category-courses">
-                          {courses.filter(course => {
-                            const hasCategory = subCategories.some(cat => 
-                              course.sub_category_id === cat.id || 
-                              course.sub_category?.id === cat.id
-                            );
-                            return !hasCategory;
-                          }).map(course => (
-                            <div
-                              key={course.id}
-                              className="instructors-course-item instructors-course-item-nested"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={requestForm.course_ids?.includes(course.id) || false}
-                                onChange={() => handleCourseToggle(course.id, null)}
-                                className="instructors-course-checkbox"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <div className="instructors-course-info">
-                                <span className="instructors-course-name">
-                                  {course.name || course.code || `Course ${course.id}`}
-                                </span>
-                                {course.code && course.name !== course.code && (
-                                  <span className="instructors-course-subcategory">
-                                    ({course.code})
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                        );
+                      })}
+                    </div>
+                    {requestForm.course_ids.length > 0 && (
+                      <p className="instructors-course-selected">
+                        Selected: <span className="instructors-course-selected-bold">{requestForm.course_ids.length}</span> course(s)
+                      </p>
                     )}
-                  </div>
-                  {requestForm.course_ids.length > 0 && (
-                    <p className="instructors-course-selected">
-                      Selected: <span className="instructors-course-selected-bold">{requestForm.course_ids.length}</span> course(s)
-                    </p>
-                  )}
-                </>
-              )}
-              {requestErrors.course_ids && <p className="instructors-error-text">{requestErrors.course_ids}</p>}
-            </div>
-          )}
+                  </>
+                )}
+              </>
+            )}
+            {requestErrors.course_ids && <p className="instructors-error-text">{requestErrors.course_ids}</p>}
+          </div>
 
           <div className="instructors-request-actions">
             <button
@@ -1534,13 +1600,16 @@ const TrainingCenterInstructorsScreen = () => {
                 setRequestAuthModalOpen(false);
                 setRequestForm({
                   acc_id: '',
+                  category_id: '',
                   sub_category_id: '',
                   course_ids: [],
                 });
                 setExpandedCategories(new Set());
                 setRequestErrors({});
+                setCategories([]);
                 setCourses([]);
                 setSubCategories([]);
+                setCourseSearchTerm('');
               }}
               className="instructors-button-cancel"
             >

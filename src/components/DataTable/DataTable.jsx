@@ -17,12 +17,16 @@ const DataTable = ({
   filterOptions = null,
   sortable = true,
   defaultFilter = 'all',
-  customFilters = null
+  customFilters = null,
+  expandable = false,
+  renderExpandedRow = null,
+  getExpandedRows = null
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
   const [showFilters, setShowFilters] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [expandedRows, setExpandedRows] = useState(new Set());
   const filterRef = useRef(null);
 
   // Update filter when defaultFilter prop changes
@@ -47,6 +51,22 @@ const DataTable = ({
     };
   }, [showFilters]);
 
+  // Toggle expand/collapse for row
+  const toggleRowExpand = (rowId, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(rowId)) {
+        newSet.delete(rowId);
+      } else {
+        newSet.add(rowId);
+      }
+      return newSet;
+    });
+  };
+
   const handleRowClick = (row, e) => {
     // Don't trigger row click if clicking on action buttons or clickable elements
     if (e.target.closest('button') || 
@@ -55,6 +75,13 @@ const DataTable = ({
         e.target.classList.contains('enrollment-clickable')) {
       return;
     }
+    
+    // If expandable and clicking on the row itself, toggle expansion
+    if (expandable && renderExpandedRow && row.id) {
+      toggleRowExpand(row.id, e);
+      return;
+    }
+    
     if (onRowClick) {
       onRowClick(row);
     } else if (onView) {
@@ -331,29 +358,34 @@ const DataTable = ({
                 </td>
               </tr>
             ) : (
-              filteredData.map((row, rowIndex) => (
-                <tr 
-                  key={row.id || rowIndex} 
-                  className={`hover:bg-gray-50 transition-all duration-200 ease-out hover:shadow-sm ${(onRowClick || onView) ? 'cursor-pointer' : ''} stagger-item`}
-                  onClick={(e) => handleRowClick(row, e)}
-                  style={{ '--animation-delay': `${rowIndex * 0.03}s` }}
-                >
-                  {columns.map((column, colIndex) => {
-                    const value = row[column.accessor];
-                    let displayValue = value;
-                    
-                    // If no render function and value is an object, try to extract a meaningful string
-                    if (!column.render && value && typeof value === 'object' && !Array.isArray(value)) {
-                      // Try common object properties
-                      displayValue = value.name || value.title || value.first_name || JSON.stringify(value);
-                    }
-                    
-                    return (
-                      <td key={colIndex} className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {column.render ? column.render(value, row) : displayValue}
-                      </td>
-                    );
-                  })}
+              <>
+                {filteredData.map((row, rowIndex) => {
+                  const rowId = row.id || rowIndex;
+                  const isExpanded = expandedRows.has(rowId);
+                  return (
+                    <>
+                      <tr 
+                        key={rowId} 
+                        className={`hover:bg-gray-50 transition-all duration-200 ease-out hover:shadow-sm ${(expandable && renderExpandedRow) || (onRowClick || onView) ? 'cursor-pointer' : ''} stagger-item`}
+                        onClick={(e) => handleRowClick(row, e)}
+                        style={{ '--animation-delay': `${rowIndex * 0.03}s` }}
+                      >
+                        {columns.map((column, colIndex) => {
+                          const value = row[column.accessor];
+                          let displayValue = value;
+                          
+                          // If no render function and value is an object, try to extract a meaningful string
+                          if (!column.render && value && typeof value === 'object' && !Array.isArray(value)) {
+                            // Try common object properties
+                            displayValue = value.name || value.title || value.first_name || JSON.stringify(value);
+                          }
+                          
+                          return (
+                            <td key={colIndex} className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {column.render ? column.render(value, row, { isExpanded, toggleExpand: (e) => toggleRowExpand(rowId, e) }) : displayValue}
+                            </td>
+                          );
+                        })}
                   {(onEdit || onDelete || onView) && (
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center space-x-2">
@@ -471,8 +503,19 @@ const DataTable = ({
                       </div>
                     </td>
                   )}
-                </tr>
-              ))
+                      </tr>
+                      {/* Expanded Row */}
+                      {expandable && renderExpandedRow && isExpanded && (
+                        <tr key={`expanded-${rowId}`} className="bg-gray-50">
+                          <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-4">
+                            {renderExpandedRow(row)}
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  );
+                })}
+              </>
             )}
           </tbody>
         </table>

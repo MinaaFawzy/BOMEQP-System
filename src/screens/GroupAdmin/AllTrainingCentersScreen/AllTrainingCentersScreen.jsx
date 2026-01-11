@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Building2, Eye, Mail, MapPin, School, CheckCircle, Clock, Edit, ClipboardList, XCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
@@ -30,11 +30,14 @@ const AllTrainingCentersScreen = () => {
     phone: '',
     email: '',
     website: '',
-    logo_url: '',
     referred_by_group: false,
     status: 'active',
   });
   const [tcErrors, setTcErrors] = useState({});
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
 
   useEffect(() => {
     setHeaderTitle('All Training Centers');
@@ -68,7 +71,47 @@ const AllTrainingCentersScreen = () => {
   
   useEffect(() => {
     loadTrainingCenters();
+    loadCountries();
   }, []);
+
+  const loadCountries = async () => {
+    setLoadingCountries(true);
+    try {
+      const response = await publicAPI.getCountries();
+      setCountries(response.countries || response.data || []);
+    } catch (error) {
+      console.error('Failed to load countries:', error);
+      setCountries([]);
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
+
+  const loadCities = async (countryCode) => {
+    if (!countryCode) {
+      setCities([]);
+      return;
+    }
+    
+    setLoadingCities(true);
+    try {
+      const response = await publicAPI.getCities(countryCode);
+      let citiesData = response.cities || response.data?.cities || response.data || response || [];
+      
+      // Convert object to array if needed (when API returns object with numeric keys)
+      if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
+        citiesData = Object.values(citiesData);
+      }
+      
+      // Ensure cities is always an array
+      setCities(Array.isArray(citiesData) ? citiesData : []);
+    } catch (error) {
+      console.error('Failed to load cities:', error);
+      setCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
+  };
 
   const handleViewDetails = async (tc) => {
     try {
@@ -87,21 +130,27 @@ const AllTrainingCentersScreen = () => {
       const data = await adminAPI.getTrainingCenterDetails(tc.id);
       const tcData = data.training_center;
       setSelectedTC(tcData);
+      const countryValue = tcData.country || '';
       setTcFormData({
         name: tcData.name || '',
         legal_name: tcData.legal_name || '',
         registration_number: tcData.registration_number || '',
-        country: tcData.country || '',
+        country: countryValue,
         city: tcData.city || '',
         address: tcData.address || '',
         phone: tcData.phone || '',
         email: tcData.email || '',
         website: tcData.website || '',
-        logo_url: tcData.logo_url || '',
         referred_by_group: tcData.referred_by_group || false,
         status: tcData.status || 'active',
       });
       setTcErrors({});
+      // Load cities if country is selected
+      if (countryValue) {
+        await loadCities(countryValue);
+      } else {
+        setCities([]);
+      }
       setEditModalOpen(true);
     } catch (error) {
       console.error('Failed to load training center details:', error);
@@ -109,13 +158,25 @@ const AllTrainingCentersScreen = () => {
     }
   };
 
-  const handleTcFormChange = (e) => {
+  const handleTcFormChange = async (e) => {
     const { name, value, type, checked } = e.target;
+    
+    // If country changes, load cities for that country and reset city
+    if (name === 'country') {
+      setTcFormData({
+        ...tcFormData,
+        [name]: value,
+        city: '', // Reset city when country changes
+      });
+      setTcErrors({});
+      await loadCities(value);
+    } else {
     setTcFormData({
       ...tcFormData,
       [name]: type === 'checkbox' ? checked : value,
     });
     setTcErrors({});
+    }
   };
 
   const handleSaveTrainingCenter = async (e) => {
@@ -196,7 +257,7 @@ const AllTrainingCentersScreen = () => {
               </>
             ) : (
               <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                <School className="h-5 w-5 text-primary-600" />
+            <School className="h-5 w-5 text-primary-600" />
               </div>
             )}
           </div>
@@ -375,11 +436,11 @@ const AllTrainingCentersScreen = () => {
             phone: '',
             email: '',
             website: '',
-            logo_url: '',
             referred_by_group: false,
             status: 'active',
           });
           setTcErrors({});
+          setCities([]);
         }}
         title={`Edit Training Center: ${selectedTC?.name}`}
         size="lg"
@@ -410,15 +471,46 @@ const AllTrainingCentersScreen = () => {
             <FormInput
               label="Country"
               name="country"
+              type="select"
               value={tcFormData.country}
               onChange={handleTcFormChange}
+              disabled={loadingCountries}
+              options={loadingCountries 
+                ? [{ value: '', label: 'Loading countries...' }]
+                : countries.length > 0
+                ? [
+                    { value: '', label: 'Select a country' },
+                    ...countries.map(country => ({
+                      value: country.code || country.name || country,
+                      label: country.name || country.code || country,
+                    }))
+                  ]
+                : [{ value: '', label: 'No countries available' }]
+              }
               error={tcErrors.country}
             />
             <FormInput
               label="City"
               name="city"
+              type="select"
               value={tcFormData.city}
               onChange={handleTcFormChange}
+              disabled={!tcFormData.country || loadingCities}
+              options={
+                !tcFormData.country
+                  ? [{ value: '', label: 'Select a country first' }]
+                  : loadingCities
+                  ? [{ value: '', label: 'Loading cities...' }]
+                  : cities.length > 0
+                  ? [
+                      { value: '', label: 'Select a city' },
+                      ...cities.map(city => ({
+                        value: city.name || city,
+                        label: city.name || city,
+                      }))
+                    ]
+                  : [{ value: '', label: 'No cities available' }]
+              }
               error={tcErrors.city}
             />
             <FormInput
@@ -452,14 +544,6 @@ const AllTrainingCentersScreen = () => {
               value={tcFormData.website}
               onChange={handleTcFormChange}
               error={tcErrors.website}
-            />
-            <FormInput
-              label="Logo URL"
-              name="logo_url"
-              type="url"
-              value={tcFormData.logo_url}
-              onChange={handleTcFormChange}
-              error={tcErrors.logo_url}
             />
             <FormInput
               label="Status"

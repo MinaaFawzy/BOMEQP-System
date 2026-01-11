@@ -8,5 +8,11 @@
   padding-right: 2.5rem;
 }
 
+/* Hide arrow when disabled */
+.form-input-select:disabled {
+  background-image: none;
+  padding-right: 1rem;
+}
+
 /* Additional custom styles can be added here if needed */
 /* Most styles are handled by Tailwind classes */

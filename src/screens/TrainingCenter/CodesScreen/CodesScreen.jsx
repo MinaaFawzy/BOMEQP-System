@@ -19,9 +19,13 @@ const CodesScreen = () => {
   const [batches, setBatches] = useState([]);
   const [courses, setCourses] = useState([]);
   const [accs, setAccs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [discountCodes, setDiscountCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
   const [loadingDiscountCodes, setLoadingDiscountCodes] = useState(false);
   const [activeTab, setActiveTab] = useState('inventory');
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
@@ -30,6 +34,8 @@ const CodesScreen = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [purchaseForm, setPurchaseForm] = useState({
     acc_id: '',
+    category_id: '',
+    sub_category_id: '',
     course_id: '',
     quantity: '',
     discount_code: '',
@@ -160,6 +166,8 @@ const CodesScreen = () => {
       const approvedAccs = Array.from(accMap.values());
       console.log('Approved ACCs:', approvedAccs);
       setAccs(approvedAccs);
+      setCategories([]);
+      setSubCategories([]);
       setCourses([]); // Clear courses initially
     } catch (error) {
       console.error('Failed to load form data:', error);
@@ -168,8 +176,47 @@ const CodesScreen = () => {
     }
   };
 
-  const loadCoursesForACC = async (accId) => {
-    if (!accId) {
+  // Load categories for selected ACC
+  const loadCategories = async (accId) => {
+    try {
+      setLoadingCategories(true);
+      console.log(`Loading categories for ACC ${accId}`);
+      
+      const data = await trainingCenterAPI.getCategoriesForACC(accId);
+      const categoriesList = data.categories || data.data || data || [];
+      
+      setCategories(categoriesList);
+      console.log(`Loaded ${categoriesList.length} categories for ACC ${accId}`);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      setCategories([]);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  // Load sub-categories for selected category
+  const loadSubCategories = async (categoryId) => {
+    try {
+      setLoadingSubCategories(true);
+      console.log(`Loading sub-categories for category ${categoryId}`);
+      
+      const data = await trainingCenterAPI.getSubCategoriesForCategory(categoryId);
+      const subCategoriesList = data.sub_categories || data.data || data || [];
+      
+      setSubCategories(subCategoriesList);
+      console.log(`Loaded ${subCategoriesList.length} sub-categories for category ${categoryId}`);
+    } catch (error) {
+      console.error('Failed to load sub-categories:', error);
+      setSubCategories([]);
+    } finally {
+      setLoadingSubCategories(false);
+    }
+  };
+
+  // Load courses for selected sub-category
+  const loadCoursesForSubCategory = async (accId, subCategoryId) => {
+    if (!accId || !subCategoryId) {
       setCourses([]);
       return;
     }
@@ -177,75 +224,12 @@ const CodesScreen = () => {
     setLoadingCourses(true);
     try {
       const finalAccId = typeof accId === 'string' ? parseInt(accId) : accId;
+      console.log(`Loading courses for ACC ${finalAccId} and sub-category ${subCategoryId}`);
       
-      // Try to get courses directly from ACC endpoint
-      const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+      const data = await trainingCenterAPI.getCoursesForACC(finalAccId, { sub_category_id: subCategoryId });
+      const coursesList = data.courses || data.data || data || [];
       
-      const endpoints = [
-        `${baseURL}/training-center/accs/${finalAccId}/courses`,
-        `${baseURL}/acc/${finalAccId}/courses`,
-        `${baseURL}/training-center/courses?acc_id=${finalAccId}`,
-      ];
-      
-      let coursesList = [];
-      
-      // Try each endpoint until one works
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
-            },
-          });
-          
-          const data = response.data;
-          coursesList = data.courses || data.data || data || [];
-          
-          if (coursesList.length > 0) {
-            // Ensure all courses have acc_id set
-            coursesList = coursesList.map(course => ({
-              ...course,
-              acc_id: finalAccId,
-            }));
-            break; // Success, exit loop
-          }
-        } catch (error) {
-          // Continue to next endpoint
-          continue;
-        }
-      }
-      
-      // If direct endpoint didn't work, fallback to classes
-      if (coursesList.length === 0) {
-        try {
-          const classesData = await trainingCenterAPI.listClasses({ acc_id: finalAccId });
-          const classesList = classesData?.classes || classesData?.data || [];
-          
-          const courseMap = new Map();
-          classesList.forEach(cls => {
-            if (cls.course) {
-              const courseObj = typeof cls.course === 'object' ? cls.course : { id: cls.course, name: cls.course };
-              const courseId = courseObj.id ? (typeof courseObj.id === 'string' ? parseInt(courseObj.id) : courseObj.id) : null;
-              const courseKey = courseId || courseObj.name;
-              
-              if (courseKey && !courseMap.has(courseKey)) {
-                courseMap.set(courseKey, {
-                  ...courseObj,
-                  id: courseId || courseObj.id,
-                  acc_id: finalAccId,
-                });
-                coursesList.push(courseMap.get(courseKey));
-              }
-            }
-          });
-        } catch (err) {
-          console.error('Failed to load courses from classes:', err);
-        }
-      }
-      
-      console.log(`Loaded courses for ACC ${finalAccId}:`, coursesList);
+      console.log(`Loaded ${coursesList.length} courses for sub-category ${subCategoryId}`);
       setCourses(coursesList);
     } catch (error) {
       console.error('Failed to load courses:', error);
@@ -256,13 +240,74 @@ const CodesScreen = () => {
   };
 
   const handleACCChange = async (accId) => {
-    // Clear course selection and discount codes when ACC changes
-    setPurchaseForm({ ...purchaseForm, acc_id: accId, course_id: '', discount_code: '', payment_amount: '' });
+    // Clear everything when ACC changes
+    setPurchaseForm({ 
+      ...purchaseForm, 
+      acc_id: accId, 
+      category_id: '', 
+      sub_category_id: '', 
+      course_id: '', 
+      discount_code: '', 
+      payment_amount: '' 
+    });
+    setCategories([]);
+    setSubCategories([]);
     setCourses([]);
     setDiscountCodes([]);
     setManualPaymentInfo(null);
     setPaymentIntentData(null);
-    loadCoursesForACC(accId);
+    
+    if (!accId) {
+      return;
+    }
+    
+    loadCategories(accId);
+  };
+
+  const handleCategoryChange = async (categoryId) => {
+    // Get acc_id before clearing state
+    const currentAccId = purchaseForm.acc_id;
+    
+    // Clear sub-categories and courses when category changes
+    setPurchaseForm(prev => ({ 
+      ...prev, 
+      category_id: categoryId, 
+      sub_category_id: '', 
+      course_id: '', 
+      discount_code: '', 
+      payment_amount: '' 
+    }));
+    setSubCategories([]);
+    setCourses([]);
+    setDiscountCodes([]);
+    
+    if (!categoryId) {
+      return;
+    }
+    
+    loadSubCategories(categoryId);
+  };
+
+  const handleSubCategoryChange = async (subCategoryId) => {
+    // Get acc_id before clearing state
+    const currentAccId = purchaseForm.acc_id;
+    
+    // Clear courses when sub-category changes
+    setPurchaseForm(prev => ({ 
+      ...prev, 
+      sub_category_id: subCategoryId, 
+      course_id: '', 
+      discount_code: '', 
+      payment_amount: '' 
+    }));
+    setCourses([]);
+    setDiscountCodes([]);
+    
+    if (!subCategoryId || !currentAccId) {
+      return;
+    }
+    
+    loadCoursesForSubCategory(currentAccId, subCategoryId);
   };
 
   const loadDiscountCodes = async (accId, courseId) => {
@@ -658,6 +703,8 @@ const CodesScreen = () => {
   const handlePurchase = () => {
     setPurchaseForm({
       acc_id: '',
+      category_id: '',
+      sub_category_id: '',
       course_id: '',
       quantity: '',
       discount_code: '',
@@ -669,6 +716,8 @@ const CodesScreen = () => {
     setErrors({});
     setPaymentIntentData(null);
     setManualPaymentInfo(null);
+    setCategories([]);
+    setSubCategories([]);
     setCourses([]);
     setDiscountCodes([]);
     setPurchaseModalOpen(true);
@@ -1029,6 +1078,8 @@ const CodesScreen = () => {
       setPurchaseModalOpen(false);
       setPurchaseForm({
         acc_id: '',
+        category_id: '',
+        sub_category_id: '',
         course_id: '',
         quantity: '',
         discount_code: '',
@@ -1039,6 +1090,9 @@ const CodesScreen = () => {
       });
       setPaymentIntentData(null);
       setManualPaymentInfo(null);
+      setCategories([]);
+      setSubCategories([]);
+      setCourses([]);
       alert('Payment request submitted successfully. Waiting for approval.');
     } catch (error) {
       console.error('Failed to submit manual payment:', error);
@@ -1414,6 +1468,8 @@ const CodesScreen = () => {
           setPurchaseModalOpen(false);
           setPurchaseForm({
             acc_id: '',
+            category_id: '',
+            sub_category_id: '',
             course_id: '',
             quantity: '',
             discount_code: '',
@@ -1425,6 +1481,8 @@ const CodesScreen = () => {
           setErrors({});
           setPaymentIntentData(null);
           setManualPaymentInfo(null);
+          setCategories([]);
+          setSubCategories([]);
           setCourses([]);
           setDiscountCodes([]);
         }}
@@ -1461,6 +1519,49 @@ const CodesScreen = () => {
             </p>
           )}
 
+          {/* Category Selection */}
+          <FormInput
+            label="Category"
+            name="category_id"
+            type="select"
+            value={purchaseForm.category_id}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            required
+            disabled={!purchaseForm.acc_id || loadingCategories}
+            error={errors.category_id}
+            options={[
+              { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+              ...categories
+                .filter(cat => cat.id != null && cat.id !== '')
+                .map(cat => ({
+                  value: cat.id,
+                  label: cat.name || cat.name_ar || `Category ${cat.id}`
+                }))
+            ]}
+          />
+
+          {/* Sub-Category Selection */}
+          <FormInput
+            label="Sub-Category"
+            name="sub_category_id"
+            type="select"
+            value={purchaseForm.sub_category_id}
+            onChange={(e) => handleSubCategoryChange(e.target.value)}
+            required
+            disabled={!purchaseForm.acc_id || !purchaseForm.category_id || loadingSubCategories}
+            error={errors.sub_category_id}
+            options={[
+              { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (!purchaseForm.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+              ...subCategories
+                .filter(subCat => subCat.id != null && subCat.id !== '')
+                .map(subCat => ({
+                  value: subCat.id,
+                  label: subCat.name || subCat.name_ar || `Sub-Category ${subCat.id}`
+                }))
+            ]}
+          />
+
+          {/* Course Selection */}
           <div>
             <FormInput
               label="Course"
@@ -1469,21 +1570,17 @@ const CodesScreen = () => {
               value={purchaseForm.course_id}
               onChange={(e) => handleCourseChange(e.target.value)}
               required
-              disabled={!purchaseForm.acc_id || courses.length === 0 || loadingCourses}
-              options={loadingCourses 
-                ? [{ value: '', label: 'Loading courses...' }]
-                : courses.length > 0 
-                ? courses.map(course => {
-                    const courseId = course.id ? (typeof course.id === 'string' ? parseInt(course.id) : course.id) : course.id;
-                    return {
-                      value: courseId,
-                      label: course.name || course.code || `Course ${courseId}`,
-                    };
-                  })
-                : purchaseForm.acc_id
-                ? [{ value: '', label: 'No courses available for this ACC.' }]
-                : [{ value: '', label: 'Please select an ACC first.' }]
-              }
+              disabled={!purchaseForm.acc_id || !purchaseForm.category_id || !purchaseForm.sub_category_id || courses.length === 0 || loadingCourses}
+              options={[
+                { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (!purchaseForm.category_id ? 'Please select Category first' : (!purchaseForm.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                ...courses.map(course => {
+                  const courseId = course.id ? (typeof course.id === 'string' ? parseInt(course.id) : course.id) : course.id;
+                  return {
+                    value: courseId,
+                    label: course.name || course.code || `Course ${courseId}`,
+                  };
+                })
+              ]}
               error={errors.course_id}
             />
             {!purchaseForm.acc_id && (
@@ -1491,9 +1588,19 @@ const CodesScreen = () => {
                 Please select an ACC first to see available courses.
               </p>
             )}
-            {purchaseForm.acc_id && courses.length === 0 && !loadingCourses && (
+            {purchaseForm.acc_id && !purchaseForm.category_id && (
+              <p className="form-info-text">
+                Please select a Category first to see available courses.
+              </p>
+            )}
+            {purchaseForm.acc_id && purchaseForm.category_id && !purchaseForm.sub_category_id && (
+              <p className="form-info-text">
+                Please select a Sub-Category first to see available courses.
+              </p>
+            )}
+            {purchaseForm.acc_id && purchaseForm.category_id && purchaseForm.sub_category_id && courses.length === 0 && !loadingCourses && (
               <p className="form-warning-text">
-                No courses available for the selected ACC.
+                No courses available for the selected sub-category.
               </p>
             )}
           </div>

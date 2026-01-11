@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { X, Globe } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Globe, ChevronDown } from 'lucide-react';
+import { publicAPI } from '../../services/api';
 import './LanguageSelector.css';
 
 const LANGUAGES = [
@@ -16,16 +17,60 @@ const LanguageSelector = ({
   label = 'Languages',
   error,
   disabled = false,
-  placeholder = 'Select a language...'
+  placeholder = 'Select a language...',
+  useAPI = false
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [languages, setLanguages] = useState(useAPI ? [] : LANGUAGES);
+  const [loadingLanguages, setLoadingLanguages] = useState(false);
+
+  useEffect(() => {
+    if (useAPI) {
+      loadLanguages();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useAPI]);
+
+  const loadLanguages = async () => {
+    setLoadingLanguages(true);
+    try {
+      console.log('📡 [LanguageSelector] Loading languages from API...');
+      const response = await publicAPI.getLanguages();
+      console.log('✅ [LanguageSelector] Languages received:', response);
+      let languagesList = response.languages || response.data?.languages || response.data || response || [];
+      
+      // Convert object to array if needed
+      if (!Array.isArray(languagesList) && typeof languagesList === 'object') {
+        languagesList = Object.values(languagesList);
+      }
+      
+      // Extract language names if objects have 'name' property
+      languagesList = languagesList.map(lang => 
+        typeof lang === 'object' ? (lang.name || lang.language || lang) : lang
+      );
+      
+      setLanguages(Array.isArray(languagesList) && languagesList.length > 0 ? languagesList : LANGUAGES);
+      console.log(`✅ [LanguageSelector] Loaded ${languages.length} languages`);
+    } catch (error) {
+      console.error('❌ [LanguageSelector] Failed to load languages:', error);
+      console.error('❌ [LanguageSelector] Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      // Fallback to default languages if API fails
+      setLanguages(LANGUAGES);
+    } finally {
+      setLoadingLanguages(false);
+    }
+  };
 
   // Convert value to array if it's a string (comma-separated) or already an array
   const selectedLanguages = Array.isArray(value) 
     ? value 
     : (value ? value.split(',').map(s => s.trim()).filter(s => s) : []);
 
-  const availableLanguages = LANGUAGES.filter(
+  const availableLanguages = languages.filter(
     lang => !selectedLanguages.includes(lang)
   );
 
@@ -55,10 +100,12 @@ const LanguageSelector = ({
           <select
             value={selectedLanguage}
             onChange={handleLanguageSelect}
-            disabled={disabled || availableLanguages.length === 0}
+            disabled={disabled || loadingLanguages || availableLanguages.length === 0}
             className="language-selector-select"
           >
-            <option value="">{placeholder}</option>
+            <option value="">
+              {loadingLanguages ? 'Loading languages...' : placeholder}
+            </option>
             {availableLanguages.map((lang) => (
               <option key={lang} value={lang}>
                 {lang}
@@ -75,7 +122,6 @@ const LanguageSelector = ({
               key={index}
               className="language-selector-tag"
             >
-              <Globe size={12} className="language-selector-tag-icon" />
               {lang}
               {!disabled && (
                 <button
@@ -84,7 +130,7 @@ const LanguageSelector = ({
                   className="language-selector-remove-btn"
                   title="Remove language"
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
               )}
             </span>

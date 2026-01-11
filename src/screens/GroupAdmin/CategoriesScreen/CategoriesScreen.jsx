@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, FileText, Edit, Trash2, Layers, CheckCircle } from 'lucide-react';
+import { Plus, FileText, Edit, Trash2, Layers, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Button from '../../../components/Button/Button';
@@ -13,7 +13,6 @@ import FormInput from '../../../components/FormInput/FormInput';
 
 const CategoriesScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
-  const [activeTab, setActiveTab] = useState('categories');
   
   const [allCategories, setAllCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -192,23 +191,186 @@ const CategoriesScreen = () => {
     }
   };
 
+  // Get sub categories for a specific category
+  const getSubCategoriesForCategory = (categoryId) => {
+    return allSubCategories.filter(subCat => subCat.category_id === categoryId);
+  };
+
   // Prepare data for DataTable with search text
-  const categoryTableData = useMemo(() => {
+  const categoriesData = useMemo(() => {
     return allCategories.map(category => ({
       ...category,
-      _searchText: `${category.name || ''} ${category.name_ar || ''} ${category.description || ''}`.toLowerCase()
+      _searchText: `${category.name || ''} ${category.name_ar || ''} ${category.description || ''} ${category.status || ''}`.toLowerCase()
     }));
   }, [allCategories]);
 
-  const subCategoryTableData = useMemo(() => {
-    return allSubCategories.map(subCat => {
-      const category = allCategories.find(cat => cat.id === subCat.category_id);
-      return {
-        ...subCat,
-        _searchText: `${subCat.name || ''} ${subCat.name_ar || ''} ${category?.name || ''}`.toLowerCase()
-      };
-    });
-  }, [allSubCategories, allCategories]);
+  // Define columns for DataTable
+  const columns = useMemo(() => [
+    {
+      header: 'Category',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row, { isExpanded, toggleExpand }) => {
+        const categorySubCats = getSubCategoriesForCategory(row.id);
+        return (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (toggleExpand) toggleExpand(e);
+              }}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronUp size={18} className="text-gray-600" />
+              ) : (
+                <ChevronDown size={18} className="text-gray-600" />
+              )}
+            </button>
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+              <FileText className="h-5 w-5 text-primary-600" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">
+                {row.name || 'N/A'}
+              </div>
+              {row.name_ar && (
+                <div className="text-xs text-gray-500">{row.name_ar}</div>
+              )}
+              {categorySubCats.length > 0 && (
+                <div className="text-xs text-gray-400 mt-0.5">
+                  {categorySubCats.length} sub-categor{categorySubCats.length === 1 ? 'y' : 'ies'}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Description',
+      accessor: 'description',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-600 max-w-xs truncate">
+          {value || '-'}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
+          value === 'active'
+            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
+            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+        }`}>
+          {value === 'active' && <CheckCircle size={12} className="mr-1" />}
+          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+        </span>
+      ),
+    },
+  ], [allSubCategories]);
+
+  // Filter options for DataTable
+  const filterOptions = useMemo(() => [
+    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
+    { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+  ], []);
+
+  // Render expanded row content
+  const renderExpandedRow = (category) => {
+    const categorySubCats = getSubCategoriesForCategory(category.id);
+    return (
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Sub Categories for "{category.name}"
+          </h3>
+        </div>
+        {categorySubCats.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 text-sm bg-white rounded-lg border border-gray-200">
+            No sub categories found for this category.
+          </div>
+        ) : (
+          <div className="space-y-2 mb-4">
+            {categorySubCats.map(subCat => (
+              <div
+                key={subCat.id}
+                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                      <Layers className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {subCat.name || 'N/A'}
+                      </div>
+                      {subCat.name_ar && (
+                        <div className="text-xs text-gray-500">{subCat.name_ar}</div>
+                      )}
+                      {subCat.description && (
+                        <div className="text-xs text-gray-400 mt-1">{subCat.description}</div>
+                      )}
+                    </div>
+                    <span className={`px-3 py-1 inline-flex items-center text-xs font-bold rounded-full ${
+                      subCat.status === 'active' 
+                        ? 'bg-green-100 text-green-800 border border-green-300' 
+                        : 'bg-gray-100 text-gray-800 border border-gray-300'
+                    }`}>
+                      {subCat.status === 'active' && <CheckCircle size={12} className="mr-1" />}
+                      {subCat.status ? subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handleOpenSubCategoryModal(subCat)}
+                      className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                      title="Edit"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSubCategory(subCat)}
+                      className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                      title="Delete"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="pt-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              setSubCategoryFormData({
+                category_id: category.id,
+                name: '',
+                name_ar: '',
+                description: '',
+                status: 'active',
+              });
+              setSelectedSubCategory(null);
+              setSubCategoryErrors({});
+              setIsSubCategoryModalOpen(true);
+            }}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Add Sub Category
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const handleOpenSubCategoryModal = (subCategory = null) => {
     if (subCategory) {
@@ -303,150 +465,6 @@ const CategoriesScreen = () => {
   const totalSubCategories = allSubCategories.length;
   const activeSubCategories = allSubCategories.filter(sc => sc.status === 'active').length;
 
-  // DataTable columns for Categories
-  const categoryColumns = useMemo(() => [
-    {
-      header: 'Category',
-      accessor: 'name',
-      sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <FileText className="h-5 w-5 text-primary-600" />
-          </div>
-          <div>
-            <div className="font-medium text-gray-900">{value || 'N/A'}</div>
-            {row.name_ar && <div className="text-xs text-gray-500">{row.name_ar}</div>}
-          </div>
-        </div>
-      )
-    },
-    {
-      header: 'Description',
-      accessor: 'description',
-      sortable: true,
-      render: (value) => (
-        <div className="text-sm text-gray-600 max-w-xs truncate">
-          {value || '-'}
-        </div>
-      )
-    },
-    {
-      header: 'Status',
-      accessor: 'status',
-      sortable: true,
-      render: (value) => {
-        const isActive = value === 'active';
-        return (
-          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-            isActive
-              ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
-              : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-          }`}>
-            {isActive && <CheckCircle size={12} className="mr-1" />}
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
-          </span>
-        );
-      }
-    },
-    {
-      header: 'Actions',
-      accessor: 'actions',
-      sortable: false,
-      render: (value, row) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleOpenModal(row)}
-            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Edit"
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={() => handleDelete(row)}
-            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      )
-    }
-  ], []);
-
-  // DataTable columns for Sub Categories
-  const subCategoryColumns = useMemo(() => [
-    {
-      header: 'Sub Category',
-      accessor: 'name',
-      sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <Layers className="h-5 w-5 text-primary-600" />
-          </div>
-          <div>
-            <div className="font-medium text-gray-900">{value || 'N/A'}</div>
-            {row.name_ar && <div className="text-xs text-gray-500">{row.name_ar}</div>}
-          </div>
-        </div>
-      )
-    },
-    {
-      header: 'Category',
-      accessor: 'category_id',
-      sortable: true,
-      render: (value) => {
-        const category = allCategories.find(cat => cat.id === value);
-        return (
-          <div className="text-sm text-gray-600">
-            {category ? category.name : `Category ID: ${value}`}
-          </div>
-        );
-      }
-    },
-    {
-      header: 'Status',
-      accessor: 'status',
-      sortable: true,
-      render: (value) => {
-        const isActive = value === 'active';
-        return (
-          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-            isActive
-              ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
-              : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-          }`}>
-            {isActive && <CheckCircle size={12} className="mr-1" />}
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
-          </span>
-        );
-      }
-    },
-    {
-      header: 'Actions',
-      accessor: 'actions',
-      sortable: false,
-      render: (value, row) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleOpenSubCategoryModal(row)}
-            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Edit"
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={() => handleDeleteSubCategory(row)}
-            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      )
-    }
-  ], [allCategories]);
 
   return (
     <div className="space-y-4">
@@ -478,89 +496,34 @@ const CategoriesScreen = () => {
         />
       </TabCardsGrid>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-1.5">
-        <div className="flex space-x-2">
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-            activeTab === 'categories' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-          }`}
-        >
-            <FileText size={20} className={activeTab === 'categories' ? 'text-white' : 'text-gray-500'} />
-          Categories
-        </button>
-        <button
-          onClick={() => setActiveTab('sub-categories')}
-          className={`tab-button flex-1 px-6 py-3.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-            activeTab === 'sub-categories' 
-                ? 'text-white shadow-lg tab-active-gradient' 
-                : 'text-gray-500 bg-gray-100 hover:text-primary-700 hover:bg-primary-50 border border-gray-200'
-          }`}
-        >
-            <Layers size={20} className={activeTab === 'sub-categories' ? 'text-white' : 'text-gray-500'} />
-          Sub Categories
-        </button>
+      {/* Categories Table with Expandable Sub Categories */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
+          <Button
+            onClick={() => handleOpenModal()}
+            icon={<Plus size={20} />}
+          >
+            Add Category
+          </Button>
         </div>
+
+        <DataTable
+          columns={columns}
+          data={categoriesData}
+          onEdit={handleOpenModal}
+          onDelete={handleDelete}
+          isLoading={loading}
+          emptyMessage="No categories found. Create your first category to get started!"
+          searchable={true}
+          filterable={true}
+          searchPlaceholder="Search by name..."
+          filterOptions={filterOptions}
+          sortable={true}
+          expandable={true}
+          renderExpandedRow={renderExpandedRow}
+        />
       </div>
-
-      {/* Categories Tab Content */}
-      {activeTab === 'categories' && (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
-            <Button
-              onClick={() => handleOpenModal()}
-              icon={<Plus size={20} />}
-            >
-              Add Category
-            </Button>
-          </div>
-
-          {/* DataTable */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <DataTable
-              columns={categoryColumns}
-              data={categoryTableData}
-              isLoading={loading}
-              emptyMessage="No categories found"
-              searchable={true}
-              filterable={false}
-              searchPlaceholder="Search by name, description..."
-            />
-          </div>
-        </>
-      )}
-
-      {/* Sub Categories Tab Content */}
-      {activeTab === 'sub-categories' && (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Sub Categories</h2>
-            <Button
-              onClick={() => handleOpenSubCategoryModal()}
-              icon={<Plus size={20} />}
-            >
-              Add Sub Category
-            </Button>
-          </div>
-
-          {/* DataTable */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <DataTable
-              columns={subCategoryColumns}
-              data={subCategoryTableData}
-              isLoading={subCategoriesLoading}
-              emptyMessage="No sub categories found"
-              searchable={true}
-              filterable={false}
-              searchPlaceholder="Search by name, category..."
-            />
-          </div>
-        </>
-      )}
 
       {/* Add/Edit Category Modal */}
       <Modal
@@ -663,6 +626,7 @@ const CategoriesScreen = () => {
             value={subCategoryFormData.category_id}
             onChange={handleSubCategoryChange}
             required
+            disabled={true}
             options={allCategories.map(cat => ({
               value: cat.id,
               label: cat.name || `Category ${cat.id}`,
