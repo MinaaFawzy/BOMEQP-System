@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import fabric from '../../../utils/fabric-wrapper.js';
 import { accAPI } from '../../../services/api';
-import { ArrowLeft, Upload, Type, Trash2, Move, Save, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold } from 'lucide-react';
 import './CertificateDesignerScreen.css';
 
 const CertificateDesignerScreen = () => {
@@ -28,6 +28,16 @@ const CertificateDesignerScreen = () => {
         { variable: 'cert_id', label: 'Certificate ID' },
         { variable: 'verification_code', label: 'Verification Code' },
     ], []);
+
+    // Example data for preview - shows actual data length and format
+    const exampleData = useMemo(() => ({
+        student_name: 'John Smith',
+        course_name: 'Advanced Business Management',
+        date: 'January 15, 2026',
+        expiry_date: 'January 15, 2027',
+        cert_id: 'CERT-2026-EDOBM2KN',
+        verification_code: 'ABC123XYZ789',
+    }), []);
 
     const fontFamilies = [
         'Arial', 'Helvetica', 'Times New Roman', 'Courier New',
@@ -121,6 +131,11 @@ const CertificateDesignerScreen = () => {
             loadTemplateConfig(template.config_json);
         }
 
+        // Refresh variable displays to ensure example data is shown
+        setTimeout(() => {
+            refreshVariableDisplays();
+        }, 200);
+
         // Event Listeners
         canvas.current.on('selection:created', handleSelection);
         canvas.current.on('selection:updated', handleSelection);
@@ -185,19 +200,82 @@ const CertificateDesignerScreen = () => {
         }, 100);
     };
 
+    // Helper function to get display text (example data for variables, actual text for static)
+    const getDisplayText = (variableName, isStatic, originalText) => {
+        if (isStatic) {
+            return originalText || '';
+        }
+        // If it's a variable, return example data
+        if (variableName && exampleData[variableName]) {
+            return exampleData[variableName];
+        }
+        // Fallback to original text if variable not found
+        return originalText || '';
+    };
+
+    // Helper function to extract variable name from {{variable}} format
+    const extractVariableName = (text) => {
+        if (!text) return null;
+        const match = text.match(/\{\{(\w+)\}\}/);
+        return match ? match[1] : null;
+    };
+
+    // Refresh all variable displays to show example data
+    const refreshVariableDisplays = () => {
+        if (!canvas.current) return;
+        const objects = canvas.current.getObjects().filter(obj => obj.type === 'text');
+        
+        objects.forEach(obj => {
+            if (obj.variable && !obj.isStatic) {
+                // Update display text to show example data
+                const exampleText = exampleData[obj.variable] || `{{${obj.variable}}}`;
+                if (obj.text !== exampleText) {
+                    obj.set('text', exampleText);
+                }
+            }
+        });
+        
+        canvas.current.renderAll();
+    };
+
     const loadTemplateConfig = (config) => {
         if (!canvas.current) return;
 
         config.forEach(item => {
-            const text = new fabric.Text(item.variable || item.text || '', {
-                left: (item.x || 0) * 1200,
+            // Extract variable name if it's in {{variable}} format
+            const variableName = extractVariableName(item.variable || item.text);
+            const isStatic = !variableName;
+            
+            // Get display text (example data for variables)
+            const displayText = isStatic 
+                ? (item.variable || item.text || '')
+                : (exampleData[variableName] || `{{${variableName}}}`);
+
+            // Get text alignment from config, default to 'left'
+            const textAlign = item.text_align || 'left';
+            // Set originX based on alignment for proper positioning
+            const originX = textAlign === 'center' ? 'center' : textAlign === 'right' ? 'right' : 'left';
+            
+            // Calculate left position based on alignment
+            let leftPos = (item.x || 0) * 1200;
+            if (textAlign === 'center') {
+                // For center alignment, the x position represents the center point
+                leftPos = (item.x || 0) * 1200;
+            } else if (textAlign === 'right') {
+                // For right alignment, the x position represents the right edge
+                leftPos = (item.x || 0) * 1200;
+            }
+
+            const text = new fabric.Text(displayText, {
+                left: leftPos,
                 top: (item.y || 0) * 848,
                 fontSize: item.font_size || 24,
                 fill: item.color || '#000000',
                 fontFamily: item.font_family || 'Arial',
-                textAlign: item.text_align || 'left',
-                originX: item.text_align === 'center' ? 'center' : (item.text_align === 'right' ? 'right' : 'left'),
+                textAlign: textAlign,
+                originX: originX,
                 originY: 'top',
+                fontWeight: item.font_weight || 'normal',
                 lockScalingX: true,
                 lockScalingY: true,
             });
@@ -208,58 +286,12 @@ const CertificateDesignerScreen = () => {
                 bl: false, br: false, tl: false, tr: false
             });
 
-            // If text contains {{}}, treat as variable mode, otherwise text
-            if (item.variable && item.variable.includes('{{')) {
-                text.variable = item.variable.replace(/[{}]/g, '');
+            // Store variable name and static flag
+            if (variableName) {
+                text.variable = variableName;
                 text.isStatic = false;
             } else {
                 text.isStatic = true;
-                text.text = item.variable || item.text; // Fallback for legacy
-            }
-
-            // Correction for alignment: Backend stores Top-Left (x,y).
-            // Fabric needs 'left'/'top' based on originX/originY.
-            // If originX is center, left = x + width/2.
-            // But width is not fully known until render? Fabric calculates it on creation.
-            // Let's assume standard width for now or recalculate.
-            // Actually, we can just set left/top to x/y first (Top-Left), set origin to left/top, 
-            // THEN change origin to center/center if needed without moving the object?
-            // Fabric's setPositionByOrigin is useful.
-
-            // First, set it at Top-Left
-            text.set({
-                originX: 'left',
-                originY: 'top',
-                left: (item.x || 0) * 1200,
-                top: (item.y || 0) * 848
-            });
-
-            // Now apply the desired text alignment and origin
-            const finalOriginX = item.text_align === 'center' ? 'center' : (item.text_align === 'right' ? 'right' : 'left');
-
-            // Adjust position to maintain visual placement while changing origin
-            // We want the visual Top-Left to stay at item.x * 1200, item.y * 848
-            // basically we don't need to do anything complex if we use setPositionByOrigin?
-            // BUT we want to SET properties. 
-            // If we change originX to center, the effective 'left' property changes.
-            // So:
-
-            if (finalOriginX !== 'left') {
-                const centerPoint = text.getPointByOrigin(finalOriginX, 'top');
-                // This gets current point. We want to MATCH the point.
-                // Actually simpler:
-                // 1. Set origin: left, top. 
-                // 2. Set left: x, top: y.
-                // 3. Update origin to targetOrigin.
-                // 4. Recalculate left/top to keep object in place.
-                text.set({ originX: finalOriginX });
-                // Fabric might shift it visually if we just change originX without adjusting left.
-                // So we need to shift 'left' by width/2 if center, width if right.
-                if (finalOriginX === 'center') {
-                    text.set({ left: text.left + (text.width * text.scaleX) / 2 });
-                } else if (finalOriginX === 'right') {
-                    text.set({ left: text.left + (text.width * text.scaleX) });
-                }
             }
 
             // Disable scaling controls
@@ -279,17 +311,21 @@ const CertificateDesignerScreen = () => {
     const addPlaceholder = (variableName, isCustomText = false) => {
         if (!canvas.current) return;
 
-        const content = isCustomText ? 'Custom Text' : `{{${variableName}}}`;
+        // Use example data for display if it's a variable, otherwise use custom text
+        const displayContent = isCustomText 
+            ? 'Custom Text' 
+            : (exampleData[variableName] || `{{${variableName}}}`);
 
-        const text = new fabric.Text(content, {
+        const text = new fabric.Text(displayContent, {
             left: 1200 / 2,
             top: 848 / 2,
             fontSize: 24,
             fill: '#000000',
             fontFamily: 'Arial',
-            textAlign: 'center',
-            originX: 'center',
+            textAlign: 'left',
+            originX: 'left',
             originY: 'top',
+            fontWeight: 'normal',
             lockScalingX: true,
             lockScalingY: true,
         });
@@ -302,9 +338,10 @@ const CertificateDesignerScreen = () => {
 
         if (isCustomText) {
             text.isStatic = true;
-            text.text = content;
+            text.text = displayContent;
         } else {
             text.variable = variableName;
+            text.isStatic = false;
         }
 
         canvas.current.add(text);
@@ -333,16 +370,32 @@ const CertificateDesignerScreen = () => {
                 console.warn('Color conversion failed', e);
             }
 
+            // For saving, convert variable back to {{variable}} format
+            let textForSave = obj.text;
+            if (obj.variable && !obj.isStatic) {
+                textForSave = `{{${obj.variable}}}`;
+            }
+
+            // Get the actual position based on alignment
+            let xPos = tl.x / 1200;
+            // If centered, we need to get the center point
+            if (obj.textAlign === 'center' && obj.originX === 'center') {
+                xPos = obj.left / 1200;
+            } else if (obj.textAlign === 'right' && obj.originX === 'right') {
+                xPos = obj.left / 1200;
+            }
+
             return {
                 variable: obj.variable || null,
-                text: obj.text, // Always serve text content
+                text: textForSave, // Save in {{variable}} format for variables
                 isStatic: !!obj.isStatic,
-                x: tl.x / 1200,
+                x: xPos,
                 y: tl.y / 848,
                 fontFamily: obj.fontFamily || 'Arial',
                 fontSize: obj.fontSize || 24,
                 color: fill,
-                textAlign: obj.textAlign || 'left',
+                fontWeight: obj.fontWeight || 'normal',
+                text_align: obj.textAlign || 'left',
             };
         });
 
@@ -353,23 +406,53 @@ const CertificateDesignerScreen = () => {
         const activeObj = canvas.current?.getActiveObject();
         if (!activeObj) return;
 
-        if (prop === 'text' && activeObj.isStatic) {
-            activeObj.set('text', value);
+        if (prop === 'text') {
+            // If it's a static text, allow editing
+            if (activeObj.isStatic) {
+                activeObj.set('text', value);
+            } else {
+                // For variables, if user tries to edit, we should update the example data display
+                // But we keep the variable reference
+                // Actually, for variables, we might want to prevent direct editing of the text
+                // Or allow it but show a warning. For now, let's allow it but keep the variable
+                activeObj.set('text', value);
+            }
         } else if (prop === 'textAlign') {
-            // Get the current center point to maintain position
-            const centerPoint = activeObj.getPointByOrigin('center', 'center');
-
-            // Determine new origin based on alignment
-            const newOriginX = value === 'center' ? 'center' : (value === 'right' ? 'right' : 'left');
-
-            activeObj.set({
-                textAlign: value,
-                originX: newOriginX
-            });
-
-            // Restore position using the center point, preventing the visual "jump"
-            activeObj.setPositionByOrigin(centerPoint, 'center', 'center');
-            activeObj.setCoords();
+            // When changing text alignment, preserve visual position
+            const currentLeft = activeObj.left;
+            const currentOriginX = activeObj.originX;
+            const currentTextAlign = activeObj.textAlign || 'left';
+            
+            // Calculate the actual left edge position regardless of current origin
+            let actualLeftEdge = currentLeft;
+            if (currentOriginX === 'center') {
+                // If currently centered, calculate left edge
+                const textWidth = activeObj.getScaledWidth();
+                actualLeftEdge = currentLeft - (textWidth / 2);
+            } else if (currentOriginX === 'right') {
+                // If currently right-aligned, calculate left edge
+                const textWidth = activeObj.getScaledWidth();
+                actualLeftEdge = currentLeft - textWidth;
+            }
+            
+            // Set new alignment
+            activeObj.set('textAlign', value);
+            
+            // Update originX and adjust left position to preserve visual position
+            if (value === 'center') {
+                activeObj.set('originX', 'center');
+                const textWidth = activeObj.getScaledWidth();
+                activeObj.set('left', actualLeftEdge + (textWidth / 2));
+            } else if (value === 'right') {
+                activeObj.set('originX', 'right');
+                const textWidth = activeObj.getScaledWidth();
+                activeObj.set('left', actualLeftEdge + textWidth);
+            } else {
+                activeObj.set('originX', 'left');
+                activeObj.set('left', actualLeftEdge);
+            }
+        } else if (prop === 'fontWeight') {
+            activeObj.set('fontWeight', value);
         } else if (prop === 'fontSize') {
             // Validations for fontSize
             const val = Number(value);
@@ -419,6 +502,152 @@ const CertificateDesignerScreen = () => {
         }
     };
 
+    // Generate HTML template from canvas
+    const generateTemplateHTML = () => {
+        if (!canvas.current) return '';
+
+        const canvasWidth = 1200;
+        const canvasHeight = 848;
+        
+        // Get background image URL - try multiple sources
+        let bgImageUrl = template?.background_image_url || '';
+        const bgImage = canvas.current.backgroundImage;
+        if (bgImage) {
+            // Try to get URL from fabric image object
+            if (bgImage._element) {
+                if (bgImage._element.src) {
+                    bgImageUrl = bgImage._element.src;
+                } else if (bgImage._element.toDataURL) {
+                    // If it's a canvas element, we might need to use data URL
+                    // But prefer the original URL if available
+                    bgImageUrl = bgImageUrl || bgImage._element.toDataURL();
+                }
+            }
+            // Also check if fabric has stored the original URL
+            if (!bgImageUrl && bgImage.src) {
+                bgImageUrl = bgImage.src;
+            }
+        }
+        
+        // Get all text objects
+        const textObjects = canvas.current.getObjects().filter(obj => obj.type === 'text');
+        
+        // Generate HTML
+        let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Template</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .certificate-container {
+            position: relative;
+            width: ${canvasWidth}px;
+            height: ${canvasHeight}px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            ${bgImageUrl ? `background-image: url('${bgImageUrl}');` : ''}
+            background-size: 100% 100%;
+            background-position: 0 0;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+        .text-element {
+            position: absolute;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">`;
+
+        // Add text elements
+        textObjects.forEach(obj => {
+            // Get text alignment
+            const textAlign = obj.textAlign || 'left';
+            
+            // Calculate position and transform based on alignment
+            let left = obj.left;
+            let transform = '';
+            let width = 'auto';
+            
+            if (textAlign === 'center') {
+                // For center alignment, obj.left is the center point when originX is 'center'
+                // Use transform to center the text
+                transform = 'translateX(-50%)';
+            } else if (textAlign === 'right') {
+                // For right alignment, obj.left is the right edge when originX is 'right'
+                // No transform needed, text-align: right will handle it
+            }
+            
+            const top = obj.top;
+            
+            // Get text content - preserve variables in {{variable}} format
+            let textContent = obj.text || '';
+            if (obj.variable && !textContent.includes('{{')) {
+                textContent = `{{${obj.variable}}}`;
+            }
+            
+            // Get color
+            let color = obj.fill || '#000000';
+            if (typeof color === 'string' && !color.startsWith('#')) {
+                try {
+                    const fabricColor = new fabric.Color(color);
+                    color = '#' + fabricColor.toHex();
+                } catch (e) {
+                    color = '#000000';
+                }
+            }
+            
+            // Get font family and weight
+            const fontFamily = obj.fontFamily || 'Arial';
+            const fontSize = obj.fontSize || 24;
+            const fontWeight = obj.fontWeight || 'normal';
+            
+            // Escape HTML in text content but preserve {{variable}} format
+            // We need to escape everything except the {{ }} brackets
+            const escapedText = textContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            
+            // Escape single quotes in font family name for CSS
+            const escapedFontFamily = fontFamily.replace(/'/g, "\\'");
+            
+            html += `
+        <div class="text-element" style="
+            left: ${Math.round(left)}px;
+            top: ${Math.round(top)}px;
+            font-family: '${escapedFontFamily}', Arial, sans-serif;
+            font-size: ${fontSize}px;
+            font-weight: ${fontWeight};
+            color: ${color};
+            text-align: ${textAlign};
+            ${transform ? `transform: ${transform};` : ''}
+            ${width !== 'auto' ? `width: ${width};` : ''}
+        ">${escapedText}</div>`;
+        });
+        
+        html += `
+    </div>
+</body>
+</html>`;
+        
+        return html;
+    };
+
     const handleSave = async () => {
         setSavingConfig(true);
         try {
@@ -431,10 +660,19 @@ const CertificateDesignerScreen = () => {
                 font_family: p.fontFamily,
                 font_size: p.fontSize,
                 color: p.color,
-                text_align: p.textAlign,
+                font_weight: p.fontWeight || 'normal',
+                text_align: p.text_align || 'left',
             }));
 
-            await accAPI.updateTemplateConfig(template.id, { config_json: config });
+            // Generate HTML template
+            const templateHtml = generateTemplateHTML();
+
+            // Update template with both config_json and template_html
+            await accAPI.updateTemplate(template.id, { 
+                config_json: config,
+                template_html: templateHtml
+            });
+            
             alert('Configuration saved successfully!');
             navigate('/acc/certificate-templates');
         } catch (err) {
@@ -460,9 +698,10 @@ const CertificateDesignerScreen = () => {
         fontFamily: activeObj.fontFamily,
         fontSize: activeObj.fontSize,
         fill: activeFill,
-        textAlign: activeObj.textAlign,
+        fontWeight: activeObj.fontWeight || 'normal',
         text: activeObj.text,
-        isStatic: activeObj.isStatic
+        isStatic: activeObj.isStatic,
+        textAlign: activeObj.textAlign || 'left'
     } : null;
 
     if (loading) return (
@@ -615,13 +854,40 @@ const CertificateDesignerScreen = () => {
                         {activeProperties ? (
                             <>
                                 <div className="property-group">
-                                    <label className="property-label">Text Content</label>
+                                    <label className="property-label">
+                                        {activeProperties.isStatic ? 'Text Content' : 'Dynamic Field (Example)'}
+                                    </label>
+                                    {!activeProperties.isStatic && (
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            Showing example data: {activeProperties.text}
+                                        </p>
+                                    )}
                                     <input
                                         type="text"
                                         className="property-input"
                                         value={activeProperties.text}
                                         onChange={(e) => handlePropertyChange('text', e.target.value)}
+                                        readOnly={!activeProperties.isStatic}
+                                        title={!activeProperties.isStatic ? 'This is example data for preview. The actual value will be replaced when generating certificates.' : ''}
                                     />
+                                    {!activeProperties.isStatic && (
+                                        <p className="text-xs text-blue-600 mt-1">
+                                            Variable: {activeObj?.variable ? `{{${activeObj.variable}}}` : 'N/A'}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="property-group">
+                                    <label className="property-label">Text Alignment</label>
+                                    <select
+                                        className="property-select"
+                                        value={activeProperties.textAlign}
+                                        onChange={(e) => handlePropertyChange('textAlign', e.target.value)}
+                                    >
+                                        <option value="left">Left</option>
+                                        <option value="center">Center</option>
+                                        <option value="right">Right</option>
+                                    </select>
                                 </div>
 
                                 <div className="property-group">
@@ -663,23 +929,18 @@ const CertificateDesignerScreen = () => {
                                 </div>
 
                                 <div className="property-group">
-                                    <label className="property-label">Alignment</label>
-                                    <div className="flex gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                                        {['left', 'center', 'right'].map((align) => (
-                                            <button
-                                                key={align}
-                                                onClick={() => handlePropertyChange('textAlign', align)}
-                                                className={`flex-1 p-2 rounded flex justify-center items-center transition-colors ${activeProperties.textAlign === align
-                                                    ? 'bg-white shadow-sm text-blue-600'
-                                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                                                    }`}
-                                            >
-                                                {align === 'left' && <AlignLeft size={16} />}
-                                                {align === 'center' && <AlignCenter size={16} />}
-                                                {align === 'right' && <AlignRight size={16} />}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <label className="property-label">Font Weight</label>
+                                    <button
+                                        onClick={() => handlePropertyChange('fontWeight', activeProperties.fontWeight === 'bold' ? 'normal' : 'bold')}
+                                        className={`w-full p-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${
+                                            activeProperties.fontWeight === 'bold'
+                                                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        <Bold size={18} />
+                                        <span className="font-medium">{activeProperties.fontWeight === 'bold' ? 'Bold' : 'Normal'}</span>
+                                    </button>
                                 </div>
                             </>
                         ) : (
