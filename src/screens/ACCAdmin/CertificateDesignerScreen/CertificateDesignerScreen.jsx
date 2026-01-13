@@ -356,11 +356,23 @@ const CertificateDesignerScreen = () => {
         if (prop === 'text' && activeObj.isStatic) {
             activeObj.set('text', value);
         } else if (prop === 'textAlign') {
-            activeObj.set('textAlign', value);
-            activeObj.set('originX', value === 'center' ? 'center' : (value === 'right' ? 'right' : 'left'));
+            // Get the current center point to maintain position
+            const centerPoint = activeObj.getPointByOrigin('center', 'center');
+
+            // Determine new origin based on alignment
+            const newOriginX = value === 'center' ? 'center' : (value === 'right' ? 'right' : 'left');
+
+            activeObj.set({
+                textAlign: value,
+                originX: newOriginX
+            });
+
+            // Restore position using the center point, preventing the visual "jump"
+            activeObj.setPositionByOrigin(centerPoint, 'center', 'center');
+            activeObj.setCoords();
         } else if (prop === 'fontSize') {
             // Validations for fontSize
-            const val = parseInt(value);
+            const val = Number(value);
             if (!isNaN(val) && val > 0) {
                 activeObj.set(prop, val);
             }
@@ -368,7 +380,7 @@ const CertificateDesignerScreen = () => {
             activeObj.set(prop, value);
         }
 
-        canvas.current.renderAll();
+        canvas.current?.renderAll();
         updatePlaceholdersList();
     };
 

@@ -487,7 +487,10 @@ export const trainingCenterAPI = {
     return axios.get(`${API_BASE_URL}/training-center/certificates/${id}/download`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'image/png, image/jpeg, application/pdf, */*',
+        'Accept': 'application/pdf',
+      },
+      params: {
+        format: 'pdf'
       },
       responseType: 'blob',
     });

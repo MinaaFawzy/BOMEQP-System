@@ -395,11 +395,16 @@ const TrainingCenterCertificatesScreen = () => {
 
       // Create download link
       const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+
+      // Determine extension based on content type
+      let extension = 'pdf';
+      if (blob.type === 'image/png') extension = 'png';
+      else if (blob.type === 'image/jpeg') extension = 'jpg';
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      // Use .png extension as certificates are generated as PNG images
-      link.setAttribute('download', `certificate-${cert.certificate_number || cert.id}.png`);
+      link.setAttribute('download', `certificate-${cert.certificate_number || cert.id}.${extension}`);
       document.body.appendChild(link);
       link.click();
 
