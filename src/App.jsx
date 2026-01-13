@@ -34,6 +34,8 @@ import TrainingCentersScreen from './screens/ACCAdmin/TrainingCentersScreen/Trai
 import InstructorsScreen from './screens/ACCAdmin/InstructorsScreen/InstructorsScreen';
 import CoursesScreen from './screens/ACCAdmin/CoursesScreen/CoursesScreen';
 import CertificatesScreen from './screens/ACCAdmin/CertificatesScreen/CertificatesScreen';
+import CertificateTemplatesScreen from './screens/ACCAdmin/CertificateTemplatesScreen/CertificateTemplatesScreen';
+import CertificateDesignerScreen from './screens/ACCAdmin/CertificateDesignerScreen/CertificateDesignerScreen';
 import MaterialsScreen from './screens/ACCAdmin/MaterialsScreen/MaterialsScreen';
 import DiscountCodesScreen from './screens/ACCAdmin/DiscountCodesScreen/DiscountCodesScreen';
 import ACCCategoriesScreen from './screens/ACCAdmin/CategoriesScreen/CategoriesScreen';
@@ -64,10 +66,13 @@ import InstructorProfileScreen from './screens/Instructor/ProfileScreen/Instruct
 // Profile screen
 import ProfileScreen from './screens/Profile/ProfileScreen/ProfileScreen';
 
+// Public screens
+import CertificateVerificationScreen from './screens/Public/CertificateVerificationScreen/CertificateVerificationScreen';
+
 // Profile Route Component - handles role-based profile screen selection
 const ProfileRoute = () => {
   const { user } = useAuth();
-  
+
   return (
     <Layout>
       {user?.role === 'acc_admin' ? (
@@ -87,155 +92,169 @@ function App() {
       <HeaderProvider>
         <NotificationsProvider>
           <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<AuthScreen />} />
-          <Route path="/register" element={<AuthScreen />} />
-          <Route path="/reset-password" element={<ResetPasswordScreen />} />
-          
-          {/* Pending account screen - accessible to authenticated but inactive users */}
-          <Route
-            path="/pending-account"
-            element={
-              <ProtectedRoute allowPending={true}>
-                <PendingAccountScreen />
-              </ProtectedRoute>
-            }
-          />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<AuthScreen />} />
+              <Route path="/register" element={<AuthScreen />} />
+              <Route path="/reset-password" element={<ResetPasswordScreen />} />
+              <Route path="/verify-certificate" element={<CertificateVerificationScreen />} />
+              <Route path="/certificates/verify/:code" element={<CertificateVerificationScreen />} />
 
-          {/* Unauthorized route */}
-          <Route
-            path="/unauthorized"
-            element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
-                  <p className="text-gray-600 mb-6">You don't have permission to access this page.</p>
-                  <a href="/dashboard" className="text-primary-600 hover:text-primary-700">Go to Dashboard</a>
-                </div>
-              </div>
-            }
-          />
-          
-          {/* Protected routes with role-based access */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <DashboardScreen />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              {/* Pending account screen - accessible to authenticated but inactive users */}
+              <Route
+                path="/pending-account"
+                element={
+                  <ProtectedRoute allowPending={true}>
+                    <PendingAccountScreen />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Group Admin routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute allowedRoles={['group_admin']}>
-                <Layout>
-                  <Routes>
-                    <Route path="accs" element={<ACCApplicationsScreen />} />
-                    <Route path="training-center-applications" element={<TrainingCenterApplicationsScreen />} />
-                    <Route path="all-accs" element={<AllACCsScreen />} />
-                    <Route path="all-training-centers" element={<AllTrainingCentersScreen />} />
-                    <Route path="all-instructors" element={<AllInstructorsScreen />} />
-                    <Route path="all-courses" element={<AllCoursesScreen />} />
-                    <Route path="categories" element={<CategoriesScreen />} />
-                    <Route path="financial" element={<FinancialScreen />} />
-                    <Route path="payment-transactions" element={<GroupAdminPaymentTransactionsScreen />} />
-                    <Route path="reports" element={<ReportsScreen />} />
-                    <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
-                    <Route path="stripe-settings" element={<StripeSettingsScreen />} />
-                    <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              {/* Unauthorized route */}
+              <Route
+                path="/unauthorized"
+                element={
+                  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                      <h1 className="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
+                      <p className="text-gray-600 mb-6">You don't have permission to access this page.</p>
+                      <a href="/dashboard" className="text-primary-600 hover:text-primary-700">Go to Dashboard</a>
+                    </div>
+                  </div>
+                }
+              />
 
-          {/* ACC Admin routes */}
-          <Route
-            path="/acc/*"
-            element={
-              <ProtectedRoute allowedRoles={['acc_admin']}>
-                <Layout>
-                  <Routes>
-                    <Route path="dashboard" element={<ACCDashboardScreen />} />
-                    <Route path="subscription" element={<SubscriptionScreen />} />
-                    <Route path="training-centers" element={<TrainingCentersScreen />} />
-                    <Route path="instructors" element={<InstructorsScreen />} />
-                    <Route path="courses" element={<CoursesScreen />} />
-                    <Route path="certificates" element={<CertificatesScreen />} />
-                    <Route path="materials" element={<MaterialsScreen />} />
-                    <Route path="discount-codes" element={<DiscountCodesScreen />} />
-                    <Route path="categories" element={<ACCCategoriesScreen />} />
-                    <Route path="classes" element={<ACCClassesScreen />} />
-                    <Route path="payment-transactions" element={<ACCPaymentTransactionsScreen />} />
-                    <Route path="pending-payments" element={<ACCPendingPaymentsScreen />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              {/* Protected routes with role-based access */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <DashboardScreen />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Training Center routes */}
-          <Route
-            path="/training-center/*"
-            element={
-              <ProtectedRoute allowedRoles={['training_center_admin']}>
-                <Layout>
-                  <Routes>
-                    <Route path="dashboard" element={<TrainingCenterDashboardScreen />} />
-                    <Route path="accs" element={<ACCsScreen />} />
-                    <Route path="instructors" element={<TrainingCenterInstructorsScreen />} />
-                    <Route path="trainees" element={<TraineesScreen />} />
-                    <Route path="classes" element={<ClassesScreen />} />
-                    <Route path="codes" element={<CodesScreen />} />
-                    <Route path="certificates" element={<TrainingCenterCertificatesScreen />} />
-                    <Route path="wallet" element={<WalletScreen />} />
-                    <Route path="marketplace" element={<MarketplaceScreen />} />
-                    <Route path="instructor-authorizations" element={<TrainingCenterInstructorAuthorizationsScreen />} />
-                    <Route path="payment-transactions" element={<TrainingCenterPaymentTransactionsScreen />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              {/* Group Admin routes */}
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedRoute allowedRoles={['group_admin']}>
+                    <Layout>
+                      <Routes>
+                        <Route path="accs" element={<ACCApplicationsScreen />} />
+                        <Route path="training-center-applications" element={<TrainingCenterApplicationsScreen />} />
+                        <Route path="all-accs" element={<AllACCsScreen />} />
+                        <Route path="all-training-centers" element={<AllTrainingCentersScreen />} />
+                        <Route path="all-instructors" element={<AllInstructorsScreen />} />
+                        <Route path="all-courses" element={<AllCoursesScreen />} />
+                        <Route path="categories" element={<CategoriesScreen />} />
+                        <Route path="financial" element={<FinancialScreen />} />
+                        <Route path="payment-transactions" element={<GroupAdminPaymentTransactionsScreen />} />
+                        <Route path="reports" element={<ReportsScreen />} />
+                        <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
+                        <Route path="stripe-settings" element={<StripeSettingsScreen />} />
+                        <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Instructor routes */}
-          <Route
-            path="/instructor/*"
-            element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <Layout>
-                  <Routes>
-                    <Route path="dashboard" element={<InstructorDashboardScreen />} />
-                    <Route path="classes" element={<InstructorClassesScreen />} />
-                    <Route path="materials" element={<InstructorMaterialsScreen />} />
-                    <Route path="earnings" element={<EarningsScreen />} />
-                    <Route path="profile" element={<InstructorProfileScreen />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+              {/* ACC Admin routes */}
+              <Route
+                path="/acc/*"
+                element={
+                  <ProtectedRoute allowedRoles={['acc_admin']}>
+                    <Layout>
+                      <Routes>
+                        <Route path="dashboard" element={<ACCDashboardScreen />} />
+                        <Route path="subscription" element={<SubscriptionScreen />} />
+                        <Route path="training-centers" element={<TrainingCentersScreen />} />
+                        <Route path="instructors" element={<InstructorsScreen />} />
+                        <Route path="courses" element={<CoursesScreen />} />
+                        <Route path="certificates" element={<CertificatesScreen />} />
+                        <Route path="certificate-templates" element={<CertificateTemplatesScreen />} />
 
-          {/* Profile route - role-based */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfileRoute />
-              </ProtectedRoute>
-            }
-          />
+                        <Route path="materials" element={<MaterialsScreen />} />
+                        <Route path="discount-codes" element={<DiscountCodesScreen />} />
+                        <Route path="categories" element={<ACCCategoriesScreen />} />
+                        <Route path="classes" element={<ACCClassesScreen />} />
+                        <Route path="payment-transactions" element={<ACCPaymentTransactionsScreen />} />
+                        <Route path="pending-payments" element={<ACCPendingPaymentsScreen />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
+              {/* ACC Admin - Certificate Designer (No Layout) */}
+              <Route
+                path="/acc/certificate-templates/:id/design"
+                element={
+                  <ProtectedRoute allowedRoles={['acc_admin']}>
+                    <CertificateDesignerScreen />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Training Center routes */}
+              <Route
+                path="/training-center/*"
+                element={
+                  <ProtectedRoute allowedRoles={['training_center_admin']}>
+                    <Layout>
+                      <Routes>
+                        <Route path="dashboard" element={<TrainingCenterDashboardScreen />} />
+                        <Route path="accs" element={<ACCsScreen />} />
+                        <Route path="instructors" element={<TrainingCenterInstructorsScreen />} />
+                        <Route path="trainees" element={<TraineesScreen />} />
+                        <Route path="classes" element={<ClassesScreen />} />
+                        <Route path="codes" element={<CodesScreen />} />
+                        <Route path="certificates" element={<TrainingCenterCertificatesScreen />} />
+                        <Route path="wallet" element={<WalletScreen />} />
+                        <Route path="marketplace" element={<MarketplaceScreen />} />
+                        <Route path="instructor-authorizations" element={<TrainingCenterInstructorAuthorizationsScreen />} />
+                        <Route path="payment-transactions" element={<TrainingCenterPaymentTransactionsScreen />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Instructor routes */}
+              <Route
+                path="/instructor/*"
+                element={
+                  <ProtectedRoute allowedRoles={['instructor']}>
+                    <Layout>
+                      <Routes>
+                        <Route path="dashboard" element={<InstructorDashboardScreen />} />
+                        <Route path="classes" element={<InstructorClassesScreen />} />
+                        <Route path="materials" element={<InstructorMaterialsScreen />} />
+                        <Route path="earnings" element={<EarningsScreen />} />
+                        <Route path="profile" element={<InstructorProfileScreen />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Profile route - role-based */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfileRoute />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Default redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </BrowserRouter>
         </NotificationsProvider>
       </HeaderProvider>
     </AuthProvider>

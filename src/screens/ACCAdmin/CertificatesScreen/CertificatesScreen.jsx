@@ -1,9 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, Award, Eye, FileText, User, BookOpen, Calendar, Hash } from 'lucide-react';
+import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
-import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import './CertificatesScreen.css';
@@ -12,17 +11,8 @@ const CertificatesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const [formData, setFormData] = useState({
-    trainee_name: '',
-    course: '',
-    issue_date: '',
-    status: 'valid',
-  });
-  const [errors, setErrors] = useState({});
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadCertificates();
@@ -30,16 +20,8 @@ const CertificatesScreen = () => {
 
   useEffect(() => {
     setHeaderTitle('Certificates');
-    setHeaderSubtitle('View and manage all generated certificates');
-    setHeaderActions(
-      <button
-        onClick={handleOpenModal}
-        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center gap-2 transition-colors shadow-lg hover:shadow-xl"
-      >
-        <Plus size={20} />
-        Create New Certificate
-      </button>
-    );
+    setHeaderSubtitle('View all certificates issued using your templates');
+    setHeaderActions(null);
     return () => {
       setHeaderActions(null);
       setHeaderTitle(null);
@@ -52,7 +34,7 @@ const CertificatesScreen = () => {
     setLoading(true);
     try {
       const params = {
-        per_page: 1000, // Load all data
+        per_page: 1000,
       };
       
       const data = await accAPI.listCertificates(params);
@@ -67,15 +49,20 @@ const CertificatesScreen = () => {
       }
       
       // Add _searchText for better search functionality
-      certificatesArray = certificatesArray.map(cert => ({
-        ...cert,
-        _searchText: [
-          cert.certificate_number,
-          cert.trainee_name,
-          cert.course,
-          cert.status
-        ].filter(Boolean).join(' ').toLowerCase()
-      }));
+      certificatesArray = certificatesArray.map(cert => {
+        const courseName = typeof cert.course === 'object' ? cert.course?.name || '' : cert.course || '';
+        const templateName = typeof cert.template === 'object' ? cert.template?.name || '' : cert.template || '';
+        return {
+          ...cert,
+          _searchText: [
+            cert.certificate_number,
+            cert.trainee_name || cert.student_name,
+            courseName,
+            templateName,
+            cert.status
+          ].filter(Boolean).join(' ').toLowerCase()
+        };
+      });
       
       setCertificates(certificatesArray);
     } catch (error) {
@@ -83,56 +70,6 @@ const CertificatesScreen = () => {
       setCertificates([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleOpenModal = () => {
-    setFormData({
-      trainee_name: '',
-      course: '',
-      issue_date: new Date().toISOString().split('T')[0],
-      status: 'valid',
-    });
-    setErrors({});
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setFormData({
-      trainee_name: '',
-      course: '',
-      issue_date: '',
-      status: 'valid',
-    });
-    setErrors({});
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setErrors({});
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setErrors({});
-
-    try {
-      await accAPI.createCertificate(formData);
-      await loadCertificates();
-      handleCloseModal();
-    } catch (error) {
-      if (error.errors) {
-        setErrors(error.errors);
-      } else {
-        setErrors({ general: error.message || 'Failed to create certificate' });
-      }
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -174,9 +111,9 @@ const CertificatesScreen = () => {
       header: 'Trainee',
       accessor: 'trainee_name',
       sortable: true,
-      render: (value) => (
+      render: (value, row) => (
         <div className="text-sm font-semibold text-gray-900">
-          {value || 'N/A'}
+          {value || row.student_name || 'N/A'}
         </div>
       )
     },
@@ -184,11 +121,27 @@ const CertificatesScreen = () => {
       header: 'Course',
       accessor: 'course',
       sortable: true,
-      render: (value) => (
-        <div className="text-sm text-gray-700">
-          {value || 'N/A'}
-        </div>
-      )
+      render: (value, row) => {
+        const courseName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        return (
+          <div className="text-sm text-gray-700">
+            {courseName}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Template',
+      accessor: 'template',
+      sortable: true,
+      render: (value, row) => {
+        const templateName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        return (
+          <div className="text-sm text-gray-700">
+            {templateName}
+          </div>
+        );
+      }
     },
     {
       header: 'Issue Date',
@@ -246,7 +199,6 @@ const CertificatesScreen = () => {
     }
   ], []);
 
-
   return (
     <div>
       <DataTable
@@ -254,92 +206,15 @@ const CertificatesScreen = () => {
         data={certificates}
         isLoading={loading}
         searchable={true}
-        searchPlaceholder="Search by number, trainee, or course..."
+        searchPlaceholder="Search by number, trainee, course, or template..."
         filterable={true}
         filterOptions={filterOptions}
         defaultFilter="all"
         sortable={true}
-        emptyMessage="No certificates found. Create your first certificate!"
         onRowClick={handleRowClick}
       />
 
-      {/* Create Certificate Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title="Create New Certificate"
-        size="lg"
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput
-              label="Trainee Name"
-              name="trainee_name"
-              value={formData.trainee_name}
-              onChange={handleChange}
-              required
-              error={errors.trainee_name}
-            />
-
-            <FormInput
-              label="Course"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              required
-              error={errors.course}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput
-              label="Issue Date"
-              name="issue_date"
-              type="date"
-              value={formData.issue_date}
-              onChange={handleChange}
-              required
-              error={errors.issue_date}
-            />
-
-            <FormInput
-              label="Status"
-              name="status"
-              type="select"
-              value={formData.status}
-              onChange={handleChange}
-              options={[
-                { value: 'valid', label: 'Valid' },
-                { value: 'invalid', label: 'Invalid' },
-              ]}
-              error={errors.status}
-            />
-          </div>
-
-          {errors.general && (
-            <p className="text-sm text-red-600">{errors.general}</p>
-          )}
-
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Creating...' : 'Create Certificate'}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Certificate Detail Modal */}
+      {/* Detail Modal */}
       <Modal
         isOpen={detailModalOpen}
         onClose={() => {
@@ -355,16 +230,27 @@ const CertificatesScreen = () => {
               data={selectedCertificate}
               fields={[
                 { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
-                { key: 'verification_code', label: 'Verification Code', icon: Hash, showEmpty: false },
-                { key: 'trainee_name', label: 'Trainee Name', icon: User },
+                { key: 'trainee_name', label: 'Trainee Name', icon: User, render: (value, row) => value || row.student_name || 'N/A' },
+                { key: 'course', label: 'Course', icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
+                { key: 'template', label: 'Template', icon: FileText, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
+                { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'verification_code', label: 'Verification Code', icon: Hash },
                 { 
-                  key: 'course', 
-                  label: 'Course', 
-                  icon: BookOpen,
-                  render: (value) => typeof value === 'object' ? value?.name : value
+                  key: 'certificate_pdf_url', 
+                  label: 'Certificate PDF', 
+                  icon: Download,
+                  render: (value) => value ? (
+                    <a 
+                      href={value} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 underline"
+                    >
+                      Download PDF
+                    </a>
+                  ) : 'N/A'
                 },
-                { key: 'issue_date', label: 'Issue Date', type: 'date', icon: Calendar },
-                { key: 'expiry_date', label: 'Expiry Date', type: 'date', icon: Calendar, showEmpty: false },
                 { key: 'status', label: 'Status', type: 'status' },
               ]}
             />

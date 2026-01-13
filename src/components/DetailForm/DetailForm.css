@@ -142,6 +142,12 @@
   border: 1px solid #d1d5db;
 }
 
+.detail-form-status-expired {
+  background: linear-gradient(to right, #ffedd5, #fed7aa);
+  color: #9a3412;
+  border: 1px solid #fdba74;
+}
+
 /* Badge */
 .detail-form-badge {
   display: inline-block;

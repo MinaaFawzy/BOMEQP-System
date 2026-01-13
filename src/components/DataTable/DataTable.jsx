@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import './DataTable.css';
 
@@ -363,9 +363,8 @@ const DataTable = ({
                   const rowId = row.id || rowIndex;
                   const isExpanded = expandedRows.has(rowId);
                   return (
-                    <>
+                    <React.Fragment key={rowId}>
                       <tr 
-                        key={rowId} 
                         className={`hover:bg-gray-50 transition-all duration-200 ease-out hover:shadow-sm ${(expandable && renderExpandedRow) || (onRowClick || onView) ? 'cursor-pointer' : ''} stagger-item`}
                         onClick={(e) => handleRowClick(row, e)}
                         style={{ '--animation-delay': `${rowIndex * 0.03}s` }}
@@ -506,13 +505,13 @@ const DataTable = ({
                       </tr>
                       {/* Expanded Row */}
                       {expandable && renderExpandedRow && isExpanded && (
-                        <tr key={`expanded-${rowId}`} className="bg-gray-50">
+                        <tr className="bg-gray-50">
                           <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-4">
                             {renderExpandedRow(row)}
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </>

@@ -112,13 +112,13 @@ const GroupAdminDashboard = () => {
             />
 
             {/* Trainees Card */}
-            <DashboardCard
+            {/* <DashboardCard
               icon={GraduationCap}
               colorType="acc"
               label="Trainees"
               value={dashboard.trainees || 0}
               hint="Total trainees in system"
-            />
+            /> */}
           </div>
 
           {/* Revenue Section */}

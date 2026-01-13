@@ -16,7 +16,7 @@ const DetailForm = ({ data, fields, className = '' }) => {
     if (!value && value !== 0 && value !== false && field.showEmpty !== true) return null;
 
     const displayValue = value || value === 0 || value === false ? value : field.emptyText || 'N/A';
-    
+
     return (
       <div className={`detail-form-item ${field.fullWidth ? 'detail-form-item-full' : ''}`}>
         <div className="detail-form-label">
@@ -30,7 +30,7 @@ const DetailForm = ({ data, fields, className = '' }) => {
                 {displayValue}
               </a>
             ) : field.type === 'url' || field.type === 'link' ? (
-              <a 
+              <a
                 href={displayValue.startsWith('http') ? displayValue : `https://${displayValue}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -70,29 +70,29 @@ const DetailForm = ({ data, fields, className = '' }) => {
   // Status badge renderer
   const renderStatusBadge = (status) => {
     const statusConfig = {
-      active: { 
+      active: {
         class: 'detail-form-status-active',
-        icon: CheckCircle 
+        icon: CheckCircle
       },
-      approved: { 
+      approved: {
         class: 'detail-form-status-active',
-        icon: CheckCircle 
+        icon: CheckCircle
       },
-      pending: { 
+      pending: {
         class: 'detail-form-status-pending',
-        icon: Clock 
+        icon: Clock
       },
-      rejected: { 
+      rejected: {
         class: 'detail-form-status-rejected',
-        icon: XCircle 
+        icon: XCircle
       },
-      inactive: { 
+      inactive: {
         class: 'detail-form-status-inactive',
-        icon: Clock 
+        icon: Clock
       },
-      suspended: { 
+      suspended: {
         class: 'detail-form-status-suspended',
-        icon: XCircle 
+        icon: XCircle
       },
       enrolled: {
         class: 'detail-form-status-enrolled',
@@ -121,15 +121,27 @@ const DetailForm = ({ data, fields, className = '' }) => {
       returned: {
         class: 'detail-form-status-enrolled',
         icon: ArrowLeft
+      },
+      valid: {
+        class: 'detail-form-status-active',
+        icon: CheckCircle
+      },
+      expired: {
+        class: 'detail-form-status-expired',
+        icon: Clock
+      },
+      revoked: {
+        class: 'detail-form-status-rejected',
+        icon: XCircle
       }
     };
-    
-    const config = statusConfig[status?.toLowerCase()] || { 
+
+    const config = statusConfig[status?.toLowerCase()] || {
       class: 'detail-form-status-default',
-      icon: AlertCircle 
+      icon: AlertCircle
     };
     const Icon = config.icon;
-    
+
     return (
       <span className={`detail-form-status-badge ${config.class}`}>
         <Icon size={14} className="detail-form-status-icon" />

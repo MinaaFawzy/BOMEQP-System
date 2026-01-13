@@ -239,6 +239,7 @@ const Layout = ({ children }) => {
               { path: '/acc/courses', icon: GraduationCap, label: 'Courses' },
               { path: '/acc/classes', icon: School, label: 'Classes' },
               { path: '/acc/certificates', icon: Award, label: 'Certificates' },
+              { path: '/acc/certificate-templates', icon: FileText, label: 'Certificate Templates' },
               { path: '/acc/discount-codes', icon: Tag, label: 'Discount Codes' },
               { path: '/acc/categories', icon: FolderTree, label: 'Course Categories' },
             ]
@@ -343,6 +344,7 @@ const Layout = ({ children }) => {
     if (path === '/acc/instructors') return 'Instructors';
     if (path === '/acc/courses') return 'Courses';
     if (path === '/acc/certificates') return 'Certificates';
+    if (path === '/acc/certificate-templates') return 'Certificate Templates';
     if (path === '/acc/materials') return 'Materials';
     if (path === '/acc/discount-codes') return 'Discount Codes';
     if (path === '/acc/categories') return 'Course Categories';

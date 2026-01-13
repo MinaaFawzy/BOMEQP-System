@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, CheckCircle, XCircle, Hash } from 'lucide-react';
+import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, Award, Building2 } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
@@ -12,38 +12,43 @@ import '../../../components/FormInput/FormInput.css';
 const TrainingCenterCertificatesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [certificates, setCertificates] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [codes, setCodes] = useState([]);
-  const [filteredCodes, setFilteredCodes] = useState([]);
+  const [accs, setAccs] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingACCs, setLoadingACCs] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [completedClasses, setCompletedClasses] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
-    training_class_id: '',
-    code_id: '',
+    acc_id: '',
+    course_id: '',
     trainee_name: '',
     trainee_id_number: '',
     issue_date: '',
+    expiry_date: '',
+    class_id: '',
+    instructor_id: '',
   });
   const [errors, setErrors] = useState({});
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, []); // Load all data once, pagination and filtering are handled client-side
+  }, []);
 
   useEffect(() => {
     setHeaderTitle('Certificates');
-    setHeaderSubtitle('Manage and generate training certificates');
+    setHeaderSubtitle('Issue and manage training certificates');
     setHeaderActions(
       <button
         onClick={handleOpenModal}
         className="header-create-btn"
       >
         <Plus size={20} />
-        Generate Certificate
+        Issue Certificate
       </button>
     );
     return () => {
@@ -57,13 +62,8 @@ const TrainingCenterCertificatesScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Load all data - search and statusFilter are handled client-side by DataTable
-      const [certData, classesData, codesData] = await Promise.all([
-        trainingCenterAPI.listCertificates({ per_page: 1000 }),
-        trainingCenterAPI.listClasses(),
-        trainingCenterAPI.getCodeInventory({ status: 'available' }),
-      ]);
-      
+      const certData = await trainingCenterAPI.listCertificates({ per_page: 1000 });
+
       let certificatesArray = [];
       if (certData.data) {
         certificatesArray = certData.data || [];
@@ -72,10 +72,8 @@ const TrainingCenterCertificatesScreen = () => {
       } else {
         certificatesArray = Array.isArray(certData) ? certData : [];
       }
-      
+
       setCertificates(certificatesArray);
-      setClasses(classesData.classes || []);
-      setCodes(codesData.codes || []);
     } catch (error) {
       console.error('Failed to load data:', error);
       setCertificates([]);
@@ -83,170 +81,367 @@ const TrainingCenterCertificatesScreen = () => {
       setLoading(false);
     }
   };
-  
 
-  const handleOpenModal = () => {
+  const loadACCs = async () => {
+    setLoadingACCs(true);
+    try {
+      const data = await trainingCenterAPI.getAuthorizedACCs({ per_page: 1000 });
+
+      let accsArray = [];
+      if (data.accs) {
+        accsArray = data.accs || [];
+      } else if (data.data) {
+        accsArray = data.data || [];
+      } else {
+        accsArray = Array.isArray(data) ? data : [];
+      }
+
+      setAccs(accsArray);
+    } catch (error) {
+      console.error('Failed to load ACCs:', error);
+      setAccs([]);
+    } finally {
+      setLoadingACCs(false);
+    }
+  };
+
+  const loadCourses = async (accId) => {
+    if (!accId) {
+      setCourses([]);
+      return;
+    }
+
+    setLoadingCourses(true);
+    try {
+      const data = await trainingCenterAPI.getCoursesForCertificate({ acc_id: accId, per_page: 1000 });
+
+      let coursesArray = [];
+      if (data.courses) {
+        coursesArray = data.courses || [];
+      } else if (data.data) {
+        coursesArray = data.data || [];
+      } else {
+        coursesArray = Array.isArray(data) ? data : [];
+      }
+
+      setCourses(coursesArray);
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+      setCourses([]);
+      setCourses([]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  const loadCompletedClasses = async () => {
+    setLoadingClasses(true);
+    try {
+      const response = await trainingCenterAPI.listClasses({ per_page: 1000 });
+      let classesList = [];
+
+      // Handle different response structures
+      if (response.classes) {
+        classesList = response.classes;
+      } else if (response.data) {
+        classesList = response.data;
+      } else if (Array.isArray(response)) {
+        classesList = response;
+      }
+
+      setCompletedClasses(classesList);
+    } catch (error) {
+      console.error("Failed to load classes", error);
+      setCompletedClasses([]);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
+
+  const handleOpenModal = async () => {
     setFormData({
-      training_class_id: '',
-      code_id: '',
+      acc_id: '',
+      course_id: '',
       trainee_name: '',
       trainee_id_number: '',
       issue_date: new Date().toISOString().split('T')[0],
+      expiry_date: '',
+      class_id: '',
+      instructor_id: '',
     });
     setErrors({});
+    setCourses([]);
+
+    // Load ACCs if not loaded
+    if (accs.length === 0) {
+      await loadACCs();
+    }
+
+    // Always load/refresh completed classes when opening modal
+    await loadCompletedClasses();
+
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({
-      training_class_id: '',
-      code_id: '',
+      acc_id: '',
+      course_id: '',
       trainee_name: '',
       trainee_id_number: '',
       issue_date: new Date().toISOString().split('T')[0],
+      expiry_date: '',
+      class_id: '',
+      instructor_id: '',
     });
     setErrors({});
-    setFilteredCodes([]); // Reset filtered codes
+    setCourses([]);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // If training_class_id changes, filter codes and reset code_id
-    if (name === 'training_class_id') {
-      const selectedClass = classes.find(cls => cls.id === parseInt(value));
-      if (selectedClass) {
-        // Get course from the selected class
-        const classCourseId = typeof selectedClass.course === 'object' 
-          ? selectedClass.course?.id 
-          : selectedClass.course;
-        
-        // Filter codes that match the course
-        const filtered = codes.filter(code => {
-          const codeCourseId = typeof code.course === 'object' 
-            ? code.course?.id 
-            : code.course;
-          return codeCourseId === classCourseId || codeCourseId == classCourseId;
-        });
-        setFilteredCodes(filtered);
-        
-        // Reset code_id if current selection doesn't match the filtered codes
-        setFormData({
-          ...formData,
-          training_class_id: value,
-          code_id: '', // Reset code selection
-        });
-      } else {
-        setFilteredCodes([]);
-        setFormData({
-          ...formData,
-          training_class_id: value,
-          code_id: '',
-        });
+
+    if (name === 'acc_id') {
+      // When ACC changes, reset course and load courses for new ACC
+      setFormData(prev => ({
+        ...prev,
+        acc_id: value,
+        course_id: '', // Reset course selection
+      }));
+      setCourses([]); // Clear courses
+      if (value) {
+        loadCourses(parseInt(value));
       }
     } else {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
-      });
+      }));
     }
-    
-    if (errors[e.target.name]) {
+
+    if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[e.target.name];
+        delete newErrors[name];
         return newErrors;
       });
     }
   };
 
-  // Filter codes when modal opens and codes are loaded
-  useEffect(() => {
-    if (isModalOpen && formData.training_class_id) {
-      const selectedClass = classes.find(cls => cls.id === parseInt(formData.training_class_id));
-      if (selectedClass) {
-        const classCourseId = typeof selectedClass.course === 'object' 
-          ? selectedClass.course?.id 
-          : selectedClass.course;
-        
-        const filtered = codes.filter(code => {
-          const codeCourseId = typeof code.course === 'object' 
-            ? code.course?.id 
-            : code.course;
-          return codeCourseId === classCourseId || codeCourseId == classCourseId;
-        });
-        setFilteredCodes(filtered);
-      }
-    } else if (isModalOpen && !formData.training_class_id) {
-      setFilteredCodes([]);
+  const handleClassChange = (e) => {
+    const classId = e.target.value;
+
+    if (!classId) {
+      // Reset if cleared
+      setFormData(prev => ({
+        ...prev,
+        class_id: '',
+        acc_id: '', // Should we clear ACC/Course? Yes, to allow manual selection again
+        course_id: '',
+        instructor_id: '',
+      }));
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isModalOpen, codes, classes]);
+
+    const selectedClass = completedClasses.find(c => c.id.toString() === classId);
+
+    if (selectedClass) {
+      // Auto-populate
+      // Extract IDs using flexible access (handles object or direct ID)
+      // Based on provided data structure: class -> course -> acc_id
+      const accId = selectedClass.acc_id || selectedClass.course?.acc_id || selectedClass.acc?.id || '';
+      const courseId = selectedClass.course_id || selectedClass.course?.id || '';
+      const instructorId = selectedClass.instructor_id || selectedClass.instructor?.id || '';
+
+      setFormData(prev => ({
+        ...prev,
+        class_id: classId,
+        acc_id: accId ? accId.toString() : '',
+        course_id: courseId ? courseId.toString() : '',
+        instructor_id: instructorId ? instructorId.toString() : '',
+        // Optionally set issue date to today if not set? It is already set in handleOpenModal
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGenerating(true);
     setErrors({});
 
+    // Client-side validation
+    // If class_id is selected, acc_id and course_id might be inferred by backend if missing here
+    if (!formData.class_id) {
+      if (!formData.acc_id) {
+        setErrors({ acc_id: 'Please select an ACC' });
+        setGenerating(false);
+        return;
+      }
+      if (!formData.course_id) {
+        setErrors({ course_id: 'Please select a course' });
+        setGenerating(false);
+        return;
+      }
+    }
+    // If class_id is present, we trust the class link, but we expect course_id at least usually.
+    // However, user claims "got nothing" so we should be permissive and let backend validate.
+
+    if (!formData.trainee_name || !formData.trainee_name.trim()) {
+      setErrors({ trainee_name: 'Student name is required' });
+      setGenerating(false);
+      return;
+    }
+    if (!formData.issue_date) {
+      setErrors({ issue_date: 'Issue date is required' });
+      setGenerating(false);
+      return;
+    }
+    if (formData.expiry_date && formData.expiry_date < formData.issue_date) {
+      setErrors({ expiry_date: 'Expiry date must be after issue date' });
+      setGenerating(false);
+      return;
+    }
+
     try {
       const submitData = {
-        training_class_id: parseInt(formData.training_class_id),
-        code_id: parseInt(formData.code_id),
+        acc_id: formData.acc_id ? parseInt(formData.acc_id) : null,
+        course_id: formData.course_id ? parseInt(formData.course_id) : null,
         trainee_name: formData.trainee_name.trim(),
-        trainee_id_number: formData.trainee_id_number.trim(),
-        issue_date: formData.issue_date || new Date().toISOString().split('T')[0],
+        issue_date: formData.issue_date,
+        expiry_date: formData.expiry_date || null,
+        trainee_id_number: formData.trainee_id_number?.trim() || null,
+        class_id: formData.class_id ? parseInt(formData.class_id) : null,
+        instructor_id: formData.instructor_id ? parseInt(formData.instructor_id) : null,
       };
-      
-      await trainingCenterAPI.generateCertificate(submitData);
-      await loadData();
+
+      const response = await trainingCenterAPI.issueCertificate(submitData);
+
+      // Show success message
+      alert('Certificate issued successfully!');
+
       handleCloseModal();
-      alert('Certificate generated successfully!');
+      loadData();
     } catch (error) {
-      console.error('Failed to generate certificate:', error);
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        if (errorData.errors) {
-          const formattedErrors = {};
-          Object.keys(errorData.errors).forEach(key => {
-            formattedErrors[key] = Array.isArray(errorData.errors[key]) 
-              ? errorData.errors[key][0] 
-              : errorData.errors[key];
-          });
-          setErrors(formattedErrors);
-        } else if (errorData.message) {
-          setErrors({ general: errorData.message });
-        } else {
-          setErrors(errorData);
-        }
-      } else if (error.message) {
-        setErrors({ general: error.message });
+      console.error('Failed to issue certificate:', error);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Failed to generate certificate. Please try again.' });
+        setErrors({ general: 'Failed to issue certificate. Please try again.' });
       }
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleViewDetails = async (cert) => {
+  const handleViewDetails = useCallback(async (cert) => {
+    setSelectedCertificate(cert);
+    setDetailModalOpen(true);
+
+    // Fetch fresh validity status to ensure we show the latest status
     try {
-      const data = await trainingCenterAPI.getCertificateDetails(cert.id);
-      setSelectedCertificate(data.certificate || cert);
-      setDetailModalOpen(true);
+      const response = await trainingCenterAPI.checkCertificateValidity(cert.id);
+      if (response && response.certificate) {
+        setSelectedCertificate(prev => prev?.id === cert.id ? response.certificate : prev);
+      }
     } catch (error) {
-      console.error('Failed to load certificate details:', error);
-      setSelectedCertificate(cert);
-      setDetailModalOpen(true);
+      console.error('Failed to check validity for details:', error);
+    }
+  }, []);
+
+  const handleRowClick = useCallback((cert) => {
+    handleViewDetails(cert);
+  }, [handleViewDetails]);
+
+  const handleDownload = async (cert) => {
+    try {
+      // Step 1: Check validity first
+      let validityStatus = null;
+      try {
+        const validityResponse = await trainingCenterAPI.checkCertificateValidity(cert.id);
+        validityStatus = validityResponse;
+      } catch (validationError) {
+        console.warn('Failed to check certificate validity:', validationError);
+        // We continue to try download even if validation check fails, 
+        // identifying network issues vs actual validity problems might be good but let's proceed with caution
+      }
+
+      if (validityStatus && !validityStatus.valid) {
+        const proceed = window.confirm(
+          `Certificate Status Alert:\n\n` +
+          `Status: ${validityStatus.status.toUpperCase()}\n` +
+          `Message: ${validityStatus.message}\n\n` +
+          `Do you still want to download this certificate?`
+        );
+        if (!proceed) return;
+      }
+
+      // Step 2: Download
+      const response = await trainingCenterAPI.downloadCertificatePDF(cert.id);
+
+      // Check if response is an error (JSON error responses)
+      // When axios receives a blob response that's actually JSON, we need to check the content type
+      if (response.data instanceof Blob) {
+        // Check if blob is actually JSON error
+        const blobType = response.data.type;
+        if (blobType && blobType.includes('application/json')) {
+          const errorText = await response.data.text();
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.message || 'Download failed');
+        }
+      }
+
+      // Create download link
+      const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Use .png extension as certificates are generated as PNG images
+      link.setAttribute('download', `certificate-${cert.certificate_number || cert.id}.png`);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('Failed to download certificate:', error);
+
+      // Handle errors with better error messages
+      let errorMessage = 'Failed to download certificate. Please try again.';
+
+      if (error.response) {
+        if (error.response.data instanceof Blob) {
+          try {
+            const errorText = await error.response.data.text();
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch {
+            // If parsing fails, use default message
+          }
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.status === 403) {
+          errorMessage = 'You do not have permission to download this certificate.';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Certificate file not found.';
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
     }
   };
 
-  const handleDownload = (cert) => {
-    if (cert.certificate_pdf_url) {
-      window.open(cert.certificate_pdf_url, '_blank');
-    } else {
-      alert('Certificate PDF not available');
-    }
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   };
 
   // Define columns for DataTable
@@ -256,173 +451,148 @@ const TrainingCenterCertificatesScreen = () => {
       accessor: 'certificate_number',
       sortable: true,
       render: (value, row) => (
-        <div className="certificate-number-container">
-          <div className="certificate-number-icon-container">
-            <FileText className="certificate-number-icon" />
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+            <Award className="h-5 w-5 text-primary-600" />
           </div>
           <div>
-            <div className="certificate-number-text">
-              {row.certificate_number || 'N/A'}
+            <div className="text-sm font-semibold text-gray-900">
+              {value || 'N/A'}
             </div>
           </div>
         </div>
-      ),
+      )
     },
     {
       header: 'Trainee',
       accessor: 'trainee_name',
       sortable: true,
-      render: (value, row) => (
-        <div className="trainee-container">
-          <User className="trainee-icon" />
-          {row.trainee_name || 'N/A'}
+      render: (value) => (
+        <div className="text-sm font-semibold text-gray-900">
+          {value || 'N/A'}
         </div>
-      ),
+      )
     },
     {
       header: 'Course',
       accessor: 'course',
       sortable: true,
-      render: (value, row) => (
-        <div className="course-container">
-          <BookOpen className="course-icon" />
-          {typeof row.course === 'object' ? row.course?.name || 'N/A' : row.course || 'N/A'}
-        </div>
-      ),
+      render: (value) => {
+        const courseName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        return (
+          <div className="text-sm text-gray-700">
+            {courseName}
+          </div>
+        );
+      }
+    },
+    {
+      header: 'ACC',
+      accessor: 'acc',
+      sortable: true,
+      render: (value) => {
+        const accName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        return (
+          <div className="text-sm text-gray-700">
+            {accName}
+          </div>
+        );
+      }
     },
     {
       header: 'Issue Date',
       accessor: 'issue_date',
       sortable: true,
-      render: (value, row) => (
-        <div className="date-container">
-          <Calendar className="date-icon" />
-          {row.issue_date ? new Date(row.issue_date).toLocaleDateString() : 'N/A'}
+      render: (value) => (
+        <div className="text-sm text-gray-600">
+          {formatDate(value)}
         </div>
-      ),
+      )
     },
     {
       header: 'Status',
       accessor: 'status',
       sortable: true,
-      render: (value, row) => {
-        const isValid = row.status === 'valid';
-        const StatusIcon = isValid ? CheckCircle : XCircle;
+      render: (value) => {
+        let badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
+        let icon = null;
+
+        switch (value) {
+          case 'valid':
+            badgeClass = 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
+            break;
+          case 'expired':
+            badgeClass = 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300';
+            break;
+          case 'revoked':
+            badgeClass = 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300';
+            break;
+          default:
+            // fallback for boolean or other states
+            if (value === true) badgeClass = 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
+            else if (value === false) badgeClass = 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300';
+            break;
+        }
+
         return (
-          <div className="status-container">
-            <span className={`status-badge ${isValid ? 'valid' : 'expired'}`}>
-              <StatusIcon size={14} className="status-icon" />
-              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
-            </span>
-          </div>
+          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${badgeClass}`}>
+            {value ? (typeof value === 'string' ? value.charAt(0).toUpperCase() + value.slice(1) : (value ? 'Valid' : 'Invalid')) : 'N/A'}
+          </span>
         );
-      },
+      }
     },
     {
       header: 'Actions',
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
-        <div className="actions-container">
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(row);
-            }}
-            className="action-btn action-btn-view"
+            onClick={() => handleViewDetails(row)}
+            className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
             title="View Details"
           >
-            <Eye size={18} />
+            <Eye size={16} />
           </button>
-          {row.certificate_pdf_url ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownload(row);
-              }}
-              className="action-btn action-btn-download"
-              title="Download PDF"
-            >
-              <Download size={18} />
-            </button>
-          ) : (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewDetails(row);
-              }}
-              className="action-btn action-btn-download"
-              title="View Info"
-            >
-              <FileText size={18} />
-            </button>
-          )}
+          <button
+            onClick={() => handleDownload(row)}
+            className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="Download Certificate"
+          >
+            <Download size={16} />
+          </button>
         </div>
-      ),
-    },
-  ], [handleViewDetails, handleDownload]);
+      )
+    }
+  ], [handleViewDetails]);
 
-  // Filter options for DataTable
   const filterOptions = useMemo(() => [
     { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'valid', label: 'Valid', filterFn: (row) => row.status === 'valid' },
-    { value: 'expired', label: 'Expired', filterFn: (row) => row.status === 'expired' },
+    { value: 'valid', label: 'Valid', filterFn: (cert) => cert.status === 'valid' },
+    { value: 'expired', label: 'Expired', filterFn: (cert) => cert.status === 'expired' },
+    { value: 'revoked', label: 'Revoked', filterFn: (cert) => cert.status === 'revoked' },
   ], []);
-
-  // Add searchable text to each row for better search functionality
-  const dataWithSearchText = useMemo(() => {
-    return certificates.map(cert => {
-      const courseName = typeof cert.course === 'object' ? cert.course?.name || '' : cert.course || '';
-      const searchText = [
-        cert.certificate_number || '',
-        cert.trainee_name || '',
-        courseName,
-        cert.verification_code || '',
-        cert.status || '',
-      ].filter(Boolean).join(' ').toLowerCase();
-      
-      return {
-        ...cert,
-        _searchText: searchText,
-      };
-    });
-  }, [certificates]);
-
 
   return (
     <div>
-      {/* DataTable */}
-      <div className="datatable-container">
-        <DataTable
-          columns={columns}
-          data={dataWithSearchText}
-          onRowClick={handleViewDetails}
-          isLoading={loading}
-          emptyMessage={
-            certificates.length === 0 && !loading ? (
-              <div className="empty-state-container">
-                <div className="empty-state-icon-container">
-                  <FileText className="empty-state-icon" size={32} />
-                </div>
-                <p className="empty-state-title">No certificates found</p>
-                <p className="empty-state-subtitle">Generate your first certificate!</p>
-              </div>
-            ) : 'No certificates found matching your filters'
-          }
-          searchable={true}
-          filterable={true}
-          searchPlaceholder="Search by certificate number, trainee name, course, or verification code..."
-          filterOptions={filterOptions}
-          sortable={true}
-          defaultFilter={statusFilter}
-        />
-      </div>
+      <DataTable
+        columns={columns}
+        data={certificates}
+        isLoading={loading}
+        searchable={true}
+        searchPlaceholder="Search by certificate number, trainee name, or course..."
+        filterable={true}
+        filterOptions={filterOptions}
+        defaultFilter="all"
+        sortable={true}
+        onRowClick={handleRowClick}
+      />
 
-      {/* Generate Certificate Modal */}
+      {/* Issue Certificate Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title="Generate Certificate"
+        title="Issue Certificate"
         size="lg"
       >
         <form onSubmit={handleSubmit} className="modal-form">
@@ -432,71 +602,83 @@ const TrainingCenterCertificatesScreen = () => {
             </div>
           )}
 
+          {/* Step 1: Select Class (Mandatory) */}
           <FormInput
-            label="Training Class"
-            name="training_class_id"
+            label="Class"
+            name="class_id"
             type="select"
-            value={formData.training_class_id}
-            onChange={handleChange}
+            value={formData.class_id}
+            onChange={handleClassChange}
+            disabled={loadingClasses}
             required
-            options={classes.length > 0 ? classes.map(cls => ({
-              value: cls.id,
-              label: `${typeof cls.course === 'object' ? cls.course?.name : cls.course} - ${new Date(cls.start_date).toLocaleDateString()}`,
-            })) : [{ value: '', label: 'No classes available' }]}
-            error={errors.training_class_id}
-          />
-
-          <FormInput
-            label="Certificate Code"
-            name="code_id"
-            type="select"
-            value={formData.code_id}
-            onChange={handleChange}
-            required
-            disabled={!formData.training_class_id || filteredCodes.length === 0}
             options={
-              !formData.training_class_id
-                ? [{ value: '', label: 'Please select a training class first' }]
-                : filteredCodes.length > 0
-                ? filteredCodes.map(code => ({
-                    value: code.id,
-                    label: `${code.code} - ${typeof code.course === 'object' ? code.course?.name : code.course} (${code.status})`,
-                  }))
-                : [{ value: '', label: 'No available codes for this class' }]
+              loadingClasses
+                ? [{ value: '', label: 'Loading classes...' }]
+                : completedClasses.length > 0
+                  ? [
+                    { value: '', label: 'Select Class' },
+                    ...completedClasses.map(cls => ({
+                      value: cls.id.toString(),
+                      label: cls.course?.name || cls.name || `Class ${cls.id}`
+                    }))
+                  ]
+                  : [{ value: '', label: 'No classes available' }]
             }
-            error={errors.code_id}
-            helpText={formData.training_class_id && filteredCodes.length === 0 ? 'No available codes match the selected training class' : ''}
+            error={errors.class_id}
+            helpText="Select a class to issue a certificate for"
           />
 
-          <div className="form-grid">
-            <FormInput
-              label="Trainee Name"
-              name="trainee_name"
-              value={formData.trainee_name}
-              onChange={handleChange}
-              required
-              error={errors.trainee_name}
-            />
+          {/* Student Information - Shown when Class is selected */}
+          {formData.class_id && (
+            <>
+              <FormInput
+                label="Trainee Name"
+                name="trainee_name"
+                value={formData.trainee_name}
+                onChange={handleChange}
+                required
+                error={errors.trainee_name}
+                helpText="Enter the student's full name"
+              />
 
-            <FormInput
-              label="Trainee ID Number"
-              name="trainee_id_number"
-              value={formData.trainee_id_number}
-              onChange={handleChange}
-              required
-              error={errors.trainee_id_number}
-            />
-          </div>
+              <div className="form-grid">
+                <FormInput
+                  label="Issue Date"
+                  name="issue_date"
+                  type="date"
+                  value={formData.issue_date}
+                  onChange={handleChange}
+                  required
+                  error={errors.issue_date}
+                />
 
-          <FormInput
-            label="Issue Date"
-            name="issue_date"
-            type="date"
-            value={formData.issue_date}
-            onChange={handleChange}
-            required
-            error={errors.issue_date}
-          />
+                <FormInput
+                  label="Expiry Date (Optional)"
+                  name="expiry_date"
+                  type="date"
+                  value={formData.expiry_date}
+                  onChange={handleChange}
+                  error={errors.expiry_date}
+                  helpText="Must be after issue date"
+                />
+              </div>
+
+              <FormInput
+                label="Trainee ID Number (Optional)"
+                name="trainee_id_number"
+                value={formData.trainee_id_number}
+                onChange={handleChange}
+                error={errors.trainee_id_number}
+              />
+
+              <div className="hidden">
+                {/* Hidden fields to ensure state binding if needed for debugging, but mostly we just need the values in state */}
+                <input type="hidden" name="acc_id" value={formData.acc_id} />
+                <input type="hidden" name="course_id" value={formData.course_id} />
+                <input type="hidden" name="instructor_id" value={formData.instructor_id} />
+              </div>
+            </>
+          )}
 
           <div className="form-actions">
             <button
@@ -508,16 +690,16 @@ const TrainingCenterCertificatesScreen = () => {
             </button>
             <button
               type="submit"
-              disabled={generating}
+              disabled={generating || !formData.class_id || !formData.trainee_name || !formData.issue_date}
               className="form-btn form-btn-submit"
             >
-              {generating ? 'Generating...' : 'Generate Certificate'}
+              {generating ? 'Generating...' : 'Issue Certificate'}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Certificate Detail Modal */}
+      {/* Detail Modal */}
       <Modal
         isOpen={detailModalOpen}
         onClose={() => {
@@ -533,30 +715,42 @@ const TrainingCenterCertificatesScreen = () => {
               data={selectedCertificate}
               fields={[
                 { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
-                { key: 'verification_code', label: 'Verification Code', icon: Hash, showEmpty: false },
+                { key: 'verification_code', label: 'Verification Code', icon: FileText },
                 { key: 'trainee_name', label: 'Trainee Name', icon: User },
-                { 
-                  key: 'course', 
-                  label: 'Course', 
-                  icon: BookOpen,
-                  render: (value) => typeof value === 'object' ? value?.name : value
-                },
-                { key: 'issue_date', label: 'Issue Date', type: 'date', icon: Calendar },
-                { key: 'expiry_date', label: 'Expiry Date', type: 'date', icon: Calendar, showEmpty: false },
+                { key: 'acc', label: 'ACC', icon: Building2, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
+                { key: 'course', label: 'Course', icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
+                { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },
                 { key: 'status', label: 'Status', type: 'status' },
+                {
+                  key: 'certificate_pdf_url',
+                  label: 'Certificate File',
+                  icon: Download,
+                  render: (value) => (
+                    <div className="flex gap-2">
+                      {value && (
+                        <a
+                          href={value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                        >
+                          <Eye size={16} />
+                          View Certificate
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleDownload(selectedCertificate)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <Download size={16} />
+                        Download Certificate
+                      </button>
+                    </div>
+                  )
+                },
               ]}
             />
-            {selectedCertificate.certificate_pdf_url && (
-              <div className="detail-modal-actions">
-                <button
-                  onClick={() => handleDownload(selectedCertificate)}
-                  className="detail-modal-action-btn"
-                >
-                  <Download size={20} className="detail-modal-action-icon" />
-                  Download PDF
-                </button>
-              </div>
-            )}
           </div>
         )}
       </Modal>
