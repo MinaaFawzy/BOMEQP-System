@@ -894,7 +894,7 @@ const CertificateDesignerScreen = () => {
                                     </select>
                                 </div>
 
-                                <div className="property-group">
+                                {/* <div className="property-group">
                                     <label className="property-label">Font Family</label>
                                     <select
                                         className="property-select"
@@ -905,7 +905,7 @@ const CertificateDesignerScreen = () => {
                                             <option key={font} value={font}>{font}</option>
                                         ))}
                                     </select>
-                                </div>
+                                </div> */}
 
                                 <div className="property-group">
                                     <div className="flex justify-between gap-4">
