@@ -224,7 +224,7 @@ const CertificateDesignerScreen = () => {
     const refreshVariableDisplays = () => {
         if (!canvas.current) return;
         const objects = canvas.current.getObjects().filter(obj => obj.type === 'text');
-        
+
         objects.forEach(obj => {
             if (obj.variable && !obj.isStatic) {
                 // Update display text to show example data
@@ -234,7 +234,7 @@ const CertificateDesignerScreen = () => {
                 }
             }
         });
-        
+
         canvas.current.renderAll();
     };
 
@@ -245,9 +245,9 @@ const CertificateDesignerScreen = () => {
             // Extract variable name if it's in {{variable}} format
             const variableName = extractVariableName(item.variable || item.text);
             const isStatic = !variableName;
-            
+
             // Get display text (example data for variables)
-            const displayText = isStatic 
+            const displayText = isStatic
                 ? (item.variable || item.text || '')
                 : (exampleData[variableName] || `{{${variableName}}}`);
 
@@ -255,7 +255,7 @@ const CertificateDesignerScreen = () => {
             const textAlign = item.text_align || 'left';
             // Set originX based on alignment for proper positioning
             const originX = textAlign === 'center' ? 'center' : textAlign === 'right' ? 'right' : 'left';
-            
+
             // Calculate left position based on alignment
             let leftPos = (item.x || 0) * 1200;
             if (textAlign === 'center') {
@@ -312,8 +312,8 @@ const CertificateDesignerScreen = () => {
         if (!canvas.current) return;
 
         // Use example data for display if it's a variable, otherwise use custom text
-        const displayContent = isCustomText 
-            ? 'Custom Text' 
+        const displayContent = isCustomText
+            ? 'Custom Text'
             : (exampleData[variableName] || `{{${variableName}}}`);
 
         const text = new fabric.Text(displayContent, {
@@ -385,12 +385,16 @@ const CertificateDesignerScreen = () => {
                 xPos = obj.left / 1200;
             }
 
+            // Clamp values to ensure they are within 0-1 range and definitely not negative
+            // Backend validation requires x >= 0
+            const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
             return {
                 variable: obj.variable || null,
                 text: textForSave, // Save in {{variable}} format for variables
                 isStatic: !!obj.isStatic,
-                x: xPos,
-                y: tl.y / 848,
+                x: clamp(xPos, 0, 1),
+                y: clamp(tl.y / 848, 0, 1),
                 fontFamily: obj.fontFamily || 'Arial',
                 fontSize: obj.fontSize || 24,
                 color: fill,
@@ -422,7 +426,7 @@ const CertificateDesignerScreen = () => {
             const currentLeft = activeObj.left;
             const currentOriginX = activeObj.originX;
             const currentTextAlign = activeObj.textAlign || 'left';
-            
+
             // Calculate the actual left edge position regardless of current origin
             let actualLeftEdge = currentLeft;
             if (currentOriginX === 'center') {
@@ -434,10 +438,10 @@ const CertificateDesignerScreen = () => {
                 const textWidth = activeObj.getScaledWidth();
                 actualLeftEdge = currentLeft - textWidth;
             }
-            
+
             // Set new alignment
             activeObj.set('textAlign', value);
-            
+
             // Update originX and adjust left position to preserve visual position
             if (value === 'center') {
                 activeObj.set('originX', 'center');
@@ -508,7 +512,7 @@ const CertificateDesignerScreen = () => {
 
         const canvasWidth = 1200;
         const canvasHeight = 848;
-        
+
         // Get background image URL - try multiple sources
         let bgImageUrl = template?.background_image_url || '';
         const bgImage = canvas.current.backgroundImage;
@@ -528,10 +532,10 @@ const CertificateDesignerScreen = () => {
                 bgImageUrl = bgImage.src;
             }
         }
-        
+
         // Get all text objects
         const textObjects = canvas.current.getObjects().filter(obj => obj.type === 'text');
-        
+
         // Generate HTML
         let html = `<!DOCTYPE html>
 <html lang="en">
@@ -575,12 +579,12 @@ const CertificateDesignerScreen = () => {
         textObjects.forEach(obj => {
             // Get text alignment
             const textAlign = obj.textAlign || 'left';
-            
+
             // Calculate position and transform based on alignment
             let left = obj.left;
             let transform = '';
             let width = 'auto';
-            
+
             if (textAlign === 'center') {
                 // For center alignment, obj.left is the center point when originX is 'center'
                 // Use transform to center the text
@@ -589,15 +593,15 @@ const CertificateDesignerScreen = () => {
                 // For right alignment, obj.left is the right edge when originX is 'right'
                 // No transform needed, text-align: right will handle it
             }
-            
+
             const top = obj.top;
-            
+
             // Get text content - preserve variables in {{variable}} format
             let textContent = obj.text || '';
             if (obj.variable && !textContent.includes('{{')) {
                 textContent = `{{${obj.variable}}}`;
             }
-            
+
             // Get color
             let color = obj.fill || '#000000';
             if (typeof color === 'string' && !color.startsWith('#')) {
@@ -608,12 +612,12 @@ const CertificateDesignerScreen = () => {
                     color = '#000000';
                 }
             }
-            
+
             // Get font family and weight
             const fontFamily = obj.fontFamily || 'Arial';
             const fontSize = obj.fontSize || 24;
             const fontWeight = obj.fontWeight || 'normal';
-            
+
             // Escape HTML in text content but preserve {{variable}} format
             // We need to escape everything except the {{ }} brackets
             const escapedText = textContent
@@ -622,10 +626,10 @@ const CertificateDesignerScreen = () => {
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
-            
+
             // Escape single quotes in font family name for CSS
             const escapedFontFamily = fontFamily.replace(/'/g, "\\'");
-            
+
             html += `
         <div class="text-element" style="
             left: ${Math.round(left)}px;
@@ -639,12 +643,12 @@ const CertificateDesignerScreen = () => {
             ${width !== 'auto' ? `width: ${width};` : ''}
         ">${escapedText}</div>`;
         });
-        
+
         html += `
     </div>
 </body>
 </html>`;
-        
+
         return html;
     };
 
@@ -664,15 +668,15 @@ const CertificateDesignerScreen = () => {
                 text_align: p.text_align || 'left',
             }));
 
-            // Generate HTML template
-            const templateHtml = generateTemplateHTML();
+            // Generate HTML template (kept for reference, but not sent to config endpoint)
+            // const templateHtml = generateTemplateHTML();
 
-            // Update template with both config_json and template_html
-            await accAPI.updateTemplate(template.id, { 
-                config_json: config,
-                template_html: templateHtml
+            // Update template configuration with fonts
+            // Using updateTemplateConfig as per documentation for font support
+            await accAPI.updateTemplateConfig(template.id, {
+                config_json: config
             });
-            
+
             alert('Configuration saved successfully!');
             navigate('/acc/certificate-templates');
         } catch (err) {
@@ -932,11 +936,10 @@ const CertificateDesignerScreen = () => {
                                     <label className="property-label">Font Weight</label>
                                     <button
                                         onClick={() => handlePropertyChange('fontWeight', activeProperties.fontWeight === 'bold' ? 'normal' : 'bold')}
-                                        className={`w-full p-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${
-                                            activeProperties.fontWeight === 'bold'
-                                                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                                        }`}
+                                        className={`w-full p-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${activeProperties.fontWeight === 'bold'
+                                            ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                                            }`}
                                     >
                                         <Bold size={18} />
                                         <span className="font-medium">{activeProperties.fontWeight === 'bold' ? 'Bold' : 'Normal'}</span>

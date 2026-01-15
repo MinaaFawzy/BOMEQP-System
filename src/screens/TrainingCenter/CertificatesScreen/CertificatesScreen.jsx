@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, Award, Building2 } from 'lucide-react';
@@ -6,6 +6,7 @@ import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
@@ -15,8 +16,16 @@ const TrainingCenterCertificatesScreen = () => {
   const [accs, setAccs] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingACCs, setLoadingACCs] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(15);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCertificates, setTotalCertificates] = useState(0);
+  const [paginationInfo, setPaginationInfo] = useState({ from: 0, to: 0 });
+
+  // Status filter
+  const [statusFilter, setStatusFilter] = useState('all');
   const [completedClasses, setCompletedClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,19 +34,21 @@ const TrainingCenterCertificatesScreen = () => {
   const [formData, setFormData] = useState({
     acc_id: '',
     course_id: '',
+    trainee_id: '',
     trainee_name: '',
-    trainee_id_number: '',
     issue_date: '',
     expiry_date: '',
     class_id: '',
     instructor_id: '',
   });
+  const [selectedClassTrainees, setSelectedClassTrainees] = useState([]);
   const [errors, setErrors] = useState({});
   const [generating, setGenerating] = useState(false);
 
+  // Load data when pagination changes
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentPage, perPage]);
 
   useEffect(() => {
     setHeaderTitle('Certificates');
@@ -62,8 +73,16 @@ const TrainingCenterCertificatesScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const certData = await trainingCenterAPI.listCertificates({ per_page: 1000 });
 
+      // Build query parameters
+      const params = {
+        page: currentPage,
+        per_page: perPage,
+      };
+
+      const certData = await trainingCenterAPI.listCertificates(params);
+
+      // Handle paginated response
       let certificatesArray = [];
       if (certData.data) {
         certificatesArray = certData.data || [];
@@ -74,9 +93,30 @@ const TrainingCenterCertificatesScreen = () => {
       }
 
       setCertificates(certificatesArray);
+
+      // Update pagination metadata
+      if (certData.total !== undefined) {
+        setTotalCertificates(certData.total);
+        setTotalPages(certData.last_page || 1);
+        setPaginationInfo({
+          from: certData.from || 0,
+          to: certData.to || 0,
+        });
+      } else {
+        // Fallback for non-paginated response
+        setTotalCertificates(certificatesArray.length);
+        setTotalPages(1);
+        setPaginationInfo({
+          from: certificatesArray.length > 0 ? 1 : 0,
+          to: certificatesArray.length,
+        });
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
       setCertificates([]);
+      setTotalCertificates(0);
+      setTotalPages(1);
+      setPaginationInfo({ from: 0, to: 0 });
     } finally {
       setLoading(false);
     }
@@ -162,13 +202,14 @@ const TrainingCenterCertificatesScreen = () => {
     setFormData({
       acc_id: '',
       course_id: '',
+      trainee_id: '',
       trainee_name: '',
-      trainee_id_number: '',
       issue_date: new Date().toISOString().split('T')[0],
       expiry_date: '',
       class_id: '',
       instructor_id: '',
     });
+    setSelectedClassTrainees([]);
     setErrors({});
     setCourses([]);
 
@@ -188,13 +229,14 @@ const TrainingCenterCertificatesScreen = () => {
     setFormData({
       acc_id: '',
       course_id: '',
+      trainee_id: '',
       trainee_name: '',
-      trainee_id_number: '',
       issue_date: new Date().toISOString().split('T')[0],
       expiry_date: '',
       class_id: '',
       instructor_id: '',
     });
+    setSelectedClassTrainees([]);
     setErrors({});
     setCourses([]);
   };
@@ -237,10 +279,13 @@ const TrainingCenterCertificatesScreen = () => {
       setFormData(prev => ({
         ...prev,
         class_id: '',
-        acc_id: '', // Should we clear ACC/Course? Yes, to allow manual selection again
+        acc_id: '',
         course_id: '',
         instructor_id: '',
+        trainee_id: '',
+        trainee_name: '',
       }));
+      setSelectedClassTrainees([]);
       return;
     }
 
@@ -249,10 +294,13 @@ const TrainingCenterCertificatesScreen = () => {
     if (selectedClass) {
       // Auto-populate
       // Extract IDs using flexible access (handles object or direct ID)
-      // Based on provided data structure: class -> course -> acc_id
       const accId = selectedClass.acc_id || selectedClass.course?.acc_id || selectedClass.acc?.id || '';
       const courseId = selectedClass.course_id || selectedClass.course?.id || '';
       const instructorId = selectedClass.instructor_id || selectedClass.instructor?.id || '';
+
+      // Extract trainees from the class
+      const trainees = selectedClass.trainees || [];
+      setSelectedClassTrainees(trainees);
 
       setFormData(prev => ({
         ...prev,
@@ -260,7 +308,32 @@ const TrainingCenterCertificatesScreen = () => {
         acc_id: accId ? accId.toString() : '',
         course_id: courseId ? courseId.toString() : '',
         instructor_id: instructorId ? instructorId.toString() : '',
-        // Optionally set issue date to today if not set? It is already set in handleOpenModal
+        trainee_id: '', // Reset trainee selection
+        trainee_name: '', // Reset trainee name
+      }));
+    }
+  };
+
+  const handleTraineeChange = (e) => {
+    const traineeId = e.target.value;
+
+    if (!traineeId) {
+      setFormData(prev => ({
+        ...prev,
+        trainee_id: '',
+        trainee_name: '',
+      }));
+      return;
+    }
+
+    const selectedTrainee = selectedClassTrainees.find(t => t.id.toString() === traineeId);
+
+    if (selectedTrainee) {
+      const fullName = `${selectedTrainee.first_name} ${selectedTrainee.last_name}`;
+      setFormData(prev => ({
+        ...prev,
+        trainee_id: traineeId,
+        trainee_name: fullName,
       }));
     }
   };
@@ -287,8 +360,8 @@ const TrainingCenterCertificatesScreen = () => {
     // If class_id is present, we trust the class link, but we expect course_id at least usually.
     // However, user claims "got nothing" so we should be permissive and let backend validate.
 
-    if (!formData.trainee_name || !formData.trainee_name.trim()) {
-      setErrors({ trainee_name: 'Student name is required' });
+    if (!formData.trainee_id) {
+      setErrors({ trainee_id: 'Please select a trainee' });
       setGenerating(false);
       return;
     }
@@ -310,9 +383,9 @@ const TrainingCenterCertificatesScreen = () => {
         trainee_name: formData.trainee_name.trim(),
         issue_date: formData.issue_date,
         expiry_date: formData.expiry_date || null,
-        trainee_id_number: formData.trainee_id_number?.trim() || null,
         class_id: formData.class_id ? parseInt(formData.class_id) : null,
         instructor_id: formData.instructor_id ? parseInt(formData.instructor_id) : null,
+        trainee_id: formData.trainee_id ? parseInt(formData.trainee_id) : null,
       };
 
       const response = await trainingCenterAPI.issueCertificate(submitData);
@@ -578,20 +651,63 @@ const TrainingCenterCertificatesScreen = () => {
     { value: 'revoked', label: 'Revoked', filterFn: (cert) => cert.status === 'revoked' },
   ], []);
 
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPerPage(newPerPage);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
   return (
     <div>
       <DataTable
         columns={columns}
-        data={certificates}
+        data={certificates.filter(cert => {
+          if (statusFilter === 'all') return true;
+          return cert.status === statusFilter;
+        })}
         isLoading={loading}
         searchable={true}
         searchPlaceholder="Search by certificate number, trainee name, or course..."
-        filterable={true}
-        filterOptions={filterOptions}
-        defaultFilter="all"
-        sortable={true}
+        filterable={false}
+        sortable={false}
         onRowClick={handleRowClick}
+        customFilters={
+          <select
+            id="statusFilter"
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+            className="pagination-select border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white min-w-[140px] cursor-pointer hover:border-gray-400 transition-colors"
+          >
+            <option value="all">All Status</option>
+            <option value="valid">Valid</option>
+            <option value="expired">Expired</option>
+            <option value="revoked">Revoked</option>
+          </select>
+        }
       />
+
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalCertificates}
+        perPage={perPage}
+        onPageChange={handlePageChange}
+        onPerPageChange={handlePerPageChange}
+        showPerPageSelector={true}
+        perPageOptions={[15, 25, 50, 100]}
+        className="mt-6"
+      />
+
 
       {/* Issue Certificate Modal */}
       <Modal
@@ -637,13 +753,25 @@ const TrainingCenterCertificatesScreen = () => {
           {formData.class_id && (
             <>
               <FormInput
-                label="Trainee Name"
-                name="trainee_name"
-                value={formData.trainee_name}
-                onChange={handleChange}
+                label="Trainee"
+                name="trainee_id"
+                type="select"
+                value={formData.trainee_id}
+                onChange={handleTraineeChange}
                 required
-                error={errors.trainee_name}
-                helpText="Enter the student's full name"
+                error={errors.trainee_id}
+                helpText="Select a trainee from this class"
+                options={
+                  selectedClassTrainees.length > 0
+                    ? [
+                      { value: '', label: 'Select Trainee' },
+                      ...selectedClassTrainees.map(trainee => ({
+                        value: trainee.id.toString(),
+                        label: `${trainee.first_name} ${trainee.last_name}${trainee.email ? ` (${trainee.email})` : ''}`
+                      }))
+                    ]
+                    : [{ value: '', label: 'No trainees in this class' }]
+                }
               />
 
               <div className="form-grid">
@@ -668,14 +796,6 @@ const TrainingCenterCertificatesScreen = () => {
                 />
               </div>
 
-              <FormInput
-                label="Trainee ID Number (Optional)"
-                name="trainee_id_number"
-                value={formData.trainee_id_number}
-                onChange={handleChange}
-                error={errors.trainee_id_number}
-              />
-
               <div className="hidden">
                 {/* Hidden fields to ensure state binding if needed for debugging, but mostly we just need the values in state */}
                 <input type="hidden" name="acc_id" value={formData.acc_id} />
@@ -695,7 +815,7 @@ const TrainingCenterCertificatesScreen = () => {
             </button>
             <button
               type="submit"
-              disabled={generating || !formData.class_id || !formData.trainee_name || !formData.issue_date}
+              disabled={generating || !formData.class_id || !formData.trainee_id || !formData.issue_date}
               className="form-btn form-btn-submit"
             >
               {generating ? 'Generating...' : 'Issue Certificate'}
