@@ -44,31 +44,13 @@ const TrainingCenterCertificatesScreen = () => {
   const [selectedClassTrainees, setSelectedClassTrainees] = useState([]);
   const [errors, setErrors] = useState({});
   const [generating, setGenerating] = useState(false);
+  const [loadingACCs, setLoadingACCs] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
 
   // Load data when pagination changes
   useEffect(() => {
     loadData();
   }, [currentPage, perPage]);
-
-  useEffect(() => {
-    setHeaderTitle('Certificates');
-    setHeaderSubtitle('Issue and manage training certificates');
-    setHeaderActions(
-      <button
-        onClick={handleOpenModal}
-        className="header-create-btn"
-      >
-        <Plus size={20} />
-        Issue Certificate
-      </button>
-    );
-    return () => {
-      setHeaderActions(null);
-      setHeaderTitle(null);
-      setHeaderSubtitle(null);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
   const loadData = async () => {
     try {
@@ -168,7 +150,6 @@ const TrainingCenterCertificatesScreen = () => {
     } catch (error) {
       console.error('Failed to load courses:', error);
       setCourses([]);
-      setCourses([]);
     } finally {
       setLoadingCourses(false);
     }
@@ -198,7 +179,7 @@ const TrainingCenterCertificatesScreen = () => {
     }
   };
 
-  const handleOpenModal = async () => {
+  const handleOpenModal = useCallback(async () => {
     setFormData({
       acc_id: '',
       course_id: '',
@@ -222,7 +203,27 @@ const TrainingCenterCertificatesScreen = () => {
     await loadCompletedClasses();
 
     setIsModalOpen(true);
-  };
+  }, [accs.length]); // Depends on accs.length to know if it needs to load ACCs
+
+  useEffect(() => {
+    setHeaderTitle('Certificates');
+    setHeaderSubtitle('Issue and manage training certificates');
+    setHeaderActions(
+      <button
+        onClick={handleOpenModal}
+        className="header-create-btn"
+      >
+        <Plus size={20} />
+        Issue Certificate
+      </button>
+    );
+    return () => {
+      setHeaderActions(null);
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, handleOpenModal]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

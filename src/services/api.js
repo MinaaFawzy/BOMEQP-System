@@ -450,9 +450,8 @@ export const trainingCenterAPI = {
   payInstructorAuthorization: (id, data) => api.post(`/training-center/instructors/authorizations/${id}/pay`, data),
 
   // Codes
-  // Note: Using create-payment-intent endpoint as recommended in API documentation
-  // Both /payment-intent and /create-payment-intent work, but /create-payment-intent is primary
-  createPaymentIntent: (data) => api.post('/training-center/codes/create-payment-intent', data),
+  // Note: Using payment-intent endpoint as create-payment-intent returns 404
+  createPaymentIntent: (data) => api.post('/training-center/codes/payment-intent', data),
   purchaseCodes: (data) => {
     // Use api.post for both JSON and FormData
     // The interceptor will handle FormData by removing Content-Type header

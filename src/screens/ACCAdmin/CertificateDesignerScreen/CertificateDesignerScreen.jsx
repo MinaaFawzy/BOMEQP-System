@@ -668,13 +668,20 @@ const CertificateDesignerScreen = () => {
                 text_align: p.text_align || 'left',
             }));
 
-            // Generate HTML template (kept for reference, but not sent to config endpoint)
-            // const templateHtml = generateTemplateHTML();
+            // Generate HTML template
+            const templateHtml = generateTemplateHTML();
+
+            console.log('Sending template update with payload:', {
+                id: template.id,
+                config_json_length: config.length,
+                html_structure_length: templateHtml?.length,
+                html_preview: templateHtml?.substring(0, 100) + '...'
+            });
 
             // Update template configuration with fonts
-            // Using updateTemplateConfig as per documentation for font support
-            await accAPI.updateTemplateConfig(template.id, {
-                config_json: config
+            await accAPI.updateTemplate(template.id, {
+                config_json: config,
+                template_html: templateHtml
             });
 
             alert('Configuration saved successfully!');
