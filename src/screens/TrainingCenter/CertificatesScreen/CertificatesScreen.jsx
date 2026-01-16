@@ -1,7 +1,8 @@
+
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, Award, Building2 } from 'lucide-react';
+import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, Award, Building2, CheckCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
@@ -330,7 +331,7 @@ const TrainingCenterCertificatesScreen = () => {
     const selectedTrainee = selectedClassTrainees.find(t => t.id.toString() === traineeId);
 
     if (selectedTrainee) {
-      const fullName = `${selectedTrainee.first_name} ${selectedTrainee.last_name}`;
+      const fullName = `${selectedTrainee.first_name} ${selectedTrainee.last_name} `;
       setFormData(prev => ({
         ...prev,
         trainee_id: traineeId,
@@ -418,7 +419,18 @@ const TrainingCenterCertificatesScreen = () => {
     try {
       const response = await trainingCenterAPI.checkCertificateValidity(cert.id);
       if (response && response.certificate) {
-        setSelectedCertificate(prev => prev?.id === cert.id ? response.certificate : prev);
+        setSelectedCertificate(prev => {
+          // If we've switched certificates in the meantime, don't update
+          if (prev?.id !== cert.id) return prev;
+
+          // Merge existing data with new data, ensuring we don't lose the PDF URL
+          // if the validity endpoint doesn't return it
+          return {
+            ...prev,
+            ...response.certificate,
+            certificate_pdf_url: response.certificate.certificate_pdf_url || prev.certificate_pdf_url
+          };
+        });
       }
     } catch (error) {
       console.error('Failed to check validity for details:', error);
@@ -444,10 +456,10 @@ const TrainingCenterCertificatesScreen = () => {
 
       if (validityStatus && !validityStatus.valid) {
         const proceed = window.confirm(
-          `Certificate Status Alert:\n\n` +
-          `Status: ${validityStatus.status.toUpperCase()}\n` +
-          `Message: ${validityStatus.message}\n\n` +
-          `Do you still want to download this certificate?`
+          `Certificate Status Alert: \n\n` +
+          `Status: ${validityStatus.status.toUpperCase()} \n` +
+          `Message: ${validityStatus.message} \n\n` +
+          `Do you still want to download this certificate ? `
         );
         if (!proceed) return;
       }
@@ -614,7 +626,7 @@ const TrainingCenterCertificatesScreen = () => {
         }
 
         return (
-          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${badgeClass}`}>
+          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm w-20 justify-center text-center ${badgeClass}`}>
             {value ? (typeof value === 'string' ? value.charAt(0).toUpperCase() + value.slice(1) : (value ? 'Valid' : 'Invalid')) : 'N/A'}
           </span>
         );
@@ -635,11 +647,24 @@ const TrainingCenterCertificatesScreen = () => {
           </button>
           <button
             onClick={() => handleDownload(row)}
-            className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
             title="Download Certificate"
           >
             <Download size={16} />
           </button>
+
+          {row.verification_code && (
+            <a
+              href={`/certificates/verify/${row.verification_code}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Verify Certificate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CheckCircle size={16} />
+            </a>
+          )}
         </div>
       )
     }
@@ -741,7 +766,7 @@ const TrainingCenterCertificatesScreen = () => {
                     { value: '', label: 'Select Class' },
                     ...completedClasses.map(cls => ({
                       value: cls.id.toString(),
-                      label: cls.course?.name || cls.name || `Class ${cls.id}`
+                      label: cls.course?.name || cls.name || `Class ${cls.id} `
                     }))
                   ]
                   : [{ value: '', label: 'No classes available' }]
@@ -768,7 +793,7 @@ const TrainingCenterCertificatesScreen = () => {
                       { value: '', label: 'Select Trainee' },
                       ...selectedClassTrainees.map(trainee => ({
                         value: trainee.id.toString(),
-                        label: `${trainee.first_name} ${trainee.last_name}${trainee.email ? ` (${trainee.email})` : ''}`
+                        label: `${trainee.first_name} ${trainee.last_name}${trainee.email ? ` (${trainee.email})` : ''} `
                       }))
                     ]
                     : [{ value: '', label: 'No trainees in this class' }]

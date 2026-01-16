@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download } from 'lucide-react';
+import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
@@ -36,9 +36,9 @@ const CertificatesScreen = () => {
       const params = {
         per_page: 1000,
       };
-      
+
       const data = await accAPI.listCertificates(params);
-      
+
       let certificatesArray = [];
       if (data.data) {
         certificatesArray = data.data || [];
@@ -47,7 +47,7 @@ const CertificatesScreen = () => {
       } else {
         certificatesArray = Array.isArray(data) ? data : [];
       }
-      
+
       // Add _searchText for better search functionality
       certificatesArray = certificatesArray.map(cert => {
         const courseName = typeof cert.course === 'object' ? cert.course?.name || '' : cert.course || '';
@@ -63,7 +63,7 @@ const CertificatesScreen = () => {
           ].filter(Boolean).join(' ').toLowerCase()
         };
       });
-      
+
       setCertificates(certificatesArray);
     } catch (error) {
       console.error('Failed to load certificates:', error);
@@ -131,19 +131,6 @@ const CertificatesScreen = () => {
       }
     },
     {
-      header: 'Template',
-      accessor: 'template',
-      sortable: true,
-      render: (value, row) => {
-        const templateName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
-        return (
-          <div className="text-sm text-gray-700">
-            {templateName}
-          </div>
-        );
-      }
-    },
-    {
       header: 'Issue Date',
       accessor: 'issue_date',
       sortable: true,
@@ -158,10 +145,9 @@ const CertificatesScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'valid' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'valid' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300'
-        }`}>
+          }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       )
@@ -179,6 +165,18 @@ const CertificatesScreen = () => {
           >
             <Eye size={16} />
           </button>
+          {row.verification_code && (
+            <a
+              href={`/certificates/verify/${row.verification_code}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Verify Certificate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CheckCircle size={16} />
+            </a>
+          )}
         </div>
       )
     }
@@ -187,15 +185,15 @@ const CertificatesScreen = () => {
   // Filter options for status
   const filterOptions = useMemo(() => [
     { value: 'all', label: 'All Status', filterFn: () => true },
-    { 
-      value: 'valid', 
-      label: 'Valid', 
-      filterFn: (cert) => cert.status === 'valid' 
+    {
+      value: 'valid',
+      label: 'Valid',
+      filterFn: (cert) => cert.status === 'valid'
     },
-    { 
-      value: 'invalid', 
-      label: 'Invalid', 
-      filterFn: (cert) => cert.status === 'invalid' 
+    {
+      value: 'invalid',
+      label: 'Invalid',
+      filterFn: (cert) => cert.status === 'invalid'
     }
   ], []);
 
@@ -236,14 +234,14 @@ const CertificatesScreen = () => {
                 { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
                 { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },
                 { key: 'verification_code', label: 'Verification Code', icon: Hash },
-                { 
-                  key: 'certificate_pdf_url', 
-                  label: 'Certificate PDF', 
+                {
+                  key: 'certificate_pdf_url',
+                  label: 'Certificate PDF',
                   icon: Download,
                   render: (value) => value ? (
-                    <a 
-                      href={value} 
-                      target="_blank" 
+                    <a
+                      href={value}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 hover:text-primary-700 underline"
                     >
