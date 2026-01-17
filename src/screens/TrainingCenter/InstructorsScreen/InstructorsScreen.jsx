@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import useDebounce from '../../../hooks/useDebounce';
 import { getAuthToken } from '../../../config/api';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
 import axios from 'axios';
@@ -17,6 +18,7 @@ import './InstructorsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 
 const TrainingCenterInstructorsScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -63,9 +65,32 @@ const TrainingCenterInstructorsScreen = () => {
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+
   useEffect(() => {
-    loadInstructors();
-  }, []); // Load all data once, search and statusFilter are handled client-side
+    // Determine if we should show the full loading spinner
+    // Context: User requested no loading icon when searching
+    // We show loading if:
+    // 1. It's the very first load (totalItems === 0 && loading) - roughly approximated
+    // 2. We are changing pages (optional, but standard behavior)
+    // 3. But if it's a search update, we keep the current data visible (silent update)
+
+    const isSearchUpdate = searchTerm !== '' || debouncedSearchTerm !== '';
+    const showLoading = !isSearchUpdate || instructors.length === 0;
+
+    if (searchTerm !== debouncedSearchTerm) {
+      return;
+    }
+
+    loadInstructors(page, perPage, debouncedSearchTerm, showLoading);
+  }, [page, perPage, debouncedSearchTerm, searchTerm]);
 
   useEffect(() => {
     setHeaderTitle('Instructors');
@@ -96,11 +121,19 @@ const TrainingCenterInstructorsScreen = () => {
   // No longer needed in the new structure as we calculate indeterminate states during render
   // or via helper functions specific to the tree structure.
 
-  const loadInstructors = async () => {
-    setLoading(true);
+  const loadInstructors = async (pageArg = 1, limitArg = 10, search = '', showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    } else {
+      setIsSearchLoading(true);
+    }
     try {
-      // Load all data - search and statusFilter are handled client-side
-      const data = await trainingCenterAPI.listInstructors({ per_page: 1000 });
+      // Load data with pagination and search
+      const data = await trainingCenterAPI.listInstructors({
+        page: pageArg,
+        per_page: limitArg,
+        ...(search && { search })
+      });
 
       let instructorsArray = [];
       if (data?.data) {
@@ -115,6 +148,13 @@ const TrainingCenterInstructorsScreen = () => {
       }
 
       setInstructors(instructorsArray);
+
+      // Update pagination info
+      if (data) {
+        const total = data.total || instructorsArray.length;
+        setTotalItems(total);
+        setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+      }
     } catch (error) {
       console.error('Failed to load instructors:', error);
       console.error('Error details:', {
@@ -125,6 +165,7 @@ const TrainingCenterInstructorsScreen = () => {
       setInstructors([]);
     } finally {
       setLoading(false);
+      setIsSearchLoading(false);
     }
   };
 
@@ -336,7 +377,7 @@ const TrainingCenterInstructorsScreen = () => {
         console.log('➕ Creating new instructor');
         await trainingCenterAPI.createInstructor(submitData);
       }
-      await loadInstructors();
+      await loadInstructors(page, perPage);
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting instructor:', error);
@@ -367,7 +408,7 @@ const TrainingCenterInstructorsScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteInstructor(selectedInstructor.id);
-      await loadInstructors();
+      await loadInstructors(page, perPage);
     } catch (error) {
       alert('Failed to delete instructor: ' + (error.message || 'Unknown error'));
     }
@@ -405,20 +446,25 @@ const TrainingCenterInstructorsScreen = () => {
 
   const loadRequestFormData = async () => {
     try {
-      const [accsData, authData] = await Promise.all([
-        trainingCenterAPI.listACCs(),
-        trainingCenterAPI.getAuthorizationStatus(),
-      ]);
+      const authData = await trainingCenterAPI.getAuthorizationStatus({ per_page: 100 });
 
-      // Get approved ACCs from authorizations
-      const approvedAuthorizations = (authData?.authorizations || []).filter(
-        auth => auth.status === 'approved'
-      );
-      const approvedAccIds = new Set(approvedAuthorizations.map(auth => auth.acc_id || auth.acc?.id));
+      let authArray = [];
+      if (authData?.data) {
+        authArray = Array.isArray(authData.data) ? authData.data : [];
+      } else if (authData?.authorizations) {
+        authArray = Array.isArray(authData.authorizations) ? authData.authorizations : [];
+      } else if (Array.isArray(authData)) {
+        authArray = authData;
+      }
 
-      // Filter ACCs to only show approved ones
-      const allAccs = accsData?.accs || [];
-      const approvedAccs = allAccs.filter(acc => approvedAccIds.has(acc.id));
+      // Filter for approved authorizations and extract ACCs directly from the authorization object
+      // This avoids issues where the ACC might not be in the first page of listACCs
+      const approvedAccs = authArray
+        .filter(auth => auth.status === 'approved' && auth.acc)
+        .map(auth => auth.acc)
+        // Deduplicate using Map to ensure unique ACCs by ID
+        .filter((acc, index, self) => index === self.findIndex(a => a.id === acc.id));
+
       setAccs(approvedAccs);
       setCourses([]);
       setSubCategoriesMap({});
@@ -468,7 +514,7 @@ const TrainingCenterInstructorsScreen = () => {
       setSubCategoriesMap(subCatsMap);
 
     } catch (error) {
-      console.error('Failed to load ACC data:', error);
+      console.error('Failed to load Accreditation Body data:', error);
     } finally {
       setLoadingTree(false);
     }
@@ -816,8 +862,10 @@ const TrainingCenterInstructorsScreen = () => {
     }
   ], []);
 
-  // Calculate stats from all instructors
-  const totalCount = instructors.length;
+  // Calculate stats - Note: With server-side pagination, these will only match current page or we need separate API
+  const totalCount = totalItems;
+  // These counts will be from the CURRENT PAGE only with server-side pagination, which is a known limitation
+  // unless we fetch counts separately. For now, we display what we have or 0.
   const activeCount = instructors.filter(i => i.status === 'active').length;
   const pendingCount = instructors.filter(i => i.status === 'pending').length;
   const suspendedCount = instructors.filter(i => i.status === 'suspended').length;
@@ -874,8 +922,14 @@ const TrainingCenterInstructorsScreen = () => {
           searchable={true}
           sortable={true}
           filterable={true}
-          searchPlaceholder="Search by name or email..."
+          searchPlaceholder="Search by instructor name, email, or id number..."
           emptyMessage="No instructors found"
+          defaultFilter={statusFilter}
+          searchValue={searchTerm}
+          onSearch={(value) => {
+            setSearchTerm(value);
+            setPage(1);
+          }}
           filterOptions={[
             { value: 'all', label: 'All Status', filterFn: null },
             { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
@@ -883,8 +937,18 @@ const TrainingCenterInstructorsScreen = () => {
             { value: 'suspended', label: 'Suspended', filterFn: (row) => row.status === 'suspended' },
             { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
           ]}
-          defaultFilter={statusFilter}
           onRowClick={(instructor) => handleViewDetails(instructor)}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={setPage}
+          onPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -1326,7 +1390,7 @@ const TrainingCenterInstructorsScreen = () => {
           )}
 
           <FormInput
-            label="ACC"
+            label="Accreditation Body"
             name="acc_id"
             type="select"
             value={requestForm.acc_id}
@@ -1335,16 +1399,16 @@ const TrainingCenterInstructorsScreen = () => {
             options={accs.length > 0
               ? accs.map(acc => ({
                 value: acc.id,
-                label: acc.name || `ACC ${acc.id}`,
+                label: acc.name || `Accreditation Body ${acc.id}`,
               }))
-              : [{ value: '', label: 'No approved ACCs available' }]
+              : [{ value: '', label: 'No approved Accreditation Bodies available' }]
             }
             error={requestErrors.acc_id}
             disabled={accs.length === 0}
           />
           {accs.length === 0 && (
             <p className="instructors-request-warning">
-              No approved ACCs found. Please request and get approval from an ACC first.
+              No approved Accreditation Bodies found. Please request and get approval from an Accreditation Body first.
             </p>
           )}
 
@@ -1355,7 +1419,7 @@ const TrainingCenterInstructorsScreen = () => {
             </label>
 
             {!requestForm.acc_id ? (
-              <p className="instructors-request-warning">Please select ACC first</p>
+              <p className="instructors-request-warning">Please select Accreditation Body first</p>
             ) : (
               <>
                 {/* Search bar */}

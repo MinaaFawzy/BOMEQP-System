@@ -16,6 +16,7 @@ const TrainingCenterCertificatesScreen = () => {
   const [certificates, setCertificates] = useState([]);
   const [accs, setAccs] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [allCertificates, setAllCertificates] = useState([]); // For duplicate check
   const [loading, setLoading] = useState(true);
 
   // Pagination state
@@ -180,6 +181,23 @@ const TrainingCenterCertificatesScreen = () => {
     }
   };
 
+  const loadAllCertificates = async () => {
+    try {
+      const response = await trainingCenterAPI.listCertificates({ per_page: 10000 });
+      let certs = [];
+      if (response.data) {
+        certs = response.data || [];
+      } else if (response.certificates) {
+        certs = response.certificates || [];
+      } else {
+        certs = Array.isArray(response) ? response : [];
+      }
+      setAllCertificates(certs);
+    } catch (error) {
+      console.error("Failed to load all certificates for validation", error);
+    }
+  };
+
   const handleOpenModal = useCallback(async () => {
     setFormData({
       acc_id: '',
@@ -195,16 +213,18 @@ const TrainingCenterCertificatesScreen = () => {
     setErrors({});
     setCourses([]);
 
-    // Load ACCs if not loaded
     if (accs.length === 0) {
       await loadACCs();
     }
 
-    // Always load/refresh completed classes when opening modal
-    await loadCompletedClasses();
+    // Load reference data
+    await Promise.all([
+      loadCompletedClasses(),
+      loadAllCertificates()
+    ]);
 
     setIsModalOpen(true);
-  }, [accs.length]); // Depends on accs.length to know if it needs to load ACCs
+  }, [accs.length]);
 
   useEffect(() => {
     setHeaderTitle('Certificates');
@@ -337,6 +357,27 @@ const TrainingCenterCertificatesScreen = () => {
         trainee_id: traineeId,
         trainee_name: fullName,
       }));
+
+      // Check for duplicates
+      if (formData.class_id) {
+        const duplicate = allCertificates.find(cert =>
+          (cert.class_id == formData.class_id || cert.class?.id == formData.class_id) &&
+          (cert.trainee_id == traineeId || cert.trainee?.id == traineeId)
+        );
+
+        if (duplicate) {
+          setErrors(prev => ({
+            ...prev,
+            trainee_id_duplicate: 'A certificate has already been issued to this trainee for this class.'
+          }));
+        } else {
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.trainee_id_duplicate;
+            return newErrors;
+          });
+        }
+      }
     }
   };
 
@@ -346,8 +387,8 @@ const TrainingCenterCertificatesScreen = () => {
     setErrors({});
 
     // Client-side validation
-    // If class_id is selected, acc_id and course_id might be inferred by backend if missing here
     if (!formData.class_id) {
+      // ... existing validation
       if (!formData.acc_id) {
         setErrors({ acc_id: 'Please select an ACC' });
         setGenerating(false);
@@ -359,14 +400,26 @@ const TrainingCenterCertificatesScreen = () => {
         return;
       }
     }
-    // If class_id is present, we trust the class link, but we expect course_id at least usually.
-    // However, user claims "got nothing" so we should be permissive and let backend validate.
 
     if (!formData.trainee_id) {
       setErrors({ trainee_id: 'Please select a trainee' });
       setGenerating(false);
       return;
     }
+
+    // Duplicate Check on Submit
+    if (formData.class_id) {
+      const duplicate = allCertificates.find(cert =>
+        (cert.class_id == formData.class_id || cert.class?.id == formData.class_id) &&
+        (cert.trainee_id == formData.trainee_id || cert.trainee?.id == formData.trainee_id)
+      );
+      if (duplicate) {
+        setErrors({ trainee_id_duplicate: 'Cannot issue certificate: Duplicate record found for this class and trainee.' });
+        setGenerating(false);
+        return;
+      }
+    }
+
     if (!formData.issue_date) {
       setErrors({ issue_date: 'Issue date is required' });
       setGenerating(false);
@@ -579,10 +632,11 @@ const TrainingCenterCertificatesScreen = () => {
     },
     {
       header: 'ACC',
-      accessor: 'acc',
+      accessor: 'course',
       sortable: true,
-      render: (value) => {
-        const accName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+      render: (value, row) => {
+        // ACC is nested in course.acc
+        const accName = row.course?.acc?.name || value?.acc?.name || 'N/A';
         return (
           <div className="text-sm text-gray-700">
             {accName}
@@ -799,37 +853,40 @@ const TrainingCenterCertificatesScreen = () => {
                     : [{ value: '', label: 'No trainees in this class' }]
                 }
               />
-
-              <div className="form-grid">
-                <FormInput
-                  label="Issue Date"
-                  name="issue_date"
-                  type="date"
-                  value={formData.issue_date}
-                  onChange={handleChange}
-                  required
-                  error={errors.issue_date}
-                />
-
-                <FormInput
-                  label="Expiry Date (Optional)"
-                  name="expiry_date"
-                  type="date"
-                  value={formData.expiry_date}
-                  onChange={handleChange}
-                  error={errors.expiry_date}
-                  helpText="Must be after issue date"
-                />
-              </div>
-
-              <div className="hidden">
-                {/* Hidden fields to ensure state binding if needed for debugging, but mostly we just need the values in state */}
-                <input type="hidden" name="acc_id" value={formData.acc_id} />
-                <input type="hidden" name="course_id" value={formData.course_id} />
-                <input type="hidden" name="instructor_id" value={formData.instructor_id} />
-              </div>
+              {errors.trainee_id_duplicate && (
+                <div className="text-red-500 text-sm mt-1">
+                  {errors.trainee_id_duplicate}
+                </div>
+              )}
             </>
           )}
+
+          <div className="form-grid">
+            <FormInput
+              label="Issue Date"
+              name="issue_date"
+              type="date"
+              value={formData.issue_date}
+              onChange={handleChange}
+              required
+              error={errors.issue_date}
+            />
+
+            <FormInput
+              label="Expiry Date (Optional)"
+              name="expiry_date"
+              type="date"
+              value={formData.expiry_date}
+              onChange={handleChange}
+              error={errors.expiry_date}
+              helpText="Must be after issue date"
+            />
+          </div>
+
+          <div className="hidden">
+            {/* Hidden fields to ensure state binding if needed for debugging, but mostly we just need the values in state */}
+            <input type="hidden" name="acc_id" value={formData.acc_id} />
+          </div>
 
           <div className="form-actions">
             <button
@@ -905,7 +962,7 @@ const TrainingCenterCertificatesScreen = () => {
           </div>
         )}
       </Modal>
-    </div>
+    </div >
   );
 };
 

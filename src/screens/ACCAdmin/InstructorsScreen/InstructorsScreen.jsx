@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle, User } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle, User, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
@@ -10,12 +10,31 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [allData, setAllData] = useState([]); // Unified data array
+
+  // Data State
+  const [tableData, setTableData] = useState([]);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    returned: 0
+  });
+
+  // UI State
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [approveModalOpen, setApproveModalOpen] = useState(false);
@@ -25,8 +44,21 @@ const InstructorsScreen = () => {
   const [authorizationPrice, setAuthorizationPrice] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [returnComment, setReturnComment] = useState('');
+
+  // Filter & Search State
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [trainingCenters, setTrainingCenters] = useState({}); // Map of TC ID to TC name
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Read filter from URL params on mount
   useEffect(() => {
@@ -36,9 +68,12 @@ const InstructorsScreen = () => {
     }
   }, [searchParams]);
 
+  // Load data when dependencies change
   useEffect(() => {
     loadData();
-  }, [statusFilter]);
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
     setHeaderTitle('Instructors');
@@ -49,131 +84,124 @@ const InstructorsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Fetch stats for tabs
+  const fetchStats = async () => {
+    try {
+      const [activeRes, pendingRes, returnedRes] = await Promise.all([
+        accAPI.listAuthorizedTrainingCenters({ per_page: 1 }), // Using TC endpoint for active counts approximation or another logic if available
+        accAPI.getInstructorRequests({ status: 'pending', per_page: 1 }),
+        accAPI.getInstructorRequests({ status: 'returned', per_page: 1 })
+      ]);
+
+      // Note: For 'active' instructors, we might need a specific endpoint count or sum up approved requests
+      // Assuming 'listAuthorizedTrainingCenters' was a mistake in previous code for instructors stats? 
+      // Re-checking previous code: it used listAuthorizedTrainingCenters which returns TCs, not instructors.
+      // Correcting logic: Active instructors are those in authorized list or approved requests.
+      // accAPI.listAuthorizedInstructors? If not exists, maybe default to 0 or use a different call.
+      // Based on available endpoints in context, we'll try to get counts from requests where status=approved for 'active',
+      // or if there is a specific 'listAuthorizedInstructors' endpoint (not listed in prompt, but implied).
+      // If no specific endpoint, we rely on requests status.
+
+      const approvedRes = await accAPI.getInstructorRequests({ status: 'approved', per_page: 1 });
+
+      setStats({
+        active: approvedRes?.total || 0,
+        pending: pendingRes?.total || 0,
+        returned: returnedRes?.total || 0,
+        total: (approvedRes?.total || 0) + (pendingRes?.total || 0) + (returnedRes?.total || 0)
+      });
+
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
       const params = {
-        per_page: 1000, // Load all data
-      };
-      
-      // Load instructor requests and training centers in parallel with pagination
-      const [allRequestsData, trainingCentersData] = await Promise.all([
-        accAPI.getInstructorRequests(params),
-        accAPI.listAuthorizedTrainingCenters(params),
-      ]);
-      
-      const allRequests = allRequestsData?.requests || allRequestsData?.data || [];
-      
-      // Create a map of training center ID to name
-      const tcMap = {};
-      const tcs = trainingCentersData?.training_centers || trainingCentersData?.data || [];
-      tcs.forEach(tc => {
-        if (tc.id) {
-          tcMap[tc.id] = tc.name || tc.legal_name || `TC ${tc.id}`;
-        }
-      });
-      setTrainingCenters(tcMap);
-
-      // Helper function to get unique identifier for an instructor
-      const getInstructorKey = (item) => {
-        return item.instructor?.id || item.instructor_id || item.id;
+        page: pagination.current_page,
+        per_page: pagination.per_page,
       };
 
-      // Normalize all requests and categorize by status
-      const normalizedRequests = allRequests.map(item => {
+      // Only add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      let response;
+      let dataList = [];
+      let isRequest = true; // All instructor data comes from requests endpoint mainly based on prompts
+
+      // Logic:
+      // If statusFilter is 'active', fetch status='approved' (assuming approved = active authorized)
+      // If 'all', fetch all requests
+      // If 'pending', fetch status='pending'
+      // If 'returned', fetch status='returned'
+
+      if (statusFilter === 'active') {
+        params.status = 'approved';
+        response = await accAPI.getInstructorRequests(params);
+        dataList = response?.data || [];
+      } else if (statusFilter === 'all') {
+        // No status param = all
+        response = await accAPI.getInstructorRequests(params);
+        dataList = response?.data || [];
+      } else {
+        params.status = statusFilter;
+        response = await accAPI.getInstructorRequests(params);
+        dataList = response?.data || [];
+      }
+
+      // Normalize data
+      const normalizedData = dataList.map(item => {
         const instructor = item.instructor || item;
-        const tcId = item.training_center_id || item.training_center?.id;
-        const tcName = tcId ? (tcMap[tcId] || item.training_center?.name || `TC ${tcId}`) : 'N/A';
         return {
           ...item,
           _normalizedName: `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim(),
           _normalizedEmail: instructor.email || '',
           _normalizedDate: item.request_date || item.created_at || item.updated_at,
-          _normalizedTrainingCenter: tcName,
-          _trainingCenterId: tcId,
+          // Handle Training Center Name safely
+          _normalizedTrainingCenter: item.training_center?.name || item.training_center?.legal_name || 'N/A',
+          _trainingCenterId: item.training_center_id,
           _isRequest: true,
+          status: item.status || 'pending'
         };
       });
 
-      // Separate requests by status
-      const pendingRequests = normalizedRequests.filter(item => item.status === 'pending');
-      const returnedRequests = normalizedRequests.filter(item => item.status === 'returned');
-      const approvedRequests = normalizedRequests.filter(item => item.status === 'approved' || item.status === 'active');
+      setTableData(normalizedData);
 
-      // Remove duplicates within each group
-      const dedupeGroup = (items) => {
-        const seen = new Set();
-        return items.filter(item => {
-          const key = getInstructorKey(item);
-          if (key && seen.has(key)) {
-            return false;
-          }
-          if (key) seen.add(key);
-          return true;
-        });
-      };
+      // Update pagination
+      if (response) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: response.current_page || 1,
+          last_page: response.last_page || 1,
+          total: response.total || 0,
+          from: response.from || 0,
+          to: response.to || 0
+        }));
+      }
 
-      const uniquePending = dedupeGroup(pendingRequests);
-      const uniqueReturned = dedupeGroup(returnedRequests);
-      const uniqueApproved = dedupeGroup(approvedRequests);
-
-      // Convert approved requests to authorized instructors format
-      const authorizedInstructors = uniqueApproved.map(item => {
-        const instructor = item.instructor || item;
-        return {
-          ...item,
-          id: instructor.id || item.id,
-          first_name: instructor.first_name || item.first_name,
-          last_name: instructor.last_name || item.last_name,
-          email: instructor.email || item.email,
-          phone: instructor.phone || item.phone,
-          _normalizedName: `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim(),
-          _normalizedEmail: instructor.email || '',
-          _normalizedDate: item.request_date || item.created_at || item.updated_at,
-          _normalizedTrainingCenter: item._normalizedTrainingCenter || 'N/A',
-          _trainingCenterId: item._trainingCenterId,
-          _isRequest: false,
-          status: 'active', // Approved requests become active authorized instructors
-        };
-      });
-
-      // Collect all instructor IDs from pending and returned requests
-      const requestIds = new Set();
-      [...uniquePending, ...uniqueReturned].forEach(req => {
-        const key = getInstructorKey(req);
-        if (key) requestIds.add(key);
-      });
-
-      // Filter out authorized instructors that have pending/returned requests
-      const filteredAuthorized = authorizedInstructors.filter(auth => {
-        const key = getInstructorKey(auth);
-        return !requestIds.has(key);
-      });
-
-      // Combine all unique items
-      const combined = [...uniquePending, ...uniqueReturned, ...filteredAuthorized];
-      
-      // Final deduplication pass
-      const finalSeen = new Set();
-      const uniqueData = combined.filter(item => {
-        const key = getInstructorKey(item);
-        if (!key) return true; // Include items without key (shouldn't happen)
-        if (finalSeen.has(key)) {
-          return false; // Duplicate found
-        }
-        finalSeen.add(key);
-        return true;
-      });
-      
-      setAllData(uniqueData);
     } catch (error) {
       console.error('Failed to load data:', error);
-      setAllData([]);
+      setTableData([]);
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const handleApprove = (request) => {
     setSelectedRequest(request);
@@ -200,13 +228,13 @@ const InstructorsScreen = () => {
       render: (value, row) => {
         const photoUrl = row.photo_url || row.instructor?.photo_url;
         return (
-        <div className="flex items-center">
+          <div className="flex items-center">
             <div className="w-10 h-10 mr-3 relative">
               {photoUrl ? (
                 <>
-                  <img 
-                    src={photoUrl} 
-                    alt={value || 'Instructor Photo'} 
+                  <img
+                    src={photoUrl}
+                    alt={value || 'Instructor Photo'}
                     className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                     width="40"
                     height="40"
@@ -218,11 +246,11 @@ const InstructorsScreen = () => {
                       if (fallback) fallback.style.display = 'flex';
                     }}
                   />
-                  <div 
+                  <div
                     className="photo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                     style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                   >
-            <Users className="h-5 w-5 text-primary-600" />
+                    <Users className="h-5 w-5 text-primary-600" />
                   </div>
                 </>
               ) : (
@@ -230,11 +258,11 @@ const InstructorsScreen = () => {
                   <Users className="h-5 w-5 text-primary-600" />
                 </div>
               )}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-          </div>
-        </div>
         );
       }
     },
@@ -265,25 +293,25 @@ const InstructorsScreen = () => {
       sortable: true,
       render: (value, row) => {
         const statusConfig = {
-          approved: { 
+          approved: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          rejected: { 
+          rejected: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          returned: { 
+          returned: {
             badgeClass: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300',
-            icon: ArrowLeft 
+            icon: ArrowLeft
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -326,35 +354,7 @@ const InstructorsScreen = () => {
     }
   ], [handleViewDetails, handleApprove]);
 
-  // Filter data based on status filter
-  const filteredData = useMemo(() => {
-    let filtered = [...allData];
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(item => {
-        if (statusFilter === 'pending') {
-          return item.status === 'pending';
-        } else if (statusFilter === 'returned') {
-          return item.status === 'returned';
-        } else if (statusFilter === 'active') {
-          // Active includes approved, active status, or authorized instructors (non-requests)
-          return item.status === 'active' || 
-                 item.status === 'approved' || 
-                 (!item._isRequest && (item.status === 'active' || !item.status));
-        }
-        return true;
-      });
-    }
-
-    // Add search text for DataTable - include all searchable fields
-    filtered = filtered.map(item => ({
-      ...item,
-      _searchText: `${item._normalizedName || ''} ${item._normalizedEmail || ''} ${item.instructor?.first_name || ''} ${item.instructor?.last_name || ''} ${item.instructor?.email || ''} ${item.training_center?.name || ''} ${item.name || ''} ${item.email || ''} ${item.status || ''}`.toLowerCase()
-    }));
-
-    return filtered;
-  }, [allData, statusFilter]);
+  // filteredData was removed as we are using server-side filtering/searching (tableData).
 
   const confirmApprove = async () => {
     if (!authorizationPrice || parseFloat(authorizationPrice) <= 0) {
@@ -366,6 +366,7 @@ const InstructorsScreen = () => {
         authorization_price: parseFloat(authorizationPrice),
       });
       await loadData();
+      await fetchStats(); // Update stats after approval
       setApproveModalOpen(false);
       setSelectedRequest(null);
       setAuthorizationPrice('');
@@ -389,6 +390,7 @@ const InstructorsScreen = () => {
     try {
       await accAPI.rejectInstructorRequest(selectedRequest.id, { rejection_reason: rejectionReason });
       await loadData();
+      await fetchStats(); // Update stats after rejection
       setRejectModalOpen(false);
       setSelectedRequest(null);
       setRejectionReason('');
@@ -412,6 +414,7 @@ const InstructorsScreen = () => {
     try {
       await accAPI.returnInstructorRequest(selectedRequest.id, { return_comment: returnComment });
       await loadData();
+      await fetchStats(); // Update stats after return
       setReturnModalOpen(false);
       setSelectedRequest(null);
       setReturnComment('');
@@ -421,16 +424,6 @@ const InstructorsScreen = () => {
     }
   };
 
-  // Calculate stats from all data
-  const pendingCount = allData.filter(item => item.status === 'pending').length;
-  const returnedCount = allData.filter(item => item.status === 'returned').length;
-  const activeCount = allData.filter(item => 
-    item.status === 'active' || 
-    item.status === 'approved' || 
-    (!item._isRequest && (item.status === 'active' || !item.status))
-  ).length;
-  const totalCount = allData.length;
-
   return (
     <div>
 
@@ -439,52 +432,93 @@ const InstructorsScreen = () => {
         <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
           <TabCard
             name="Total"
-            value={totalCount}
+            value={stats.total}
             icon={Users}
             colorType="indigo"
             isActive={statusFilter === 'all'}
-            onClick={() => setStatusFilter('all')}
+            onClick={() => {
+              setStatusFilter('all');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Pending"
-            value={pendingCount}
+            value={stats.pending}
             icon={Clock}
             colorType="yellow"
             isActive={statusFilter === 'pending'}
-            onClick={() => setStatusFilter('pending')}
+            onClick={() => {
+              setStatusFilter('pending');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Active"
-            value={activeCount}
+            value={stats.active}
             icon={CheckCircle}
             colorType="green"
             isActive={statusFilter === 'active'}
-            onClick={() => setStatusFilter('active')}
+            onClick={() => {
+              setStatusFilter('active');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Returned"
-            value={returnedCount}
+            value={stats.returned}
             icon={ArrowLeft}
             colorType="blue"
             isActive={statusFilter === 'returned'}
-            onClick={() => setStatusFilter('returned')}
+            onClick={() => {
+              setStatusFilter('returned');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
         </TabCardsGrid>
+      </div>
+
+      {/* Server-side Search Input */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search instructors..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+          />
+          <div className="absolute left-3 top-2.5 text-gray-400">
+            <Search size={20} />
+          </div>
+        </div>
       </div>
 
       {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={tableData}
           isLoading={loading}
-          searchable={true}
+          searchable={false} // Disable client-side search
           sortable={true}
           filterable={false}
-          searchPlaceholder="Search by name or email..."
           emptyMessage="No instructors found"
           onRowClick={(item) => handleRowClick(item)}
         />
+
+        {/* Pagination-Select */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Detail Modal */}
@@ -499,151 +533,105 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
-            {/* Instructor Basic Information */}
-            {selectedRequest.instructor ? (
-              <DetailForm
-                data={selectedRequest.instructor}
-                fields={[
-                  { key: 'first_name', label: 'First Name', icon: User },
-                  { key: 'last_name', label: 'Last Name', icon: User },
-                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                  { key: 'phone', label: 'Phone', icon: Phone },
-                  { key: 'id_number', label: 'ID Number', showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
-                  { key: 'status', label: 'Status', type: 'status' },
-                ]}
-              />
-            ) : (
-              <DetailForm
-                data={{
-                  first_name: selectedRequest.first_name,
-                  last_name: selectedRequest.last_name,
-                  email: selectedRequest.email || selectedRequest._normalizedEmail,
-                  phone: selectedRequest.phone,
-                  id_number: selectedRequest.id_number,
-                  country: selectedRequest.country,
-                  city: selectedRequest.city,
-                }}
-                fields={[
-                  { key: 'first_name', label: 'First Name', icon: User },
-                  { key: 'last_name', label: 'Last Name', icon: User },
-                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                  { key: 'phone', label: 'Phone', icon: Phone },
-                  { key: 'id_number', label: 'ID Number', showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
-                ]}
-              />
+            {/* Request Information - Only for requests */}
+            {selectedRequest._isRequest && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2" size={20} />
+                  Request Information
+                </h3>
+                <DetailForm
+                  data={selectedRequest}
+                  fields={[
+                    { key: 'id', label: 'Request ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                    { key: 'training_center_id', label: 'Training Center ID', icon: Building2, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
+                    { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'status', label: 'Status', type: 'status', icon: Clock },
+                    { key: 'payment_status', label: 'Payment Status', render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? value.toUpperCase() : 'PENDING'}</span>, icon: CreditCard },
+                    { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  ]}
+                />
+              </div>
             )}
 
-            {/* Sub-Category or Courses Requested */}
-            {selectedRequest._isRequest && (selectedRequest.sub_category_id || selectedRequest.sub_category || selectedRequest.courses || selectedRequest.requested_courses) && (
+            {/* Instructor Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <User className="mr-2" size={20} />
+                Instructor Information
+              </h3>
+              <div className="mb-6 flex justify-center">
+                {selectedRequest.photo_url || (selectedRequest.instructor && selectedRequest.instructor.photo_url) ? (
+                  <img
+                    src={selectedRequest.photo_url || selectedRequest.instructor.photo_url}
+                    alt="Instructor"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center border-4 border-white shadow-lg">
+                    <User size={64} className="text-gray-400" />
+                  </div>
+                )}
+              </div>
+
+              <DetailForm
+                data={{
+                  ...selectedRequest,
+                  first_name: selectedRequest.first_name || (selectedRequest.instructor?.first_name),
+                  last_name: selectedRequest.last_name || (selectedRequest.instructor?.last_name),
+                  email: selectedRequest.email || (selectedRequest.instructor?.email),
+                  phone: selectedRequest.phone || (selectedRequest.instructor?.phone),
+                  nationality: selectedRequest.nationality || (selectedRequest.instructor?.nationality),
+                  specialization: selectedRequest.specialization || (selectedRequest.instructor?.specialization),
+                }}
+                fields={[
+                  { key: 'first_name', label: 'First Name', icon: UserCircle },
+                  { key: 'last_name', label: 'Last Name', icon: UserCircle },
+                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'nationality', label: 'Nationality', icon: Globe },
+                  { key: 'specialization', label: 'Specialization', icon: Award },
+                  { key: '_normalizedTrainingCenter', label: 'Training Center', icon: Building2 },
+                ]}
+              />
+            </div>
+
+            {/* Documents */}
+            {selectedRequest._isRequest && selectedRequest.documents_json && Array.isArray(selectedRequest.documents_json) && selectedRequest.documents_json.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <BookOpen className="mr-2" size={20} />
-                  Course Authorization Request
+                  <FileText className="mr-2" size={20} />
+                  Documents
                 </h3>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  {selectedRequest.sub_category_id || selectedRequest.sub_category ? (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">Sub-Category Selected:</p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {(() => {
-                          // Try multiple ways to get the sub-category name
-                          if (selectedRequest.sub_category?.name) {
-                            return selectedRequest.sub_category.name;
-                          }
-                          if (selectedRequest.sub_category_name) {
-                            return selectedRequest.sub_category_name;
-                          }
-                          if (typeof selectedRequest.sub_category === 'string') {
-                            return selectedRequest.sub_category;
-                          }
-                          if (selectedRequest.sub_category?.name_ar) {
-                            return selectedRequest.sub_category.name_ar;
-                          }
-                          return 'N/A';
-                        })()}
-                      </p>
-                      {selectedRequest.sub_category?.description && (
-                        <p className="text-sm text-gray-600 mt-1">{selectedRequest.sub_category.description}</p>
-                      )}
-                      
-                      {/* Display courses from sub_category if available */}
-                      {selectedRequest.sub_category?.courses && Array.isArray(selectedRequest.sub_category.courses) && selectedRequest.sub_category.courses.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm text-gray-500 mb-2 font-medium">Courses in this Sub-Category:</p>
-                          <div className="space-y-2">
-                            {selectedRequest.sub_category.courses.map((course, index) => (
-                              <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <p className="text-sm font-semibold text-gray-900">
-                                      {course.name || course.code || `Course ${course.id || index + 1}`}
-                                    </p>
-                                    {course.code && (
-                                      <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                <div className="space-y-2">
+                  {selectedRequest.documents_json.map((doc, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `Document ${index + 1}`}</p>
+                          {doc.description && (
+                            <p className="text-sm text-gray-500 mt-1">{doc.description}</p>
+                          )}
                         </div>
-                      )}
-                      
-                      {(!selectedRequest.sub_category?.courses || selectedRequest.sub_category.courses.length === 0) && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          All active courses in this sub-category will be authorized
-                        </p>
-                      )}
+                        {doc.url && (
+                          <a
+                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                          >
+                            View Document
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">Specific Courses Selected:</p>
-                      {(() => {
-                        const courses = selectedRequest.courses || selectedRequest.requested_courses || [];
-                        const courseArray = Array.isArray(courses) ? courses : [];
-                        return courseArray.length > 0 ? (
-                          <div className="space-y-2">
-                            {courseArray.map((course, index) => (
-                              <div key={course.id || index} className="p-3 bg-white rounded-lg border border-gray-200">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <p className="text-sm font-semibold text-gray-900">
-                                      {course.name || course.name_ar || course.code || `Course ${course.id || index + 1}`}
-                                    </p>
-                                    {course.code && (
-                                      <p className="text-xs text-gray-500 mt-1">Code: {course.code}</p>
-                                    )}
-                                    {course.name_ar && course.name && course.name !== course.name_ar && (
-                                      <p className="text-xs text-gray-600 mt-1">{course.name_ar}</p>
-                                    )}
-                                    {course.sub_category && (
-                                      <p className="text-xs text-gray-500 mt-1">
-                                        Sub-Category: {typeof course.sub_category === 'object' 
-                                          ? (course.sub_category.name || course.sub_category.name_ar || course.sub_category)
-                                          : course.sub_category}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">No courses specified</p>
-                        );
-                      })()}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
 
-
-            {/* Authorization Price (if approved) */}
+            {/* Authorization Details (if present) */}
             {selectedRequest.authorization_price && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Authorization Details</h3>
@@ -668,8 +656,9 @@ const InstructorsScreen = () => {
                 </div>
               </div>
             )}
-            {/* Only show return comment for requests */}
-            {selectedRequest._isRequest && selectedRequest.return_comment && (
+
+            {/* Return Comment (if returned) */}
+            {selectedRequest.return_comment && (
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="flex items-center mb-2">
                   <ArrowLeft className="h-5 w-5 text-blue-600 mr-2" />
@@ -678,42 +667,46 @@ const InstructorsScreen = () => {
                 <p className="text-base text-gray-900">{selectedRequest.return_comment}</p>
               </div>
             )}
-            {/* Only show action buttons for requests */}
             {selectedRequest._isRequest && selectedRequest.status === 'pending' && (
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setDetailModalOpen(false);
-                  handleApprove(selectedRequest);
-                }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
-              >
-                <CheckCircle size={20} className="mr-2" />
-                Approve
-              </button>
-              <button
-                onClick={() => {
-                  setDetailModalOpen(false);
-                  handleReject(selectedRequest);
-                }}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center"
-              >
-                <XCircle size={20} className="mr-2" />
-                Reject
-              </button>
-              <button
-                onClick={() => {
-                  setDetailModalOpen(false);
-                  handleReturn(selectedRequest);
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
-              >
-                <ArrowLeft size={20} className="mr-2" />
-                Return
-              </button>
-            </div>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    handleApprove(selectedRequest);
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
+                >
+                  <CheckCircle size={20} className="mr-2" />
+                  Approve
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    setRejectionReason('');
+                    setSelectedRequest(selectedRequest);
+                    setRejectModalOpen(true);
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center"
+                >
+                  <XCircle size={20} className="mr-2" />
+                  Reject
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    setReturnComment('');
+                    setSelectedRequest(selectedRequest);
+                    setReturnModalOpen(true);
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+                >
+                  <ArrowLeft size={20} className="mr-2" />
+                  Return
+                </button>
+              </div>
             )}
-            {/* Only show action buttons for requests */}
+
+            {/* Action Buttons for Returned Request */}
             {selectedRequest._isRequest && selectedRequest.status === 'returned' && (
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
                 <button
@@ -739,11 +732,60 @@ const InstructorsScreen = () => {
               </div>
             )}
           </div>
-        )}
-      </Modal>
+        )
+        }
+      </Modal >
+
+      {/* Approve Modal */}
+      < Modal
+        isOpen={approveModalOpen}
+        onClose={() => {
+          setApproveModalOpen(false);
+          setSelectedRequest(null);
+          setAuthorizationPrice('');
+        }}
+        title="Approve Instructor Request"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">Please set the authorization price for this instructor:</p>
+          <FormInput
+            label="Authorization Price"
+            name="authorization_price"
+            type="number"
+            value={authorizationPrice}
+            onChange={(e) => setAuthorizationPrice(e.target.value)}
+            required
+            min="0"
+            step="0.01"
+            placeholder="500.00"
+          />
+          <p className="text-sm text-gray-500">
+            After approval, Group Admin will need to set the commission percentage before Training Center can pay.
+          </p>
+          <div className="flex space-x-3 pt-4">
+            <button
+              onClick={() => {
+                setApproveModalOpen(false);
+                setSelectedRequest(null);
+                setAuthorizationPrice('');
+              }}
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmApprove}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </Modal >
 
       {/* Reject Modal */}
-      <Modal
+      < Modal
         isOpen={rejectModalOpen}
         onClose={() => {
           setRejectModalOpen(false);
@@ -784,7 +826,7 @@ const InstructorsScreen = () => {
             </button>
           </div>
         </div>
-      </Modal>
+      </Modal >
 
       {/* Return Modal */}
       <Modal
@@ -830,53 +872,6 @@ const InstructorsScreen = () => {
         </div>
       </Modal>
 
-      {/* Approve Modal */}
-      <Modal
-        isOpen={approveModalOpen}
-        onClose={() => {
-          setApproveModalOpen(false);
-          setSelectedRequest(null);
-          setAuthorizationPrice('');
-        }}
-        title="Approve Instructor Request"
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-600">Please set the authorization price for this instructor:</p>
-          <FormInput
-            label="Authorization Price"
-            name="authorization_price"
-            type="number"
-            value={authorizationPrice}
-            onChange={(e) => setAuthorizationPrice(e.target.value)}
-            required
-            min="0"
-            step="0.01"
-            placeholder="500.00"
-          />
-          <p className="text-sm text-gray-500">
-            After approval, Group Admin will need to set the commission percentage before Training Center can pay.
-          </p>
-          <div className="flex space-x-3 pt-4">
-            <button
-              onClick={() => {
-                setApproveModalOpen(false);
-                setSelectedRequest(null);
-                setAuthorizationPrice('');
-              }}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmApprove}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Approve
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

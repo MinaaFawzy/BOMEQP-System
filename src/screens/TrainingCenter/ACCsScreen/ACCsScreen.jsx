@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import useDebounce from '../../../hooks/useDebounce';
 import { Building2, Send, Eye, CheckCircle, Clock, XCircle, Plus, Trash2, FileText, Upload, Loader, Mail, MessageSquare, Download, MapPin, Globe, Phone } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
@@ -12,6 +13,7 @@ import AuthorizationRequestForm from '../../../components/AuthorizationRequestFo
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import InfoBox from '../../../components/InfoBox/InfoBox';
 import DocumentsList from '../../../components/DocumentsList/DocumentsList';
+import Pagination from '../../../components/Pagination/Pagination';
 import { validateFile, validateArray, validateMaxLength } from '../../../utils/validation';
 import './ACCsScreen.css';
 
@@ -21,11 +23,27 @@ const ACCsScreen = () => {
   const [allAuthorizations, setAllAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
-  
+
   // Total counts for cards (from API)
   const [totalAccsCount, setTotalAccsCount] = useState(0);
   const [totalAuthsCount, setTotalAuthsCount] = useState(0);
-  
+
+  // Pagination State - ACCs
+  const [accsPage, setAccsPage] = useState(1);
+  const [accsPerPage, setAccsPerPage] = useState(10);
+  const [accsTotalPages, setAccsTotalPages] = useState(1);
+  const [accsSearchTerm, setAccsSearchTerm] = useState('');
+  const debouncedAccsSearchTerm = useDebounce(accsSearchTerm, 500);
+  const [isAccsSearchLoading, setIsAccsSearchLoading] = useState(false);
+
+  // Pagination State - Authorizations
+  const [authPage, setAuthPage] = useState(1);
+  const [authPerPage, setAuthPerPage] = useState(10);
+  const [authTotalPages, setAuthTotalPages] = useState(1);
+  const [authSearchTerm, setAuthSearchTerm] = useState('');
+  const debouncedAuthSearchTerm = useDebounce(authSearchTerm, 500);
+  const [isAuthSearchLoading, setIsAuthSearchLoading] = useState(false);
+
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedACC, setSelectedACC] = useState(null);
@@ -38,13 +56,21 @@ const ACCsScreen = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  const loadACCs = useCallback(async () => {
+  const loadACCs = useCallback(async (page, limit, search = '', showLoading = true) => {
     try {
-      setLoading(true);
-      
-      // Load all data without pagination
-      const accsData = await trainingCenterAPI.listACCs({ per_page: 1000 });
-      
+      if (showLoading) {
+        setLoading(true);
+      } else {
+        setIsAccsSearchLoading(true);
+      }
+
+      // Load data with pagination and search
+      const accsData = await trainingCenterAPI.listACCs({
+        page,
+        per_page: limit,
+        ...(search && { search })
+      });
+
       let accsArray = [];
       if (accsData?.data) {
         accsArray = Array.isArray(accsData.data) ? accsData.data : [];
@@ -53,28 +79,38 @@ const ACCsScreen = () => {
       } else if (Array.isArray(accsData)) {
         accsArray = accsData;
       }
-      
+
       setAllAccs(accsArray);
-      
-      // Update total count for card display
+
+      // Update total count for card display and pagination
       if (accsData) {
         const totalCount = accsData.total || accsArray.length;
         setTotalAccsCount(totalCount);
+        setAccsTotalPages(accsData.last_page || Math.ceil(totalCount / limit) || 1);
       }
     } catch (error) {
       console.error('Failed to load ACCs:', error);
     } finally {
       setLoading(false);
+      setIsAccsSearchLoading(false);
     }
   }, []);
 
-  const loadAuthorizations = useCallback(async () => {
+  const loadAuthorizations = useCallback(async (page, limit, search = '', showLoading = true) => {
     try {
-      setLoading(true);
-      
-      // Load all data without pagination
-      const authData = await trainingCenterAPI.getAuthorizationStatus({ per_page: 1000 });
-      
+      if (showLoading) {
+        setLoading(true);
+      } else {
+        setIsAuthSearchLoading(true);
+      }
+
+      // Load data with pagination and search
+      const authData = await trainingCenterAPI.getAuthorizationStatus({
+        page,
+        per_page: limit,
+        ...(search && { search })
+      });
+
       let authArray = [];
       if (authData?.data) {
         authArray = Array.isArray(authData.data) ? authData.data : [];
@@ -83,26 +119,39 @@ const ACCsScreen = () => {
       } else if (Array.isArray(authData)) {
         authArray = authData;
       }
-      
+
       setAllAuthorizations(authArray);
-      
+
       // Update total count for card display
       if (authData) {
         const totalCount = authData.total || authArray.length;
         setTotalAuthsCount(totalCount);
+        setAuthTotalPages(authData.last_page || Math.ceil(totalCount / limit) || 1);
       }
     } catch (error) {
       console.error('Failed to load authorizations:', error);
     } finally {
       setLoading(false);
+      setIsAuthSearchLoading(false);
     }
   }, []);
 
-  // Load all data on mount
+  // Load data on change
   useEffect(() => {
-    loadACCs();
-    loadAuthorizations();
-  }, [loadACCs, loadAuthorizations]);
+    if (accsSearchTerm !== debouncedAccsSearchTerm) {
+      return;
+    }
+    const showLoading = allAccs.length === 0;
+    loadACCs(accsPage, accsPerPage, debouncedAccsSearchTerm, showLoading);
+  }, [loadACCs, accsPage, accsPerPage, debouncedAccsSearchTerm, accsSearchTerm]);
+
+  useEffect(() => {
+    if (authSearchTerm !== debouncedAuthSearchTerm) {
+      return;
+    }
+    const showLoading = allAuthorizations.length === 0;
+    loadAuthorizations(authPage, authPerPage, debouncedAuthSearchTerm, showLoading);
+  }, [loadAuthorizations, authPage, authPerPage, debouncedAuthSearchTerm, authSearchTerm]);
 
   useEffect(() => {
     setHeaderTitle('Accreditation Bodies');
@@ -112,16 +161,15 @@ const ACCsScreen = () => {
       setHeaderSubtitle(null);
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
-  
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     // Don't reload data, just switch the view
   };
 
-  // Define columns for ACCs table
   const accsColumns = useMemo(() => [
     {
-      header: 'ACC Name',
+      header: 'Accreditation Body Name',
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -129,18 +177,18 @@ const ACCsScreen = () => {
           <div className="accs-table-row-icon-wrapper" style={{ position: 'relative' }}>
             {row.logo_url ? (
               <>
-                <img 
-                  src={row.logo_url} 
-                  alt={value || 'ACC Logo'} 
+                <img
+                  src={row.logo_url}
+                  alt={value || 'ACC Logo'}
                   className="accs-table-row-icon"
                   width="40"
                   height="40"
                   loading="lazy"
                   decoding="async"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
                     borderRadius: '8px',
                     border: '1px solid #e5e7eb'
                   }}
@@ -150,7 +198,7 @@ const ACCsScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="logo-fallback accs-table-row-icon-wrapper"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
@@ -158,7 +206,7 @@ const ACCsScreen = () => {
                 </div>
               </>
             ) : (
-            <Building2 className="accs-table-row-icon" />
+              <Building2 className="accs-table-row-icon" />
             )}
           </div>
           <div>
@@ -191,9 +239,8 @@ const ACCsScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`accs-status-badge ${
-          value === 'active' ? 'accs-status-badge-active' : 'accs-status-badge-default'
-        }`}>
+        <span className={`accs-status-badge ${value === 'active' ? 'accs-status-badge-active' : 'accs-status-badge-default'
+          }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       )
@@ -202,42 +249,48 @@ const ACCsScreen = () => {
       header: 'Actions',
       accessor: 'actions',
       sortable: false,
-      render: (value, row) => (
-        <div className="accs-action-buttons" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleViewDetails(row)}
-            className="accs-action-button accs-action-button-primary"
-            title="View Details"
-          >
-            <Eye size={16} />
-          </button>
-          {row.status === 'active' ? (
+      render: (value, row) => {
+        const isAuthorized = allAuthorizations.some(auth => auth.acc?.id === row.id);
+
+        return (
+          <div className="accs-action-buttons" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRequestAuth(row);
-              }}
-              className="accs-action-button accs-action-button-green"
-              title="Request Authorization"
-            >
-              <Send size={16} />
-            </button>
-          ) : (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewDetails(row);
-              }}
-              className="accs-action-button accs-action-button-blue"
-              title="View Info"
+              onClick={() => handleViewDetails(row)}
+              className="accs-action-button accs-action-button-primary"
+              title="View Details"
             >
               <Eye size={16} />
             </button>
-          )}
-        </div>
-      )
+            {row.status === 'active' ? (
+              !isAuthorized && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRequestAuth(row);
+                  }}
+                  className="accs-action-button accs-action-button-green"
+                  title="Request Authorization"
+                >
+                  <Send size={16} />
+                </button>
+              )
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewDetails(row);
+                }}
+                className="accs-action-button accs-action-button-blue"
+                title="View Info"
+              >
+                <Eye size={16} />
+              </button>
+            )}
+          </div>
+        );
+      }
     }
-  ], []);
+  ], [allAuthorizations]);
 
   // Define columns for Authorizations table
   const authorizationsColumns = useMemo(() => [
@@ -250,18 +303,18 @@ const ACCsScreen = () => {
           <div className="accs-table-row-icon-wrapper" style={{ position: 'relative' }}>
             {value?.logo_url ? (
               <>
-                <img 
-                  src={value.logo_url} 
-                  alt={value?.name || 'ACC Logo'} 
+                <img
+                  src={value.logo_url}
+                  alt={value?.name || 'ACC Logo'}
                   className="accs-table-row-icon"
                   width="40"
                   height="40"
                   loading="lazy"
                   decoding="async"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
                     borderRadius: '8px',
                     border: '1px solid #e5e7eb'
                   }}
@@ -271,7 +324,7 @@ const ACCsScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="logo-fallback accs-table-row-icon-wrapper"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
@@ -279,7 +332,7 @@ const ACCsScreen = () => {
                 </div>
               </>
             ) : (
-            <Building2 className="accs-table-row-icon" />
+              <Building2 className="accs-table-row-icon" />
             )}
           </div>
           <div>
@@ -369,20 +422,25 @@ const ACCsScreen = () => {
 
     try {
       const submitFormData = new FormData();
-      
+
       formData.documents.forEach((doc, index) => {
         submitFormData.append(`documents[${index}][type]`, doc.type);
         submitFormData.append(`documents[${index}][file]`, doc.file);
       });
-      
+
       if (formData.additional_info) {
         submitFormData.append('additional_info', formData.additional_info);
       }
-      
-      const response = await trainingCenterAPI.requestAuthorization(selectedACC.id, submitFormData);
-      
+
+      submitFormData.append('acc_id', selectedACC.id);
+
+      const response = await trainingCenterAPI.requestAuthorization(submitFormData);
+
       // Reload both datasets after successful submission
-      await Promise.all([loadACCs(), loadAuthorizations()]);
+      await Promise.all([
+        loadACCs(accsPage, accsPerPage),
+        loadAuthorizations(authPage, authPerPage)
+      ]);
       setRequestModalOpen(false);
       setRequestForm({
         documents: [],
@@ -394,12 +452,12 @@ const ACCsScreen = () => {
         if (error.response) {
           const status = error.response.status;
           const errorData = error.response.data;
-          
+
           if (status === 400 && (errorData.message?.includes('already exists') || errorData.message?.includes('already been submitted'))) {
             setFormErrors({ general: 'An authorization request for this ACC already exists. Please check your existing authorizations.' });
           }
           else if (status === 422 && (errorData.message?.includes('No valid documents') || errorData.message?.includes('documents uploaded'))) {
-            setFormErrors({ 
+            setFormErrors({
               general: 'No valid documents uploaded. Please ensure files are uploaded correctly.',
               hint: 'Use FormData with structure: documents[0][type]=license&documents[0][file]=<file>'
             });
@@ -485,6 +543,22 @@ const ACCsScreen = () => {
             searchPlaceholder="Search by name, email, or country..."
             emptyMessage="No ACCs found"
             onRowClick={(acc) => handleViewDetails(acc)}
+            searchValue={accsSearchTerm}
+            onSearch={(value) => {
+              setAccsSearchTerm(value);
+              setAccsPage(1);
+            }}
+          />
+          <Pagination
+            currentPage={accsPage}
+            totalPages={accsTotalPages}
+            totalItems={totalAccsCount}
+            perPage={accsPerPage}
+            onPageChange={setAccsPage}
+            onPerPageChange={(perPage) => {
+              setAccsPerPage(perPage);
+              setAccsPage(1);
+            }}
           />
         </div>
       ) : (
@@ -499,6 +573,22 @@ const ACCsScreen = () => {
             emptyMessage="No authorization requests found"
             onView={(auth) => handleViewAuthorizationDetails(auth)}
             onRowClick={(auth) => handleViewAuthorizationDetails(auth)}
+            searchValue={authSearchTerm}
+            onSearch={(value) => {
+              setAuthSearchTerm(value);
+              setAuthPage(1);
+            }}
+          />
+          <Pagination
+            currentPage={authPage}
+            totalPages={authTotalPages}
+            totalItems={totalAuthsCount}
+            perPage={authPerPage}
+            onPageChange={setAuthPage}
+            onPerPageChange={(perPage) => {
+              setAuthPerPage(perPage);
+              setAuthPage(1);
+            }}
           />
         </div>
       )}
@@ -543,7 +633,7 @@ const ACCsScreen = () => {
           setDetailModalOpen(false);
           setSelectedACC(null);
         }}
-        title="ACC Details"
+        title="Accreditation Body Details"
         size="lg"
       >
         {selectedACC && (
@@ -564,7 +654,7 @@ const ACCsScreen = () => {
                 { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Clock, showEmpty: false },
               ]}
             />
-            {selectedACC.status === 'active' && (
+            {selectedACC.status === 'active' && !allAuthorizations.some(auth => auth.acc?.id === selectedACC.id) && (
               <div className="accs-detail-actions">
                 <button
                   onClick={() => {
@@ -603,7 +693,7 @@ const ACCsScreen = () => {
                 { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
               ]}
             />
-            
+
             <DetailForm
               data={selectedAuthorization}
               fields={[
@@ -615,8 +705,8 @@ const ACCsScreen = () => {
 
             {/* Additional Information */}
             {selectedAuthorization.additional_info && (
-              <InfoBox 
-                title="Additional Information" 
+              <InfoBox
+                title="Additional Information"
                 content={selectedAuthorization.additional_info}
                 variant="blue"
               />
@@ -624,8 +714,8 @@ const ACCsScreen = () => {
 
             {/* ACC Comment (when status is returned) */}
             {selectedAuthorization.status === 'returned' && selectedAuthorization.return_comment && (
-              <InfoBox 
-                title="ACC Comment / Return Reason" 
+              <InfoBox
+                title="ACC Comment / Return Reason"
                 content={selectedAuthorization.return_comment}
                 icon={MessageSquare}
                 variant="yellow"
@@ -635,8 +725,8 @@ const ACCsScreen = () => {
 
             {/* ACC Rejection Reason (if exists) */}
             {selectedAuthorization.status === 'rejected' && selectedAuthorization.rejection_reason && (
-              <InfoBox 
-                title="Rejection Reason" 
+              <InfoBox
+                title="Rejection Reason"
                 content={selectedAuthorization.rejection_reason}
                 icon={XCircle}
                 variant="red"
@@ -645,8 +735,8 @@ const ACCsScreen = () => {
             )}
 
             {/* Documents */}
-            <DocumentsList 
-              documents={selectedAuthorization.documents} 
+            <DocumentsList
+              documents={selectedAuthorization.documents}
               title="Submitted Documents"
             />
           </div>

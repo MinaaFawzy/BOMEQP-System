@@ -804,3 +804,55 @@
   background-color: #fee2e2;
   color: #991b1b;
 }
+
+/* Dropdown/Accordion Styles for Enrolled Classes */
+.trainees-classes-dropdown {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.trainees-classes-dropdown[open] {
+  background-color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.trainees-classes-dropdown-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  cursor: pointer;
+  list-style: none; /* Hide default triangle */
+  user-select: none;
+}
+
+.trainees-classes-dropdown-summary::-webkit-details-marker {
+  display: none; /* Hide default triangle in WebKit */
+}
+
+.trainees-classes-dropdown-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.trainees-classes-dropdown-icon {
+  color: #6b7280;
+  transition: transform 0.3s ease;
+}
+
+.trainees-classes-dropdown[open] .trainees-classes-dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.trainees-classes-dropdown-content {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

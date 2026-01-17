@@ -13,7 +13,7 @@ import FormInput from '../../../components/FormInput/FormInput';
 
 const CategoriesScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
-  
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,9 +63,9 @@ const CategoriesScreen = () => {
       const params = {
         per_page: 1000, // Load all data
       };
-      
+
       const data = await accAPI.listCategories(params);
-      
+
       // Handle different response structures
       let catsList = [];
       if (data?.data) {
@@ -78,7 +78,7 @@ const CategoriesScreen = () => {
         console.warn('Unexpected API response structure:', data);
         catsList = [];
       }
-      
+
       // Add _searchText for better search functionality
       catsList = catsList.map(cat => ({
         ...cat,
@@ -89,9 +89,9 @@ const CategoriesScreen = () => {
           cat.status
         ].filter(Boolean).join(' ').toLowerCase()
       }));
-      
+
       setCategories(catsList);
-      
+
       // Extract sub_categories from categories (they come nested in the response)
       const allSubCats = [];
       catsList.forEach(cat => {
@@ -99,7 +99,7 @@ const CategoriesScreen = () => {
           allSubCats.push(...cat.sub_categories);
         }
       });
-      
+
       // Also load sub categories separately to get all accessible ones
       if (catsList.length > 0) {
         await loadSubCategories();
@@ -217,13 +217,13 @@ const CategoriesScreen = () => {
       const params = {
         per_page: 1000, // Load all data
       };
-      
+
       if (categoryId) {
         params.category_id = categoryId;
       }
-      
+
       const data = await accAPI.listSubCategories(params);
-      
+
       let subCatsList = [];
       if (data?.data) {
         subCatsList = Array.isArray(data.data) ? data.data : [];
@@ -232,7 +232,7 @@ const CategoriesScreen = () => {
       } else {
         subCatsList = Array.isArray(data) ? data : [];
       }
-      
+
       // Add _searchText for better search functionality
       subCatsList = subCatsList.map(subCat => {
         const category = categories.find(cat => cat.id === subCat.category_id);
@@ -247,7 +247,7 @@ const CategoriesScreen = () => {
           ].filter(Boolean).join(' ').toLowerCase()
         };
       });
-      
+
       setSubCategories(subCatsList);
     } catch (error) {
       console.error('Failed to load sub categories:', error);
@@ -256,7 +256,7 @@ const CategoriesScreen = () => {
       setSubCategoriesLoading(false);
     }
   };
-  
+
   // Load sub categories when categories are loaded
   useEffect(() => {
     if (categories.length > 0) {
@@ -358,7 +358,7 @@ const CategoriesScreen = () => {
   const activeCategories = categories.filter(c => c.status === 'active').length;
   const totalSubCategories = subCategories.length;
   const activeSubCategories = subCategories.filter(sc => sc.status === 'active').length;
-  
+
   // Check if category was created by current ACC (for UI display)
   const isCategoryCreatedByMe = (category) => {
     // If created_by = 1, it's assigned by Admin
@@ -444,11 +444,10 @@ const CategoriesScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'active' 
-            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' 
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active'
+            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
             : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
+          }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       ),
@@ -459,11 +458,10 @@ const CategoriesScreen = () => {
       sortable: false,
       render: (value, row) => (
         <div className="flex flex-col gap-1">
-          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-            isCategoryCreatedByMe(row)
-              ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' 
+          <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${isCategoryCreatedByMe(row)
+              ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300'
               : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
-          }`}>
+            }`}>
             {isCategoryCreatedByMe(row) ? 'Created by Me' : 'Assigned by Admin'}
           </span>
         </div>
@@ -483,11 +481,10 @@ const CategoriesScreen = () => {
                   handleOpenModal(row);
                 }
               }}
-              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                canEdit
+              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${canEdit
                   ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                   : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-              }`}
+                }`}
               title={canEdit ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
               disabled={!canEdit}
             >
@@ -499,11 +496,10 @@ const CategoriesScreen = () => {
                   handleDelete(row);
                 }
               }}
-              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                canEdit
+              className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${canEdit
                   ? 'bg-red-50 text-red-600 hover:bg-red-100'
                   : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-              }`}
+                }`}
               title={canEdit ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
               disabled={!canEdit}
             >
@@ -559,22 +555,20 @@ const CategoriesScreen = () => {
                         <div className="text-xs text-gray-400 mt-1">{subCat.description}</div>
                       )}
                     </div>
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      subCat.status === 'active' 
-                        ? 'bg-green-100 text-green-800 border border-green-300' 
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${subCat.status === 'active'
+                        ? 'bg-green-100 text-green-800 border border-green-300'
                         : 'bg-gray-100 text-gray-800 border border-gray-300'
-                    }`}>
+                      }`}>
                       {subCat.status ? subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) : 'N/A'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => handleOpenSubCategoryModal(subCat)}
-                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                        isSubCategoryCreatedByMe(subCat)
+                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${isSubCategoryCreatedByMe(subCat)
                           ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                           : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                      }`}
+                        }`}
                       title={isSubCategoryCreatedByMe(subCat) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
                       disabled={!isSubCategoryCreatedByMe(subCat)}
                     >
@@ -582,11 +576,10 @@ const CategoriesScreen = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteSubCategory(subCat)}
-                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${
-                        isSubCategoryCreatedByMe(subCat)
+                      className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${isSubCategoryCreatedByMe(subCat)
                           ? 'bg-red-50 text-red-600 hover:bg-red-100'
                           : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
-                      }`}
+                        }`}
                       title={isSubCategoryCreatedByMe(subCat) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
                       disabled={!isSubCategoryCreatedByMe(subCat)}
                     >
@@ -625,15 +618,15 @@ const CategoriesScreen = () => {
   // Filter options for sub categories
   const subCategoryFilterOptions = useMemo(() => [
     { value: 'all', label: 'All Status', filterFn: () => true },
-    { 
-      value: 'active', 
-      label: 'Active', 
-      filterFn: (subCat) => subCat.status === 'active' 
+    {
+      value: 'active',
+      label: 'Active',
+      filterFn: (subCat) => subCat.status === 'active'
     },
-    { 
-      value: 'inactive', 
-      label: 'Inactive', 
-      filterFn: (subCat) => subCat.status === 'inactive' 
+    {
+      value: 'inactive',
+      label: 'Inactive',
+      filterFn: (subCat) => subCat.status === 'inactive'
     }
   ], []);
 

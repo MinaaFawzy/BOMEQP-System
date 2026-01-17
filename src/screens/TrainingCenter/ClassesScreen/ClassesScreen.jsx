@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import useDebounce from '../../../hooks/useDebounce';
 import axios from 'axios';
 import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2 } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
@@ -8,6 +9,7 @@ import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -46,7 +48,8 @@ const ClassesScreen = () => {
     category_id: '',
     sub_category_id: '',
     course_id: '',
-    class_id: '',
+    course_id: '',
+    name: '',
     instructor_id: '',
     start_date: '',
     end_date: '',
@@ -58,9 +61,36 @@ const ClassesScreen = () => {
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const hasDataRef = useRef(false);
+
+  // Statistics State
+  const [stats, setStats] = useState({
+    total: 0,
+    scheduled: 0,
+    in_progress: 0,
+    completed: 0,
+    cancelled: 0
+  });
+
   useEffect(() => {
-    loadData();
-  }, []); // Load all data once, pagination and statusFilter are handled client-side
+    // Only show full loading spinner if we don't have data yet
+    const showLoading = !hasDataRef.current;
+
+    if (searchTerm !== debouncedSearchTerm) {
+      return;
+    }
+
+    loadData(page, perPage, debouncedSearchTerm, statusFilter, showLoading);
+  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -147,14 +177,33 @@ const ClassesScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadData = async () => {
-    setLoading(true);
+  // Load instructors separately to avoid reloading on search
+  useEffect(() => {
+    const loadInstructors = async () => {
+      try {
+        const instructorsData = await trainingCenterAPI.listInstructors();
+        setInstructors(instructorsData?.instructors || instructorsData?.data || []);
+      } catch (error) {
+        console.error('Failed to load instructors:', error);
+      }
+    };
+    loadInstructors();
+  }, []);
+
+  const loadData = async (pageArg = 1, limitArg = 10, search = '', status = 'all', showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    } else {
+      setIsSearchLoading(true);
+    }
     try {
-      // Load all data - search and statusFilter are handled client-side by DataTable
-      const [classesData, instructorsData] = await Promise.all([
-        trainingCenterAPI.listClasses({ per_page: 1000 }),
-        trainingCenterAPI.listInstructors(),
-      ]);
+      // Load data with pagination, search, and status filter
+      const classesData = await trainingCenterAPI.listClasses({
+        page: pageArg,
+        per_page: limitArg,
+        ...(search && { search }),
+        ...(status !== 'all' && { status })
+      });
 
       let classesArray = [];
       if (classesData?.data) {
@@ -166,13 +215,32 @@ const ClassesScreen = () => {
       }
 
       setClasses(classesArray);
-      setInstructors(instructorsData?.instructors || instructorsData?.data || []);
+
+      // Update pagination info
+      if (classesData) {
+        const total = classesData.total || classesArray.length;
+        setTotalItems(total);
+        setTotalPages(classesData.last_page || Math.ceil(total / limitArg) || 1);
+      }
+
+      // Update statistics from API response
+      if (classesData.statistics) {
+        setStats({
+          total: classesData.statistics.total || 0,
+          scheduled: classesData.statistics.scheduled || 0,
+          in_progress: classesData.statistics.in_progress || 0,
+          completed: classesData.statistics.completed || 0,
+          cancelled: classesData.statistics.cancelled || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load data:', error);
       setClasses([]);
-      setInstructors([]);
     } finally {
       setLoading(false);
+      setIsSearchLoading(false);
     }
   };
 
@@ -375,7 +443,8 @@ const ClassesScreen = () => {
         category_id: classItem.category_id || classItem.course?.category_id || '',
         sub_category_id: classItem.sub_category_id || classItem.course?.sub_category_id || '',
         course_id: classItem.course_id || '',
-        class_id: classItem.class_id || '',
+        course_id: classItem.course_id || '',
+        name: classItem.name || '',
         instructor_id: classItem.instructor_id || '',
         start_date: classItem.start_date ? classItem.start_date.split('T')[0] : '',
         end_date: classItem.end_date ? classItem.end_date.split('T')[0] : '',
@@ -396,7 +465,8 @@ const ClassesScreen = () => {
         category_id: '',
         sub_category_id: '',
         course_id: '',
-        class_id: '',
+        course_id: '',
+        name: '',
         instructor_id: '',
         start_date: '',
         end_date: '',
@@ -424,7 +494,8 @@ const ClassesScreen = () => {
       category_id: '',
       sub_category_id: '',
       course_id: '',
-      class_id: '',
+      course_id: '',
+      name: '',
       instructor_id: '',
       start_date: '',
       end_date: '',
@@ -521,8 +592,8 @@ const ClassesScreen = () => {
       }
 
       // These fields are always required (both create and update)
-      if (!formData.class_id) {
-        setErrors({ class_id: 'Class ID is required' });
+      if (!formData.name) {
+        setErrors({ name: 'Class Name is required' });
         setSaving(false);
         return;
       }
@@ -550,7 +621,7 @@ const ClassesScreen = () => {
 
       const submitData = {
         course_id: parseInt(courseId),
-        class_id: parseInt(formData.class_id),
+        name: formData.name,
         instructor_id: parseInt(formData.instructor_id),
         start_date: formData.start_date,
         end_date: formData.end_date,
@@ -571,7 +642,7 @@ const ClassesScreen = () => {
       } else {
         await trainingCenterAPI.createClass(submitData);
       }
-      await loadData();
+      await loadData(page, perPage);
       handleCloseModal();
     } catch (error) {
       console.error('Error creating/updating class:', error);
@@ -601,7 +672,7 @@ const ClassesScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteClass(selectedClass.id);
-      await loadData();
+      await loadData(page, perPage);
     } catch (error) {
       alert('Failed to delete class: ' + (error.message || 'Unknown error'));
     }
@@ -636,7 +707,7 @@ const ClassesScreen = () => {
     if (window.confirm('Mark this class as complete?')) {
       try {
         await trainingCenterAPI.markClassComplete(classItem.id);
-        await loadData();
+        await loadData(page, perPage);
       } catch (error) {
         alert('Failed to mark class as complete: ' + (error.message || 'Unknown error'));
       }
@@ -646,6 +717,16 @@ const ClassesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
+      header: 'Class Name',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="font-semibold text-gray-900">
+          {value || 'N/A'}
+        </div>
+      )
+    },
+    {
       header: 'Course',
       accessor: 'course',
       sortable: true,
@@ -653,18 +734,10 @@ const ClassesScreen = () => {
         const courseName = typeof row.course === 'string' ? row.course : (row.course?.name || 'N/A');
         return (
           <div className="course-container">
-            <div className="course-icon-container">
-              <GraduationCap className="course-icon" />
+            <div className="course-name">
+              {courseName}
             </div>
-            <div>
-              <div className="course-name">
-                {courseName}
-              </div>
-              {row.class_id && (
-                <div className="course-id">ID: {row.class_id}</div>
-              )}
-            </div>
-          </div>
+          </div >
         );
       },
     },
@@ -835,11 +908,12 @@ const ClassesScreen = () => {
     });
   }, [classes]);
 
-  // Calculate stats from all classes (not filtered, not paginated)
-  const totalCount = classes.length;
-  const scheduledCount = classes.filter(c => c.status === 'scheduled').length;
-  const completedCount = classes.filter(c => c.status === 'completed').length;
-  const cancelledCount = classes.filter(c => c.status === 'cancelled').length;
+  // Use stats from API response instead of calculating from current page
+  const totalCount = stats.total;
+  const scheduledCount = stats.scheduled;
+  const inProgressCount = stats.in_progress;
+  const completedCount = stats.completed;
+  const cancelledCount = stats.cancelled;
 
   // Filter trainees based on search term
   const filteredTrainees = useMemo(() => {
@@ -874,13 +948,18 @@ const ClassesScreen = () => {
     <div className="main-container">
       {/* Stats Cards using TabCard */}
       <div className="stats-cards-grid">
+
         <TabCard
           name="Total Classes"
           value={totalCount}
           icon={GraduationCap}
           colorType="indigo"
           isActive={statusFilter === 'all'}
-          onClick={() => setStatusFilter('all')}
+          onClick={() => {
+            hasDataRef.current = false;
+            setStatusFilter('all');
+            setPage(1);
+          }}
         />
         <TabCard
           name="Scheduled"
@@ -888,7 +967,11 @@ const ClassesScreen = () => {
           icon={Calendar}
           colorType="blue"
           isActive={statusFilter === 'scheduled'}
-          onClick={() => setStatusFilter('scheduled')}
+          onClick={() => {
+            hasDataRef.current = false;
+            setStatusFilter('scheduled');
+            setPage(1);
+          }}
         />
         <TabCard
           name="Completed"
@@ -896,7 +979,11 @@ const ClassesScreen = () => {
           icon={CheckCircle}
           colorType="green"
           isActive={statusFilter === 'completed'}
-          onClick={() => setStatusFilter('completed')}
+          onClick={() => {
+            hasDataRef.current = false;
+            setStatusFilter('completed');
+            setPage(1);
+          }}
         />
       </div>
 
@@ -922,11 +1009,30 @@ const ClassesScreen = () => {
             ) : 'No classes found matching your filters'
           }
           searchable={true}
-          filterable={true}
+          filterable={false} // We sort by status using TabCards
           searchPlaceholder="Search by course or instructor..."
-          filterOptions={filterOptions}
+          searchValue={searchTerm}
+          onSearch={(value) => {
+            setSearchTerm(value);
+            setPage(1);
+          }}
           sortable={true}
           defaultFilter={statusFilter}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={(p) => {
+            hasDataRef.current = false;
+            setPage(p);
+          }}
+          onPerPageChange={(newPerPage) => {
+            hasDataRef.current = false;
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -1042,15 +1148,14 @@ const ClassesScreen = () => {
 
 
           <FormInput
-            label="Class ID"
-            name="class_id"
-            type="number"
-            value={formData.class_id}
+            label="Class Name"
+            name="name"
+            type="text"
+            value={formData.name}
             onChange={handleChange}
             required
-            disabled={!!selectedClass}
-            placeholder="Enter class ID"
-            error={errors.class_id}
+            placeholder="e.g. Class A - January 2024"
+            error={errors.name}
           />
 
           <div>
@@ -1310,9 +1415,9 @@ const ClassesScreen = () => {
               data={selectedClass}
               fields={[
                 {
-                  key: 'class_id',
-                  label: 'Class ID',
-                  render: (value, data) => data.class_id || data.id || 'N/A'
+                  key: 'name',
+                  label: 'Class Name',
+                  render: (value, data) => data.name || 'N/A'
                 },
                 { key: 'status', label: 'Status', type: 'status' },
               ]}

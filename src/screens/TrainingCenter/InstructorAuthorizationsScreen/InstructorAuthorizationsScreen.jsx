@@ -1,12 +1,14 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import useDebounce from '../../../hooks/useDebounce';
 import { Users, DollarSign, Building2, CreditCard, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, BookOpen, Mail, Phone } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
@@ -27,17 +29,35 @@ const InstructorAuthorizationsScreen = () => {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+  const hasDataRef = useRef(false);
+
   useEffect(() => {
-    loadData();
+    // Only show full loading spinner if we don't have data yet
+    const showLoading = !hasDataRef.current;
+
+    if (searchTerm !== debouncedSearchTerm) {
+      return;
+    }
+
+    loadData(page, perPage, debouncedSearchTerm, statusFilter, paymentStatusFilter, showLoading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, perPage, debouncedSearchTerm, statusFilter, paymentStatusFilter, searchTerm]);
 
   useEffect(() => {
     setHeaderTitle('Instructor Authorizations');
     setHeaderSubtitle('View and pay for instructor authorization requests');
     setHeaderActions(
       <button
-        onClick={loadData}
+        onClick={() => loadData(page, perPage, searchTerm, statusFilter, paymentStatusFilter, true)}
         disabled={loading}
         className="header-refresh-btn"
         title="Refresh data"
@@ -63,25 +83,33 @@ const InstructorAuthorizationsScreen = () => {
     }
   }, [authorizations, loading]);
 
-  const loadData = async () => {
+  const loadData = async (pageArg = 1, limitArg = 10, search = '', status = 'all', paymentStatus = 'all', showLoading = true) => {
     try {
-      setLoading(true);
-      
-      // Load all data - search and statusFilter are handled client-side by DataTable
+      if (showLoading) {
+        setLoading(true);
+      } else {
+        setIsSearchLoading(true);
+      }
+
+      // Load data with pagination
       const params = {
-        per_page: 1000,
+        page: pageArg,
+        per_page: limitArg,
+        ...(search && { search }),
+        ...(status !== 'all' && { status }),
+        ...(paymentStatus !== 'all' && { payment_status: paymentStatus }),
       };
-      
+
       // Try the main endpoint first
       try {
         const data = await trainingCenterAPI.getInstructorAuthorizations(params);
         console.log('Instructor Authorizations API Response:', data);
-        
+
         // Handle different response structures
         let authorizationsList = [];
         let totalItems = 0;
         let totalPages = 1;
-        
+
         if (data?.authorizations) {
           authorizationsList = data.authorizations;
         } else if (data?.data?.authorizations) {
@@ -91,10 +119,17 @@ const InstructorAuthorizationsScreen = () => {
         } else if (Array.isArray(data)) {
           authorizationsList = data;
         }
-        
+
         console.log('Processed authorizations:', authorizationsList);
         setAuthorizations(authorizationsList);
-        
+
+        // Update pagination info
+        if (data) {
+          const total = data.total || authorizationsList.length;
+          setTotalItems(total);
+          setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+        }
+
         return;
       } catch (mainError) {
         // If 404, try alternative endpoint (getAuthorizationStatus might have instructor authorizations)
@@ -103,15 +138,25 @@ const InstructorAuthorizationsScreen = () => {
           try {
             const altData = await trainingCenterAPI.getAuthorizationStatus(params);
             console.log('Alternative API Response:', altData);
-            
+
             // Check if authorizations contain instructor authorizations
             const allAuths = altData?.authorizations || altData?.data || [];
-            const instructorAuths = allAuths.filter(auth => 
+            const instructorAuths = allAuths.filter(auth =>
               auth.instructor_id || auth.instructor || auth.type === 'instructor'
             );
-            
+
             if (instructorAuths.length > 0) {
               setAuthorizations(instructorAuths);
+
+              // Only update total if we have pagination info (usually fallback endpoint doesn't support pagination same way or we have to use length)
+              // But if altData has pagination fields, use them.
+              if (altData) {
+                const total = altData.total || instructorAuths.length;
+                setTotalItems(total);
+                setTotalPages(altData.last_page || Math.ceil(total / limitArg) || 1);
+              }
+              // Mark as having data so subsequent loads can be silent (no spinner)
+              hasDataRef.current = true;
               return;
             }
           } catch (altError) {
@@ -121,7 +166,7 @@ const InstructorAuthorizationsScreen = () => {
         throw mainError;
       }
     } catch (error) {
-      console.error('Failed to load authorizations:', error);
+      console.error('Failed to load instructor authorizations:', error);
       console.error('Error details:', {
         status: error.response?.status,
         data: error.response?.data,
@@ -143,7 +188,7 @@ const InstructorAuthorizationsScreen = () => {
       alert('This authorization has already been paid.');
       return;
     }
-    
+
     setSelectedAuthorization(authorization);
     setPaymentForm({
       payment_method: 'credit_card', // Changed from 'wallet' to 'credit_card' - wallet option removed
@@ -265,7 +310,7 @@ const InstructorAuthorizationsScreen = () => {
       }
 
       await trainingCenterAPI.payInstructorAuthorization(selectedAuthorization.id, submitData);
-      await loadData();
+      await loadData(page, perPage);
       setPaymentModalOpen(false);
       setShowStripeModal(false);
       setSelectedAuthorization(null);
@@ -273,7 +318,7 @@ const InstructorAuthorizationsScreen = () => {
       alert('Payment successful. Instructor is now officially authorized.');
     } catch (error) {
       console.error('Failed to complete authorization payment:', error);
-      
+
       // Handle different error types
       if (error.response?.status === 400) {
         const errorData = error.response.data;
@@ -283,8 +328,8 @@ const InstructorAuthorizationsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -328,7 +373,7 @@ const InstructorAuthorizationsScreen = () => {
       const response = await trainingCenterAPI.createInstructorAuthorizationPaymentIntent(selectedAuthorization.id, {
         authorization_price: authorizationPrice,
       });
-      
+
       if (response.success && response.client_secret && response.payment_intent_id) {
         // Store full payment intent data including new destination charge fields
         setPaymentIntentData({
@@ -349,14 +394,14 @@ const InstructorAuthorizationsScreen = () => {
       }
     } catch (error) {
       console.error('Failed to create payment intent:', error);
-      
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -376,8 +421,8 @@ const InstructorAuthorizationsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -460,8 +505,8 @@ const InstructorAuthorizationsScreen = () => {
       sortable: true,
       render: (value, row) => {
         const statusClass = row.status === 'approved' ? 'approved' :
-                           row.status === 'rejected' ? 'rejected' :
-                           row.status === 'returned' ? 'returned' : 'pending';
+          row.status === 'rejected' ? 'rejected' :
+            row.status === 'returned' ? 'returned' : 'pending';
         return (
           <div className="status-container">
             <span className={`status-badge ${statusClass}`}>
@@ -479,7 +524,7 @@ const InstructorAuthorizationsScreen = () => {
       sortable: true,
       render: (value, row) => {
         const paymentStatusClass = row.payment_status === 'paid' ? 'paid' :
-                                  row.payment_status === 'failed' ? 'failed' : 'pending';
+          row.payment_status === 'failed' ? 'failed' : 'pending';
         return (
           <div className="payment-status-container">
             <span className={`payment-status-badge ${paymentStatusClass}`}>
@@ -545,14 +590,14 @@ const InstructorAuthorizationsScreen = () => {
       const instructorEmail = auth.instructor?.email || '';
       const accName = auth.acc?.name || '';
       const trainingCenterName = auth.training_center?.name || '';
-      
+
       // Get course names
       const courseNames = auth.courses && Array.isArray(auth.courses)
         ? auth.courses.map(c => typeof c === 'object' ? (c?.name || c?.course_name || '') : (c || '')).join(' ')
         : auth.course
-        ? (typeof auth.course === 'object' ? (auth.course?.name || auth.course?.course_name || '') : (auth.course || ''))
-        : '';
-      
+          ? (typeof auth.course === 'object' ? (auth.course?.name || auth.course?.course_name || '') : (auth.course || ''))
+          : '';
+
       // Combine all searchable text
       const searchText = [
         instructorName,
@@ -564,7 +609,7 @@ const InstructorAuthorizationsScreen = () => {
         auth.status || '',
         auth.payment_status || '',
       ].filter(Boolean).join(' ').toLowerCase();
-      
+
       return {
         ...auth,
         _searchText: searchText,
@@ -582,39 +627,65 @@ const InstructorAuthorizationsScreen = () => {
           data={dataWithSearchText}
           onRowClick={handleViewDetails}
           isLoading={loading}
-          emptyMessage={
-            authorizations.length === 0 && !loading ? (
-              <div className="empty-state-container">
-                <div className="empty-state-icon-container">
-                  <Users className="text-gray-400" size={32} />
-                </div>
-                <p className="empty-state-title">No authorization requests found</p>
-                <p className="empty-state-subtitle">To see authorizations here, you need to request authorization for an instructor first</p>
-                <div className="empty-state-help">
-                  <p className="empty-state-help-title">💡 How to get started:</p>
-                  <ol className="empty-state-help-list">
-                    <li>Go to <strong>Instructors</strong> page and create/add an instructor</li>
-                    <li>Click <strong>Request Authorization</strong> button for that instructor</li>
-                    <li>Select an ACC and courses for authorization</li>
-                    <li>Wait for ACC Admin to approve and set authorization price</li>
-                    <li>Wait for Group Admin approval</li>
-                    <li>Then come back here to complete payment!</li>
-                  </ol>
-                  <div className="empty-state-help-note">
-                    <p className="empty-state-help-note-text">
-                      <strong>Note:</strong> Authorizations will only appear here after you've submitted a request and it's been approved by ACC Admin.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : 'No authorizations found matching your filters'
-          }
+          emptyMessage="No authorizations found matching your filters"
           searchable={true}
-          filterable={true}
-          searchPlaceholder="Search by instructor name, ACC, course, or training center..."
-          filterOptions={filterOptions}
+          searchValue={searchTerm}
+          onSearch={(value) => {
+            setSearchTerm(value);
+            setPage(1);
+          }}
+          searchPlaceholder="Search by name, ID, or ACC..."
+          // Remove default filterOptions and use customFilters for server-side filtering
+          filterable={false}
+          customFilters={
+            <div className="flex gap-2">
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
+                value={statusFilter}
+                onChange={(e) => {
+                  hasDataRef.current = false;
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="returned">Returned</option>
+              </select>
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
+                value={paymentStatusFilter}
+                onChange={(e) => {
+                  hasDataRef.current = false;
+                  setPaymentStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All Payment Status</option>
+                <option value="pending">Unpaid</option>
+                <option value="paid">Paid</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+          }
           sortable={true}
-          defaultFilter={statusFilter}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={(p) => {
+            hasDataRef.current = false;
+            setPage(p);
+          }}
+          onPerPageChange={(newPerPage) => {
+            hasDataRef.current = false;
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -709,41 +780,41 @@ const InstructorAuthorizationsScreen = () => {
             <DetailForm
               data={selectedAuthorization}
               fields={[
-                { 
-                  key: 'instructor', 
-                  label: 'Instructor', 
+                {
+                  key: 'instructor',
+                  label: 'Instructor',
                   icon: Users,
                   render: (value) => {
                     if (!value) return 'N/A';
                     return `${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A';
                   }
                 },
-                { 
-                  key: 'acc', 
-                  label: 'ACC', 
+                {
+                  key: 'acc',
+                  label: 'ACC',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },
-                { 
-                  key: 'courses', 
-                  label: 'Courses', 
+                {
+                  key: 'courses',
+                  label: 'Courses',
                   icon: BookOpen,
                   render: (value, data) => {
                     if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
-                      return data.courses.map((course, idx) => 
+                      return data.courses.map((course, idx) =>
                         typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'
                       ).join(', ');
                     } else if (data.course) {
-                      return typeof data.course === 'object' 
-                        ? data.course?.name || data.course?.course_name || 'N/A' 
+                      return typeof data.course === 'object'
+                        ? data.course?.name || data.course?.course_name || 'N/A'
                         : data.course || 'N/A';
                     }
                     return 'N/A';
                   }
                 },
-                { 
-                  key: 'authorization_price', 
-                  label: 'Authorization Price', 
+                {
+                  key: 'authorization_price',
+                  label: 'Authorization Price',
                   icon: DollarSign,
                   render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
                 },

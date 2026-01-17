@@ -2,8 +2,30 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import fabric from '../../../utils/fabric-wrapper.js';
 import { accAPI } from '../../../services/api';
-import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold } from 'lucide-react';
+import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold, ChevronDown, ChevronRight } from 'lucide-react';
 import './CertificateDesignerScreen.css';
+
+const SidebarSection = ({ title, children, defaultOpen = true }) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+
+    return (
+        <div className="sidebar-section border-b border-gray-100 last:border-0 pb-2">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="section-title w-full flex items-center justify-between hover:bg-gray-50 p-1 rounded cursor-pointer group"
+            >
+                <span className="group-hover:text-gray-900 transition-colors">{title}</span>
+                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+
+            {isOpen && (
+                <div className="mt-2 animate-in slide-in-from-top-1 fade-in duration-200">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const CertificateDesignerScreen = () => {
     const { id } = useParams();
@@ -308,12 +330,12 @@ const CertificateDesignerScreen = () => {
     };
 
     // Actions
-    const addPlaceholder = (variableName, isCustomText = false) => {
+    const addPlaceholder = (variableName, isCustomText = false, customTextContent = 'Custom Text') => {
         if (!canvas.current) return;
 
         // Use example data for display if it's a variable, otherwise use custom text
         const displayContent = isCustomText
-            ? 'Custom Text'
+            ? customTextContent
             : (exampleData[variableName] || `{{${variableName}}}`);
 
         const text = new fabric.Text(displayContent, {
@@ -766,8 +788,7 @@ const CertificateDesignerScreen = () => {
                 {/* Left Sidebar - Tools */}
                 <div className="designer-sidebar">
                     {/* Background Section */}
-                    <div className="sidebar-section">
-                        <div className="section-title">Background</div>
+                    <SidebarSection title="Background" defaultOpen={true}>
                         <label className="tool-btn primary">
                             <Upload size={18} />
                             {uploadingImage ? 'Uploading...' : 'Upload Image'}
@@ -779,11 +800,10 @@ const CertificateDesignerScreen = () => {
                                 disabled={uploadingImage}
                             />
                         </label>
-                    </div>
+                    </SidebarSection>
 
-                    {/* Dynamic Fields Section */}
-                    <div className="sidebar-section">
-                        <div className="section-title">Dynamic Fields</div>
+                    {/* Dynamic Elements Section */}
+                    <SidebarSection title="Dynamic Elements" defaultOpen={true}>
                         <div className="grid grid-cols-1 gap-2">
                             {availablePlaceholders.map(field => (
                                 <button
@@ -798,21 +818,35 @@ const CertificateDesignerScreen = () => {
                                 </button>
                             ))}
                         </div>
-                    </div>
+                    </SidebarSection>
 
                     {/* Static Elements Section */}
-                    <div className="sidebar-section">
-                        <div className="section-title">Elements</div>
-                        <button
-                            onClick={() => addPlaceholder(null, true)}
-                            className="tool-btn"
-                        >
-                            <div className="p-1 bg-purple-50 text-purple-600 rounded">
-                                <Type size={14} />
-                            </div>
-                            Custom Text
-                        </button>
-                    </div>
+                    <SidebarSection title="Elements" defaultOpen={true}>
+                        <div className="grid grid-cols-1 gap-2">
+                            <button
+                                onClick={() => addPlaceholder(null, true)}
+                                className="tool-btn"
+                            >
+                                <div className="p-1 bg-purple-50 text-purple-600 rounded">
+                                    <Type size={14} />
+                                </div>
+                                Custom Text
+                            </button>
+                            {/* Add Dynamic Element Titles as Static Elements */}
+                            {availablePlaceholders.map(field => (
+                                <button
+                                    key={`static-${field.variable}`}
+                                    onClick={() => addPlaceholder(null, true, field.label)}
+                                    className="tool-btn"
+                                >
+                                    <div className="p-1 bg-gray-50 text-gray-600 rounded">
+                                        <Type size={14} />
+                                    </div>
+                                    {field.label} (Title)
+                                </button>
+                            ))}
+                        </div>
+                    </SidebarSection>
                 </div>
 
                 {/* Main Workspace */}

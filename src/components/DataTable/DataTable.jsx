@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X, ArrowUpDown, ArrowUp, ArrowDown, Loader } from 'lucide-react';
 import './DataTable.css';
 
-const DataTable = ({ 
-  columns, 
-  data, 
-  onEdit, 
-  onDelete, 
+const DataTable = ({
+  columns,
+  data,
+  onEdit,
+  onDelete,
   onView,
   onRowClick,
   isLoading = false,
@@ -20,9 +20,16 @@ const DataTable = ({
   customFilters = null,
   expandable = false,
   renderExpandedRow = null,
-  getExpandedRows = null
+  getExpandedRows = null,
+
+  searchValue = undefined, // Optional controlled search value
+  onSearch = null, // Optional search callback
+  isSearchLoading = false // Optional search loading state
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [internalSearchTerm, setInternalSearchTerm] = useState('');
+  // Use controlled value if provided, otherwise internal state
+  const searchTerm = searchValue !== undefined ? searchValue : internalSearchTerm;
+
   const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
   const [showFilters, setShowFilters] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -69,19 +76,19 @@ const DataTable = ({
 
   const handleRowClick = (row, e) => {
     // Don't trigger row click if clicking on action buttons or clickable elements
-    if (e.target.closest('button') || 
-        e.target.closest('a') || 
-        e.target.closest('.enrollment-clickable') ||
-        e.target.classList.contains('enrollment-clickable')) {
+    if (e.target.closest('button') ||
+      e.target.closest('a') ||
+      e.target.closest('.enrollment-clickable') ||
+      e.target.classList.contains('enrollment-clickable')) {
       return;
     }
-    
+
     // If expandable and clicking on the row itself, toggle expansion
     if (expandable && renderExpandedRow && row.id) {
       toggleRowExpand(row.id, e);
       return;
     }
-    
+
     if (onRowClick) {
       onRowClick(row);
     } else if (onView) {
@@ -92,7 +99,7 @@ const DataTable = ({
   // Handle sorting
   const handleSort = (column) => {
     if (!sortable || column.sortable === false) return;
-    
+
     let direction = 'asc';
     if (sortConfig.key === column.accessor && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -105,7 +112,11 @@ const DataTable = ({
     let filtered = [...data];
 
     // Apply search filter
-    if (searchable && searchTerm) {
+    // Apply search filter
+    // If onSearch is provided, we assume the parent handles filtering (server-side or pre-processed), 
+    // unless explicitly desired. For now, we skip internal filtering if onSearch is present
+    // to avoid double filtering or conflicting logic.
+    if (searchable && searchTerm && !onSearch) {
       const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(row => {
         // Check if row has _searchText field (for custom searchable text)
@@ -115,31 +126,31 @@ const DataTable = ({
             return true;
           }
         }
-        
+
         // Also search in columns, but only in meaningful text fields
         const foundInColumns = columns.some(column => {
           // Skip actions column
           if (column.accessor === 'actions') {
             return false;
           }
-          
+
           // Skip numeric-only columns like enrolled_count, capacity, etc.
-          if (column.accessor === 'enrolled_count' || 
-              column.accessor === 'max_capacity' || 
-              column.accessor === 'capacity' ||
-              column.accessor === 'duration_hours' ||
-              column.accessor === 'base_price') {
+          if (column.accessor === 'enrolled_count' ||
+            column.accessor === 'max_capacity' ||
+            column.accessor === 'capacity' ||
+            column.accessor === 'duration_hours' ||
+            column.accessor === 'base_price') {
             return false;
           }
-          
+
           const value = row[column.accessor];
           if (value === null || value === undefined) return false;
-          
+
           // Skip pure numeric values
           if (typeof value === 'number') {
             return false;
           }
-          
+
           // Handle object values (like course, training_center, instructor)
           if (typeof value === 'object' && !Array.isArray(value)) {
             // Search in object properties that are likely text fields
@@ -154,22 +165,22 @@ const DataTable = ({
               return false;
             });
           }
-          
+
           // Handle array values
           if (Array.isArray(value)) {
-            return value.some(item => 
+            return value.some(item =>
               String(item).toLowerCase().includes(searchLower)
             );
           }
-          
+
           // Only search in string values
           if (typeof value === 'string') {
             return value.toLowerCase().includes(searchLower);
           }
-          
+
           return false;
         });
-        
+
         return foundInColumns;
       });
     }
@@ -240,16 +251,34 @@ const DataTable = ({
                   type="text"
                   placeholder={searchPlaceholder}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (onSearch) {
+                      onSearch(val);
+                    } else {
+                      setInternalSearchTerm(val);
+                    }
+                  }}
                   className="data-table-search-input"
                 />
-                {searchTerm && (
+                {searchTerm && !isSearchLoading && (
                   <button
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => {
+                      if (onSearch) {
+                        onSearch('');
+                      } else {
+                        setInternalSearchTerm('');
+                      }
+                    }}
                     className="data-table-search-clear"
                   >
                     <X size={16} />
                   </button>
+                )}
+                {isSearchLoading && (
+                  <div className="data-table-search-loading">
+                    <Loader size={16} className="animate-spin text-gray-400" />
+                  </div>
                 )}
               </div>
             )}
@@ -263,9 +292,8 @@ const DataTable = ({
                 <div className="data-table-filter-wrapper" ref={filterRef}>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`data-table-filter-button ${
-                      selectedFilter !== 'all' ? 'data-table-filter-button-active' : ''
-                    }`}
+                    className={`data-table-filter-button ${selectedFilter !== 'all' ? 'data-table-filter-button-active' : ''
+                      }`}
                   >
                     <Filter size={18} />
                     <span className="data-table-filter-text">
@@ -281,9 +309,8 @@ const DataTable = ({
                             setSelectedFilter(option.value);
                             setShowFilters(false);
                           }}
-                          className={`data-table-filter-option ${
-                            selectedFilter === option.value ? 'data-table-filter-option-active' : ''
-                          }`}
+                          className={`data-table-filter-option ${selectedFilter === option.value ? 'data-table-filter-option-active' : ''
+                            }`}
                         >
                           {option.label}
                         </button>
@@ -304,220 +331,220 @@ const DataTable = ({
       {/* Table */}
       <div className="data-table-container">
         <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="data-table-header">
-            <tr>
-              {columns.map((column, index) => {
-                const isSortable = sortable && column.sortable !== false;
-                const isSorted = sortConfig.key === column.accessor;
-                return (
-                  <th
-                    key={index}
-                    className={`data-table-th ${isSortable ? 'data-table-th-sortable' : ''}`}
-                    onClick={() => isSortable && handleSort(column)}
-                  >
-                    <div className="data-table-th-content">
-                      <span>{column.header}</span>
-                      {isSortable && (
-                        <span className="data-table-sort-icon">
-                          {isSorted ? (
-                            sortConfig.direction === 'asc' ? (
-                              <ArrowUp size={14} />
-                            ) : (
-                              <ArrowDown size={14} />
-                            )
-                          ) : (
-                            <ArrowUpDown size={14} />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                );
-              })}
-              {(onEdit || onDelete || onView) && (
-                <th className="data-table-th">
-                  Actions
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {isLoading ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="data-table-header">
               <tr>
-                <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-12 text-center">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
-                  </div>
-                </td>
-              </tr>
-            ) : filteredData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
-                  {searchTerm || selectedFilter !== 'all' ? 'No results found. Try adjusting your search or filters.' : emptyMessage}
-                </td>
-              </tr>
-            ) : (
-              <>
-                {filteredData.map((row, rowIndex) => {
-                  const rowId = row.id || rowIndex;
-                  const isExpanded = expandedRows.has(rowId);
+                {columns.map((column, index) => {
+                  const isSortable = sortable && column.sortable !== false;
+                  const isSorted = sortConfig.key === column.accessor;
                   return (
-                    <React.Fragment key={rowId}>
-                      <tr 
-                        className={`hover:bg-gray-50 transition-all duration-200 ease-out hover:shadow-sm ${(expandable && renderExpandedRow) || (onRowClick || onView) ? 'cursor-pointer' : ''} stagger-item`}
-                        onClick={(e) => handleRowClick(row, e)}
-                        style={{ '--animation-delay': `${rowIndex * 0.03}s` }}
-                      >
-                        {columns.map((column, colIndex) => {
-                          const value = row[column.accessor];
-                          let displayValue = value;
-                          
-                          // If no render function and value is an object, try to extract a meaningful string
-                          if (!column.render && value && typeof value === 'object' && !Array.isArray(value)) {
-                            // Try common object properties
-                            displayValue = value.name || value.title || value.first_name || JSON.stringify(value);
-                          }
-                          
-                          return (
-                            <td key={colIndex} className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
-                              {column.render ? column.render(value, row, { isExpanded, toggleExpand: (e) => toggleRowExpand(rowId, e) }) : displayValue}
-                            </td>
-                          );
-                        })}
-                  {(onEdit || onDelete || onView) && (
-                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center space-x-2">
-                        {(() => {
-                          // Always show exactly 2 buttons
-                          // Priority: Edit + Delete > View + Edit > View + Delete > View + View (fallback)
-                          const buttons = [];
-                          
-                          if (onEdit && onDelete) {
-                            // Show Edit and Delete
-                            buttons.push(
-                              <button
-                                key="edit"
-                                onClick={() => onEdit(row)}
-                                className="data-table-action-btn data-table-action-edit"
-                                title="Edit"
-                              >
-                                <Edit size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="delete"
-                                onClick={() => onDelete(row)}
-                                className="data-table-action-btn data-table-action-delete"
-                                title="Delete"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            );
-                          } else if (onView && onEdit) {
-                            // Show View and Edit
-                            buttons.push(
-                              <button
-                                key="view"
-                                onClick={() => onView(row)}
-                                className="data-table-action-btn data-table-action-view"
-                                title="View"
-                              >
-                                <Eye size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="edit"
-                                onClick={() => onEdit(row)}
-                                className="data-table-action-btn data-table-action-edit"
-                                title="Edit"
-                              >
-                                <Edit size={18} />
-                              </button>
-                            );
-                          } else if (onView && onDelete) {
-                            // Show View and Delete
-                            buttons.push(
-                              <button
-                                key="view"
-                                onClick={() => onView(row)}
-                                className="data-table-action-btn data-table-action-view"
-                                title="View"
-                              >
-                                <Eye size={18} />
-                              </button>
-                            );
-                            buttons.push(
-                              <button
-                                key="delete"
-                                onClick={() => onDelete(row)}
-                                className="data-table-action-btn data-table-action-delete"
-                                title="Delete"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            );
-                          } else if (onEdit) {
-                            // Only Edit - show Edit once
-                            buttons.push(
-                              <button
-                                key="edit"
-                                onClick={() => onEdit(row)}
-                                className="data-table-action-btn data-table-action-edit"
-                                title="Edit"
-                              >
-                                <Edit size={18} />
-                              </button>
-                            );
-                          } else if (onDelete) {
-                            // Only Delete - show Delete once
-                            buttons.push(
-                              <button
-                                key="delete"
-                                onClick={() => onDelete(row)}
-                                className="data-table-action-btn data-table-action-delete"
-                                title="Delete"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            );
-                          } else if (onView) {
-                            // Only View - show View once
-                            buttons.push(
-                              <button
-                                key="view"
-                                onClick={() => onView(row)}
-                                className="data-table-action-btn data-table-action-view"
-                                title="View"
-                              >
-                                <Eye size={18} />
-                              </button>
-                            );
-                          }
-                          
-                          return buttons;
-                        })()}
+                    <th
+                      key={index}
+                      className={`data-table-th ${isSortable ? 'data-table-th-sortable' : ''}`}
+                      onClick={() => isSortable && handleSort(column)}
+                    >
+                      <div className="data-table-th-content">
+                        <span>{column.header}</span>
+                        {isSortable && (
+                          <span className="data-table-sort-icon">
+                            {isSorted ? (
+                              sortConfig.direction === 'asc' ? (
+                                <ArrowUp size={14} />
+                              ) : (
+                                <ArrowDown size={14} />
+                              )
+                            ) : (
+                              <ArrowUpDown size={14} />
+                            )}
+                          </span>
+                        )}
                       </div>
-                    </td>
-                  )}
-                      </tr>
-                      {/* Expanded Row */}
-                      {expandable && renderExpandedRow && isExpanded && (
-                        <tr className="bg-gray-50">
-                          <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-4">
-                            {renderExpandedRow(row)}
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
+                    </th>
                   );
                 })}
-              </>
-            )}
-          </tbody>
-        </table>
+                {(onEdit || onDelete || onView) && (
+                  <th className="data-table-th">
+                    Actions
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-12 text-center">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-primary-600"></div>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
+                    {searchTerm || selectedFilter !== 'all' ? 'No results found. Try adjusting your search or filters.' : emptyMessage}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {filteredData.map((row, rowIndex) => {
+                    const rowId = row.id || rowIndex;
+                    const isExpanded = expandedRows.has(rowId);
+                    return (
+                      <React.Fragment key={rowId}>
+                        <tr
+                          className={`hover:bg-gray-50 transition-all duration-200 ease-out hover:shadow-sm ${(expandable && renderExpandedRow) || (onRowClick || onView) ? 'cursor-pointer' : ''} stagger-item`}
+                          onClick={(e) => handleRowClick(row, e)}
+                          style={{ '--animation-delay': `${rowIndex * 0.03}s` }}
+                        >
+                          {columns.map((column, colIndex) => {
+                            const value = row[column.accessor];
+                            let displayValue = value;
+
+                            // If no render function and value is an object, try to extract a meaningful string
+                            if (!column.render && value && typeof value === 'object' && !Array.isArray(value)) {
+                              // Try common object properties
+                              displayValue = value.name || value.title || value.first_name || JSON.stringify(value);
+                            }
+
+                            return (
+                              <td key={colIndex} className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
+                                {column.render ? column.render(value, row, { isExpanded, toggleExpand: (e) => toggleRowExpand(rowId, e) }) : displayValue}
+                              </td>
+                            );
+                          })}
+                          {(onEdit || onDelete || onView) && (
+                            <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center space-x-2">
+                                {(() => {
+                                  // Always show exactly 2 buttons
+                                  // Priority: Edit + Delete > View + Edit > View + Delete > View + View (fallback)
+                                  const buttons = [];
+
+                                  if (onEdit && onDelete) {
+                                    // Show Edit and Delete
+                                    buttons.push(
+                                      <button
+                                        key="edit"
+                                        onClick={() => onEdit(row)}
+                                        className="data-table-action-btn data-table-action-edit"
+                                        title="Edit"
+                                      >
+                                        <Edit size={18} />
+                                      </button>
+                                    );
+                                    buttons.push(
+                                      <button
+                                        key="delete"
+                                        onClick={() => onDelete(row)}
+                                        className="data-table-action-btn data-table-action-delete"
+                                        title="Delete"
+                                      >
+                                        <Trash2 size={18} />
+                                      </button>
+                                    );
+                                  } else if (onView && onEdit) {
+                                    // Show View and Edit
+                                    buttons.push(
+                                      <button
+                                        key="view"
+                                        onClick={() => onView(row)}
+                                        className="data-table-action-btn data-table-action-view"
+                                        title="View"
+                                      >
+                                        <Eye size={18} />
+                                      </button>
+                                    );
+                                    buttons.push(
+                                      <button
+                                        key="edit"
+                                        onClick={() => onEdit(row)}
+                                        className="data-table-action-btn data-table-action-edit"
+                                        title="Edit"
+                                      >
+                                        <Edit size={18} />
+                                      </button>
+                                    );
+                                  } else if (onView && onDelete) {
+                                    // Show View and Delete
+                                    buttons.push(
+                                      <button
+                                        key="view"
+                                        onClick={() => onView(row)}
+                                        className="data-table-action-btn data-table-action-view"
+                                        title="View"
+                                      >
+                                        <Eye size={18} />
+                                      </button>
+                                    );
+                                    buttons.push(
+                                      <button
+                                        key="delete"
+                                        onClick={() => onDelete(row)}
+                                        className="data-table-action-btn data-table-action-delete"
+                                        title="Delete"
+                                      >
+                                        <Trash2 size={18} />
+                                      </button>
+                                    );
+                                  } else if (onEdit) {
+                                    // Only Edit - show Edit once
+                                    buttons.push(
+                                      <button
+                                        key="edit"
+                                        onClick={() => onEdit(row)}
+                                        className="data-table-action-btn data-table-action-edit"
+                                        title="Edit"
+                                      >
+                                        <Edit size={18} />
+                                      </button>
+                                    );
+                                  } else if (onDelete) {
+                                    // Only Delete - show Delete once
+                                    buttons.push(
+                                      <button
+                                        key="delete"
+                                        onClick={() => onDelete(row)}
+                                        className="data-table-action-btn data-table-action-delete"
+                                        title="Delete"
+                                      >
+                                        <Trash2 size={18} />
+                                      </button>
+                                    );
+                                  } else if (onView) {
+                                    // Only View - show View once
+                                    buttons.push(
+                                      <button
+                                        key="view"
+                                        onClick={() => onView(row)}
+                                        className="data-table-action-btn data-table-action-view"
+                                        title="View"
+                                      >
+                                        <Eye size={18} />
+                                      </button>
+                                    );
+                                  }
+
+                                  return buttons;
+                                })()}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                        {/* Expanded Row */}
+                        {expandable && renderExpandedRow && isExpanded && (
+                          <tr className="bg-gray-50">
+                            <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-4">
+                              {renderExpandedRow(row)}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </>

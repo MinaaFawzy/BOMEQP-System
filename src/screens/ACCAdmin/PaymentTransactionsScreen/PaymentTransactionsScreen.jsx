@@ -6,6 +6,7 @@ import Modal from '../../../components/Modal/Modal';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import Pagination from '../../../components/Pagination/Pagination';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
@@ -15,9 +16,20 @@ const PaymentTransactionsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  // Filters & Pagination
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   const [showTypeFilters, setShowTypeFilters] = useState(false);
+  const [showStatusFilters, setShowStatusFilters] = useState(false);
   const typeFilterRef = useRef(null);
+  const statusFilterRef = useRef(null);
 
   useEffect(() => {
     setHeaderTitle('Payment Transactions');
@@ -30,7 +42,7 @@ const PaymentTransactionsScreen = () => {
 
   useEffect(() => {
     loadTransactions();
-  }, []);
+  }, [page, perPage, searchTerm, typeFilter, statusFilter]);
 
   // Close type filter dropdown when clicking outside
   useEffect(() => {
@@ -38,31 +50,38 @@ const PaymentTransactionsScreen = () => {
       if (typeFilterRef.current && !typeFilterRef.current.contains(event.target)) {
         setShowTypeFilters(false);
       }
+      if (statusFilterRef.current && !statusFilterRef.current.contains(event.target)) {
+        setShowStatusFilters(false);
+      }
     };
 
-    if (showTypeFilters) {
+    if (showTypeFilters || showStatusFilters) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showTypeFilters]);
+  }, [showTypeFilters, showStatusFilters]);
 
   const loadTransactions = async () => {
     setLoading(true);
     try {
       const params = {
-        per_page: 1000, // Load all data
+        page: page,
+        per_page: perPage,
+        search: searchTerm,
+        type: typeFilter !== 'all' ? typeFilter : undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
       };
 
       const response = await accAPI.getPaymentTransactions(params);
       const data = response?.data || response || [];
       const summaryData = response?.summary || null;
-      
+
       let transactionsArray = Array.isArray(data) ? data : (data?.data || []);
-      
-      // Add _searchText for better search functionality
+
+      // Add _searchText for better search functionality (fallback if server search is weak, but mainly for consistent data structure)
       transactionsArray = transactionsArray.map(transaction => ({
         ...transaction,
         _searchText: [
@@ -75,16 +94,23 @@ const PaymentTransactionsScreen = () => {
           transaction.payee?.name
         ].filter(Boolean).join(' ').toLowerCase()
       }));
-      
+
       setTransactions(transactionsArray);
       setSummary(summaryData);
+
+      // Update Pagination
+      if (response && (response.total !== undefined || (response.meta && response.meta.total !== undefined))) {
+        const total = response.total || response.meta?.total || transactionsArray.length;
+        setTotalItems(total);
+        const lastPage = response.last_page || response.meta?.last_page || Math.ceil(total / perPage) || 1;
+        setTotalPages(lastPage);
+      }
     } catch (error) {
       console.error('Failed to load transactions:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
       console.error('Error details:', error);
       setTransactions([]);
       setSummary(null);
-      // Don't show alert, just log - let user see empty state
     } finally {
       setLoading(false);
     }
@@ -150,11 +176,10 @@ const PaymentTransactionsScreen = () => {
       sortable: true,
       render: (value, row) => (
         <div className="flex items-center">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
-            isReceived(row)
-              ? 'bg-gradient-to-br from-green-100 to-green-200'
-              : 'bg-gradient-to-br from-red-100 to-red-200'
-          }`}>
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${isReceived(row)
+            ? 'bg-gradient-to-br from-green-100 to-green-200'
+            : 'bg-gradient-to-br from-red-100 to-red-200'
+            }`}>
             {isReceived(row) ? (
               <ArrowDownCircle className="h-5 w-5 text-green-600" />
             ) : (
@@ -290,11 +315,9 @@ const PaymentTransactionsScreen = () => {
     }
   ], []);
 
-  // Filter transactions by type
-  const filteredTransactionsByType = useMemo(() => {
-    if (typeFilter === 'all') return transactions;
-    return transactions.filter(transaction => transaction.transaction_type === typeFilter);
-  }, [transactions, typeFilter]);
+  // Filter transactions by type - NOW handled server-side, so this just returns raw transactions
+  // or checks for consistency if needed, but primarily we use 'transactions' directly
+  const filteredTransactions = transactions;
 
   // Type filter options
   const typeFilterOptions = useMemo(() => [
@@ -310,25 +333,25 @@ const PaymentTransactionsScreen = () => {
   // Filter options for status
   const filterOptions = useMemo(() => [
     { value: 'all', label: 'All Status', filterFn: () => true },
-    { 
-      value: 'completed', 
-      label: 'Completed', 
-      filterFn: (transaction) => transaction.status === 'completed' 
+    {
+      value: 'completed',
+      label: 'Completed',
+      filterFn: (transaction) => transaction.status === 'completed'
     },
-    { 
-      value: 'pending', 
-      label: 'Pending', 
-      filterFn: (transaction) => transaction.status === 'pending' 
+    {
+      value: 'pending',
+      label: 'Pending',
+      filterFn: (transaction) => transaction.status === 'pending'
     },
-    { 
-      value: 'failed', 
-      label: 'Failed', 
-      filterFn: (transaction) => transaction.status === 'failed' 
+    {
+      value: 'failed',
+      label: 'Failed',
+      filterFn: (transaction) => transaction.status === 'failed'
     },
-    { 
-      value: 'refunded', 
-      label: 'Refunded', 
-      filterFn: (transaction) => transaction.status === 'refunded' 
+    {
+      value: 'refunded',
+      label: 'Refunded',
+      filterFn: (transaction) => transaction.status === 'refunded'
     }
   ], []);
 
@@ -386,50 +409,98 @@ const PaymentTransactionsScreen = () => {
         <div className="payment-transactions-filters-wrapper">
           <DataTable
             columns={columns}
-            data={filteredTransactionsByType}
+            data={filteredTransactions} // Use raw transactions, filtered by server
             isLoading={loading}
             searchable={true}
             searchPlaceholder="Search transactions..."
-            filterable={true}
-            filterOptions={filterOptions}
-            defaultFilter="all"
+            searchValue={searchTerm}
+            onSearch={(term) => {
+              setSearchTerm(term);
+              setPage(1); // Reset to first page on search
+            }}
+            filterable={false} // Disable built-in filter, we use custom filters
             sortable={true}
             emptyMessage="No transactions found"
             customFilters={
-              <div className="data-table-filter-wrapper" ref={typeFilterRef}>
-                <button
-                  onClick={() => setShowTypeFilters(!showTypeFilters)}
-                  className={`data-table-filter-button ${
-                    typeFilter !== 'all' ? 'data-table-filter-button-active' : ''
-                  }`}
-                >
-                  <Filter size={18} />
-                  <span className="data-table-filter-text">
-                    {typeFilterOptions.find(opt => opt.value === typeFilter)?.label || 'All Types'}
-                  </span>
-                </button>
-                {showTypeFilters && (
-                  <div className="data-table-filter-dropdown">
-                    {typeFilterOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setTypeFilter(option.value);
-                          setShowTypeFilters(false);
-                        }}
-                        className={`data-table-filter-option ${
-                          typeFilter === option.value ? 'data-table-filter-option-active' : ''
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="flex gap-3 flex-wrap">
+                {/* Type Filter */}
+                <div className="data-table-filter-wrapper" ref={typeFilterRef}>
+                  <button
+                    onClick={() => setShowTypeFilters(!showTypeFilters)}
+                    className={`data-table-filter-button ${typeFilter !== 'all' ? 'data-table-filter-button-active' : ''
+                      }`}
+                  >
+                    <Filter size={18} />
+                    <span className="data-table-filter-text">
+                      {typeFilterOptions.find(opt => opt.value === typeFilter)?.label || 'All Types'}
+                    </span>
+                  </button>
+                  {showTypeFilters && (
+                    <div className="data-table-filter-dropdown">
+                      {typeFilterOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setTypeFilter(option.value);
+                            setShowTypeFilters(false);
+                            setPage(1);
+                          }}
+                          className={`data-table-filter-option ${typeFilter === option.value ? 'data-table-filter-option-active' : ''
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Filter */}
+                <div className="data-table-filter-wrapper" ref={statusFilterRef}>
+                  <button
+                    onClick={() => setShowStatusFilters(!showStatusFilters)}
+                    className={`data-table-filter-button ${statusFilter !== 'all' ? 'data-table-filter-button-active' : ''
+                      }`}
+                  >
+                    <Filter size={18} />
+                    <span className="data-table-filter-text">
+                      {filterOptions.find(opt => opt.value === statusFilter)?.label || 'All Status'}
+                    </span>
+                  </button>
+                  {showStatusFilters && (
+                    <div className="data-table-filter-dropdown">
+                      {filterOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setStatusFilter(option.value);
+                            setShowStatusFilters(false);
+                            setPage(1);
+                          }}
+                          className={`data-table-filter-option ${statusFilter === option.value ? 'data-table-filter-option-active' : ''
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             }
           />
         </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={setPage}
+          onPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Transaction Detail Modal */}
@@ -631,7 +702,7 @@ const PaymentTransactionsScreen = () => {
           </div>
         )}
       </Modal>
-    </div>
+    </div >
   );
 };
 

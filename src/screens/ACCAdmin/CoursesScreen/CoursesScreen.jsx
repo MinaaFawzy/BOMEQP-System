@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { GraduationCap, Plus, Edit, Trash2, Eye, Clock, DollarSign, Hash, Calendar, BookOpen } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, Clock, DollarSign, Hash, Calendar, BookOpen, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import { validateRequired, validateNumber, validateMinLength, validateMaxLength } from '../../../utils/validation';
 import './CoursesScreen.css';
 
@@ -21,6 +22,20 @@ const CoursesScreen = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
+
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [formData, setFormData] = useState({
     sub_category_id: '',
     name: '',
@@ -40,20 +55,30 @@ const CoursesScreen = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     loadSubCategories();
   }, []);
 
+  // Load data when dependencies change
   useEffect(() => {
     loadCourses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [statusFilter, levelFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   // Set header actions and title
   useEffect(() => {
     setHeaderTitle('Courses');
     setHeaderSubtitle('Manage and organize your course catalog');
-    
+
     setHeaderActions(
       <button
         onClick={() => {
@@ -78,27 +103,38 @@ const CoursesScreen = () => {
   const loadCourses = async () => {
     setLoading(true);
     try {
-      // Build query parameters - all filtering is done client-side, no need to send filters to API
+      // Build query parameters for server-side filtering and pagination
       const params = {
-        per_page: 1000, // Load all data
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+        search: debouncedSearch,
       };
-      
-      const data = await accAPI.listCourses(params);
-      
-      // Handle response structure
-      let coursesArray = [];
-      if (data.data) {
-        // Laravel pagination format
-        coursesArray = data.data || [];
-      } else if (data.courses) {
-        // Non-paginated format (fallback)
-        coursesArray = data.courses || [];
-      } else {
-        // Array format
-        coursesArray = Array.isArray(data) ? data : [];
+
+      // Add filters if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
       }
-      
+      if (levelFilter !== 'all') {
+        params.level = levelFilter;
+      }
+
+      const data = await accAPI.listCourses(params);
+
+      // Handle Laravel pagination response
+      const coursesArray = data.data || [];
       setCourses(coursesArray);
+
+      // Update pagination state
+      if (data) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || 1,
+          last_page: data.last_page || 1,
+          total: data.total || 0,
+          from: data.from || 0,
+          to: data.to || 0
+        }));
+      }
     } catch (error) {
       console.error('Failed to load courses:', error);
       setCourses([]);
@@ -107,33 +143,38 @@ const CoursesScreen = () => {
     }
   };
 
-  // Filter data based on filters
-  const filteredData = useMemo(() => {
-    let filtered = [...courses];
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(course => course.status === statusFilter);
-    }
-
-    // Apply level filter
-    if (levelFilter !== 'all') {
-      filtered = filtered.filter(course => course.level === levelFilter);
-    }
-
-    // Add search text for DataTable - include all searchable fields
-    filtered = filtered.map(course => ({
-      ...course,
-      _searchText: `${course.name || ''} ${course.code || ''} ${course.name_ar || ''} ${course.description || ''} ${course.level || ''} ${course.status || ''} ${course.sub_category?.name || ''} ${course.sub_category?.category?.name || ''}`.toLowerCase()
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
     }));
-
-    return filtered;
-  }, [courses, statusFilter, levelFilter]);
+  };
 
   const loadSubCategories = async () => {
     try {
-      const data = await accAPI.listSubCategories();
-      setSubCategories(data.sub_categories || data || []);
+      // Fetch all sub-categories for the dropdown
+      const data = await accAPI.listSubCategories({ per_page: 1000 });
+
+      // Handle various response structures
+      if (data.data && Array.isArray(data.data)) {
+        // Laravel pagination results
+        setSubCategories(data.data);
+      } else if (data.sub_categories && Array.isArray(data.sub_categories)) {
+        // Wrapped in key
+        setSubCategories(data.sub_categories);
+      } else if (Array.isArray(data)) {
+        // Direct array
+        setSubCategories(data);
+      } else {
+        console.warn('Unexpected sub categories response format:', data);
+        setSubCategories([]);
+      }
     } catch (error) {
       console.error('Failed to load sub categories:', error);
       setSubCategories([]);
@@ -338,7 +379,7 @@ const CoursesScreen = () => {
         duration_hours: parseInt(formData.duration_hours),
         max_capacity: parseInt(formData.max_capacity),
       };
-      
+
       // Remove empty optional fields
       if (!formData.name_ar || formData.name_ar.trim() === '') {
         delete payload.name_ar;
@@ -346,7 +387,7 @@ const CoursesScreen = () => {
       if (!formData.description || formData.description.trim() === '') {
         delete payload.description;
       }
-      
+
       // Check if pricing data should be included (pricing is completely optional)
       // According to API docs: if pricing is provided, only base_price and currency are required
       if (pricingData.base_price) {
@@ -355,7 +396,7 @@ const CoursesScreen = () => {
           base_price: parseFloat(pricingData.base_price),
           currency: pricingData.currency,
         };
-        
+
         payload.pricing = pricing;
       }
 
@@ -379,7 +420,7 @@ const CoursesScreen = () => {
       console.error('Error response:', error.response);
       console.error('Error data:', error.response?.data);
       console.error('Error status:', error.response?.status);
-      
+
       if (error.response?.data?.errors) {
         const apiErrors = error.response.data.errors;
         // Handle nested pricing errors (e.g., pricing.base_price -> base_price)
@@ -397,7 +438,7 @@ const CoursesScreen = () => {
       } else {
         setErrors({ general: error.response?.data?.message || error.message || 'Failed to save course' });
       }
-      
+
       alert(`Error: ${error.response?.data?.message || error.message || 'Failed to save course'}`);
     } finally {
       setSaving(false);
@@ -482,10 +523,9 @@ const CoursesScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
+          }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       )
@@ -495,10 +535,10 @@ const CoursesScreen = () => {
       accessor: 'pricing',
       sortable: false,
       render: (value, row) => {
-        const pricing = row.current_price || row.pricing || 
-                       (row.certificate_pricing && row.certificate_pricing.length > 0 
-                         ? row.certificate_pricing[0] 
-                         : null);
+        const pricing = row.current_price || row.pricing ||
+          (row.certificate_pricing && row.certificate_pricing.length > 0
+            ? row.certificate_pricing[0]
+            : null);
         return pricing ? (
           <div className="flex items-center text-sm font-semibold text-gray-900">
             <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
@@ -551,25 +591,67 @@ const CoursesScreen = () => {
 
   return (
     <div>
+      {/* Search and Filters */}
+      <div className="mb-4">
+        <div className="flex gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            />
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <Search size={20} />
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPagination(prev => ({ ...prev, current_page: 1 }));
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={courses}
           isLoading={loading}
-          searchable={true}
+          searchable={false}
           sortable={true}
-          filterable={true}
-          searchPlaceholder="Search by name or code..."
+          filterable={false}
           emptyMessage="No courses found"
-          filterOptions={[
-            { value: 'all', label: 'All Status', filterFn: () => true },
-            { value: 'active', label: 'Active', filterFn: (course) => course.status === 'active' },
-            { value: 'inactive', label: 'Inactive', filterFn: (course) => course.status === 'inactive' }
-          ]}
-          defaultFilter={statusFilter}
           onRowClick={(course) => handleRowClick(course)}
         />
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}
@@ -718,7 +800,7 @@ const CoursesScreen = () => {
             <p className="text-sm text-gray-500 mb-4">
               Optional: Set pricing at creation time. You can create a course without pricing and add it later if needed. Commission percentages are managed by Group Admins separately.
             </p>
-            
+
             {/* Base Price and Currency */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
@@ -847,12 +929,12 @@ const CoursesScreen = () => {
             {/* Pricing Information */}
             {(() => {
               // Check for pricing in multiple possible locations
-              const pricing = selectedCourse.current_price || 
-                             selectedCourse.pricing || 
-                             (selectedCourse.certificate_pricing && selectedCourse.certificate_pricing.length > 0 
-                               ? selectedCourse.certificate_pricing[0] 
-                               : null);
-              
+              const pricing = selectedCourse.current_price ||
+                selectedCourse.pricing ||
+                (selectedCourse.certificate_pricing && selectedCourse.certificate_pricing.length > 0
+                  ? selectedCourse.certificate_pricing[0]
+                  : null);
+
               return pricing ? (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

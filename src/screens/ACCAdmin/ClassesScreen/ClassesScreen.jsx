@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { GraduationCap, Eye, Clock, Calendar, MapPin, Users, User, Building2, BookOpen, Mail, Phone, Globe, CheckCircle, XCircle, FileText, Image as ImageIcon, Hash } from 'lucide-react';
+import { GraduationCap, Eye, Clock, Calendar, MapPin, Users, User, Building2, BookOpen, Mail, Phone, Globe, CheckCircle, XCircle, FileText, Image as ImageIcon, Hash, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './ClassesScreen.css';
 
 const ClassesScreen = () => {
@@ -15,6 +16,29 @@ const ClassesScreen = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('Classes');
     setHeaderSubtitle('View all classes from authorized training centers');
@@ -24,27 +48,63 @@ const ClassesScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Load data when dependencies change
   useEffect(() => {
     loadClasses();
-  }, [statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   const loadClasses = async () => {
     setLoading(true);
     try {
+      // Build query parameters for server-side filtering and pagination
       const params = {
-        per_page: 1000, // Load all data
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+        search: debouncedSearch,
       };
 
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
       const response = await accAPI.listClasses(params);
-      const data = response?.data || response || [];
-      
-      setClasses(Array.isArray(data) ? data : (data?.data || []));
+
+      // Handle Laravel pagination response
+      const classesArray = response?.data || [];
+      setClasses(classesArray);
+
+      // Update pagination state
+      if (response) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: response.current_page || 1,
+          last_page: response.last_page || 1,
+          total: response.total || 0,
+          from: response.from || 0,
+          to: response.to || 0
+        }));
+      }
     } catch (error) {
       console.error('Failed to load classes:', error);
       setClasses([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   const handleViewDetails = useCallback(async (classItem) => {
@@ -65,6 +125,16 @@ const ClassesScreen = () => {
 
   // Define columns for DataTable
   const columns = useMemo(() => [
+    {
+      header: 'Class Name',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="font-semibold text-gray-900">
+          {value || 'N/A'}
+        </div>
+      )
+    },
     {
       header: 'Course',
       accessor: 'course',
@@ -243,23 +313,7 @@ const ClassesScreen = () => {
     }
   ], [handleViewDetails]);
 
-  // Filter data based on status filter
-  const filteredData = useMemo(() => {
-    let filtered = [...classes];
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(classItem => classItem.status === statusFilter);
-    }
-
-    // Add search text for DataTable - include all searchable fields
-    filtered = filtered.map(classItem => ({
-      ...classItem,
-      _searchText: `${classItem.course?.name || ''} ${classItem.course?.code || ''} ${classItem.course?.name_ar || ''} ${classItem.training_center?.name || ''} ${classItem.training_center?.email || ''} ${classItem.instructor?.first_name || ''} ${classItem.instructor?.last_name || ''} ${classItem.instructor?.email || ''} ${classItem.location || ''} ${classItem.location_details || ''} ${classItem.status || ''}`.toLowerCase()
-    }));
-
-    return filtered;
-  }, [classes, statusFilter]);
+  // filteredData removed - using server-side filtering
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -309,27 +363,69 @@ const ClassesScreen = () => {
 
   return (
     <div className="space-y-4">
+      {/* Search and Filters */}
+      <div className="mb-4">
+        <div className="flex gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search classes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            />
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <Search size={20} />
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPagination(prev => ({ ...prev, current_page: 1 }));
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
+            >
+              <option value="all">All Status</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={classes}
           isLoading={loading}
-          searchable={true}
+          searchable={false}
           sortable={true}
-          filterable={true}
-          searchPlaceholder="Search classes..."
+          filterable={false}
           emptyMessage="No classes found"
-          filterOptions={[
-            { value: 'all', label: 'All Status', filterFn: () => true },
-            { value: 'scheduled', label: 'Scheduled', filterFn: (classItem) => classItem.status === 'scheduled' },
-            { value: 'in_progress', label: 'In Progress', filterFn: (classItem) => classItem.status === 'in_progress' },
-            { value: 'completed', label: 'Completed', filterFn: (classItem) => classItem.status === 'completed' },
-            { value: 'cancelled', label: 'Cancelled', filterFn: (classItem) => classItem.status === 'cancelled' }
-          ]}
-          defaultFilter={statusFilter}
           onRowClick={(classItem) => handleRowClick(classItem)}
         />
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Class Detail Modal */}
@@ -536,12 +632,12 @@ const ClassesScreen = () => {
                   <div className="space-y-2">
                     {selectedClass.trainees.map((trainee, index) => {
                       const profileImageUrl = trainee.profile_image_url || trainee.avatar_url || trainee.id_image_url || null;
-                      const imageUrl = profileImageUrl 
-                        ? (profileImageUrl.startsWith('http') 
-                            ? profileImageUrl 
-                            : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${profileImageUrl}`)
+                      const imageUrl = profileImageUrl
+                        ? (profileImageUrl.startsWith('http')
+                          ? profileImageUrl
+                          : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${profileImageUrl}`)
                         : null;
-                      
+
                       return (
                         <div key={trainee.id || index} className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-100 transition-all">
                           <div className="flex items-center space-x-3">
@@ -558,13 +654,13 @@ const ClassesScreen = () => {
                                   }}
                                 />
                               ) : null}
-                              <div 
+                              <div
                                 className={`w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center border-2 border-primary-200 ${imageUrl ? 'hidden' : ''}`}
                               >
                                 <User className="h-5 w-5 text-primary-600" />
                               </div>
                             </div>
-                            
+
                             {/* Name and ID */}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-gray-900">

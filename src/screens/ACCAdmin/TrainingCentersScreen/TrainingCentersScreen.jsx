@@ -2,19 +2,38 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Phone, MapPin, Globe, FileText, Hash, Calendar } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Phone, MapPin, Globe, FileText, Hash, Calendar, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './TrainingCentersScreen.css';
 
 const TrainingCentersScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [allData, setAllData] = useState([]); // Unified data array
+
+  // Data State
+  const [tableData, setTableData] = useState([]);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 15,
+    from: 0,
+    to: 0
+  });
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    returned: 0
+  });
+
+  // UI State
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -22,8 +41,20 @@ const TrainingCentersScreen = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [returnComment, setReturnComment] = useState('');
+
+  // Filter & Search State
   const [statusFilter, setStatusFilter] = useState('all');
-  const hasLoadedRef = useRef(false); // Prevent double loading
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 })); // Reset to page 1 on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Read filter from URL params on mount
   useEffect(() => {
@@ -33,14 +64,12 @@ const TrainingCentersScreen = () => {
     }
   }, [searchParams]);
 
+  // Load data when dependencies change
   useEffect(() => {
-    // Prevent double loading in React Strict Mode
-    if (!hasLoadedRef.current) {
-      hasLoadedRef.current = true;
-      loadData();
-    }
+    loadData();
+    fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
     setHeaderTitle('Training Centers');
@@ -51,129 +80,113 @@ const TrainingCentersScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Fetch stats for tabs
+  const fetchStats = async () => {
+    try {
+      const [activeRes, pendingRes, returnedRes] = await Promise.all([
+        accAPI.listAuthorizedTrainingCenters({ per_page: 1 }),
+        accAPI.getTrainingCenterRequests({ status: 'pending', per_page: 1 }),
+        accAPI.getTrainingCenterRequests({ status: 'returned', per_page: 1 })
+      ]);
+
+      setStats({
+        active: activeRes?.total || 0,
+        pending: pendingRes?.total || 0,
+        returned: returnedRes?.total || 0,
+        total: (activeRes?.total || 0) + (pendingRes?.total || 0) + (returnedRes?.total || 0)
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
       const params = {
-        per_page: 1000, // Load all data
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+        search: debouncedSearch,
       };
-      
-      // Load all data at once with pagination
-      const [pendingData, returnedData, authorizedData] = await Promise.all([
-        accAPI.getTrainingCenterRequests({ ...params, status: 'pending' }),
-        accAPI.getTrainingCenterRequests({ ...params, status: 'returned' }),
-        accAPI.listAuthorizedTrainingCenters(params),
-      ]);
 
-      // Normalize and combine all data
-      // IMPORTANT: Filter out approved requests - they are already in authorized list
-      // The API might return approved requests even when requesting pending/returned
-      const pendingRequests = (pendingData.requests || [])
-        .filter(item => {
-          // Only include items with status 'pending' (exclude approved, rejected, etc.)
-          return item.status === 'pending';
-        })
-        .map(item => ({
-          ...item,
-          _normalizedName: item.training_center?.name || item.name || '',
-          _normalizedEmail: item.training_center?.email || item.email || '',
-          _normalizedDate: item.request_date,
-          _isRequest: true,
-        }));
+      let response;
+      let dataList = [];
+      let isRequest = false;
 
-      const returnedRequests = (returnedData.requests || [])
-        .filter(item => {
-          // Only include items with status 'returned' (exclude approved, rejected, etc.)
-          return item.status === 'returned';
-        })
-        .map(item => ({
-          ...item,
-          _normalizedName: item.training_center?.name || item.name || '',
-          _normalizedEmail: item.training_center?.email || item.email || '',
-          _normalizedDate: item.request_date,
-          _isRequest: true,
-        }));
-
-      const authorizedCenters = (authorizedData.training_centers || []).map(item => ({
-        ...item,
-        _normalizedName: item.name || '',
-        _normalizedEmail: item.email || '',
-        // Use created_at or updated_at for authorized centers (authorized_at may not exist)
-        _normalizedDate: item.authorized_at || item.created_at || item.updated_at,
-        _isRequest: false,
-        status: item.status || 'active', // Ensure status exists
-      }));
-
-      // Helper function to get unique identifier for a training center
-      const getTrainingCenterKey = (item) => {
-        // For requests, use training_center.id or training_center_id
-        if (item._isRequest) {
-          return item.training_center?.id || item.training_center_id || item.id;
+      // Determine endpoint based on filter
+      if (statusFilter === 'active') {
+        // Active/Authorized view
+        response = await accAPI.listAuthorizedTrainingCenters(params);
+        dataList = response?.data || [];
+        isRequest = false;
+      } else {
+        // Requests view (Pending, Returned, All)
+        if (statusFilter !== 'all') {
+          params.status = statusFilter;
         }
-        // For authorized centers, use id
-        return item.id || item.training_center_id;
-      };
+        // If 'all', do not add status param - fetch all requests
 
-      // First, remove duplicates within each group (pending, returned, authorized)
-      const dedupeGroup = (items) => {
-        const seen = new Set();
-        return items.filter(item => {
-          const key = getTrainingCenterKey(item);
-          if (key && seen.has(key)) {
-            return false;
-          }
-          if (key) seen.add(key);
-          return true;
-        });
-      };
+        response = await accAPI.getTrainingCenterRequests(params);
+        dataList = response?.data || response?.requests || [];
+        isRequest = true;
+      }
 
-      const uniquePending = dedupeGroup(pendingRequests);
-      const uniqueReturned = dedupeGroup(returnedRequests);
-      const uniqueAuthorized = dedupeGroup(authorizedCenters);
+      // Normalize data
+      const normalizedData = dataList.map(item => {
+        // Handle nested objects if any (API consistency check)
+        const baseItem = item.training_center || item;
 
-      // Collect all training center IDs from requests (pending + returned)
-      const requestIds = new Set();
-      [...uniquePending, ...uniqueReturned].forEach(req => {
-        const key = getTrainingCenterKey(req);
-        if (key) requestIds.add(key);
+        return {
+          ...item,
+          _normalizedName: baseItem.name || item.name || '',
+          _normalizedEmail: baseItem.email || item.email || '',
+          _normalizedDate: isRequest ? item.request_date : (item.authorized_at || item.created_at),
+          _isRequest: isRequest,
+          // Ensure status is present
+          status: item.status || (isRequest ? (statusFilter === 'all' ? 'pending' : statusFilter) : 'active'),
+        };
       });
 
-      // Filter out authorized centers that already exist in requests
-      // (A training center with a pending/returned request should not appear in authorized list)
-      const filteredAuthorized = uniqueAuthorized.filter(auth => {
-        const key = getTrainingCenterKey(auth);
-        return !requestIds.has(key);
-      });
+      setTableData(normalizedData);
 
-      // Combine all unique items
-      const combined = [...uniquePending, ...uniqueReturned, ...filteredAuthorized];
-      
-      // Final deduplication pass (shouldn't be needed, but just in case)
-      const finalSeen = new Set();
-      const uniqueData = combined.filter(item => {
-        const key = getTrainingCenterKey(item);
-        if (!key) return true; // Include items without key (shouldn't happen)
-        if (finalSeen.has(key)) {
-          return false; // Duplicate found
-        }
-        finalSeen.add(key);
-        return true;
-      });
-      
-      setAllData(uniqueData);
+      // Update pagination
+      if (response) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: response.current_page || 1,
+          last_page: response.last_page || 1,
+          total: response.total || 0,
+          from: response.from || 0,
+          to: response.to || 0
+        }));
+      }
+
     } catch (error) {
       console.error('Failed to load data:', error);
-      setAllData([]);
+      setTableData([]);
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
+
   const handleApprove = async (id) => {
     if (window.confirm('Approve this training center request?')) {
       try {
         await accAPI.approveTrainingCenterRequest(id);
         await loadData();
+        await fetchStats();
         alert('Training center request approved successfully!');
       } catch (error) {
         alert('Failed to approve: ' + (error.message || 'Unknown error'));
@@ -187,7 +200,6 @@ const TrainingCentersScreen = () => {
   };
 
   const handleRowClick = (item) => {
-    // Allow clicking on both requests and authorized centers to view details
     handleViewDetails(item);
   };
 
@@ -200,13 +212,13 @@ const TrainingCentersScreen = () => {
       render: (value, row) => {
         const logoUrl = row.logo_url || row.training_center?.logo_url;
         return (
-        <div className="flex items-center">
+          <div className="flex items-center">
             <div className="w-10 h-10 mr-3 relative">
               {logoUrl ? (
                 <>
-                  <img 
-                    src={logoUrl} 
-                    alt={value || 'Training Center Logo'} 
+                  <img
+                    src={logoUrl}
+                    alt={value || 'Training Center Logo'}
                     className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                     width="40"
                     height="40"
@@ -218,11 +230,11 @@ const TrainingCentersScreen = () => {
                       if (fallback) fallback.style.display = 'flex';
                     }}
                   />
-                  <div 
+                  <div
                     className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                     style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                   >
-            <Building2 className="h-5 w-5 text-primary-600" />
+                    <Building2 className="h-5 w-5 text-primary-600" />
                   </div>
                 </>
               ) : (
@@ -230,11 +242,11 @@ const TrainingCentersScreen = () => {
                   <Building2 className="h-5 w-5 text-primary-600" />
                 </div>
               )}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-          </div>
-        </div>
         );
       }
     },
@@ -265,25 +277,25 @@ const TrainingCentersScreen = () => {
       sortable: true,
       render: (value, row) => {
         const statusConfig = {
-          approved: { 
+          approved: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          rejected: { 
+          rejected: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          returned: { 
+          returned: {
             badgeClass: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300',
-            icon: ArrowLeft 
+            icon: ArrowLeft
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -324,35 +336,7 @@ const TrainingCentersScreen = () => {
         </div>
       )
     }
-  ], [handleViewDetails, handleApprove]);
-
-  // Filter data based on status filter
-  const filteredData = useMemo(() => {
-    let filtered = [...allData];
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(item => {
-        if (statusFilter === 'pending') {
-          return item.status === 'pending';
-        } else if (statusFilter === 'returned') {
-          return item.status === 'returned';
-        } else if (statusFilter === 'active') {
-          // Active includes approved, active status, or authorized centers (non-requests)
-          return item.status === 'active' || item.status === 'approved' || !item._isRequest;
-        }
-        return true;
-      });
-    }
-
-    // Add search text for DataTable - include all searchable fields
-    filtered = filtered.map(item => ({
-      ...item,
-      _searchText: `${item._normalizedName || ''} ${item._normalizedEmail || ''} ${item.training_center?.name || ''} ${item.training_center?.email || ''} ${item.name || ''} ${item.email || ''} ${item.legal_name || ''} ${item.registration_number || ''} ${item.country || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase()
-    }));
-
-    return filtered;
-  }, [allData, statusFilter]);
+  ], []);
 
   const handleReject = (request) => {
     setSelectedRequest(request);
@@ -368,6 +352,7 @@ const TrainingCentersScreen = () => {
     try {
       await accAPI.rejectTrainingCenterRequest(selectedRequest.id, { rejection_reason: rejectionReason });
       await loadData();
+      await fetchStats();
       setRejectModalOpen(false);
       setSelectedRequest(null);
       setRejectionReason('');
@@ -391,6 +376,7 @@ const TrainingCentersScreen = () => {
     try {
       await accAPI.returnTrainingCenterRequest(selectedRequest.id, { return_comment: returnComment });
       await loadData();
+      await fetchStats();
       setReturnModalOpen(false);
       setSelectedRequest(null);
       setReturnComment('');
@@ -400,66 +386,100 @@ const TrainingCentersScreen = () => {
     }
   };
 
-  // Calculate stats from all data
-  const pendingCount = allData.filter(item => item.status === 'pending').length;
-  const returnedCount = allData.filter(item => item.status === 'returned').length;
-  const authorizedCount = allData.filter(item => item.status === 'active' || item.status === 'approved' || !item._isRequest).length;
-  const totalCount = allData.length;
-
   return (
     <div>
-
       {/* Tab Cards */}
       <div className="mb-6">
         <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
           <TabCard
             name="Total"
-            value={totalCount}
+            value={stats.total}
             icon={Building2}
             colorType="indigo"
             isActive={statusFilter === 'all'}
-            onClick={() => setStatusFilter('all')}
+            onClick={() => {
+              setStatusFilter('all');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Pending"
-            value={pendingCount}
+            value={stats.pending}
             icon={Clock}
             colorType="yellow"
             isActive={statusFilter === 'pending'}
-            onClick={() => setStatusFilter('pending')}
+            onClick={() => {
+              setStatusFilter('pending');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Active"
-            value={authorizedCount}
+            value={stats.active}
             icon={CheckCircle}
             colorType="green"
             isActive={statusFilter === 'active'}
-            onClick={() => setStatusFilter('active')}
+            onClick={() => {
+              setStatusFilter('active');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
           <TabCard
             name="Returned"
-            value={returnedCount}
+            value={stats.returned}
             icon={ArrowLeft}
             colorType="blue"
             isActive={statusFilter === 'returned'}
-            onClick={() => setStatusFilter('returned')}
+            onClick={() => {
+              setStatusFilter('returned');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
           />
         </TabCardsGrid>
+      </div>
+
+      {/* Server-side Search Input */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search training centers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+          />
+          <div className="absolute left-3 top-2.5 text-gray-400">
+            <Search size={20} />
+          </div>
+        </div>
       </div>
 
       {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={tableData}
           isLoading={loading}
-          searchable={true}
+          searchable={false} // Disable client-side search
           sortable={true}
           filterable={false}
-          searchPlaceholder="Search by name or email..."
           emptyMessage="No training centers found"
           onRowClick={(item) => handleRowClick(item)}
         />
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Detail Modal */}
@@ -599,37 +619,37 @@ const TrainingCentersScreen = () => {
             {/* Only show action buttons for requests */}
             {selectedRequest._isRequest && selectedRequest.status === 'pending' && (
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  handleApprove(selectedRequest.id);
-                  setDetailModalOpen(false);
-                }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
-              >
-                <CheckCircle size={20} className="mr-2" />
-                Approve
-              </button>
-              <button
-                onClick={() => {
-                  setDetailModalOpen(false);
-                  handleReject(selectedRequest);
-                }}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center"
-              >
-                <XCircle size={20} className="mr-2" />
-                Reject
-              </button>
-              <button
-                onClick={() => {
-                  setDetailModalOpen(false);
-                  handleReturn(selectedRequest);
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
-              >
-                <ArrowLeft size={20} className="mr-2" />
-                Return
-              </button>
-            </div>
+                <button
+                  onClick={() => {
+                    handleApprove(selectedRequest.id);
+                    setDetailModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
+                >
+                  <CheckCircle size={20} className="mr-2" />
+                  Approve
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    handleReject(selectedRequest);
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center"
+                >
+                  <XCircle size={20} className="mr-2" />
+                  Reject
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    handleReturn(selectedRequest);
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+                >
+                  <ArrowLeft size={20} className="mr-2" />
+                  Return
+                </button>
+              </div>
             )}
             {/* Only show action buttons for requests */}
             {selectedRequest._isRequest && selectedRequest.status === 'returned' && (

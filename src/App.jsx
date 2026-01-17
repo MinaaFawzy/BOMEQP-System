@@ -25,6 +25,7 @@ import ReportsScreen from './screens/GroupAdmin/ReportsScreen/ReportsScreen';
 import InstructorAuthorizationsScreen from './screens/GroupAdmin/InstructorAuthorizationsScreen/InstructorAuthorizationsScreen';
 import StripeSettingsScreen from './screens/GroupAdmin/StripeSettingsScreen/StripeSettingsScreen';
 import GroupAdminPendingPaymentsScreen from './screens/GroupAdmin/PendingPaymentsScreen/PendingPaymentsScreen';
+import GroupAdminClassesScreen from './screens/GroupAdmin/ClassesScreen/ClassesScreen';
 
 // ACC Admin screens
 import ACCDashboardScreen from './screens/ACCAdmin/DashboardScreen/DashboardScreen';
@@ -158,6 +159,7 @@ function App() {
                         <Route path="reports" element={<ReportsScreen />} />
                         <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
                         <Route path="stripe-settings" element={<StripeSettingsScreen />} />
+                        <Route path="classes" element={<GroupAdminClassesScreen />} />
                         <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
                       </Routes>
                     </Layout>

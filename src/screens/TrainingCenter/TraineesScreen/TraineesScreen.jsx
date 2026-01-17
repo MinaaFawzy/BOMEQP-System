@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+import useDebounce from '../../../hooks/useDebounce';
 import { validateEmail, validatePhone, validateRequired, validateUKID } from '../../../utils/validation';
 import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
@@ -12,6 +13,7 @@ import DataTable from '../../../components/DataTable/DataTable';
 import './TraineesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 
 const TraineesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -39,18 +41,37 @@ const TraineesScreen = () => {
   const [saving, setSaving] = useState(false);
   const [resizingImage, setResizingImage] = useState(null); // 'id_image' or 'card_image' or null
   const [searchTerm, setSearchTerm] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const hasDataRef = useRef(false);
+
   useEffect(() => {
-    loadTrainees();
     loadTrainingClasses();
   }, []);
 
   useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    if (searchTerm !== debouncedSearchTerm) {
+      return;
+    }
+
+    loadTrainees(page, perPage, debouncedSearchTerm, showLoading);
+  }, [page, perPage, debouncedSearchTerm, searchTerm]);
+
+  useEffect(() => {
     setHeaderTitle('Trainees');
     setHeaderSubtitle('Manage your trainees');
-      setHeaderActions(
+    setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
         className="trainees-header-button"
@@ -67,27 +88,47 @@ const TraineesScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadTrainees = async () => {
-    setLoading(true);
+  const loadTrainees = async (pageArg = 1, limitArg = 10, search = '', showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    } else {
+      setIsSearchLoading(true);
+    }
     try {
-      // Load all data - search and statusFilter are handled client-side
+      // Load data with pagination
       const params = {
-        per_page: 1000,
-        ...(searchTerm && { search: searchTerm }),
+        page: pageArg,
+        per_page: limitArg,
+        page: pageArg,
+        per_page: limitArg,
+        ...(search && { search }),
       };
       const data = await trainingCenterAPI.listTrainees(params);
+
+      let traineesArray = [];
       if (data?.trainees) {
-        setTrainees(data.trainees);
+        traineesArray = data.trainees;
       } else if (Array.isArray(data)) {
-        setTrainees(data);
+        traineesArray = data;
       } else {
-        setTrainees([]);
+        traineesArray = [];
       }
+      setTrainees(traineesArray);
+
+      // Update pagination info
+      if (data) {
+        const total = data.total || traineesArray.length;
+        setTotalItems(total);
+        setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+        setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+      }
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load trainees:', error);
       setTrainees([]);
     } finally {
       setLoading(false);
+      setIsSearchLoading(false);
     }
   };
 
@@ -102,9 +143,7 @@ const TraineesScreen = () => {
     }
   };
 
-  useEffect(() => {
-    loadTrainees();
-  }, [searchTerm]); // Reload when searchTerm changes, statusFilter is client-side only
+
 
   const handleOpenModal = (trainee = null) => {
     if (trainee) {
@@ -340,10 +379,10 @@ const TraineesScreen = () => {
 
     try {
       const submitFormData = new FormData();
-      
+
       if (selectedTrainee) {
         console.log('🔄 Starting UPDATE for trainee ID:', selectedTrainee.id);
-        
+
         // Step 1: Build FormData - Only include fields you want to update (partial updates)
         // Text fields - only append if field has value
         if (formData.first_name !== undefined && formData.first_name !== null && formData.first_name.trim()) {
@@ -364,7 +403,7 @@ const TraineesScreen = () => {
         if (formData.status !== undefined && formData.status !== null) {
           submitFormData.append('status', formData.status);
         }
-        
+
         // File fields - only append if new file has been selected (File objects)
         // If field is omitted, existing file remains unchanged
         if (formData.id_image instanceof File) {
@@ -373,7 +412,7 @@ const TraineesScreen = () => {
         if (formData.card_image instanceof File) {
           submitFormData.append('card_image', formData.card_image);
         }
-        
+
         // Array field - enrolled_classes
         // Only append if array is present and is actually an array
         // Use array notation: enrolled_classes[] for each element
@@ -383,14 +422,14 @@ const TraineesScreen = () => {
             submitFormData.append('enrolled_classes[]', classId);
           });
         }
-        
+
         // Debug: Log FormData contents - Multiple ways to ensure visibility
         console.log('========================================');
         console.log('📤 UPDATE Trainee - FormData Contents');
         console.log('========================================');
         console.log('Trainee ID:', selectedTrainee.id);
         console.log('FormData entries:');
-        
+
         // Method 1: Using forEach
         submitFormData.forEach((value, key) => {
           if (value instanceof File) {
@@ -399,14 +438,14 @@ const TraineesScreen = () => {
             console.log(`  ${key}: ${value}`);
           }
         });
-        
+
         // Method 2: Using entries
         const entries = Array.from(submitFormData.entries());
         console.log('FormData entries array:', entries.map(([key, value]) => ({
           key,
           value: value instanceof File ? `File: ${value.name}` : value
         })));
-        
+
         // Method 3: Object.fromEntries (may not work for files)
         try {
           const formDataObj = Object.fromEntries(submitFormData.entries());
@@ -414,9 +453,9 @@ const TraineesScreen = () => {
         } catch (err) {
           console.log('Could not convert FormData to object:', err.message);
         }
-        
+
         console.log('========================================');
-        
+
         await trainingCenterAPI.updateTrainee(selectedTrainee.id, submitFormData);
       } else {
         console.log('🆕 Starting CREATE new trainee');
@@ -427,7 +466,7 @@ const TraineesScreen = () => {
         submitFormData.append('phone', formData.phone.trim());
         submitFormData.append('id_number', formData.id_number.trim());
         submitFormData.append('status', formData.status);
-        
+
         // Add files if provided
         if (formData.id_image instanceof File) {
           submitFormData.append('id_image', formData.id_image);
@@ -435,20 +474,20 @@ const TraineesScreen = () => {
         if (formData.card_image instanceof File) {
           submitFormData.append('card_image', formData.card_image);
         }
-        
+
         // Add enrolled classes
         if (formData.enrolled_classes && Array.isArray(formData.enrolled_classes)) {
           formData.enrolled_classes.forEach((classId) => {
             submitFormData.append('enrolled_classes[]', classId);
           });
         }
-        
+
         // Debug: Log FormData contents - Multiple ways to ensure visibility
         console.log('========================================');
         console.log('📤 CREATE Trainee - FormData Contents');
         console.log('========================================');
         console.log('FormData entries:');
-        
+
         // Method 1: Using forEach
         submitFormData.forEach((value, key) => {
           if (value instanceof File) {
@@ -457,14 +496,14 @@ const TraineesScreen = () => {
             console.log(`  ${key}: ${value}`);
           }
         });
-        
+
         // Method 2: Using entries
         const entries = Array.from(submitFormData.entries());
         console.log('FormData entries array:', entries.map(([key, value]) => ({
           key,
           value: value instanceof File ? `File: ${value.name}` : value
         })));
-        
+
         // Method 3: Object.fromEntries (may not work for files)
         try {
           const formDataObj = Object.fromEntries(submitFormData.entries());
@@ -472,12 +511,12 @@ const TraineesScreen = () => {
         } catch (err) {
           console.log('Could not convert FormData to object:', err.message);
         }
-        
+
         console.log('========================================');
-        
+
         await trainingCenterAPI.createTrainee(submitFormData);
       }
-      await loadTrainees();
+      await loadTrainees(page, perPage);
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting trainee:', error);
@@ -501,7 +540,7 @@ const TraineesScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteTrainee(selectedTrainee.id);
-      await loadTrainees();
+      await loadTrainees(page, perPage);
     } catch (error) {
       alert('Failed to delete trainee: ' + (error.message || 'Unknown error'));
     }
@@ -521,8 +560,8 @@ const TraineesScreen = () => {
     }
   };
 
-  // Calculate stats from all trainees (not filtered)
-  const totalCount = trainees.length;
+  // Calculate stats - Note: With server-side pagination, these will only match current page
+  const totalCount = totalItems;
   const activeCount = trainees.filter(t => t.status === 'active').length;
   const inactiveCount = trainees.filter(t => t.status === 'inactive').length;
   const suspendedCount = trainees.filter(t => t.status === 'suspended').length;
@@ -538,18 +577,18 @@ const TraineesScreen = () => {
           <div className="trainees-column-icon-wrapper" style={{ position: 'relative' }}>
             {row.id_image_url ? (
               <>
-                <img 
-                  src={row.id_image_url} 
-                  alt={`${row.first_name} ${row.last_name}` || 'Trainee ID Image'} 
+                <img
+                  src={row.id_image_url}
+                  alt={`${row.first_name} ${row.last_name}` || 'Trainee ID Image'}
                   className="trainees-column-icon"
                   width="40"
                   height="40"
                   loading="lazy"
                   decoding="async"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
                     borderRadius: '8px',
                     border: '1px solid #e5e7eb'
                   }}
@@ -559,7 +598,7 @@ const TraineesScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="id-image-fallback trainees-column-icon-wrapper"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
@@ -727,6 +766,12 @@ const TraineesScreen = () => {
           columns={traineesColumns}
           data={trainees}
           isLoading={loading}
+          rowsPerPage={perPage}
+          searchValue={searchTerm}
+          onSearch={(value) => {
+            setSearchTerm(value);
+            setPage(1);
+          }}
           searchable={true}
           sortable={true}
           filterable={true}
@@ -740,6 +785,21 @@ const TraineesScreen = () => {
           ]}
           defaultFilter={statusFilter}
           onRowClick={(trainee) => handleViewDetails(trainee)}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={(p) => {
+            hasDataRef.current = false;
+            setPage(p);
+          }}
+          onPerPageChange={(newPerPage) => {
+            hasDataRef.current = false;
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -838,7 +898,7 @@ const TraineesScreen = () => {
             <label className="trainees-image-label">
               ID Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
-            
+
             {resizingImage === 'id_image' ? (
               <div className="trainees-image-resizing">
                 <div className="trainees-image-resizing-spinner"></div>
@@ -847,10 +907,10 @@ const TraineesScreen = () => {
             ) : idImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
-                  <img 
-                    src={idImagePreview} 
-                    alt="ID Preview" 
-                    className="trainees-image-preview-img" 
+                  <img
+                    src={idImagePreview}
+                    alt="ID Preview"
+                    className="trainees-image-preview-img"
                   />
                   <div className="trainees-image-preview-overlay">
                     <div className="trainees-image-preview-actions">
@@ -926,7 +986,7 @@ const TraineesScreen = () => {
             <label className="trainees-image-label">
               Card Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
             </label>
-            
+
             {resizingImage === 'card_image' ? (
               <div className="trainees-image-resizing">
                 <div className="trainees-image-resizing-spinner"></div>
@@ -935,10 +995,10 @@ const TraineesScreen = () => {
             ) : cardImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
-                  <img 
-                    src={cardImagePreview} 
-                    alt="Card Preview" 
-                    className="trainees-image-preview-img" 
+                  <img
+                    src={cardImagePreview}
+                    alt="Card Preview"
+                    className="trainees-image-preview-img"
                   />
                   <div className="trainees-image-preview-overlay">
                     <div className="trainees-image-preview-actions">
@@ -1055,7 +1115,7 @@ const TraineesScreen = () => {
               <p className="trainees-error-text-bold">{errors.general}</p>
             </div>
           )}
-          
+
           {/* Display field-specific errors */}
           {Object.keys(errors).filter(key => key !== 'general' && key !== 'id_image' && key !== 'card_image' && key !== 'enrolled_classes').map((key) => (
             errors[key] && (
@@ -1129,10 +1189,16 @@ const TraineesScreen = () => {
             </div>
 
             {/* Training Classes */}
+            {/* Training Classes - Dropdown */}
             {selectedTrainee.training_classes && selectedTrainee.training_classes.length > 0 && (
-              <div>
-                <h3 className="trainees-classes-title">Enrolled Classes</h3>
-                <div className="trainees-classes-list">
+              <details className="trainees-classes-dropdown">
+                <summary className="trainees-classes-dropdown-summary">
+                  <span className="trainees-classes-dropdown-title">
+                    Enrolled Classes ({selectedTrainee.training_classes.length})
+                  </span>
+                  <ChevronDown size={20} className="trainees-classes-dropdown-icon" />
+                </summary>
+                <div className="trainees-classes-dropdown-content">
                   {selectedTrainee.training_classes.map((tc, index) => (
                     <div key={index} className="trainees-class-detail-item">
                       <div className="trainees-class-detail-header">
@@ -1153,12 +1219,11 @@ const TraineesScreen = () => {
                           )}
                         </div>
                         {tc.pivot?.status && (
-                          <span className={`trainees-class-detail-status ${
-                            tc.pivot.status === 'enrolled' ? 'trainees-class-detail-status-enrolled' :
+                          <span className={`trainees-class-detail-status ${tc.pivot.status === 'enrolled' ? 'trainees-class-detail-status-enrolled' :
                             tc.pivot.status === 'completed' ? 'trainees-class-detail-status-completed' :
-                            tc.pivot.status === 'dropped' ? 'trainees-class-detail-status-dropped' :
-                            'trainees-class-detail-status-other'
-                          }`}>
+                              tc.pivot.status === 'dropped' ? 'trainees-class-detail-status-dropped' :
+                                'trainees-class-detail-status-other'
+                            }`}>
                             {tc.pivot.status}
                           </span>
                         )}
@@ -1166,7 +1231,7 @@ const TraineesScreen = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </details>
             )}
           </div>
         )}

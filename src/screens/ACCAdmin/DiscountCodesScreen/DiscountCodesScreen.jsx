@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Tag, Plus, BookOpen } from 'lucide-react';
+import { Tag, Plus, BookOpen, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
+import Pagination from '../../../components/Pagination/Pagination';
 import './DiscountCodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
@@ -29,11 +30,37 @@ const DiscountCodesScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Load data when dependencies change
   useEffect(() => {
     loadCodes();
-    loadCourses();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, typeFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
     setHeaderTitle('Discount Codes');
@@ -58,37 +85,44 @@ const DiscountCodesScreen = () => {
   const loadCodes = async () => {
     setLoading(true);
     try {
+      // Build query parameters for server-side filtering and pagination
       const params = {
-        per_page: 1000, // Load all data
+        page: pagination.current_page,
+        per_page: pagination.per_page,
       };
-      
-      const data = await accAPI.listDiscountCodes(params);
-      
-      // Handle response structure
-      let codesArray = [];
-      if (data.data) {
-        // Laravel pagination format
-        codesArray = data.data || [];
-      } else if (data.discount_codes) {
-        // Non-paginated format (fallback)
-        codesArray = data.discount_codes || [];
-      } else {
-        // Array format
-        codesArray = Array.isArray(data) ? data : [];
+
+      // Only add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
-      
-      // Add _searchText for better search functionality
-      codesArray = codesArray.map(code => ({
-        ...code,
-        _searchText: [
-          code.code,
-          code.discount_type,
-          code.status,
-          ...getCourseNames(code)
-        ].filter(Boolean).join(' ').toLowerCase()
-      }));
-      
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      // Add discount_type filter if not 'all'
+      if (typeFilter !== 'all') {
+        params.discount_type = typeFilter;
+      }
+
+      const data = await accAPI.listDiscountCodes(params);
+
+      // Handle Laravel pagination response
+      const codesArray = data.data || [];
       setCodes(codesArray);
+
+      // Update pagination state
+      if (data) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || 1,
+          last_page: data.last_page || 1,
+          total: data.total || 0,
+          from: data.from || 0,
+          to: data.to || 0
+        }));
+      }
     } catch (error) {
       console.error('Failed to load codes:', error);
       setCodes([]);
@@ -97,12 +131,42 @@ const DiscountCodesScreen = () => {
     }
   };
 
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
+
   const loadCourses = async () => {
     try {
-      const data = await accAPI.listCourses();
-      setCourses(data.courses || []);
+      const params = {
+        per_page: 1000, // Load all courses for dropdown
+      };
+
+      const data = await accAPI.listCourses(params);
+
+      // Handle Laravel pagination response
+      let coursesArray = [];
+      if (data.data && Array.isArray(data.data)) {
+        coursesArray = data.data;
+      } else if (data.courses && Array.isArray(data.courses)) {
+        coursesArray = data.courses;
+      } else if (Array.isArray(data)) {
+        coursesArray = data;
+      }
+
+      console.log('Loaded courses:', coursesArray);
+      setCourses(coursesArray);
     } catch (error) {
       console.error('Failed to load courses:', error);
+      setCourses([]);
     }
   };
 
@@ -112,13 +176,13 @@ const DiscountCodesScreen = () => {
     if (code.courses && Array.isArray(code.courses) && code.courses.length > 0) {
       return code.courses.map(course => course.name || course.title || 'Unknown Course');
     }
-    
+
     // Otherwise, try to get IDs and look them up
     const courseIds = code.applicable_course_ids || code.course_ids || [];
     if (!Array.isArray(courseIds) || courseIds.length === 0) {
       return [];
     }
-    
+
     return courseIds
       .map(id => {
         const course = courses.find(c => c.id === id);
@@ -128,12 +192,17 @@ const DiscountCodesScreen = () => {
   };
 
   const handleOpenModal = (code = null) => {
+    // Load courses when modal opens (lazy loading)
+    if (courses.length === 0) {
+      loadCourses();
+    }
+
     // Always reset errors first
     setErrors({});
-    
+
     // Always clear selectedCode first to ensure clean state
     setSelectedCode(null);
-    
+
     if (code && code.id) {
       // Edit mode - code is provided with valid ID
       console.log('Opening modal for EDIT - code:', code);
@@ -148,7 +217,7 @@ const DiscountCodesScreen = () => {
       } else if (code.courses && code.courses.length > 0) {
         courseId = code.courses[0].id?.toString() || '';
       }
-      
+
       setFormData({
         code: code.code || '',
         discount_percentage: code.discount_percentage || '',
@@ -212,10 +281,10 @@ const DiscountCodesScreen = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Clear previous errors
     setErrors({});
-    
+
     // Client-side validation
     const validationErrors = {};
     if (!formData.code || !formData.code.trim()) {
@@ -230,7 +299,7 @@ const DiscountCodesScreen = () => {
     if (!formData.course_id) {
       validationErrors.course_id = 'Course is required';
     }
-    
+
     // Validation based on discount type
     if (formData.discount_type === 'time_limited') {
       if (!formData.valid_from) {
@@ -280,7 +349,7 @@ const DiscountCodesScreen = () => {
       console.log('Submitting discount code:', JSON.stringify(submitData, null, 2));
       console.log('Selected code:', selectedCode);
       console.log('Is creating new code:', !selectedCode);
-      
+
       let response;
       // Check if we have a valid selectedCode with an ID for update
       if (selectedCode && (selectedCode.id || selectedCode.discount_code_id || selectedCode.discount_code?.id)) {
@@ -302,28 +371,28 @@ const DiscountCodesScreen = () => {
         console.log('Discount code created:', response);
         alert('Discount code created successfully!');
       }
-      
+
       await loadCodes();
       handleCloseModal();
     } catch (error) {
       console.error('Failed to create discount code:', error);
       console.error('Error response:', error.response);
       console.error('Error data:', error.response?.data);
-      
+
       // Handle different error response structures
       if (error.response?.data) {
         const errorData = error.response.data;
-        
+
         // Laravel validation errors format
         if (errorData.errors) {
           const formattedErrors = {};
           Object.keys(errorData.errors).forEach(key => {
-            formattedErrors[key] = Array.isArray(errorData.errors[key]) 
-              ? errorData.errors[key][0] 
+            formattedErrors[key] = Array.isArray(errorData.errors[key])
+              ? errorData.errors[key][0]
               : errorData.errors[key];
           });
           setErrors(formattedErrors);
-        } 
+        }
         // Single error message
         else if (errorData.message) {
           setErrors({ general: errorData.message });
@@ -332,11 +401,11 @@ const DiscountCodesScreen = () => {
         else {
           setErrors(errorData);
         }
-      } 
+      }
       // Network or other errors
       else if (error.message) {
         setErrors({ general: error.message });
-      } 
+      }
       else {
         setErrors({ general: 'Failed to create discount code. Please try again.' });
       }
@@ -421,13 +490,13 @@ const DiscountCodesScreen = () => {
       sortable: false,
       render: (value, row) => {
         const courseNames = getCourseNames(row);
-        
+
         if (courseNames.length === 0) {
           return (
             <span className="text-sm text-gray-400 italic">No courses assigned</span>
           );
         }
-        
+
         return (
           <div className="flex flex-wrap gap-1.5">
             {courseNames.map((name, idx) => (
@@ -449,10 +518,9 @@ const DiscountCodesScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+        <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
+          }`}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       )
@@ -498,7 +566,7 @@ const DiscountCodesScreen = () => {
           const used = row.used_quantity || 0;
           const total = value || 0;
           const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
-          
+
           return (
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -512,7 +580,7 @@ const DiscountCodesScreen = () => {
               </div>
               <div className="flex items-center gap-1">
                 <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all"
                     style={{ width: `${percentage}%` }}
                   ></div>
@@ -534,37 +602,61 @@ const DiscountCodesScreen = () => {
     }
   ], [courses]);
 
-  // Filter options for status
-  const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { 
-      value: 'active', 
-      label: 'Active', 
-      filterFn: (code) => code.status === 'active' 
-    },
-    { 
-      value: 'inactive', 
-      label: 'Inactive', 
-      filterFn: (code) => code.status === 'inactive' 
-    }
-  ], []);
+  // filterOptions removed - using server-side filtering
 
   return (
     <div>
-      <DataTable
-        columns={columns}
-        data={codes}
-        isLoading={loading}
-        searchable={true}
-        searchPlaceholder="Search by code or type..."
-        filterable={true}
-        filterOptions={filterOptions}
-        defaultFilter="all"
-        sortable={true}
-        emptyMessage="No discount codes found. Create your first discount code!"
-        onEdit={handleOpenModal}
-        onDelete={handleDelete}
-      />
+      {/* Search Input */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search by code or type..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+          />
+          <div className="absolute left-3 top-2.5 text-gray-400">
+            <Search size={20} />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={codes}
+          isLoading={loading}
+          searchable={false}
+          filterable={true}
+          filterOptions={[
+            { value: 'all', label: 'All Status', filterFn: () => true },
+            { value: 'active', label: 'Active', filterFn: (code) => code.status === 'active' },
+            { value: 'inactive', label: 'Inactive', filterFn: (code) => code.status === 'inactive' },
+            { value: 'expired', label: 'Expired', filterFn: (code) => code.status === 'expired' },
+            { value: 'depleted', label: 'Depleted', filterFn: (code) => code.status === 'depleted' }
+          ]}
+          defaultFilter="all"
+          sortable={true}
+          emptyMessage="No discount codes found. Create your first discount code!"
+          onEdit={handleOpenModal}
+          onDelete={handleDelete}
+        />
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Add/Edit Discount Code Modal */}
       <Modal
@@ -614,9 +706,8 @@ const DiscountCodesScreen = () => {
               value={formData.course_id}
               onChange={handleChange}
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${
-                errors.course_id ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${errors.course_id ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
+                }`}
             >
               <option value="">Select a course...</option>
               {courses.map((course) => (
@@ -638,9 +729,8 @@ const DiscountCodesScreen = () => {
                 value={formData.discount_type}
                 onChange={handleChange}
                 required
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${
-                  errors.discount_type ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${errors.discount_type ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
+                  }`}
               >
                 <option value="time_limited">Time Limited</option>
                 <option value="quantity_based">Quantity Based</option>

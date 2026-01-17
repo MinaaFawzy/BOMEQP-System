@@ -5,6 +5,7 @@ import { DollarSign, Receipt, Eye, Building2, User, ArrowDownCircle, ArrowUpCirc
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import TabCard from '../../../components/TabCard/TabCard';
+import Pagination from '../../../components/Pagination/Pagination';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
@@ -12,13 +13,29 @@ const PaymentTransactionsScreen = () => {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
+
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     setHeaderTitle('Payment Transactions');
@@ -29,20 +46,51 @@ const PaymentTransactionsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Load transactions when dependencies change
   useEffect(() => {
-    loadTransactions();
-  }, []); // Load all data once, filtering is handled client-side by DataTable
+    loadTransactions(page, perPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, perPage, debouncedSearch, typeFilter, statusFilter]);
 
-  const loadTransactions = async () => {
+  const loadTransactions = async (pageArg = 1, limitArg = 10) => {
     setLoading(true);
     try {
-      // Note: typeFilter, statusFilter, and pagination are now handled client-side by DataTable
-      const response = await trainingCenterAPI.getPaymentTransactions({});
+      // Build query parameters
+      const params = {
+        page: pageArg,
+        per_page: limitArg
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add type filter if not 'all'
+      if (typeFilter !== 'all') {
+        params.type = typeFilter;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const response = await trainingCenterAPI.getPaymentTransactions(params);
       const data = response?.data || response || [];
       const summaryData = response?.summary || null;
-      
-      setTransactions(Array.isArray(data) ? data : (data?.data || []));
+
+      const transactionsArray = Array.isArray(data) ? data : (data?.data || []);
+      setTransactions(transactionsArray);
       setSummary(summaryData);
+
+      // Update pagination info
+      if (response && (response.total || response.data?.total)) {
+        const total = response.total || response.data?.total || transactionsArray.length;
+        setTotalItems(total);
+        const lastPage = response.last_page || response.data?.last_page || Math.ceil(total / limitArg) || 1;
+        setTotalPages(lastPage);
+      }
     } catch (error) {
       console.error('Failed to load transactions:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
@@ -60,62 +108,7 @@ const PaymentTransactionsScreen = () => {
     setDetailModalOpen(true);
   };
 
-  // Add searchable text to each transaction for better search functionality
-  const transactionsWithSearchText = useMemo(() => {
-    return transactions.map(transaction => {
-      const type = transaction.transaction_type || '';
-      const amount = String(transaction.amount || '');
-      const currency = transaction.currency || '';
-      const status = transaction.status || '';
-      const description = transaction.description || '';
-      const payerName = transaction.payer?.name || '';
-      const payeeName = transaction.payee?.name || '';
-      
-      const searchText = [
-        type,
-        amount,
-        currency,
-        status,
-        description,
-        payerName,
-        payeeName,
-      ].filter(Boolean).join(' ').toLowerCase();
-      
-      return {
-        ...transaction,
-        _searchText: searchText,
-      };
-    });
-  }, [transactions]);
-
-  // Filter transactions by search, type, and status
-  const filteredTransactions = useMemo(() => {
-    let filtered = [...transactionsWithSearchText];
-
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(transaction => transaction.transaction_type === typeFilter);
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(transaction => transaction.status === statusFilter);
-    }
-
-    // Apply search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(transaction => {
-        // Prioritize _searchText if available
-        if (transaction._searchText) {
-          return transaction._searchText.includes(searchLower);
-        }
-        return true;
-      });
-    }
-
-    return filtered;
-  }, [transactionsWithSearchText, typeFilter, statusFilter, searchTerm]);
+  // Remove client-side filtering - now using server-side
 
   // Define columns for DataTable
   const columns = useMemo(() => [
@@ -207,10 +200,10 @@ const PaymentTransactionsScreen = () => {
       sortable: true,
       render: (value, row) => {
         const status = row.status || '';
-        const statusClass = status === 'completed' ? 'completed' : 
-                           status === 'pending' ? 'pending' : 
-                           status === 'failed' ? 'failed' : 
-                           status === 'refunded' ? 'refunded' : 'refunded';
+        const statusClass = status === 'completed' ? 'completed' :
+          status === 'pending' ? 'pending' :
+            status === 'failed' ? 'failed' :
+              status === 'refunded' ? 'refunded' : 'refunded';
         return (
           <span className={`status-badge ${statusClass}`}>
             {row.status?.charAt(0).toUpperCase() + row.status?.slice(1) || 'N/A'}
@@ -311,7 +304,7 @@ const PaymentTransactionsScreen = () => {
       if (excludedFields.includes(key)) {
         return false;
       }
-      
+
       // Exclude payer/payee objects if they only contain name, email, type, id
       const value = details[key];
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -319,7 +312,7 @@ const PaymentTransactionsScreen = () => {
           return false;
         }
       }
-      
+
       return true;
     });
 
@@ -430,7 +423,10 @@ const PaymentTransactionsScreen = () => {
             <Filter className="filter-icon" size={20} />
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
               className="filter-select"
             >
               <option value="all">All Types</option>
@@ -445,7 +441,10 @@ const PaymentTransactionsScreen = () => {
             <Filter className="filter-icon" size={20} />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               className="filter-select"
             >
               <option value="all">All Status</option>
@@ -462,7 +461,7 @@ const PaymentTransactionsScreen = () => {
       <div className="datatable-container">
         <DataTable
           columns={columns}
-          data={filteredTransactions}
+          data={transactions}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
@@ -480,6 +479,17 @@ const PaymentTransactionsScreen = () => {
           searchable={false}
           filterable={false}
           sortable={true}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={setPage}
+          onPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
         />
       </div>
 

@@ -5,11 +5,11 @@ const Pagination = ({
   currentPage = 1,
   totalPages = 1,
   totalItems = 0,
-  perPage = 10,
+  perPage = 5,
   onPageChange,
   onPerPageChange,
   showPerPageSelector = true,
-  perPageOptions = [10, 25, 50, 100],
+  perPageOptions = [5, 10, 25, 50, 100],
   className = '',
 }) => {
   if (totalPages <= 1 && !showPerPageSelector) {
@@ -28,7 +28,7 @@ const Pagination = ({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       // Show all pages if total pages is less than max visible
       for (let i = 1; i <= totalPages; i++) {
@@ -37,7 +37,7 @@ const Pagination = ({
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage <= 3) {
         // Near the start
         for (let i = 2; i <= 4; i++) {
@@ -61,7 +61,7 @@ const Pagination = ({
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -134,11 +134,10 @@ const Pagination = ({
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? 'bg-primary-600 text-white border border-primary-600 shadow-sm'
-                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                        ? 'bg-primary-600 text-white border border-primary-600 shadow-sm'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                        }`}
                     >
                       {page}
                     </button>

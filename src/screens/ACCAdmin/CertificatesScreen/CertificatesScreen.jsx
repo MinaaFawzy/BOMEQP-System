@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle } from 'lucide-react';
+import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle, Search } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './CertificatesScreen.css';
 
 const CertificatesScreen = () => {
@@ -13,10 +14,36 @@ const CertificatesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Load data when dependencies change
   useEffect(() => {
     loadCertificates();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
     setHeaderTitle('Certificates');
@@ -33,44 +60,58 @@ const CertificatesScreen = () => {
   const loadCertificates = async () => {
     setLoading(true);
     try {
+      // Build query parameters for server-side filtering and pagination
       const params = {
-        per_page: 1000,
+        page: pagination.current_page,
+        per_page: pagination.per_page,
       };
+
+      // Only add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
 
       const data = await accAPI.listCertificates(params);
 
-      let certificatesArray = [];
-      if (data.data) {
-        certificatesArray = data.data || [];
-      } else if (data.certificates) {
-        certificatesArray = data.certificates || [];
-      } else {
-        certificatesArray = Array.isArray(data) ? data : [];
-      }
-
-      // Add _searchText for better search functionality
-      certificatesArray = certificatesArray.map(cert => {
-        const courseName = typeof cert.course === 'object' ? cert.course?.name || '' : cert.course || '';
-        const templateName = typeof cert.template === 'object' ? cert.template?.name || '' : cert.template || '';
-        return {
-          ...cert,
-          _searchText: [
-            cert.certificate_number,
-            cert.trainee_name || cert.student_name,
-            courseName,
-            templateName,
-            cert.status
-          ].filter(Boolean).join(' ').toLowerCase()
-        };
-      });
-
+      // Handle Laravel pagination response
+      const certificatesArray = data.data || [];
       setCertificates(certificatesArray);
+
+      // Update pagination state
+      if (data) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || 1,
+          last_page: data.last_page || 1,
+          total: data.total || 0,
+          from: data.from || 0,
+          to: data.to || 0
+        }));
+      }
     } catch (error) {
       console.error('Failed to load certificates:', error);
       setCertificates([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   // Format date helper
@@ -182,35 +223,71 @@ const CertificatesScreen = () => {
     }
   ], [handleViewDetails]);
 
-  // Filter options for status
-  const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    {
-      value: 'valid',
-      label: 'Valid',
-      filterFn: (cert) => cert.status === 'valid'
-    },
-    {
-      value: 'invalid',
-      label: 'Invalid',
-      filterFn: (cert) => cert.status === 'invalid'
-    }
-  ], []);
+  // filterOptions removed - using server-side filtering
 
   return (
     <div>
-      <DataTable
-        columns={columns}
-        data={certificates}
-        isLoading={loading}
-        searchable={true}
-        searchPlaceholder="Search by number, trainee, course, or template..."
-        filterable={true}
-        filterOptions={filterOptions}
-        defaultFilter="all"
-        sortable={true}
-        onRowClick={handleRowClick}
-      />
+      {/* Search and Filters */}
+      <div className="mb-4">
+        <div className="flex gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search certificates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            />
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <Search size={20} />
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPagination(prev => ({ ...prev, current_page: 1 }));
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
+            >
+              <option value="all">All Status</option>
+              <option value="valid">Valid</option>
+              <option value="invalid">Invalid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* DataTable */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={certificates}
+          isLoading={loading}
+          searchable={false}
+          filterable={false}
+          sortable={true}
+          onRowClick={handleRowClick}
+        />
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Detail Modal */}
       <Modal

@@ -49,7 +49,7 @@ const TCProfileScreen = () => {
       setLoading(true);
       const response = await trainingCenterAPI.getProfile();
       const data = response?.training_center || response?.data || response;
-      
+
       if (data) {
         setProfile(data);
         setFormData({
@@ -77,7 +77,7 @@ const TCProfileScreen = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    
+
     if (name === 'logo' && files && files[0]) {
       const file = files[0];
       // Validate file type
@@ -90,7 +90,7 @@ const TCProfileScreen = () => {
         setErrors({ ...errors, logo: 'Image size must be less than 5MB' });
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({
@@ -137,7 +137,7 @@ const TCProfileScreen = () => {
 
     try {
       const submitData = new FormData();
-      
+
       // Add all form fields
       Object.keys(formData).forEach(key => {
         if (key !== 'logo_url' && formData[key] !== null && formData[key] !== '') {
@@ -155,7 +155,7 @@ const TCProfileScreen = () => {
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
       await loadProfile();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
@@ -165,8 +165,8 @@ const TCProfileScreen = () => {
         if (errorData.errors) {
           const formattedErrors = {};
           Object.keys(errorData.errors).forEach(key => {
-            formattedErrors[key] = Array.isArray(errorData.errors[key]) 
-              ? errorData.errors[key][0] 
+            formattedErrors[key] = Array.isArray(errorData.errors[key])
+              ? errorData.errors[key][0]
               : errorData.errors[key];
           });
           setErrors(formattedErrors);
@@ -239,9 +239,9 @@ const TCProfileScreen = () => {
           <div className="profile-avatar-section">
             <div className="profile-avatar-container">
               {formData.logo_url ? (
-                <img 
-                  src={formData.logo_url} 
-                  alt="Profile" 
+                <img
+                  src={formData.logo_url}
+                  alt="Profile"
                   className="profile-avatar"
                 />
               ) : (

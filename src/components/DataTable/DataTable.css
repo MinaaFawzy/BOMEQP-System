@@ -173,6 +173,13 @@
   color: #4b5563;
 }
 
+.data-table-search-loading {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .data-table-filter-wrapper {
   position: relative;
 }

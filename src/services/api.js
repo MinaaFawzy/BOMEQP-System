@@ -396,7 +396,7 @@ export const trainingCenterAPI = {
 
   // ACCs
   listACCs: (params) => api.get('/training-center/accs', { params }),
-  requestAuthorization: (id, formData) => {
+  requestAuthorization: (formData) => {
     const token = getAuthToken();
     const headers = {
       'Accept': 'application/json',
@@ -404,7 +404,7 @@ export const trainingCenterAPI = {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return axios.post(`${API_BASE_URL}/training-center/accs/${id}/request-authorization`, formData, {
+    return axios.post(`${API_BASE_URL}/training-center/authorizations`, formData, {
       headers,
     }).then(response => response.data);
   },
