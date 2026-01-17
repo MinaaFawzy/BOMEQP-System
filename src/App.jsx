@@ -69,6 +69,8 @@ import ProfileScreen from './screens/Profile/ProfileScreen/ProfileScreen';
 // Public screens
 import CertificateVerificationScreen from './screens/Public/CertificateVerificationScreen/CertificateVerificationScreen';
 
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+
 // Profile Route Component - handles role-based profile screen selection
 const ProfileRoute = () => {
   const { user } = useAuth();
@@ -92,6 +94,7 @@ function App() {
       <HeaderProvider>
         <NotificationsProvider>
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<AuthScreen />} />

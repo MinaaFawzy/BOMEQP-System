@@ -26,7 +26,7 @@ const ClassesScreen = () => {
   const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedClassForEnrollment, setSelectedClassForEnrollment] = useState(null);
-  
+
   // Cascade selection states
   const [availableACCs, setAvailableACCs] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -34,13 +34,13 @@ const ClassesScreen = () => {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
-  
+
   // Trainees selection
   const [availableTrainees, setAvailableTrainees] = useState([]);
   const [loadingTrainees, setLoadingTrainees] = useState(false);
   const [traineeSearchTerm, setTraineeSearchTerm] = useState('');
   const [selectedTraineeIds, setSelectedTraineeIds] = useState([]);
-  
+
   const [formData, setFormData] = useState({
     acc_id: '',
     category_id: '',
@@ -155,7 +155,7 @@ const ClassesScreen = () => {
         trainingCenterAPI.listClasses({ per_page: 1000 }),
         trainingCenterAPI.listInstructors(),
       ]);
-      
+
       let classesArray = [];
       if (classesData?.data) {
         classesArray = Array.isArray(classesData.data) ? classesData.data : [];
@@ -164,7 +164,7 @@ const ClassesScreen = () => {
       } else if (Array.isArray(classesData)) {
         classesArray = classesData;
       }
-      
+
       setClasses(classesArray);
       setInstructors(instructorsData?.instructors || instructorsData?.data || []);
     } catch (error) {
@@ -175,23 +175,23 @@ const ClassesScreen = () => {
       setLoading(false);
     }
   };
-  
+
 
   // Load course details and filter instructors based on assessor_required
   const loadCourseDetails = async (courseId) => {
     try {
       // Find course in availableCourses array
       const course = availableCourses.find(c => c.id === parseInt(courseId));
-      
+
       if (course) {
         setSelectedCourseData(course);
-        
+
         // Filter instructors based on assessor_required
         if (course.assessor_required) {
           // Show only assessors
           const assessors = instructors.filter(inst => inst.is_assessor === true);
           setFilteredInstructors(assessors);
-          
+
           // Clear instructor selection if current instructor is not an assessor
           if (formData.instructor_id) {
             const selectedInstructor = instructors.find(inst => inst.id === parseInt(formData.instructor_id));
@@ -208,7 +208,7 @@ const ClassesScreen = () => {
         try {
           const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
           const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-          
+
           // Try to get course from ACC API
           const response = await axios.get(`${baseURL}/acc/courses/${courseId}`, {
             headers: {
@@ -216,15 +216,15 @@ const ClassesScreen = () => {
               'Accept': 'application/json',
             },
           });
-          
+
           const courseData = response.data.course || response.data;
           setSelectedCourseData(courseData);
-          
+
           // Filter instructors based on assessor_required
           if (courseData.assessor_required) {
             const assessors = instructors.filter(inst => inst.is_assessor === true);
             setFilteredInstructors(assessors);
-            
+
             if (formData.instructor_id) {
               const selectedInstructor = instructors.find(inst => inst.id === parseInt(formData.instructor_id));
               if (selectedInstructor && !selectedInstructor.is_assessor) {
@@ -252,21 +252,21 @@ const ClassesScreen = () => {
     try {
       const authData = await trainingCenterAPI.getAuthorizationStatus();
       console.log('Authorization data:', authData);
-      
+
       const allAuthorizations = authData.authorizations || authData.data || [];
       console.log('All authorizations:', allAuthorizations);
-      
+
       // Check for approved/active authorizations
       const approvedAuthorizations = allAuthorizations.filter(
         auth => {
           const status = auth.status?.toLowerCase();
-          return status === 'approved' || 
-                 status === 'active' || 
-                 status === 'accepted' ||
-                 (auth.status && auth.status !== 'pending' && auth.status !== 'rejected' && auth.status !== 'cancelled');
+          return status === 'approved' ||
+            status === 'active' ||
+            status === 'accepted' ||
+            (auth.status && auth.status !== 'pending' && auth.status !== 'rejected' && auth.status !== 'cancelled');
         }
       );
-      
+
       console.log('Approved authorizations:', approvedAuthorizations);
 
       if (approvedAuthorizations.length === 0) {
@@ -275,7 +275,7 @@ const ClassesScreen = () => {
         setAvailableACCs([]);
         return;
       }
-      
+
       setHasAuthorizations(true);
 
       // Extract ACCs from authorizations
@@ -299,10 +299,10 @@ const ClassesScreen = () => {
     try {
       setLoadingCategories(true);
       console.log(`Loading categories for ACC ${accId}`);
-      
+
       const data = await trainingCenterAPI.getCategoriesForACC(accId);
       const categoriesList = data.categories || data.data || data || [];
-      
+
       setCategories(categoriesList);
       console.log(`Loaded ${categoriesList.length} categories for ACC ${accId}`);
     } catch (error) {
@@ -318,10 +318,10 @@ const ClassesScreen = () => {
     try {
       setLoadingSubCategories(true);
       console.log(`Loading sub-categories for category ${categoryId}`);
-      
+
       const data = await trainingCenterAPI.getSubCategoriesForCategory(categoryId);
       const subCategoriesList = data.sub_categories || data.data || data || [];
-      
+
       setSubCategories(subCategoriesList);
       console.log(`Loaded ${subCategoriesList.length} sub-categories for category ${categoryId}`);
     } catch (error) {
@@ -337,10 +337,10 @@ const ClassesScreen = () => {
     try {
       setLoadingCourses(true);
       console.log(`Loading courses for ACC ${accId} and sub-category ${subCategoryId}`);
-      
+
       const data = await trainingCenterAPI.getCoursesForACC(accId, { sub_category_id: subCategoryId });
       const coursesList = data.courses || data.data || data || [];
-      
+
       setAvailableCourses(coursesList);
       console.log(`Loaded ${coursesList.length} courses for sub-category ${subCategoryId}`);
     } catch (error) {
@@ -442,7 +442,7 @@ const ClassesScreen = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Handle cascade selection - clear dependent fields
     if (name === 'acc_id') {
       setFormData({
@@ -544,8 +544,8 @@ const ClassesScreen = () => {
 
       // Prepare submit data exactly as specified
       // When updating, use course_id from selectedClass if not in formData
-      const courseId = selectedClass 
-        ? (formData.course_id || selectedClass.course_id) 
+      const courseId = selectedClass
+        ? (formData.course_id || selectedClass.course_id)
         : formData.course_id;
 
       const submitData = {
@@ -555,7 +555,7 @@ const ClassesScreen = () => {
         start_date: formData.start_date,
         end_date: formData.end_date,
         exam_date: formData.exam_date || null,
-        exam_score: formData.exam_score ? parseFloat(formData.exam_score) : null,
+        exam_score: formData.exam_score ? parseInt(formData.exam_score) : null,
         location: formData.location,
       };
 
@@ -576,7 +576,7 @@ const ClassesScreen = () => {
     } catch (error) {
       console.error('Error creating/updating class:', error);
       console.error('Error response:', error.response?.data);
-      
+
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
       } else if (error.response?.data?.message) {
@@ -720,13 +720,13 @@ const ClassesScreen = () => {
       ),
     },
     {
-      header: 'Exam Score',
+      header: 'Grade',
       accessor: 'exam_score',
       sortable: true,
       render: (value) => (
         <div className="text-sm">
           {value !== null && value !== undefined ? (
-            <span className="font-semibold text-indigo-600">{parseFloat(value).toFixed(2)}%</span>
+            <span className="font-semibold text-indigo-600">{parseInt(value)}</span>
           ) : (
             <span className="text-gray-400">N/A</span>
           )}
@@ -746,8 +746,8 @@ const ClassesScreen = () => {
         const config = statusConfig[row.status] || { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock };
         const StatusIcon = config.icon;
         const statusClass = row.status === 'scheduled' ? 'scheduled' :
-                           row.status === 'completed' ? 'completed' :
-                           row.status === 'cancelled' ? 'cancelled' : 'default';
+          row.status === 'completed' ? 'completed' :
+            row.status === 'cancelled' ? 'cancelled' : 'default';
         return (
           <div className="status-container">
             <span className={`status-badge ${statusClass}`}>
@@ -774,7 +774,7 @@ const ClassesScreen = () => {
           }
         };
         return (
-          <div 
+          <div
             className={`enrollment-container ${hasTrainees ? 'enrollment-clickable' : ''}`}
             onClick={handleEnrollmentClick}
             onMouseDown={(e) => {
@@ -819,7 +819,7 @@ const ClassesScreen = () => {
         : (classItem.instructor?.first_name && classItem.instructor?.last_name
           ? `${classItem.instructor.first_name} ${classItem.instructor.last_name}`
           : '');
-      
+
       const searchText = [
         courseName,
         instructorName,
@@ -827,7 +827,7 @@ const ClassesScreen = () => {
         classItem.status || '',
         classItem.location || '',
       ].filter(Boolean).join(' ').toLowerCase();
-      
+
       return {
         ...classItem,
         _searchText: searchText,
@@ -846,18 +846,18 @@ const ClassesScreen = () => {
     if (!traineeSearchTerm.trim()) {
       return availableTrainees;
     }
-    
+
     const searchLower = traineeSearchTerm.toLowerCase().trim();
     return availableTrainees.filter(trainee => {
       const fullName = `${trainee.first_name || ''} ${trainee.last_name || ''}`.toLowerCase();
       const email = (trainee.email || '').toLowerCase();
       const idNumber = (trainee.id_number || '').toLowerCase();
       const id = String(trainee.id || '').toLowerCase();
-      
+
       return fullName.includes(searchLower) ||
-             email.includes(searchLower) ||
-             idNumber.includes(searchLower) ||
-             id.includes(searchLower);
+        email.includes(searchLower) ||
+        idNumber.includes(searchLower) ||
+        id.includes(searchLower);
     });
   }, [availableTrainees, traineeSearchTerm]);
 
@@ -898,7 +898,7 @@ const ClassesScreen = () => {
           isActive={statusFilter === 'completed'}
           onClick={() => setStatusFilter('completed')}
         />
-        </div>
+      </div>
 
       {/* DataTable */}
       <div className="datatable-container">
@@ -915,10 +915,10 @@ const ClassesScreen = () => {
               <div className="empty-state-container">
                 <div className="empty-state-icon-container">
                   <GraduationCap className="empty-state-icon" size={32} />
-            </div>
+                </div>
                 <p className="empty-state-title">No classes found</p>
                 <p className="empty-state-subtitle">Create your first class to get started!</p>
-            </div>
+              </div>
             ) : 'No classes found matching your filters'
           }
           searchable={true}
@@ -1066,9 +1066,9 @@ const ClassesScreen = () => {
                 { value: '', label: 'Select an instructor...' },
                 ...(filteredInstructors.length > 0
                   ? filteredInstructors.map(inst => ({
-                      value: inst.id,
-                      label: `${inst.first_name} ${inst.last_name}${inst.is_assessor ? ' (Assessor)' : ''}`
-                    }))
+                    value: inst.id,
+                    label: `${inst.first_name} ${inst.last_name}${inst.is_assessor ? ' (Assessor)' : ''}`
+                  }))
                   : [{ value: '', label: 'No instructors available', disabled: true }]
                 )
               ]}
@@ -1124,16 +1124,16 @@ const ClassesScreen = () => {
             />
 
             <FormInput
-              label="Exam Score (Optional)"
+              label="Grade (Optional)"
               name="exam_score"
               type="number"
               value={formData.exam_score}
               onChange={handleChange}
               error={errors.exam_score}
-              helpText="Exam score (0-100)"
+              helpText="Grade (0-100)"
               min="0"
               max="100"
-              step="0.01"
+              step="1"
             />
           </div>
 
@@ -1221,7 +1221,7 @@ const ClassesScreen = () => {
                             <input
                               type="checkbox"
                               checked={isSelected}
-                              onChange={() => {}}
+                              onChange={() => { }}
                               onClick={(e) => e.stopPropagation()}
                             />
                           </div>
@@ -1258,7 +1258,7 @@ const ClassesScreen = () => {
               <p className="form-error-general-text">{errors.general}</p>
             </div>
           )}
-          
+
           {Object.keys(errors).filter(key => key !== 'general').length > 0 && (
             <div className="form-error-general">
               <p className="form-error-general-text">Please fix the following errors:</p>
@@ -1309,9 +1309,9 @@ const ClassesScreen = () => {
             <DetailForm
               data={selectedClass}
               fields={[
-                { 
-                  key: 'class_id', 
-                  label: 'Class ID', 
+                {
+                  key: 'class_id',
+                  label: 'Class ID',
                   render: (value, data) => data.class_id || data.id || 'N/A'
                 },
                 { key: 'status', label: 'Status', type: 'status' },
@@ -1325,9 +1325,9 @@ const ClassesScreen = () => {
                 <div className="detail-modal-section-item">
                   <p className="detail-modal-section-label detail-modal-section-label-blue">Course Name</p>
                   <p className="detail-modal-section-value detail-modal-section-value-blue">
-                  {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
-                </p>
-              </div>
+                    {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
+                  </p>
+                </div>
                 {selectedClass.course?.code && (
                   <div className="detail-modal-section-item">
                     <p className="detail-modal-section-label detail-modal-section-label-blue">Course Code</p>
@@ -1362,13 +1362,13 @@ const ClassesScreen = () => {
                 <div className="detail-modal-section-item">
                   <p className="detail-modal-section-label detail-modal-section-label-purple">Name</p>
                   <p className="detail-modal-section-value detail-modal-section-value-purple">
-                  {typeof selectedClass.instructor === 'string' 
-                    ? selectedClass.instructor 
-                    : (selectedClass.instructor?.first_name && selectedClass.instructor?.last_name
-                      ? `${selectedClass.instructor.first_name} ${selectedClass.instructor.last_name}`
-                      : 'N/A')}
-                </p>
-              </div>
+                    {typeof selectedClass.instructor === 'string'
+                      ? selectedClass.instructor
+                      : (selectedClass.instructor?.first_name && selectedClass.instructor?.last_name
+                        ? `${selectedClass.instructor.first_name} ${selectedClass.instructor.last_name}`
+                        : 'N/A')}
+                  </p>
+                </div>
                 {selectedClass.instructor?.email && (
                   <div className="detail-modal-section-item">
                     <p className="detail-modal-section-label detail-modal-section-label-purple">Email</p>
@@ -1442,13 +1442,13 @@ const ClassesScreen = () => {
               )}
               {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
                 <div className="detail-modal-item" style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe' }}>
-                  <p className="detail-modal-label" style={{ color: '#4f46e5' }}>Exam Score</p>
+                  <p className="detail-modal-label" style={{ color: '#4f46e5' }}>Grade</p>
                   <p className="detail-modal-value" style={{ color: '#4338ca', fontWeight: 'bold' }}>
-                    {parseFloat(selectedClass.exam_score).toFixed(2)}%
+                    {parseInt(selectedClass.exam_score)}
                   </p>
                 </div>
               )}
-              </div>
+            </div>
 
             {/* Additional Information */}
             <div className="detail-modal-grid">
@@ -1466,19 +1466,19 @@ const ClassesScreen = () => {
                 {selectedClass.course?.max_capacity && (
                   <div className="detail-modal-progress-container">
                     <div className="detail-modal-progress-bar">
-                      <div 
+                      <div
                         className="detail-modal-progress-fill"
-                        style={{ 
-                          width: `${Math.min(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100, 100)}%` 
+                        style={{
+                          width: `${Math.min(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100, 100)}%`
                         }}
                       ></div>
-              </div>
+                    </div>
                     <p className="detail-modal-progress-text">
                       {Math.round(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100)}% full
-                </p>
-              </div>
+                    </p>
+                  </div>
                 )}
-            </div>
+              </div>
             </div>
 
             {/* Trainees Section - Always show */}
@@ -1666,11 +1666,10 @@ const ClassesScreen = () => {
                           <Clock size={14} className="mr-1" />
                           Status
                         </p>
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-                          trainee.status === 'completed' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${trainee.status === 'completed' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
                           trainee.status === 'enrolled' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
-                          'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                        }`}>
+                            'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+                          }`}>
                           {trainee.status === 'completed' && <CheckCircle size={12} className="mr-1" />}
                           {trainee.status ? trainee.status.charAt(0).toUpperCase() + trainee.status.slice(1) : 'N/A'}
                         </span>
