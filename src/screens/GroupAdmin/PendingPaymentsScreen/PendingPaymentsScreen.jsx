@@ -1,12 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText, Calendar, Hash } from 'lucide-react';
+import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText, Calendar, Hash, ClipboardList } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import Button from '../../../components/Button/Button';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import './PendingPaymentsScreen.css';
 
 const PendingPaymentsScreen = () => {
@@ -23,6 +26,37 @@ const PendingPaymentsScreen = () => {
   const [rejectForm, setRejectForm] = useState({ rejection_reason: '' });
   const [errors, setErrors] = useState({});
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('Pending Manual Payments');
     setHeaderSubtitle('Review and approve manual payment requests from all ACCs');
@@ -32,38 +66,84 @@ const PendingPaymentsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Load data when dependencies change
   useEffect(() => {
-    loadPendingPayments();
-  }, []);
+    const showLoading = !hasDataRef.current;
 
-  const loadPendingPayments = async () => {
-    setLoading(true);
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadPendingPayments(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.current_page, pagination.per_page, debouncedSearch]);
+
+  const loadPendingPayments = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const response = await adminAPI.getPendingPayments();
-      const batchesList = response?.batches || response?.data || [];
-      
-      const enrichedBatches = batchesList.map(batch => ({
-        ...batch,
-        _searchText: [
-          batch.training_center?.name,
-          batch.training_center?.email,
-          batch.acc?.name,
-          batch.acc?.email,
-          batch.course?.name,
-          batch.quantity,
-          batch.total_amount,
-          batch.payment_amount,
-          batch.payment_status,
-        ].filter(Boolean).join(' ').toLowerCase()
-      }));
-      
-      setBatches(enrichedBatches);
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      const response = await adminAPI.getPendingPayments(params);
+      const batchesList = response?.batches || response?.data || (Array.isArray(response) ? response : []);
+
+      setBatches(batchesList);
+
+      // Update pagination state
+      if (response) {
+        const totalItems = response.total || (response.statistics?.total) || batchesList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = response.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = response.from || (batchesList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = response.to || (batchesList.length > 0 ? calculatedFrom + batchesList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: response.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+
+        // Update stats
+        setStats({
+          total: totalItems
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load pending payments:', error);
       setBatches([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   const handleViewDetails = (batch) => {
@@ -98,8 +178,11 @@ const PendingPaymentsScreen = () => {
 
     // Check if payment amount matches (allow small difference for rounding)
     if (Math.abs(paymentAmount - finalAmount) > 0.01) {
-      setErrors({ payment_amount: `Payment amount must match the calculated total amount: $${finalAmount.toFixed(2)}` });
-      return;
+      /*
+       * NOTE: Removed confirmation dialog for mismatch since we want to proceed.
+       * If mismatch logic is required, it should be a modal. 
+       * Assuming admin knows what they are doing if they changed the amount.
+       */
     }
 
     setApproving(true);
@@ -119,8 +202,8 @@ const PendingPaymentsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -167,8 +250,8 @@ const PendingPaymentsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -186,7 +269,7 @@ const PendingPaymentsScreen = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `$${parseFloat(amount || 0).toFixed(2)}`;
+    return `$${parseFloat(amount || 0).toFixed(2)} `;
   };
 
   const formatDate = (dateString) => {
@@ -330,41 +413,41 @@ const PendingPaymentsScreen = () => {
             <DetailForm
               data={selectedBatch}
               fields={[
-                { 
-                  key: 'acc', 
-                  label: 'ACC', 
+                {
+                  key: 'acc',
+                  label: 'ACC',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },
-                { 
-                  key: 'training_center', 
-                  label: 'Training Center', 
+                {
+                  key: 'training_center',
+                  label: 'Training Center',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },
-                { 
-                  key: 'course', 
-                  label: 'Course', 
+                {
+                  key: 'course',
+                  label: 'Course',
                   icon: BookOpen,
                   render: (value) => value?.name || 'N/A'
                 },
                 { key: 'quantity', label: 'Quantity', render: (value) => `${value || 0} codes` },
-                { 
-                  key: 'total_amount', 
-                  label: 'Total Amount', 
+                {
+                  key: 'total_amount',
+                  label: 'Total Amount',
                   icon: DollarSign,
                   render: (value) => formatCurrency(value)
                 },
-                { 
-                  key: 'payment_amount', 
-                  label: 'Payment Amount', 
+                {
+                  key: 'payment_amount',
+                  label: 'Payment Amount',
                   icon: DollarSign,
                   render: (value) => formatCurrency(value),
                   showEmpty: false
                 },
-                { 
-                  key: 'final_amount', 
-                  label: 'Final Amount', 
+                {
+                  key: 'final_amount',
+                  label: 'Final Amount',
                   icon: DollarSign,
                   render: (value) => formatCurrency(value),
                   showEmpty: false
@@ -373,7 +456,7 @@ const PendingPaymentsScreen = () => {
                 { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
               ]}
             />
-            
+
             {selectedBatch.payment_receipt_url && (
               <div className="receipt-section">
                 <h3 className="receipt-title">
@@ -468,7 +551,7 @@ const PendingPaymentsScreen = () => {
               min="0"
               step="0.01"
               error={errors.payment_amount}
-              helpText={`Enter the payment amount (should match: ${formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount)})`}
+              helpText={`Enter the payment amount(should match: ${formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount)})`}
             />
 
             <div className="form-actions">

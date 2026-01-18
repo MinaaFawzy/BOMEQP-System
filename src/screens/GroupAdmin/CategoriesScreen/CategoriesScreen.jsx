@@ -1,19 +1,20 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Plus, FileText, Edit, Trash2, Layers, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, FileText, Edit, Trash2, Layers, CheckCircle, ChevronDown, ChevronUp, ClipboardList, XCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import Pagination from '../../../components/Pagination/Pagination';
 import './CategoriesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
 const CategoriesScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
-  
+
   const [allCategories, setAllCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,6 +28,28 @@ const CategoriesScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+    from: 0,
+    to: 0
+  });
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0
+  });
 
   const [allSubCategories, setAllSubCategories] = useState([]);
   const [subCategoriesLoading, setSubCategoriesLoading] = useState(true);
@@ -43,6 +66,18 @@ const CategoriesScreen = () => {
   const [subCategoryErrors, setSubCategoryErrors] = useState({});
   const [subCategorySaving, setSubCategorySaving] = useState(false);
 
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('Course Categories');
     setHeaderSubtitle('Manage global categories and sub-categories');
@@ -52,16 +87,46 @@ const CategoriesScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Load data when dependencies change
   useEffect(() => {
-    loadCategories();
-    loadSubCategories(); // Load sub categories on mount to calculate stats
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadCategories(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.current_page, pagination.per_page, debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    loadSubCategories(); // Load sub categories on mount or when needed
   }, []);
 
-  const loadCategories = async () => {
-    try {
+  const loadCategories = async (showLoading = true) => {
+    if (showLoading) {
       setLoading(true);
-      const data = await adminAPI.listCategories({ per_page: 1000 });
-      
+    }
+    try {
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.listCategories(params);
+
       let catsList = [];
       if (data?.data) {
         catsList = Array.isArray(data.data) ? data.data : [];
@@ -70,14 +135,57 @@ const CategoriesScreen = () => {
       } else {
         catsList = Array.isArray(data) ? data : [];
       }
-      
+
       setAllCategories(catsList);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || catsList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (catsList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (catsList.length > 0 ? calculatedFrom + catsList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+
+        // Update stats if available
+        if (data.statistics) {
+          setStats({
+            total: data.statistics.total || 0,
+            active: data.statistics.active || 0,
+            inactive: data.statistics.inactive || 0
+          });
+        }
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load categories:', error);
       setAllCategories([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   const handleOpenModal = (category = null) => {
@@ -166,13 +274,13 @@ const CategoriesScreen = () => {
     setSubCategoriesLoading(true);
     try {
       const params = { per_page: 1000 };
-      
+
       if (categoryId) {
         params.category_id = categoryId;
       }
-      
+
       const data = await adminAPI.listSubCategories(params);
-      
+
       let subCatsList = [];
       if (data?.data) {
         subCatsList = Array.isArray(data.data) ? data.data : [];
@@ -181,7 +289,7 @@ const CategoriesScreen = () => {
       } else {
         subCatsList = Array.isArray(data) ? data : [];
       }
-      
+
       setAllSubCategories(subCatsList);
     } catch (error) {
       console.error('Failed to load sub categories:', error);
@@ -195,14 +303,6 @@ const CategoriesScreen = () => {
   const getSubCategoriesForCategory = (categoryId) => {
     return allSubCategories.filter(subCat => subCat.category_id === categoryId);
   };
-
-  // Prepare data for DataTable with search text
-  const categoriesData = useMemo(() => {
-    return allCategories.map(category => ({
-      ...category,
-      _searchText: `${category.name || ''} ${category.name_ar || ''} ${category.description || ''} ${category.status || ''}`.toLowerCase()
-    }));
-  }, [allCategories]);
 
   // Define columns for DataTable
   const columns = useMemo(() => [
@@ -262,24 +362,16 @@ const CategoriesScreen = () => {
       accessor: 'status',
       sortable: true,
       render: (value) => (
-        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${
-          value === 'active'
-            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
-            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
+        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active'
+          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
+          : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+          }`}>
           {value === 'active' && <CheckCircle size={12} className="mr-1" />}
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
         </span>
       ),
     },
   ], [allSubCategories]);
-
-  // Filter options for DataTable
-  const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
-    { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
-  ], []);
 
   // Render expanded row content
   const renderExpandedRow = (category) => {
@@ -318,11 +410,10 @@ const CategoriesScreen = () => {
                         <div className="text-xs text-gray-400 mt-1">{subCat.description}</div>
                       )}
                     </div>
-                    <span className={`px-3 py-1 inline-flex items-center text-xs font-bold rounded-full ${
-                      subCat.status === 'active' 
-                        ? 'bg-green-100 text-green-800 border border-green-300' 
-                        : 'bg-gray-100 text-gray-800 border border-gray-300'
-                    }`}>
+                    <span className={`px-3 py-1 inline-flex items-center text-xs font-bold rounded-full ${subCat.status === 'active'
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-gray-100 text-gray-800 border border-gray-300'
+                      }`}>
                       {subCat.status === 'active' && <CheckCircle size={12} className="mr-1" />}
                       {subCat.status ? subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) : 'N/A'}
                     </span>
@@ -510,19 +601,34 @@ const CategoriesScreen = () => {
 
         <DataTable
           columns={columns}
-          data={categoriesData}
+          data={allCategories}
           onEdit={handleOpenModal}
           onDelete={handleDelete}
           isLoading={loading}
           emptyMessage="No categories found. Create your first category to get started!"
           searchable={true}
-          filterable={true}
+          searchValue={searchQuery}
+          onSearch={(value) => setSearchQuery(value)}
+          filterable={false}
           searchPlaceholder="Search by name..."
-          filterOptions={filterOptions}
+
           sortable={true}
           expandable={true}
           renderExpandedRow={renderExpandedRow}
         />
+
+        {allCategories.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPageChange={handlePageChange}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Category Modal */}

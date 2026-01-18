@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
@@ -10,6 +10,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './AllACCsScreen.css';
 
 const AllACCsScreen = () => {
@@ -42,6 +43,42 @@ const AllACCsScreen = () => {
   });
   const [accErrors, setAccErrors] = useState({});
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    suspended: 0,
+    expired: 0,
+    rejected: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('All Accreditation Bodies');
     setHeaderSubtitle('Manage all accreditation bodies');
@@ -60,10 +97,47 @@ const AllACCsScreen = () => {
     }
   };
 
-  const loadACCs = async () => {
-    setLoading(true);
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadACCs(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadACCs = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const data = await adminAPI.listACCs({ per_page: 1000 });
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.listACCs(params);
+
+      // Handle Laravel pagination response
       let accsArray = [];
       if (data.data) {
         accsArray = data.data || [];
@@ -72,19 +146,62 @@ const AllACCsScreen = () => {
       } else {
         accsArray = Array.isArray(data) ? data : [];
       }
+
       setAllAccs(accsArray);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || accsArray.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (accsArray.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (accsArray.length > 0 ? calculatedFrom + accsArray.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from API response if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          active: data.statistics.active || 0,
+          pending: data.statistics.pending || 0,
+          suspended: data.statistics.suspended || 0,
+          expired: data.statistics.expired || 0,
+          rejected: data.statistics.rejected || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load ACCs:', error);
       setAllAccs([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    loadACCs();
-    loadCategories();
-  }, []);
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const handleViewDetails = async (acc) => {
     try {
@@ -117,13 +234,13 @@ const AllACCsScreen = () => {
       alert('Please enter a valid commission percentage');
       return;
     }
-    
+
     const percentage = parseFloat(commissionPercentage);
     if (percentage < 0 || percentage > 100) {
       alert('Commission percentage must be between 0 and 100');
       return;
     }
-    
+
     setSaving(true);
     try {
       await adminAPI.setCommissionPercentage(selectedACC.id, {
@@ -305,26 +422,12 @@ const AllACCsScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredAccs = useMemo(() => {
-    let filtered = [...allAccs];
+  // filteredAccs removed - using server-side filtering
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(acc => acc.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(acc => ({
-      ...acc,
-      _searchText: `${acc.name || ''} ${acc.email || ''}`.toLowerCase()
-    }));
-  }, [allAccs, statusFilter]);
-
-  // Calculate stats from all ACCs
-  const totalCount = allAccs.length;
-  const activeCount = allAccs.filter(acc => acc.status === 'active').length;
-  const pendingCount = allAccs.filter(acc => acc.status === 'pending').length;
+  // Use stats from API response or calculate from current data
+  const totalCount = stats.total || pagination.total;
+  const activeCount = stats.active;
+  const pendingCount = stats.pending;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -337,9 +440,9 @@ const AllACCsScreen = () => {
           <div className="w-10 h-10 mr-3 relative">
             {row.logo_url ? (
               <>
-                <img 
-                  src={row.logo_url} 
-                  alt={value || 'ACC Logo'} 
+                <img
+                  src={row.logo_url}
+                  alt={value || 'ACC Logo'}
                   className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                   width="40"
                   height="40"
@@ -351,11 +454,11 @@ const AllACCsScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
-            <Building2 className="h-5 w-5 text-primary-600" />
+                  <Building2 className="h-5 w-5 text-primary-600" />
                 </div>
               </>
             ) : (
@@ -385,17 +488,17 @@ const AllACCsScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           },
-          inactive: { 
+          inactive: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -485,19 +588,37 @@ const AllACCsScreen = () => {
       </TabCardsGrid>
 
       {/* DataTable */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredAccs}
+          data={allAccs}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           onEdit={handleEditACC}
           isLoading={loading}
           emptyMessage="No ACCs found"
           searchable={true}
+          searchValue={searchQuery}
+          searchPlaceholder="Search by name, email, legal name, registration number, or country..."
+          onSearch={(value) => {
+            setSearchQuery(value);
+          }}
           filterable={false}
-          searchPlaceholder="Search by name or email..."
         />
+
+        {/* Pagination */}
+        {allAccs.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* ACC Detail Modal */}
@@ -526,11 +647,13 @@ const AllACCsScreen = () => {
                   { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
                   { key: 'status', label: 'Status', type: 'status' },
                   { key: 'commission_percentage', label: 'Commission Percentage', transform: (value) => value ? `${value}%` : 'Not Set', showEmpty: false },
-                  { key: 'stripe_account_configured', label: 'Stripe Account', transform: (value) => value ? 'Configured' : 'Not Configured', render: (value) => (
-                    <span className={`detail-form-badge ${value === 'Configured' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                      {value}
-                    </span>
-                  ), showEmpty: false },
+                  {
+                    key: 'stripe_account_configured', label: 'Stripe Account', transform: (value) => value ? 'Configured' : 'Not Configured', render: (value) => (
+                      <span className={`detail-form-badge ${value === 'Configured' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {value}
+                      </span>
+                    ), showEmpty: false
+                  },
                 ]}
               />
             </>
@@ -846,7 +969,7 @@ const AllACCsScreen = () => {
                   const categoryId = category.id;
                   const subCategories = category.sub_categories || [];
                   const pivot = category.pivot;
-                  
+
                   return (
                     <div
                       key={categoryId}
@@ -859,11 +982,10 @@ const AllACCsScreen = () => {
                             {category.name_ar && (
                               <span className="text-sm text-gray-500">({category.name_ar})</span>
                             )}
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              category.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${category.status === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                              }`}>
                               {category.status}
                             </span>
                           </div>

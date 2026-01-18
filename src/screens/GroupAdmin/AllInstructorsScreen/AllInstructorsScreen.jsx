@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
@@ -11,6 +11,7 @@ import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
+import Pagination from '../../../components/Pagination/Pagination';
 import './AllInstructorsScreen.css';
 
 const AllInstructorsScreen = () => {
@@ -38,6 +39,41 @@ const AllInstructorsScreen = () => {
   });
   const [instructorErrors, setInstructorErrors] = useState({});
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    suspended: 0,
+    inactive: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('Instructors');
     setHeaderSubtitle('View and manage all instructors across all ACCs');
@@ -47,10 +83,43 @@ const AllInstructorsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadInstructors = async () => {
-    setLoading(true);
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadInstructors(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+
+  const loadInstructors = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const data = await adminAPI.listInstructors({ per_page: 1000 });
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.listInstructors(params);
+
+      // Handle Laravel pagination response
       let instructorsList = [];
       if (data.data) {
         instructorsList = data.data || [];
@@ -59,18 +128,61 @@ const AllInstructorsScreen = () => {
       } else {
         instructorsList = Array.isArray(data) ? data : [];
       }
+
       setAllInstructors(instructorsList);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || instructorsList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (instructorsList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (instructorsList.length > 0 ? calculatedFrom + instructorsList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from API response if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          active: data.statistics.active || 0,
+          pending: data.statistics.pending || 0,
+          suspended: data.statistics.suspended || 0,
+          inactive: data.statistics.inactive || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load instructors:', error);
       setAllInstructors([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    loadInstructors();
-  }, []);
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const handleViewDetails = async (instructor) => {
     setDetailLoading(true);
@@ -131,23 +243,23 @@ const AllInstructorsScreen = () => {
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       const allowedExtensions = ['.pdf', '.doc', '.docx'];
       const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-      
+
       if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
         setInstructorErrors({ cv_file: 'CV must be a PDF or DOC/DOCX file' });
         e.target.value = '';
         return;
       }
-      
+
       // Validate file size (10MB)
       if (file.size > 10 * 1024 * 1024) {
         setInstructorErrors({ cv_file: 'CV file size must not exceed 10MB' });
         e.target.value = '';
         return;
       }
-      
+
       setCvFile(file);
       setCvPreview(URL.createObjectURL(file));
-      
+
       // Clear error
       if (instructorErrors.cv_file) {
         setInstructorErrors(prev => {
@@ -208,16 +320,16 @@ const AllInstructorsScreen = () => {
 
     try {
       let dataToSend = { ...instructorFormData };
-      
+
       // Use languages as specializations (since specializations is used for languages)
-      const specializationsArray = Array.isArray(dataToSend.languages) 
-        ? dataToSend.languages 
+      const specializationsArray = Array.isArray(dataToSend.languages)
+        ? dataToSend.languages
         : (dataToSend.languages ? dataToSend.languages.split(',').map(s => s.trim()).filter(s => s) : []);
-      
+
       // If CV file is selected, use FormData
       if (cvFile) {
         const formData = new FormData();
-        
+
         // Append basic fields
         if (dataToSend.first_name) formData.append('first_name', dataToSend.first_name);
         if (dataToSend.last_name) formData.append('last_name', dataToSend.last_name);
@@ -225,23 +337,23 @@ const AllInstructorsScreen = () => {
         if (dataToSend.phone) formData.append('phone', dataToSend.phone);
         if (dataToSend.id_number) formData.append('id_number', dataToSend.id_number);
         if (dataToSend.status) formData.append('status', dataToSend.status);
-        
+
         // Append certificates_json as JSON string (only if not empty)
         if (dataToSend.certificates_json && Array.isArray(dataToSend.certificates_json) && dataToSend.certificates_json.length > 0) {
           formData.append('certificates_json', JSON.stringify(dataToSend.certificates_json));
         } else if (dataToSend.certificates_json && !Array.isArray(dataToSend.certificates_json)) {
           formData.append('certificates_json', JSON.stringify(dataToSend.certificates_json));
         }
-        
+
         // Append specializations as array (specializations[])
         if (specializationsArray.length > 0) {
           specializationsArray.forEach(spec => {
             formData.append('specializations[]', spec);
           });
         }
-        
+
         formData.append('cv', cvFile);
-        
+
         console.log('📡 [AllInstructorsScreen] Updating instructor with FormData');
         console.log('📦 [AllInstructorsScreen] FormData contents:');
         for (const [key, value] of formData.entries()) {
@@ -264,19 +376,19 @@ const AllInstructorsScreen = () => {
           status: dataToSend.status,
           specializations: specializationsArray, // Send as array, not JSON string
         };
-        
+
         // Only include certificates_json if it's not empty
         if (dataToSend.certificates_json && Array.isArray(dataToSend.certificates_json) && dataToSend.certificates_json.length > 0) {
           formattedData.certificates_json = dataToSend.certificates_json;
         } else if (dataToSend.certificates_json && !Array.isArray(dataToSend.certificates_json)) {
           formattedData.certificates_json = dataToSend.certificates_json;
         }
-        
+
         console.log('📡 [AllInstructorsScreen] Updating instructor with JSON');
         console.log('📦 [AllInstructorsScreen] Formatted data:', formattedData);
         await adminAPI.updateInstructor(selectedInstructor.id, formattedData);
       }
-      
+
       await loadInstructors();
       setEditModalOpen(false);
       setSelectedInstructor(null);
@@ -290,7 +402,7 @@ const AllInstructorsScreen = () => {
         data: error.response?.data,
         message: error.message
       });
-      
+
       if (error.response?.data?.errors) {
         console.error('❌ [AllInstructorsScreen] Validation errors:', error.response.data.errors);
         setInstructorErrors(error.response.data.errors);
@@ -304,32 +416,13 @@ const AllInstructorsScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredInstructors = useMemo(() => {
-    let filtered = [...allInstructors];
+  // filteredInstructors removed - using server-side filtering
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(i => i.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(instructor => {
-      const trainingCenterName = instructor.training_center 
-        ? (typeof instructor.training_center === 'string' ? instructor.training_center : instructor.training_center.name)
-        : '';
-      return {
-        ...instructor,
-        _searchText: `${instructor.first_name || ''} ${instructor.last_name || ''} ${instructor.email || ''} ${trainingCenterName}`.toLowerCase()
-      };
-    });
-  }, [allInstructors, statusFilter]);
-
-  // Calculate stats from all instructors
-  const totalCount = allInstructors.length;
-  const activeCount = allInstructors.filter(i => i.status === 'active').length;
-  const pendingCount = allInstructors.filter(i => i.status === 'pending').length;
-  const suspendedCount = allInstructors.filter(i => i.status === 'suspended').length;
+  // Use stats from API response or calculate from current data
+  const totalCount = stats.total || pagination.total;
+  const activeCount = stats.active;
+  const pendingCount = stats.pending;
+  const suspendedCount = stats.suspended;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -342,9 +435,9 @@ const AllInstructorsScreen = () => {
           <div className="w-10 h-10 mr-3 relative">
             {row.photo_url ? (
               <>
-                <img 
-                  src={row.photo_url} 
-                  alt={`${row.first_name} ${row.last_name}` || 'Instructor Photo'} 
+                <img
+                  src={row.photo_url}
+                  alt={`${row.first_name} ${row.last_name}` || 'Instructor Photo'}
                   className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                   width="40"
                   height="40"
@@ -356,7 +449,7 @@ const AllInstructorsScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="photo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
@@ -365,7 +458,7 @@ const AllInstructorsScreen = () => {
               </>
             ) : (
               <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-            <Users className="h-5 w-5 text-primary-600" />
+                <Users className="h-5 w-5 text-primary-600" />
               </div>
             )}
           </div>
@@ -411,7 +504,7 @@ const AllInstructorsScreen = () => {
       accessor: 'training_center',
       sortable: true,
       render: (value) => {
-        const trainingCenterName = value 
+        const trainingCenterName = value
           ? (typeof value === 'string' ? value : value.name)
           : 'N/A';
         return (
@@ -428,21 +521,21 @@ const AllInstructorsScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           },
-          suspended: { 
+          suspended: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          inactive: { 
+          inactive: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -500,19 +593,37 @@ const AllInstructorsScreen = () => {
       </TabCardsGrid>
 
       {/* DataTable */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredInstructors}
+          data={allInstructors}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           onEdit={handleEditInstructor}
           isLoading={loading}
           emptyMessage="No instructors found"
           searchable={true}
+          searchValue={searchQuery}
+          searchPlaceholder="Search by name, email, ID number, or training center..."
+          onSearch={(value) => {
+            setSearchQuery(value);
+          }}
           filterable={false}
-          searchPlaceholder="Search by name, email, or training center..."
         />
+
+        {/* Pagination */}
+        {allInstructors.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Instructor Detail Modal */}
@@ -630,7 +741,7 @@ const AllInstructorsScreen = () => {
               error={instructorErrors.id_number}
               placeholder="Enter ID number (minimum 8 characters)"
             />
-            
+
             {/* CV File Upload */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">

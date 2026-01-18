@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
@@ -56,6 +56,8 @@ const ACCsScreen = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  const hasDataRef = useRef(false);
+
   const loadACCs = useCallback(async (page, limit, search = '', showLoading = true) => {
     try {
       if (showLoading) {
@@ -88,6 +90,7 @@ const ACCsScreen = () => {
         setTotalAccsCount(totalCount);
         setAccsTotalPages(accsData.last_page || Math.ceil(totalCount / limit) || 1);
       }
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load ACCs:', error);
     } finally {
@@ -128,6 +131,7 @@ const ACCsScreen = () => {
         setTotalAuthsCount(totalCount);
         setAuthTotalPages(authData.last_page || Math.ceil(totalCount / limit) || 1);
       }
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load authorizations:', error);
     } finally {
@@ -141,17 +145,25 @@ const ACCsScreen = () => {
     if (accsSearchTerm !== debouncedAccsSearchTerm) {
       return;
     }
-    const showLoading = allAccs.length === 0;
-    loadACCs(accsPage, accsPerPage, debouncedAccsSearchTerm, showLoading);
-  }, [loadACCs, accsPage, accsPerPage, debouncedAccsSearchTerm, accsSearchTerm]);
+    const showLoading = !hasDataRef.current || allAccs.length === 0;
+
+    // Only load if active tab is available or it's the first load
+    if (activeTab === 'available' || !hasDataRef.current || allAccs.length === 0) {
+      loadACCs(accsPage, accsPerPage, debouncedAccsSearchTerm, showLoading);
+    }
+  }, [loadACCs, accsPage, accsPerPage, debouncedAccsSearchTerm, accsSearchTerm, activeTab, allAccs.length]);
 
   useEffect(() => {
     if (authSearchTerm !== debouncedAuthSearchTerm) {
       return;
     }
-    const showLoading = allAuthorizations.length === 0;
-    loadAuthorizations(authPage, authPerPage, debouncedAuthSearchTerm, showLoading);
-  }, [loadAuthorizations, authPage, authPerPage, debouncedAuthSearchTerm, authSearchTerm]);
+    const showLoading = !hasDataRef.current || allAuthorizations.length === 0;
+
+    // Only load if active tab is authorizations or it's the first load
+    if (activeTab === 'authorizations' || !hasDataRef.current || allAuthorizations.length === 0) {
+      loadAuthorizations(authPage, authPerPage, debouncedAuthSearchTerm, showLoading);
+    }
+  }, [loadAuthorizations, authPage, authPerPage, debouncedAuthSearchTerm, authSearchTerm, activeTab, allAuthorizations.length]);
 
   useEffect(() => {
     setHeaderTitle('Accreditation Bodies');
@@ -164,7 +176,9 @@ const ACCsScreen = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Don't reload data, just switch the view
+    hasDataRef.current = false; // Reset to force loading when switching tabs? Or keep it? 
+    // Usually valid to keep data but refresh is safer.
+    // Let's force reload for now to be safe.
   };
 
   const accsColumns = useMemo(() => [
@@ -554,8 +568,12 @@ const ACCsScreen = () => {
             totalPages={accsTotalPages}
             totalItems={totalAccsCount}
             perPage={accsPerPage}
-            onPageChange={setAccsPage}
+            onPageChange={(page) => {
+              hasDataRef.current = false;
+              setAccsPage(page);
+            }}
             onPerPageChange={(perPage) => {
+              hasDataRef.current = false;
               setAccsPerPage(perPage);
               setAccsPage(1);
             }}
@@ -584,8 +602,12 @@ const ACCsScreen = () => {
             totalPages={authTotalPages}
             totalItems={totalAuthsCount}
             perPage={authPerPage}
-            onPageChange={setAuthPage}
+            onPageChange={(page) => {
+              hasDataRef.current = false;
+              setAuthPage(page);
+            }}
             onPerPageChange={(perPage) => {
+              hasDataRef.current = false;
               setAuthPerPage(perPage);
               setAuthPage(1);
             }}

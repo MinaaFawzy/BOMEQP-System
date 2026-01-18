@@ -237,7 +237,7 @@ const ClassesScreen = () => {
           {value !== null && value !== undefined ? (
             <div className="flex items-center gap-1">
               <FileText className="h-4 w-4 text-indigo-400" />
-              <span className="font-semibold">{parseFloat(value).toFixed(2)}%</span>
+              <span className="font-semibold">{parseInt(value)}</span>
             </div>
           ) : (
             <span className="text-gray-400">N/A</span>
@@ -552,7 +552,7 @@ const ClassesScreen = () => {
                   { key: 'start_date', label: 'Start Date', type: 'datetime', icon: Calendar },
                   { key: 'end_date', label: 'End Date', type: 'datetime', icon: Calendar, showEmpty: false },
                   { key: 'exam_date', label: 'Exam Date', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'exam_score', label: 'Exam Score', icon: FileText, render: (value) => value !== null && value !== undefined ? `${parseFloat(value).toFixed(2)}%` : 'N/A', showEmpty: false },
+                  { key: 'exam_score', label: 'Exam Score', icon: FileText, render: (value) => value !== null && value !== undefined ? `${parseInt(value)}` : 'N/A', showEmpty: false },
                   { key: 'start_time', label: 'Start Time', icon: Clock, showEmpty: false },
                   { key: 'end_time', label: 'End Time', icon: Clock, showEmpty: false },
                 ]}

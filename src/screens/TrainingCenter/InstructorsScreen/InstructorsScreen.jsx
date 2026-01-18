@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
@@ -73,17 +73,10 @@ const TrainingCenterInstructorsScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const hasDataRef = useRef(false);
 
   useEffect(() => {
-    // Determine if we should show the full loading spinner
-    // Context: User requested no loading icon when searching
-    // We show loading if:
-    // 1. It's the very first load (totalItems === 0 && loading) - roughly approximated
-    // 2. We are changing pages (optional, but standard behavior)
-    // 3. But if it's a search update, we keep the current data visible (silent update)
-
-    const isSearchUpdate = searchTerm !== '' || debouncedSearchTerm !== '';
-    const showLoading = !isSearchUpdate || instructors.length === 0;
+    const showLoading = !hasDataRef.current;
 
     if (searchTerm !== debouncedSearchTerm) {
       return;
@@ -155,6 +148,7 @@ const TrainingCenterInstructorsScreen = () => {
         setTotalItems(total);
         setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
       }
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load instructors:', error);
       console.error('Error details:', {
@@ -944,8 +938,12 @@ const TrainingCenterInstructorsScreen = () => {
           totalPages={totalPages}
           totalItems={totalItems}
           perPage={perPage}
-          onPageChange={setPage}
+          onPageChange={(p) => {
+            hasDataRef.current = false;
+            setPage(p);
+          }}
           onPerPageChange={(newPerPage) => {
+            hasDataRef.current = false;
             setPerPage(newPerPage);
             setPage(1);
           }}

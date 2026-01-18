@@ -1,12 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, DollarSign, Percent, Building2, Clock, CheckCircle, Eye, Mail, Phone, FileText, Globe, Calendar, Award, BookOpen } from 'lucide-react';
+import { Users, DollarSign, Percent, Building2, Clock, CheckCircle, Eye, Mail, Phone, FileText, Globe, Calendar, Award, BookOpen, ClipboardList } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
+import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
@@ -20,9 +23,36 @@ const InstructorAuthorizationsScreen = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
   useEffect(() => {
-    loadData();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     setHeaderTitle('Instructor Authorization Commissions');
@@ -33,17 +63,86 @@ const InstructorAuthorizationsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadData = async () => {
-    try {
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadData(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.current_page, pagination.per_page, debouncedSearch]);
+
+  const loadData = async (showLoading = true) => {
+    if (showLoading) {
       setLoading(true);
-      const data = await adminAPI.getPendingCommissionRequests();
-      setAuthorizations(data.authorizations || []);
+    }
+    try {
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      const data = await adminAPI.getPendingCommissionRequests(params);
+
+      const authList = data.authorizations || data.data || (Array.isArray(data) ? data : []);
+      setAuthorizations(authList);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || authList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (authList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (authList.length > 0 ? calculatedFrom + authList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+
+        // Update stats
+        // If API returns specific stats for pending, use them.
+        // Otherwise, totalItems represents pending count since this endpoint is filtered.
+        setStats({
+          total: totalItems
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load authorizations:', error);
       setAuthorizations([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   const handleSetCommission = (authorization) => {
@@ -72,7 +171,7 @@ const InstructorAuthorizationsScreen = () => {
       await adminAPI.setInstructorAuthorizationCommission(selectedAuthorization.id, {
         commission_percentage: parseFloat(commissionPercentage),
       });
-      await loadData();
+      await loadData(); // Reload data to reflect changes (removed item)
       setCommissionModalOpen(false);
       setSelectedAuthorization(null);
       setCommissionPercentage('');
@@ -97,14 +196,6 @@ const InstructorAuthorizationsScreen = () => {
       setSaving(false);
     }
   };
-
-  // Prepare data for DataTable with search text
-  const tableData = useMemo(() => {
-    return authorizations.map(auth => ({
-      ...auth,
-      _searchText: `${auth.instructor?.first_name || ''} ${auth.instructor?.last_name || ''} ${auth.instructor?.email || ''} ${auth.acc?.name || ''} ${auth.training_center?.name || ''}`.toLowerCase()
-    }));
-  }, [authorizations]);
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -191,19 +282,44 @@ const InstructorAuthorizationsScreen = () => {
 
   return (
     <div>
+      {/* Stats Cards */}
+      <TabCardsGrid columns={{ mobile: 1, tablet: 1, desktop: 1 }}>
+        <TabCard
+          name="Pending Commission Requests"
+          value={stats.total}
+          icon={Clock}
+          colorType="yellow"
+        />
+      </TabCardsGrid>
+
       {/* DataTable */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 mt-4">
         <DataTable
           columns={columns}
-          data={tableData}
+          data={authorizations}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
           emptyMessage="No pending commission requests"
           searchable={true}
+          searchValue={searchQuery}
+          onSearch={(value) => setSearchQuery(value)}
           filterable={false}
-          searchPlaceholder="Search by instructor name, email, ACC, or training center..."
+          searchPlaceholder="Search by instructor, ACC, or training center..."
         />
+
+        {authorizations.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Set Commission Modal */}
@@ -303,41 +419,41 @@ const InstructorAuthorizationsScreen = () => {
             <DetailForm
               data={selectedAuthorization}
               fields={[
-                { 
-                  key: 'instructor', 
-                  label: 'Instructor', 
+                {
+                  key: 'instructor',
+                  label: 'Instructor',
                   icon: Users,
                   render: (value) => {
                     if (!value) return 'N/A';
                     return `${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A';
                   }
                 },
-                { 
-                  key: 'acc', 
-                  label: 'ACC', 
+                {
+                  key: 'acc',
+                  label: 'ACC',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },
-                { 
-                  key: 'courses', 
-                  label: 'Courses', 
+                {
+                  key: 'courses',
+                  label: 'Courses',
                   icon: BookOpen,
                   render: (value, data) => {
                     if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
-                      return data.courses.map((course, idx) => 
+                      return data.courses.map((course, idx) =>
                         typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'
                       ).join(', ');
                     } else if (data.course) {
-                      return typeof data.course === 'object' 
-                        ? data.course?.name || data.course?.course_name || 'N/A' 
+                      return typeof data.course === 'object'
+                        ? data.course?.name || data.course?.course_name || 'N/A'
                         : data.course || 'N/A';
                     }
                     return 'N/A';
                   }
                 },
-                { 
-                  key: 'authorization_price', 
-                  label: 'Authorization Price', 
+                {
+                  key: 'authorization_price',
+                  label: 'Authorization Price',
                   icon: DollarSign,
                   render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
                 },

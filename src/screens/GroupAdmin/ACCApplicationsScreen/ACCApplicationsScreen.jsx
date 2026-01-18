@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Building2, CheckCircle, XCircle, Clock, Eye, Mail, ClipboardList, Phone, MapPin, Globe, Hash, Calendar } from 'lucide-react';
@@ -8,6 +8,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './ACCApplicationsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -21,6 +22,40 @@ const ACCApplicationsScreen = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('ACC Applications');
     setHeaderSubtitle('Review and manage ACC registration applications');
@@ -30,22 +65,96 @@ const ACCApplicationsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadApplications = async () => {
-    setLoading(true);
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadApplications(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+
+  const loadApplications = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const data = await adminAPI.getACCApplications();
-      setAllApplications(data.applications || []);
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.getACCApplications(params);
+
+      // Handle Laravel pagination response
+      const applicationsArray = data.data || data.applications || [];
+      setAllApplications(applicationsArray);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || applicationsArray.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (applicationsArray.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (applicationsArray.length > 0 ? calculatedFrom + applicationsArray.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from API response if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          pending: data.statistics.pending || 0,
+          rejected: data.statistics.rejected || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load applications:', error);
       setAllApplications([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const handleApprove = async (id) => {
     try {
@@ -90,26 +199,12 @@ const ACCApplicationsScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredApplications = useMemo(() => {
-    let filtered = [...allApplications];
+  // filteredApplications removed - using server-side filtering
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(app => app.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(app => ({
-      ...app,
-      _searchText: `${app.name || ''} ${app.email || ''} ${app.legal_name || ''}`.toLowerCase()
-    }));
-  }, [allApplications, statusFilter]);
-
-  // Calculate stats from all applications
-  const totalCount = allApplications.length;
-  const pendingCount = allApplications.filter(app => app.status === 'pending').length;
-  const rejectedCount = allApplications.filter(app => app.status === 'rejected').length;
+  // Use stats from API response or calculate from current data
+  const totalCount = stats.total || pagination.total;
+  const pendingCount = stats.pending;
+  const rejectedCount = stats.rejected;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -146,17 +241,17 @@ const ACCApplicationsScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          approved: { 
+          approved: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          rejected: { 
+          rejected: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -212,18 +307,36 @@ const ACCApplicationsScreen = () => {
       </TabCardsGrid>
 
       {/* DataTable */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredApplications}
+          data={allApplications}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
           emptyMessage="No applications found"
           searchable={true}
-          filterable={false}
+          searchValue={searchQuery}
           searchPlaceholder="Search by organization name, email, or legal name..."
+          onSearch={(value) => {
+            setSearchQuery(value);
+          }}
+          filterable={false}
         />
+
+        {/* Pagination */}
+        {allApplications.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Detail View Modal */}

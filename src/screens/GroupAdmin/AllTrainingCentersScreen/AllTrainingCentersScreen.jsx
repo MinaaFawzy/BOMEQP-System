@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
@@ -10,6 +10,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './AllTrainingCentersScreen.css';
 
 const AllTrainingCentersScreen = () => {
@@ -40,6 +41,40 @@ const AllTrainingCentersScreen = () => {
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    inactive: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('All Training Centers');
     setHeaderSubtitle('Manage all training centers');
@@ -49,10 +84,47 @@ const AllTrainingCentersScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadTrainingCenters = async () => {
-    setLoading(true);
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadTrainingCenters(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+
+  useEffect(() => {
+    loadCountries();
+  }, []);
+
+  const loadTrainingCenters = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const data = await adminAPI.listTrainingCenters({ per_page: 1000 });
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.listTrainingCenters(params);
+
+      // Handle Laravel pagination response
       let centersList = [];
       if (data.data) {
         centersList = data.data || [];
@@ -61,19 +133,60 @@ const AllTrainingCentersScreen = () => {
       } else {
         centersList = Array.isArray(data) ? data : [];
       }
+
       setAllTrainingCenters(centersList);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || centersList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (centersList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (centersList.length > 0 ? calculatedFrom + centersList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from API response if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          active: data.statistics.active || 0,
+          pending: data.statistics.pending || 0,
+          inactive: data.statistics.inactive || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load training centers:', error);
       setAllTrainingCenters([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
-  
-  useEffect(() => {
-    loadTrainingCenters();
-    loadCountries();
-  }, []);
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const loadCountries = async () => {
     setLoadingCountries(true);
@@ -93,17 +206,17 @@ const AllTrainingCentersScreen = () => {
       setCities([]);
       return;
     }
-    
+
     setLoadingCities(true);
     try {
       const response = await publicAPI.getCities(countryCode);
       let citiesData = response.cities || response.data?.cities || response.data || response || [];
-      
+
       // Convert object to array if needed (when API returns object with numeric keys)
       if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
         citiesData = Object.values(citiesData);
       }
-      
+
       // Ensure cities is always an array
       setCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
@@ -161,7 +274,7 @@ const AllTrainingCentersScreen = () => {
 
   const handleTcFormChange = async (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     // If country changes, load cities for that country and reset city
     if (name === 'country') {
       setTcFormData({
@@ -172,11 +285,11 @@ const AllTrainingCentersScreen = () => {
       setTcErrors({});
       await loadCities(value);
     } else {
-    setTcFormData({
-      ...tcFormData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
-    setTcErrors({});
+      setTcFormData({
+        ...tcFormData,
+        [name]: type === 'checkbox' ? checked : value,
+      });
+      setTcErrors({});
     }
   };
 
@@ -223,27 +336,13 @@ const AllTrainingCentersScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredTrainingCenters = useMemo(() => {
-    let filtered = [...allTrainingCenters];
+  // filteredTrainingCenters removed - using server-side filtering
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(tc => tc.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(tc => ({
-      ...tc,
-      _searchText: `${tc.name || ''} ${tc.email || ''}`.toLowerCase()
-    }));
-  }, [allTrainingCenters, statusFilter]);
-
-  // Calculate stats from all training centers
-  const totalCount = allTrainingCenters.length;
-  const activeCount = allTrainingCenters.filter(tc => tc.status === 'active').length;
-  const pendingCount = allTrainingCenters.filter(tc => tc.status === 'pending').length;
-  const inactiveCount = allTrainingCenters.filter(tc => tc.status === 'inactive').length;
+  // Use stats from API response or calculate from current data
+  const totalCount = stats.total || pagination.total;
+  const activeCount = stats.active;
+  const pendingCount = stats.pending;
+  const inactiveCount = stats.inactive;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -256,9 +355,9 @@ const AllTrainingCentersScreen = () => {
           <div className="w-10 h-10 mr-3 relative">
             {row.logo_url ? (
               <>
-                <img 
-                  src={row.logo_url} 
-                  alt={value || 'Training Center Logo'} 
+                <img
+                  src={row.logo_url}
+                  alt={value || 'Training Center Logo'}
                   className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                   width="40"
                   height="40"
@@ -270,7 +369,7 @@ const AllTrainingCentersScreen = () => {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div 
+                <div
                   className="logo-fallback w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg items-center justify-center hidden"
                   style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
                 >
@@ -279,7 +378,7 @@ const AllTrainingCentersScreen = () => {
               </>
             ) : (
               <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-            <School className="h-5 w-5 text-primary-600" />
+                <School className="h-5 w-5 text-primary-600" />
               </div>
             )}
           </div>
@@ -304,17 +403,17 @@ const AllTrainingCentersScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           },
-          inactive: { 
+          inactive: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -393,19 +492,37 @@ const AllTrainingCentersScreen = () => {
       </TabCardsGrid>
 
       {/* DataTable */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
-          data={filteredTrainingCenters}
+          data={allTrainingCenters}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           onEdit={handleEditTrainingCenter}
           isLoading={loading}
           emptyMessage="No training centers found"
           searchable={true}
+          searchValue={searchQuery}
+          searchPlaceholder="Search by name, email, legal name, registration number, or country..."
+          onSearch={(value) => {
+            setSearchQuery(value);
+          }}
           filterable={false}
-          searchPlaceholder="Search by name or email..."
         />
+
+        {/* Pagination */}
+        {allTrainingCenters.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Training Center Detail Modal */}
@@ -512,17 +629,17 @@ const AllTrainingCentersScreen = () => {
               value={tcFormData.country}
               onChange={handleTcFormChange}
               disabled={loadingCountries}
-              options={loadingCountries 
+              options={loadingCountries
                 ? [{ value: '', label: 'Loading countries...' }]
                 : countries.length > 0
-                ? [
+                  ? [
                     { value: '', label: 'Select a country' },
                     ...countries.map(country => ({
                       value: country.code || country.name || country,
                       label: country.name || country.code || country,
                     }))
                   ]
-                : [{ value: '', label: 'No countries available' }]
+                  : [{ value: '', label: 'No countries available' }]
               }
               error={tcErrors.country}
             />
@@ -537,16 +654,16 @@ const AllTrainingCentersScreen = () => {
                 !tcFormData.country
                   ? [{ value: '', label: 'Select a country first' }]
                   : loadingCities
-                  ? [{ value: '', label: 'Loading cities...' }]
-                  : cities.length > 0
-                  ? [
-                      { value: '', label: 'Select a city' },
-                      ...cities.map(city => ({
-                        value: city.name || city,
-                        label: city.name || city,
-                      }))
-                    ]
-                  : [{ value: '', label: 'No cities available' }]
+                    ? [{ value: '', label: 'Loading cities...' }]
+                    : cities.length > 0
+                      ? [
+                        { value: '', label: 'Select a city' },
+                        ...cities.map(city => ({
+                          value: city.name || city,
+                          label: city.name || city,
+                        }))
+                      ]
+                      : [{ value: '', label: 'No cities available' }]
               }
               error={tcErrors.city}
             />

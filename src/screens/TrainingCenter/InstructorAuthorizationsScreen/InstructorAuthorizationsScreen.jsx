@@ -478,7 +478,7 @@ const InstructorAuthorizationsScreen = () => {
       ),
     },
     {
-      header: 'ACC',
+      header: 'Accreditation',
       accessor: 'acc',
       sortable: true,
       render: (value, row) => (
@@ -634,7 +634,7 @@ const InstructorAuthorizationsScreen = () => {
             setSearchTerm(value);
             setPage(1);
           }}
-          searchPlaceholder="Search by name, ID, or ACC..."
+          searchPlaceholder="Search by name, ID, or Accreditation..."
           // Remove default filterOptions and use customFilters for server-side filtering
           filterable={false}
           customFilters={
@@ -710,7 +710,7 @@ const InstructorAuthorizationsScreen = () => {
           {selectedAuthorization && (
             <div className="payment-info-container">
               <p className="payment-info-text">Instructor: <span className="payment-info-value">{selectedAuthorization.instructor?.first_name} {selectedAuthorization.instructor?.last_name}</span></p>
-              <p className="payment-info-text">ACC: <span className="payment-info-value">{selectedAuthorization.acc?.name}</span></p>
+              <p className="payment-info-text">Accreditation: <span className="payment-info-value">{selectedAuthorization.acc?.name}</span></p>
               <p className="payment-info-text">Authorization Price: <span className="payment-info-value">${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}</span></p>
             </div>
           )}
@@ -791,7 +791,7 @@ const InstructorAuthorizationsScreen = () => {
                 },
                 {
                   key: 'acc',
-                  label: 'ACC',
+                  label: 'Accreditation',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },

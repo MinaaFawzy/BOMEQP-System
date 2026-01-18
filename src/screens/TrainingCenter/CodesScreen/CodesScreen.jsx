@@ -82,14 +82,14 @@ const CodesScreen = () => {
         if (currentAccsMap.size === 0) {
           currentAccsMap = await loadACCs();
         }
-        
+
         const params = {};
         if (searchTerm) {
           params.search = searchTerm;
         }
-        
+
         const data = await trainingCenterAPI.getCodeBatches(params);
-        
+
         let batchesList = [];
         if (data.data) {
           batchesList = data.data || [];
@@ -98,7 +98,7 @@ const CodesScreen = () => {
         } else {
           batchesList = Array.isArray(data) ? data : [];
         }
-        
+
         // Enrich batches with ACC data
         const enrichedBatches = await enrichCodesWithACCData(batchesList, currentAccsMap);
         setBatches(enrichedBatches);
@@ -147,7 +147,7 @@ const CodesScreen = () => {
       const approvedAuthorizations = (authData.authorizations || []).filter(
         auth => auth.status === 'approved'
       );
-      
+
       // Get unique approved ACCs with their details
       const accMap = new Map();
       approvedAuthorizations.forEach(auth => {
@@ -157,14 +157,14 @@ const CodesScreen = () => {
           if (!accMap.has(finalAccId)) {
             accMap.set(finalAccId, {
               id: finalAccId,
-              name: auth.acc?.name || `ACC ${finalAccId}`,
+              name: auth.acc?.name || `Accreditation ID: ${finalAccId}`,
             });
           }
         }
       });
-      
+
       const approvedAccs = Array.from(accMap.values());
-      console.log('Approved ACCs:', approvedAccs);
+      console.log('Approved Accreditations:', approvedAccs);
       setAccs(approvedAccs);
       setCategories([]);
       setSubCategories([]);
@@ -176,17 +176,17 @@ const CodesScreen = () => {
     }
   };
 
-  // Load categories for selected ACC
+  // Load categories for selected Accreditation
   const loadCategories = async (accId) => {
     try {
       setLoadingCategories(true);
-      console.log(`Loading categories for ACC ${accId}`);
-      
+      console.log(`Loading categories for Accreditation ID: ${accId}`);
+
       const data = await trainingCenterAPI.getCategoriesForACC(accId);
       const categoriesList = data.categories || data.data || data || [];
-      
+
       setCategories(categoriesList);
-      console.log(`Loaded ${categoriesList.length} categories for ACC ${accId}`);
+      console.log(`Loaded ${categoriesList.length} categories for Accreditation ID: ${accId}`);
     } catch (error) {
       console.error('Failed to load categories:', error);
       setCategories([]);
@@ -200,10 +200,10 @@ const CodesScreen = () => {
     try {
       setLoadingSubCategories(true);
       console.log(`Loading sub-categories for category ${categoryId}`);
-      
+
       const data = await trainingCenterAPI.getSubCategoriesForCategory(categoryId);
       const subCategoriesList = data.sub_categories || data.data || data || [];
-      
+
       setSubCategories(subCategoriesList);
       console.log(`Loaded ${subCategoriesList.length} sub-categories for category ${categoryId}`);
     } catch (error) {
@@ -224,11 +224,11 @@ const CodesScreen = () => {
     setLoadingCourses(true);
     try {
       const finalAccId = typeof accId === 'string' ? parseInt(accId) : accId;
-      console.log(`Loading courses for ACC ${finalAccId} and sub-category ${subCategoryId}`);
-      
+      console.log(`Loading courses for Accreditation ID: ${finalAccId} and Sub-Category ID: ${subCategoryId}`);
+
       const data = await trainingCenterAPI.getCoursesForACC(finalAccId, { sub_category_id: subCategoryId });
       const coursesList = data.courses || data.data || data || [];
-      
+
       console.log(`Loaded ${coursesList.length} courses for sub-category ${subCategoryId}`);
       setCourses(coursesList);
     } catch (error) {
@@ -241,14 +241,14 @@ const CodesScreen = () => {
 
   const handleACCChange = async (accId) => {
     // Clear everything when ACC changes
-    setPurchaseForm({ 
-      ...purchaseForm, 
-      acc_id: accId, 
-      category_id: '', 
-      sub_category_id: '', 
-      course_id: '', 
-      discount_code: '', 
-      payment_amount: '' 
+    setPurchaseForm({
+      ...purchaseForm,
+      acc_id: accId,
+      category_id: '',
+      sub_category_id: '',
+      course_id: '',
+      discount_code: '',
+      payment_amount: ''
     });
     setCategories([]);
     setSubCategories([]);
@@ -256,57 +256,57 @@ const CodesScreen = () => {
     setDiscountCodes([]);
     setManualPaymentInfo(null);
     setPaymentIntentData(null);
-    
+
     if (!accId) {
       return;
     }
-    
+
     loadCategories(accId);
   };
 
   const handleCategoryChange = async (categoryId) => {
     // Get acc_id before clearing state
     const currentAccId = purchaseForm.acc_id;
-    
+
     // Clear sub-categories and courses when category changes
-    setPurchaseForm(prev => ({ 
-      ...prev, 
-      category_id: categoryId, 
-      sub_category_id: '', 
-      course_id: '', 
-      discount_code: '', 
-      payment_amount: '' 
+    setPurchaseForm(prev => ({
+      ...prev,
+      category_id: categoryId,
+      sub_category_id: '',
+      course_id: '',
+      discount_code: '',
+      payment_amount: ''
     }));
     setSubCategories([]);
     setCourses([]);
     setDiscountCodes([]);
-    
+
     if (!categoryId) {
       return;
     }
-    
+
     loadSubCategories(categoryId);
   };
 
   const handleSubCategoryChange = async (subCategoryId) => {
     // Get acc_id before clearing state
     const currentAccId = purchaseForm.acc_id;
-    
+
     // Clear courses when sub-category changes
-    setPurchaseForm(prev => ({ 
-      ...prev, 
-      sub_category_id: subCategoryId, 
-      course_id: '', 
-      discount_code: '', 
-      payment_amount: '' 
+    setPurchaseForm(prev => ({
+      ...prev,
+      sub_category_id: subCategoryId,
+      course_id: '',
+      discount_code: '',
+      payment_amount: ''
     }));
     setCourses([]);
     setDiscountCodes([]);
-    
+
     if (!subCategoryId || !currentAccId) {
       return;
     }
-    
+
     loadCoursesForSubCategory(currentAccId, subCategoryId);
   };
 
@@ -322,9 +322,9 @@ const CodesScreen = () => {
       const finalCourseId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
       const token = getAuthToken();
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-      
-      console.log(`Loading discount codes for ACC ${finalAccId} and Course ${finalCourseId}`);
-      
+
+      console.log(`Loading discount codes for Accreditation ID: ${finalAccId} and Course ID: ${finalCourseId}`);
+
       // Try different endpoints to get discount codes
       const endpoints = [
         `${baseURL}/training-center/accs/${finalAccId}/courses/${finalCourseId}/discount-codes`,
@@ -333,10 +333,10 @@ const CodesScreen = () => {
         `${baseURL}/training-center/discount-codes?acc_id=${finalAccId}`,
         `${baseURL}/acc/${finalAccId}/discount-codes`,
       ];
-      
+
       let codesList = [];
       let lastError = null;
-      
+
       // Try each endpoint until one works
       for (const endpoint of endpoints) {
         try {
@@ -347,44 +347,44 @@ const CodesScreen = () => {
               'Accept': 'application/json',
             },
           });
-          
+
           console.log(`Response from ${endpoint}:`, response.data);
           const data = response.data;
-          
+
           // Try different possible response structures
           codesList = data.discount_codes || data.discountCodes || data.codes || data.data || data || [];
-          
+
           // Ensure it's an array
           if (!Array.isArray(codesList)) {
             codesList = [];
           }
-          
+
           console.log(`Raw codes list (${codesList.length} items):`, codesList);
-          
+
           // Filter active discount codes only (less strict filtering)
           if (codesList.length > 0) {
             codesList = codesList.filter(code => {
               // Check if code is active (if status field exists)
               const hasStatus = code.status !== undefined;
               const isActive = !hasStatus || code.status === 'active' || code.is_active === true || code.status !== 'inactive';
-              
+
               // Check expiration (if expires_at exists)
               const hasExpiration = code.expires_at !== undefined && code.expires_at !== null;
               const notExpired = !hasExpiration || new Date(code.expires_at) > new Date();
-              
+
               // Check uses left (if max_uses exists)
               const hasMaxUses = code.max_uses !== undefined && code.max_uses !== null;
               const hasUsesLeft = !hasMaxUses || (code.used_count || 0) < code.max_uses;
-              
+
               const isValid = isActive && notExpired && hasUsesLeft;
               console.log(`Code ${code.code || code.discount_code || code.id}: active=${isActive}, notExpired=${notExpired}, hasUsesLeft=${hasUsesLeft}, isValid=${isValid}`);
-              
+
               return isValid;
             });
-            
+
             console.log(`Filtered codes list (${codesList.length} items):`, codesList);
           }
-          
+
           if (codesList.length > 0) {
             console.log(`Successfully loaded ${codesList.length} discount codes from ${endpoint}`);
             break; // Success, exit loop
@@ -400,10 +400,10 @@ const CodesScreen = () => {
           continue;
         }
       }
-      
-      console.log(`Final discount codes for ACC ${finalAccId} and Course ${finalCourseId}:`, codesList);
+
+      console.log(`Final discount codes for Accreditation ID: ${finalAccId} and Course ID: ${finalCourseId}:`, codesList);
       setDiscountCodes(codesList);
-      
+
       if (codesList.length === 0 && lastError) {
         console.warn('No discount codes found. All endpoints failed or returned empty results.');
       }
@@ -420,7 +420,7 @@ const CodesScreen = () => {
     setPurchaseForm({ ...purchaseForm, course_id: courseId, discount_code: '', payment_amount: '' });
     if (purchaseForm.acc_id && courseId) {
       loadDiscountCodes(purchaseForm.acc_id, courseId);
-      
+
       // If manual payment is selected, load payment intent info
       if (purchaseForm.payment_method === 'manual_payment' && purchaseForm.quantity) {
         try {
@@ -450,7 +450,7 @@ const CodesScreen = () => {
     try {
       const accsData = await trainingCenterAPI.listACCs();
       const accsList = Array.isArray(accsData) ? accsData : (accsData.accs || accsData.data || []);
-      
+
       // Create a map of ACC ID to ACC object
       const newAccsMap = new Map();
       accsList.forEach(acc => {
@@ -461,29 +461,29 @@ const CodesScreen = () => {
           newAccsMap.set(String(accId), acc);
         }
       });
-      
+
       setAccsMap(newAccsMap);
-      console.log('Loaded ACCs map:', newAccsMap.size, 'ACCs');
+      console.log('Loaded Accreditation map:', newAccsMap.size, 'Accreditations');
       return newAccsMap;
     } catch (error) {
-      console.error('Failed to load ACCs:', error);
+      console.error('Failed to load Accreditation:', error);
       return new Map();
     }
   };
 
   const fetchACCDetails = async (accId) => {
     if (!accId) return null;
-    
+
     try {
       const token = getAuthToken();
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-      
+
       // Try different endpoints to get ACC details
       const endpoints = [
         `${baseURL}/training-center/accs/${accId}`,
         `${baseURL}/admin/accs/${accId}`,
       ];
-      
+
       for (const endpoint of endpoints) {
         try {
           const response = await axios.get(endpoint, {
@@ -492,7 +492,7 @@ const CodesScreen = () => {
               'Accept': 'application/json',
             },
           });
-          
+
           const accData = response.data?.acc || response.data?.data || response.data;
           if (accData && (accData.id || accData.acc_id)) {
             // Update the map
@@ -509,32 +509,32 @@ const CodesScreen = () => {
         }
       }
     } catch (error) {
-      console.error(`Failed to fetch ACC details for ID ${accId}:`, error);
+      console.error(`Failed to fetch Accreditation details for ID ${accId}:`, error);
     }
-    
+
     return null;
   };
 
   const enrichCodesWithACCData = async (codesList, accsMapToUse) => {
     const enrichedCodes = [];
-    
+
     for (const code of codesList) {
       // Try to get ACC ID from various possible fields
-      const accId = code.acc_id || 
-                   (typeof code.acc === 'object' ? code.acc?.id : null) ||
-                   (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
-                   (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
-      
+      const accId = code.acc_id ||
+        (typeof code.acc === 'object' ? code.acc?.id : null) ||
+        (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
+        (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
+
       // If ACC data already exists and is complete, return as is
-      if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== 'Unknown ACC') {
+      if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== 'Unknown Accreditation') {
         enrichedCodes.push(code);
         continue;
       }
-      
+
       // Try to get ACC data from map
       if (accId) {
         let accData = accsMapToUse.get(accId) || accsMapToUse.get(String(accId));
-        
+
         // If not in map, try to fetch it
         if (!accData) {
           accData = await fetchACCDetails(accId);
@@ -544,7 +544,7 @@ const CodesScreen = () => {
             accsMapToUse.set(String(accId), accData);
           }
         }
-        
+
         if (accData) {
           enrichedCodes.push({
             ...code,
@@ -560,7 +560,7 @@ const CodesScreen = () => {
             ...code,
             acc: {
               id: accId,
-              name: `ACC ${accId}`
+              name: `Accreditation ID: ${accId}`
             }
           });
         }
@@ -568,26 +568,26 @@ const CodesScreen = () => {
         enrichedCodes.push(code);
       }
     }
-    
+
     return enrichedCodes;
   };
 
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Ensure ACCs are loaded
       let currentAccsMap = accsMap;
       if (currentAccsMap.size === 0) {
         currentAccsMap = await loadACCs();
       }
-      
+
       const params = {};
-      
+
       if (activeTab === 'inventory') {
         // Note: search and statusFilter are now handled client-side
         const data = await trainingCenterAPI.getCodeInventory({});
-        
+
         let codesList = [];
         if (data.data) {
           codesList = data.data || [];
@@ -596,14 +596,14 @@ const CodesScreen = () => {
         } else {
           codesList = Array.isArray(data) ? data : [];
         }
-        
+
         // Enrich codes with ACC data
         const enrichedCodes = await enrichCodesWithACCData(codesList, currentAccsMap);
         setInventory(enrichedCodes);
       } else {
         // Note: search and filtering for batches are now handled client-side by DataTable
         const data = await trainingCenterAPI.getCodeBatches({});
-        
+
         let batchesList = [];
         if (data.data) {
           batchesList = data.data || [];
@@ -612,7 +612,7 @@ const CodesScreen = () => {
         } else {
           batchesList = Array.isArray(data) ? data : [];
         }
-        
+
         // Enrich batches with ACC data
         const enrichedBatches = await enrichCodesWithACCData(batchesList, currentAccsMap);
         setBatches(enrichedBatches);
@@ -649,14 +649,14 @@ const CodesScreen = () => {
         const accName = typeof code.acc === 'object' ? code.acc?.name || '' : code.acc || '';
         const courseName = typeof code.course === 'object' ? code.course?.name || '' : code.course || '';
         const status = code.status || '';
-        
+
         const searchText = [
           codeValue,
           accName,
           courseName,
           status,
         ].filter(Boolean).join(' ').toLowerCase();
-        
+
         return searchText.includes(searchLower);
       });
     }
@@ -670,22 +670,22 @@ const CodesScreen = () => {
     if (sortConfig.key) {
       filtered.sort((a, b) => {
         let aValue, bValue;
-        
+
         if (typeof a[sortConfig.key] === 'object' && a[sortConfig.key] !== null) {
           aValue = a[sortConfig.key]?.name || '';
         } else {
           aValue = a[sortConfig.key] || '';
         }
-        
+
         if (typeof b[sortConfig.key] === 'object' && b[sortConfig.key] !== null) {
           bValue = b[sortConfig.key]?.name || '';
         } else {
           bValue = b[sortConfig.key] || '';
         }
-        
+
         if (typeof aValue === 'string') aValue = aValue.toLowerCase();
         if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-        
+
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -837,9 +837,9 @@ const CodesScreen = () => {
 
   // Auto-create payment intent when user clicks Purchase button (for credit card only)
   const handlePurchaseClick = async () => {
-    // Validate ACC selection
+    // Validate Accreditation selection
     if (!purchaseForm.acc_id) {
-      setErrors({ general: 'Please select an ACC' });
+      setErrors({ general: 'Please select an Accreditation' });
       return;
     }
 
@@ -892,12 +892,12 @@ const CodesScreen = () => {
 
       // Create Payment Intent automatically
       const response = await trainingCenterAPI.createPaymentIntent(requestData);
-      
+
       // Store manual payment info if available
       if (response.manual_payment_info) {
         setManualPaymentInfo(response.manual_payment_info);
       }
-      
+
       if (purchaseForm.payment_method === 'credit_card') {
         if (response.success && response.client_secret && response.payment_intent_id) {
           // Store full payment intent data including new destination charge fields
@@ -920,14 +920,14 @@ const CodesScreen = () => {
       }
     } catch (error) {
       console.error('Failed to create payment intent:', error);
-      
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -947,8 +947,8 @@ const CodesScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -969,7 +969,7 @@ const CodesScreen = () => {
 
   const handlePurchaseSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (purchaseForm.payment_method === 'manual_payment') {
       // Handle manual payment submission
       await handleManualPaymentSubmit();
@@ -980,9 +980,9 @@ const CodesScreen = () => {
   };
 
   const handleManualPaymentSubmit = async () => {
-    // Validate ACC selection
+    // Validate Accreditation selection
     if (!purchaseForm.acc_id) {
-      setErrors({ general: 'Please select an ACC' });
+      setErrors({ general: 'Please select an Accreditation' });
       return;
     }
 
@@ -1096,14 +1096,14 @@ const CodesScreen = () => {
       alert('Payment request submitted successfully. Waiting for approval.');
     } catch (error) {
       console.error('Failed to submit manual payment:', error);
-      
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -1120,8 +1120,8 @@ const CodesScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -1149,7 +1149,7 @@ const CodesScreen = () => {
   // Define columns for Purchase History DataTable
   const batchesColumns = useMemo(() => [
     {
-      header: 'ACC',
+      header: 'Accreditation',
       accessor: 'acc',
       sortable: true,
       render: (value, row) => (
@@ -1225,7 +1225,7 @@ const CodesScreen = () => {
         batch.purchase_date ? new Date(batch.purchase_date).toLocaleDateString() : '',
         batch.payment_method || '',
       ].filter(Boolean).join(' ').toLowerCase();
-      
+
       return {
         ...batch,
         _searchText: searchText,
@@ -1236,36 +1236,36 @@ const CodesScreen = () => {
   // Group codes by ACC and Course
   const groupCodesByACCCourse = (codes) => {
     const groups = new Map();
-    
+
     codes.forEach(code => {
       // Try multiple ways to get ACC ID
-      let accId = code.acc_id || 
-                  (typeof code.acc === 'object' ? code.acc?.id : null) ||
-                  (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
-                  (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
-      
-      // Try to get ACC name from code or lookup in accsMap
-      let accName = 'Unknown ACC';
-      if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== 'Unknown ACC') {
+      let accId = code.acc_id ||
+        (typeof code.acc === 'object' ? code.acc?.id : null) ||
+        (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
+        (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
+
+      // Try to get Accreditation name from code or lookup in accsMap
+      let accName = 'Unknown Accreditation';
+      if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== 'Unknown Accreditation') {
         accName = code.acc.name;
-      } else if (typeof code.acc === 'string' && code.acc !== 'Unknown ACC' && code.acc) {
+      } else if (typeof code.acc === 'string' && code.acc !== 'Unknown Accreditation' && code.acc) {
         accName = code.acc;
       } else if (accId) {
-        // Look up ACC in the map
+        // Look up Accreditation in the map
         const accData = accsMap.get(accId) || accsMap.get(String(accId));
         if (accData) {
-          accName = accData.name || accData.acc_name || `ACC ${accId}`;
+          accName = accData.name || accData.acc_name || `Accreditation ID: ${accId}`;
         } else {
           // Use ID as fallback name
-          accName = `ACC ${accId}`;
+          accName = `Accreditation ID: ${accId}`;
         }
       }
-      
+
       const courseId = typeof code.course === 'object' ? code.course?.id : code.course;
       const courseName = typeof code.course === 'object' ? code.course?.name : code.course || 'Unknown Course';
-      
+
       const groupKey = `${accId || 'unknown'}_${courseId || 'unknown'}`;
-      
+
       if (!groups.has(groupKey)) {
         groups.set(groupKey, {
           accId,
@@ -1278,14 +1278,14 @@ const CodesScreen = () => {
           used: 0,
         });
       }
-      
+
       const group = groups.get(groupKey);
       group.codes.push(code);
       group.total++;
       if (code.status === 'available') group.available++;
       if (code.status === 'used') group.used++;
     });
-    
+
     return Array.from(groups.values());
   };
 
@@ -1331,7 +1331,7 @@ const CodesScreen = () => {
               <Search className="search-icon" size={20} />
               <input
                 type="text"
-                placeholder="Search by code, ACC, course, or status..."
+                placeholder="Search by code, Accreditation, course, or status..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -1378,7 +1378,7 @@ const CodesScreen = () => {
           <div className="stats-cards-grid">
             {groupCodesByACCCourse(currentData).map((group, groupIndex) => {
               const groupKey = getGroupKey(group.accId, group.courseId);
-              
+
               return (
                 <div
                   key={groupKey}
@@ -1455,7 +1455,7 @@ const CodesScreen = () => {
             }
             searchable={true}
             filterable={false}
-            searchPlaceholder="Search by ACC, course, quantity, amount, date, or payment method..."
+            searchPlaceholder="Search by Accreditation, course, quantity, amount, date, or payment method..."
             sortable={true}
           />
         </div>
@@ -1497,25 +1497,25 @@ const CodesScreen = () => {
           )}
 
           <FormInput
-            label="ACC"
+            label="Accreditation"
             name="acc_id"
             type="select"
             value={purchaseForm.acc_id}
             onChange={(e) => handleACCChange(e.target.value)}
             required
             disabled={accs.length === 0}
-            options={accs.length > 0 
+            options={accs.length > 0
               ? accs.map(acc => ({
-                  value: acc.id,
-                  label: acc.name || `ACC ${acc.id}`,
-                }))
-              : [{ value: '', label: 'No approved ACCs available. Please get approval from an ACC first.' }]
+                value: acc.id,
+                label: acc.name || `Accreditation ${acc.id}`,
+              }))
+              : [{ value: '', label: 'No approved Accreditations available. Please get approval from an Accreditation first.' }]
             }
             error={errors.acc_id}
           />
           {accs.length === 0 && (
             <p className="form-warning-text">
-              No approved ACCs found. Please request and get approval from an ACC first.
+              No approved Accreditations found. Please request and get approval from an Accreditation first.
             </p>
           )}
 
@@ -1530,7 +1530,7 @@ const CodesScreen = () => {
             disabled={!purchaseForm.acc_id || loadingCategories}
             error={errors.category_id}
             options={[
-              { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+              { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
               ...categories
                 .filter(cat => cat.id != null && cat.id !== '')
                 .map(cat => ({
@@ -1551,7 +1551,7 @@ const CodesScreen = () => {
             disabled={!purchaseForm.acc_id || !purchaseForm.category_id || loadingSubCategories}
             error={errors.sub_category_id}
             options={[
-              { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (!purchaseForm.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+              { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (!purchaseForm.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
               ...subCategories
                 .filter(subCat => subCat.id != null && subCat.id !== '')
                 .map(subCat => ({
@@ -1572,7 +1572,7 @@ const CodesScreen = () => {
               required
               disabled={!purchaseForm.acc_id || !purchaseForm.category_id || !purchaseForm.sub_category_id || courses.length === 0 || loadingCourses}
               options={[
-                { value: '', label: !purchaseForm.acc_id ? 'Please select ACC first' : (!purchaseForm.category_id ? 'Please select Category first' : (!purchaseForm.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (!purchaseForm.category_id ? 'Please select Category first' : (!purchaseForm.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
                 ...courses.map(course => {
                   const courseId = course.id ? (typeof course.id === 'string' ? parseInt(course.id) : course.id) : course.id;
                   return {
@@ -1585,7 +1585,7 @@ const CodesScreen = () => {
             />
             {!purchaseForm.acc_id && (
               <p className="form-info-text">
-                Please select an ACC first to see available courses.
+                Please select an Accreditation first to see available courses.
               </p>
             )}
             {purchaseForm.acc_id && !purchaseForm.category_id && (
@@ -1613,7 +1613,7 @@ const CodesScreen = () => {
             onChange={async (e) => {
               const newQuantity = e.target.value;
               setPurchaseForm({ ...purchaseForm, quantity: newQuantity, payment_amount: '' });
-              
+
               // If manual payment is selected, load payment intent info
               if (purchaseForm.payment_method === 'manual_payment' && purchaseForm.acc_id && purchaseForm.course_id && newQuantity) {
                 try {
@@ -1673,11 +1673,11 @@ const CodesScreen = () => {
                 placeholder="Enter discount code manually"
                 disabled={loadingDiscountCodes}
                 error={errors.discount_code}
-                helpText={loadingDiscountCodes 
-                  ? 'Loading discount codes...' 
-                  : purchaseForm.course_id 
-                  ? 'No discount codes available. You can enter a code manually if you have one.' 
-                  : 'Select a course first to see available discount codes'}
+                helpText={loadingDiscountCodes
+                  ? 'Loading discount codes...'
+                  : purchaseForm.course_id
+                    ? 'No discount codes available. You can enter a code manually if you have one.'
+                    : 'Select a course first to see available discount codes'}
               />
             )}
             {discountCodes.length > 0 && (
@@ -1713,9 +1713,9 @@ const CodesScreen = () => {
             value={purchaseForm.payment_method}
             onChange={async (e) => {
               const newPaymentMethod = e.target.value;
-              setPurchaseForm({ 
-                ...purchaseForm, 
-                payment_method: newPaymentMethod, 
+              setPurchaseForm({
+                ...purchaseForm,
+                payment_method: newPaymentMethod,
                 payment_intent_id: '',
                 payment_amount: '',
                 payment_receipt: null,
@@ -1723,7 +1723,7 @@ const CodesScreen = () => {
               setPaymentIntentData(null);
               setManualPaymentInfo(null);
               setErrors({});
-              
+
               // If manual payment is selected, create payment intent to get info
               if (newPaymentMethod === 'manual_payment' && purchaseForm.acc_id && purchaseForm.course_id && purchaseForm.quantity) {
                 try {
@@ -1769,7 +1769,7 @@ const CodesScreen = () => {
                   </p>
                   {manualPaymentInfo.requires_receipt && (
                     <p className="payment-info-text" style={{ fontSize: '12px', color: '#888' }}>
-                      Supported formats: {manualPaymentInfo.receipt_formats?.join(', ').toUpperCase() || 'PDF, JPG, PNG'} 
+                      Supported formats: {manualPaymentInfo.receipt_formats?.join(', ').toUpperCase() || 'PDF, JPG, PNG'}
                       (Max: {manualPaymentInfo.max_receipt_size_mb || 10} MB)
                     </p>
                   )}
@@ -1809,7 +1809,7 @@ const CodesScreen = () => {
 
                       try {
                         let processedFile = file;
-                        
+
                         // Compress images only (not PDF)
                         if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
                           const options = {
@@ -1822,7 +1822,7 @@ const CodesScreen = () => {
 
                           // Compress the image (compresses file size while maintaining high quality)
                           processedFile = await imageCompression(file, options);
-                          
+
                           // Update file name to preserve original name
                           const fileName = file.name.substring(0, file.name.lastIndexOf('.')) + '.' + fileExtension;
                           processedFile = new File([processedFile], fileName, { type: file.type });
@@ -1928,7 +1928,7 @@ const CodesScreen = () => {
 
             // Use paymentIntent.id as the primary source, fallback to paymentIntentId prop
             const finalPaymentIntentId = paymentIntent.id || paymentIntentId;
-            
+
             if (!finalPaymentIntentId) {
               setErrors({ general: 'Payment intent ID not found. Please try again.' });
               setShowStripeModal(false);
@@ -1964,7 +1964,7 @@ const CodesScreen = () => {
             alert('Codes purchased successfully!');
           } catch (error) {
             console.error('Failed to purchase codes:', error);
-            
+
             // Handle different error types according to guide
             if (error.response?.status === 400) {
               const errorData = error.response.data;
@@ -1974,15 +1974,15 @@ const CodesScreen = () => {
               setErrors({ general: errorData?.message || 'Insufficient wallet balance. Please add funds to your wallet or use a different payment method.' });
             } else if (error.response?.status === 403) {
               const errorData = error.response.data;
-              setErrors({ general: errorData?.message || 'You do not have authorization from this ACC or the ACC is not active.' });
+              setErrors({ general: errorData?.message || 'You do not have authorization from this Accreditation or the Accreditation is not active.' });
             } else if (error.response?.status === 422) {
               // Validation errors
               const errorData = error.response.data;
               if (errorData.errors) {
                 const validationErrors = {};
                 Object.keys(errorData.errors).forEach(field => {
-                  validationErrors[field] = Array.isArray(errorData.errors[field]) 
-                    ? errorData.errors[field][0] 
+                  validationErrors[field] = Array.isArray(errorData.errors[field])
+                    ? errorData.errors[field][0]
                     : errorData.errors[field];
                 });
                 setErrors(validationErrors);
@@ -1995,16 +1995,16 @@ const CodesScreen = () => {
               // Server error
               const errorData = error.response.data;
               console.error('Server error details:', errorData);
-              setErrors({ 
-                general: errorData?.message || 'Server error occurred. Please contact support or try again later.' 
+              setErrors({
+                general: errorData?.message || 'Server error occurred. Please contact support or try again later.'
               });
             } else if (error.response?.data) {
               const errorData = error.response.data;
               if (errorData.errors) {
                 const validationErrors = {};
                 Object.keys(errorData.errors).forEach(field => {
-                  validationErrors[field] = Array.isArray(errorData.errors[field]) 
-                    ? errorData.errors[field][0] 
+                  validationErrors[field] = Array.isArray(errorData.errors[field])
+                    ? errorData.errors[field][0]
                     : errorData.errors[field];
                 });
                 setErrors(validationErrors);

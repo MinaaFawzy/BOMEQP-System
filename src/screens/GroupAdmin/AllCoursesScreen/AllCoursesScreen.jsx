@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { GraduationCap, Eye, Building2, Clock, CheckCircle, XCircle, Layers, FileText, ClipboardList, BookOpen, Hash, Calendar } from 'lucide-react';
@@ -7,6 +7,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
 import './AllCoursesScreen.css';
 
 const AllCoursesScreen = () => {
@@ -18,6 +19,40 @@ const AllCoursesScreen = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 5,
+    from: 0,
+    to: 0
+  });
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    archived: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setHeaderTitle('Courses');
     setHeaderSubtitle('View and manage all courses across all ACCs');
@@ -27,10 +62,42 @@ const AllCoursesScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadCourses = async () => {
-    setLoading(true);
+  // Load data when dependencies change
+  useEffect(() => {
+    const showLoading = !hasDataRef.current;
+
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadCourses(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+
+  const loadCourses = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const data = await adminAPI.listCourses({ per_page: 1000 });
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await adminAPI.listCourses(params);
+
       let coursesList = [];
       if (data.data) {
         coursesList = data.data || [];
@@ -40,17 +107,57 @@ const AllCoursesScreen = () => {
         coursesList = Array.isArray(data) ? data : [];
       }
       setAllCourses(coursesList);
+
+      // Update pagination state
+      if (data) {
+        const totalItems = data.total || (data.statistics?.total) || coursesList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = data.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = data.from || (coursesList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = data.to || (coursesList.length > 0 ? calculatedFrom + coursesList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from API response if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          active: data.statistics.active || 0,
+          inactive: data.statistics.inactive || 0,
+          archived: data.statistics.archived || 0
+        });
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load courses:', error);
       setAllCourses([]);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
-  
-  useEffect(() => {
-    loadCourses();
-  }, []);
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
+  };
 
   const handleViewDetails = async (course) => {
     setDetailModalOpen(true);
@@ -66,31 +173,11 @@ const AllCoursesScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredCourses = useMemo(() => {
-    let filtered = [...allCourses];
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(course => course.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(course => {
-      const accName = course.acc && typeof course.acc === 'object' ? course.acc.name : '';
-      const subCatName = course.sub_category && typeof course.sub_category === 'object' ? course.sub_category.name : '';
-      return {
-        ...course,
-        _searchText: `${course.name || ''} ${course.code || ''} ${course.name_ar || ''} ${accName} ${subCatName}`.toLowerCase()
-      };
-    });
-  }, [allCourses, statusFilter]);
-
-  // Calculate stats from all courses
-  const totalCount = allCourses.length;
-  const activeCount = allCourses.filter(c => c.status === 'active').length;
-  const inactiveCount = allCourses.filter(c => c.status === 'inactive').length;
-  const archivedCount = allCourses.filter(c => c.status === 'archived').length;
+  // Use stats from API response or calculate from current data
+  const totalCount = stats.total || pagination.total;
+  const activeCount = stats.active;
+  const inactiveCount = stats.inactive;
+  const archivedCount = stats.archived;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -165,17 +252,17 @@ const AllCoursesScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          inactive: { 
+          inactive: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          archived: { 
+          archived: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-            icon: XCircle 
+            icon: XCircle
           }
         };
         const config = statusConfig[value] || statusConfig.inactive;
@@ -236,15 +323,33 @@ const AllCoursesScreen = () => {
       <div className="bg-white rounded-xl shadow-lg border border-gray-100">
         <DataTable
           columns={columns}
-          data={filteredCourses}
+          data={allCourses}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
           emptyMessage="No courses found"
           searchable={true}
+          searchValue={searchQuery}
+          onSearch={(value) => {
+            setSearchQuery(value);
+          }}
           filterable={false}
           searchPlaceholder="Search by name, code, ACC, or sub category..."
         />
+
+        {/* Pagination */}
+        {allCourses.length > 0 && (
+          <div className="border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              onPageChange={handlePageChange}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPerPageChange={handlePerPageChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Course Detail Modal */}
@@ -268,16 +373,16 @@ const AllCoursesScreen = () => {
               { key: 'name', label: 'Course Name', icon: GraduationCap },
               { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
               { key: 'code', label: 'Course Code', icon: Hash, showEmpty: false },
-              { 
-                key: 'acc', 
-                label: 'ACC', 
+              {
+                key: 'acc',
+                label: 'ACC',
                 icon: Building2,
                 render: (value) => value && typeof value === 'object' ? value.name : (value || 'N/A'),
                 showEmpty: false
               },
-              { 
-                key: 'sub_category', 
-                label: 'Sub Category', 
+              {
+                key: 'sub_category',
+                label: 'Sub Category',
                 icon: Layers,
                 render: (value) => value && typeof value === 'object' ? value.name : (value || 'N/A'),
                 showEmpty: false

@@ -1049,7 +1049,7 @@ const ClassesScreen = () => {
             <>
               {/* ACC Selection */}
               <FormInput
-                label="ACC"
+                label="Accreditation"
                 name="acc_id"
                 type="select"
                 value={formData.acc_id}
@@ -1057,18 +1057,18 @@ const ClassesScreen = () => {
                 required
                 error={errors.acc_id}
                 options={[
-                  { value: '', label: 'Select an ACC...' },
+                  { value: '', label: 'Select an Accreditation...' },
                   ...availableACCs.map(acc => ({
                     value: acc.id,
-                    label: acc.name || `ACC ${acc.id}`
+                    label: acc.name || `Accreditation ${acc.id}`
                   }))
                 ]}
               />
               {availableACCs.length === 0 && !loading && (
                 <div className="form-warning">
-                  <p className="form-warning-title">No ACCs available</p>
+                  <p className="form-warning-title">No Accreditations available</p>
                   <p className="form-warning-text">
-                    Please ensure you have authorization from at least one ACC. Authorized ACCs will appear here.
+                    Please ensure you have authorization from at least one Accreditation. Authorized Accreditations will appear here.
                   </p>
                 </div>
               )}
@@ -1084,7 +1084,7 @@ const ClassesScreen = () => {
                 disabled={!formData.acc_id || loadingCategories}
                 error={errors.category_id}
                 options={[
-                  { value: '', label: !formData.acc_id ? 'Please select ACC first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+                  { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
                   ...categories
                     .filter(cat => cat.id != null && cat.id !== '')
                     .map(cat => ({
@@ -1105,7 +1105,7 @@ const ClassesScreen = () => {
                 disabled={!formData.acc_id || !formData.category_id || loadingSubCategories}
                 error={errors.sub_category_id}
                 options={[
-                  { value: '', label: !formData.acc_id ? 'Please select ACC first' : (!formData.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+                  { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (!formData.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
                   ...subCategories
                     .filter(subCat => subCat.id != null && subCat.id !== '')
                     .map(subCat => ({
@@ -1127,7 +1127,7 @@ const ClassesScreen = () => {
                   disabled={!formData.acc_id || !formData.category_id || !formData.sub_category_id || loadingCourses}
                   error={errors.course_id}
                   options={[
-                    { value: '', label: !formData.acc_id ? 'Please select ACC first' : (!formData.category_id ? 'Please select Category first' : (!formData.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                    { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (!formData.category_id ? 'Please select Category first' : (!formData.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
                     ...availableCourses.map(course => {
                       const courseName = course.name || course.code || `Course ${course.id}`;
                       return { value: course.id, label: courseName };

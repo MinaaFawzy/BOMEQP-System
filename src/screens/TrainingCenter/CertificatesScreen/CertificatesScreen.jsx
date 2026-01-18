@@ -122,7 +122,7 @@ const TrainingCenterCertificatesScreen = () => {
 
       setAccs(accsArray);
     } catch (error) {
-      console.error('Failed to load ACCs:', error);
+      console.error('Failed to load Accreditations:', error);
       setAccs([]);
     } finally {
       setLoadingACCs(false);
@@ -390,7 +390,7 @@ const TrainingCenterCertificatesScreen = () => {
     if (!formData.class_id) {
       // ... existing validation
       if (!formData.acc_id) {
-        setErrors({ acc_id: 'Please select an ACC' });
+        setErrors({ acc_id: 'Please select an Accreditation' });
         setGenerating(false);
         return;
       }
@@ -631,7 +631,7 @@ const TrainingCenterCertificatesScreen = () => {
       }
     },
     {
-      header: 'ACC',
+      header: 'Accreditation',
       accessor: 'course',
       sortable: true,
       render: (value, row) => {
@@ -925,7 +925,7 @@ const TrainingCenterCertificatesScreen = () => {
                 { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
                 { key: 'verification_code', label: 'Verification Code', icon: FileText },
                 { key: 'trainee_name', label: 'Trainee Name', icon: User },
-                { key: 'acc', label: 'ACC', icon: Building2, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
+                { key: 'acc', label: 'Accreditation', icon: Building2, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
                 { key: 'course', label: 'Course', icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
                 { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
                 { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },

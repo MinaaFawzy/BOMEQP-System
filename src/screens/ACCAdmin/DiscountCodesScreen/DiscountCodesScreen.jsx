@@ -607,8 +607,10 @@ const DiscountCodesScreen = () => {
   return (
     <div>
       {/* Search Input */}
-      <div className="mb-4">
-        <div className="relative">
+      {/* Search and Filters */}
+      <div className="mb-4 flex gap-4">
+        {/* Search Input */}
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search by code or type..."
@@ -620,6 +622,24 @@ const DiscountCodesScreen = () => {
             <Search size={20} />
           </div>
         </div>
+
+        {/* Status Filter */}
+        <div className="w-48">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="expired">Expired</option>
+            <option value="depleted">Depleted</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
@@ -628,14 +648,7 @@ const DiscountCodesScreen = () => {
           data={codes}
           isLoading={loading}
           searchable={false}
-          filterable={true}
-          filterOptions={[
-            { value: 'all', label: 'All Status', filterFn: () => true },
-            { value: 'active', label: 'Active', filterFn: (code) => code.status === 'active' },
-            { value: 'inactive', label: 'Inactive', filterFn: (code) => code.status === 'inactive' },
-            { value: 'expired', label: 'Expired', filterFn: (code) => code.status === 'expired' },
-            { value: 'depleted', label: 'Depleted', filterFn: (code) => code.status === 'depleted' }
-          ]}
+          filterable={false}
           defaultFilter="all"
           sortable={true}
           emptyMessage="No discount codes found. Create your first discount code!"

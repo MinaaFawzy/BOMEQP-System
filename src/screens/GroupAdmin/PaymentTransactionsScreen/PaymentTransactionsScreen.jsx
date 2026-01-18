@@ -1,24 +1,56 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { DollarSign, TrendingUp, Calendar, Receipt, Building2, User, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, Receipt, Building2, User, CheckCircle, Clock, XCircle, AlertCircle, ClipboardList } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import Pagination from '../../../components/Pagination/Pagination';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [transactions, setTransactions] = useState([]);
-  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
-  // Filters
+
+  // Pagination State
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+    from: 0,
+    to: 0
+  });
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Stats State (using existing summary structure if possible or manual)
+  const [stats, setStats] = useState({
+    total_amount: 0,
+    count: 0,
+    completed_amount: 0,
+    pending_amount: 0
+  });
+
+  // Track if data has been loaded before
+  const hasDataRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, current_page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     setHeaderTitle('Payment Transactions');
@@ -29,31 +61,107 @@ const PaymentTransactionsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
+  // Load data when dependencies change
   useEffect(() => {
-    loadTransactions();
-  }, [typeFilter, statusFilter]);
+    const showLoading = !hasDataRef.current;
 
-  const loadTransactions = async () => {
-    setLoading(true);
+    // Don't load if search is still being debounced
+    if (searchQuery !== debouncedSearch) {
+      return;
+    }
+
+    loadTransactions(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.current_page, pagination.per_page, debouncedSearch, typeFilter, statusFilter]);
+
+  const loadTransactions = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const params = { per_page: 1000 };
-      
+      // Build query parameters
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      // Add search if there's a value
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add filters if not 'all'
       if (typeFilter !== 'all') params.type = typeFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
 
       const response = await adminAPI.getPaymentTransactions(params);
       const data = response?.data || response || [];
       const summaryData = response?.summary || null;
-      
-      setTransactions(Array.isArray(data) ? data : (data?.data || []));
-      setSummary(summaryData);
+
+      const transList = Array.isArray(data) ? data : (data?.data || []);
+      setTransactions(transList);
+
+      // Update pagination state
+      if (response && response.data) { // Assuming Laravel pagination structure inside response.data or response
+        const meta = response.data.meta || response; // Sometimes response IS the pagination object or response.data has it
+        // Let's handle generic Laravel pagination response
+        const totalItems = meta.total || (response.statistics?.total) || transList.length;
+        const currentPerPage = pagination.per_page;
+        const calculatedLastPage = meta.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+        const calculatedFrom = meta.from || (transList.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+        const calculatedTo = meta.to || (transList.length > 0 ? calculatedFrom + transList.length - 1 : 0);
+
+        setPagination(prev => ({
+          ...prev,
+          current_page: meta.current_page || prev.current_page || 1,
+          last_page: calculatedLastPage,
+          total: totalItems,
+          from: calculatedFrom,
+          to: calculatedTo
+        }));
+      }
+
+      // Update stats from summary if available, else standard fallback
+      if (summaryData) {
+        setStats({
+          total_amount: summaryData.total_amount || 0,
+          count: summaryData.count || 0,
+          completed_amount: summaryData.completed_amount || 0,
+          pending_amount: summaryData.pending_amount || 0,
+        });
+      } else {
+        // Fallback stats or maybe response.statistics
+        if (response.statistics) {
+          setStats({
+            total_amount: response.statistics.total_amount || 0,
+            count: response.statistics.total || pagination.total,
+            completed_amount: 0,
+            pending_amount: 0
+          });
+        }
+      }
+
+      hasDataRef.current = true;
     } catch (error) {
       console.error('Failed to load transactions:', error);
       setTransactions([]);
-      setSummary(null);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, current_page: newPage }));
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      per_page: parseInt(newPerPage),
+      current_page: 1
+    }));
   };
 
   const handleViewDetails = (transaction) => {
@@ -61,16 +169,16 @@ const PaymentTransactionsScreen = () => {
     setDetailModalOpen(true);
   };
 
-  // Prepare data for DataTable with search text
-  const tableData = useMemo(() => {
-    return transactions.map(transaction => ({
-      ...transaction,
-      _searchText: `${transaction.transaction_type || ''} ${transaction.payer?.name || ''} ${transaction.payee?.name || ''} ${transaction.amount || ''} ${transaction.currency || ''} ${transaction.status || ''} ${transaction.description || ''}`.toLowerCase()
-    }));
-  }, [transactions]);
+  // Prepare data for DataTable with search text - REMOVED, now server-side search
+  // const tableData = useMemo(() => {
+  //   return transactions.map(transaction => ({
+  //     ...transaction,
+  //     _searchText: `${ transaction.transaction_type || '' } ${ transaction.payer?.name || '' } ${ transaction.payee?.name || '' } ${ transaction.amount || '' } ${ transaction.currency || '' } ${ transaction.status || '' } ${ transaction.description || '' } `.toLowerCase()
+  //   }));
+  // }, [transactions]);
 
   const formatCurrency = (amount, currency = 'USD') => {
-    return `${parseFloat(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+    return `${parseFloat(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency} `;
   };
 
   const formatDate = (dateString) => {
@@ -115,16 +223,19 @@ const PaymentTransactionsScreen = () => {
   // DataTable columns
   const columns = useMemo(() => [
     {
+      header: 'ID',
+      accessor: 'id',
+      sortable: true,
+      render: (value) => <span className="text-gray-500 font-mono text-xs">#{value}</span>
+    },
+    {
       header: 'Type',
       accessor: 'transaction_type',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
-            <Receipt className="h-5 w-5 text-primary-600" />
-          </div>
-          <div className="font-medium text-gray-900">{getTransactionTypeLabel(value)}</div>
-        </div>
+        <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+          {value ? value.replace(/_/g, ' ') : 'N/A'}
+        </span>
       )
     },
     {
@@ -189,27 +300,27 @@ const PaymentTransactionsScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          completed: { 
+          completed: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           },
-          failed: { 
+          failed: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          refunded: { 
+          refunded: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-            icon: AlertCircle 
+            icon: AlertCircle
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
         const Icon = config.icon;
         return (
-          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
+          <span className={`px - 3 py - 1.5 inline - flex items - center text - xs leading - 5 font - bold rounded - full shadow - sm ${config.badgeClass} `}>
             <Icon size={12} className="mr-1" />
             {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
           </span>
@@ -228,54 +339,61 @@ const PaymentTransactionsScreen = () => {
     }
   ], []);
 
-  // Filter data client-side
-  const filteredTableData = useMemo(() => {
-    let filtered = [...tableData];
-    
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(t => t.transaction_type === typeFilter);
-    }
-    
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(t => t.status === statusFilter);
-    }
-    
-    return filtered;
-  }, [tableData, typeFilter, statusFilter]);
+  // Filter data client-side - REMOVED, now server-side filtering
+  // const filteredTableData = useMemo(() => {
+  //   let filtered = [...tableData];
+
+  //   if (typeFilter !== 'all') {
+  //     filtered = filtered.filter(t => t.transaction_type === typeFilter);
+  //   }
+
+  //   if (statusFilter !== 'all') {
+  //     filtered = filtered.filter(t => t.status === statusFilter);
+  //   }
+
+  //   return filtered;
+  // }, [tableData, typeFilter, statusFilter]);
 
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
-      {summary && (
-        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }}>
-          <TabCard
-            name="Total Transactions"
-            value={summary.total_transactions || 0}
-            icon={Receipt}
-            colorType="indigo"
-          />
-          <TabCard
-            name="Total Amount"
-            value={formatCurrency(summary.total_amount || 0)}
-            icon={DollarSign}
-            colorType="green"
-          />
-          <TabCard
-            name="Completed"
-            value={formatCurrency(summary.completed_amount || 0)}
-            icon={TrendingUp}
-            colorType="blue"
-          />
-        </TabCardsGrid>
-      )}
+      {/* Summary Cards - Interactive Filters */}
+      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+        <TabCard
+          name="Total Transactions"
+          value={stats.count || pagination.total}
+          icon={ClipboardList}
+          colorType="indigo"
+        />
+        <TabCard
+          name="Total Amount"
+          value={formatCurrency(stats.total_amount || 0)}
+          icon={DollarSign}
+          colorType="green"
+        />
+        <TabCard
+          name="Completed"
+          value={formatCurrency(stats.completed_amount || 0)}
+          icon={TrendingUp}
+          colorType="blue"
+        />
+        <TabCard
+          name="Pending"
+          value={formatCurrency(stats.pending_amount || 0)}
+          icon={Clock}
+          colorType="yellow"
+        />
+      </TabCardsGrid>
+
 
       {/* Transactions Table */}
       <DataTable
         columns={columns}
-        data={filteredTableData}
+        data={transactions}
         isLoading={loading}
         onView={handleViewDetails}
         searchable={true}
+        searchValue={searchQuery}
+        onSearch={(value) => setSearchQuery(value)}
         filterable={false}
         emptyMessage="No transactions found"
         customFilters={
@@ -311,6 +429,19 @@ const PaymentTransactionsScreen = () => {
         }
       />
 
+      {transactions.length > 0 && (
+        <div className="border-t border-gray-100 p-4">
+          <Pagination
+            currentPage={pagination.current_page}
+            totalPages={pagination.last_page}
+            onPageChange={handlePageChange}
+            totalItems={pagination.total}
+            perPage={pagination.per_page}
+            onPerPageChange={handlePerPageChange}
+          />
+        </div>
+      )}
+
       {/* Transaction Detail Modal */}
       <Modal
         isOpen={detailModalOpen}
@@ -331,7 +462,7 @@ const PaymentTransactionsScreen = () => {
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Status</p>
-                <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusBadgeClass(selectedTransaction.status)}`}>
+                <span className={`px - 3 py - 1.5 inline - flex text - xs leading - 5 font - bold rounded - full ${getStatusBadgeClass(selectedTransaction.status)} `}>
                   {selectedTransaction.status?.charAt(0).toUpperCase() + selectedTransaction.status?.slice(1) || 'N/A'}
                 </span>
               </div>

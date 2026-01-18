@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { BookOpen, Users, Calendar, CheckCircle, Clock, XCircle, Search, Filter } from 'lucide-react';
+import { BookOpen, Users, Calendar, CheckCircle, Clock, XCircle, Search, Filter, ClipboardList } from 'lucide-react';
 import DataTable from '../../../components/DataTable/DataTable';
 import Pagination from '../../../components/Pagination/Pagination';
 import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import './ClassesScreen.css';
 
 const ClassesScreen = () => {
@@ -13,14 +14,40 @@ const ClassesScreen = () => {
     const [loading, setLoading] = useState(true);
 
     // Pagination State
-    const [page, setPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        last_page: 1,
+        total: 0,
+        per_page: 10,
+        from: 0,
+        to: 0
+    });
 
-    // Filter State (Client-side for now, or hybrid)
-    const [searchTerm, setSearchTerm] = useState('');
+    // Search & Filter State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    // Stats State
+    const [stats, setStats] = useState({
+        total: 0,
+        scheduled: 0,
+        in_progress: 0,
+        completed: 0,
+        cancelled: 0
+    });
+
+    // Track if data has been loaded before
+    const hasDataRef = useRef(false);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setPagination(prev => ({ ...prev, current_page: 1 }));
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         setHeaderTitle('Classes Management');
@@ -31,75 +58,96 @@ const ClassesScreen = () => {
         };
     }, [setHeaderTitle, setHeaderSubtitle]);
 
+    // Load data when dependencies change
     useEffect(() => {
-        loadClasses(page, perPage);
-    }, [page, perPage]);
+        const showLoading = !hasDataRef.current;
 
-    const loadClasses = async (pageArg = 1, limitArg = 10) => {
-        setLoading(true);
+        // Don't load if search is still being debounced
+        if (searchQuery !== debouncedSearch) {
+            return;
+        }
+
+        loadClasses(showLoading);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pagination.current_page, pagination.per_page, debouncedSearch, statusFilter]);
+
+    const loadClasses = async (showLoading = true) => {
+        if (showLoading) {
+            setLoading(true);
+        }
         try {
-            const response = await adminAPI.listClasses({
-                page: pageArg,
-                per_page: limitArg
-            });
+            // Build query parameters
+            const params = {
+                page: pagination.current_page,
+                per_page: pagination.per_page,
+            };
+
+            // Add search if there's a value
+            if (debouncedSearch) {
+                params.search = debouncedSearch;
+            }
+
+            // Add status filter if not 'all'
+            if (statusFilter !== 'all') {
+                params.status = statusFilter;
+            }
+
+            const response = await adminAPI.listClasses(params);
 
             const data = response?.classes || response?.data || [];
             setClasses(Array.isArray(data) ? data : []);
 
-            // Handle Pagination Info
+            // Update pagination state
             if (response) {
-                const total = response.total || (response.meta?.total) || data.length;
-                setTotalItems(total);
-                const lastPage = response.last_page || (response.meta?.last_page) || Math.ceil(total / limitArg) || 1;
-                setTotalPages(lastPage);
+                const totalItems = response.total || (response.statistics?.total) || data.length;
+                const currentPerPage = pagination.per_page;
+                const calculatedLastPage = response.last_page || Math.ceil(totalItems / currentPerPage) || 1;
+                const calculatedFrom = response.from || (data.length > 0 ? ((pagination.current_page - 1) * currentPerPage) + 1 : 0);
+                const calculatedTo = response.to || (data.length > 0 ? calculatedFrom + data.length - 1 : 0);
+
+                setPagination(prev => ({
+                    ...prev,
+                    current_page: response.current_page || prev.current_page || 1,
+                    last_page: calculatedLastPage,
+                    total: totalItems,
+                    from: calculatedFrom,
+                    to: calculatedTo
+                }));
+
+                // Update stats if available
+                if (response.statistics) {
+                    setStats({
+                        total: response.statistics.total || 0,
+                        scheduled: response.statistics.scheduled || 0,
+                        in_progress: response.statistics.in_progress || 0,
+                        completed: response.statistics.completed || 0,
+                        cancelled: response.statistics.cancelled || 0
+                    });
+                }
             }
+
+            hasDataRef.current = true;
         } catch (error) {
             console.error('Failed to load classes:', error);
             setClasses([]);
         } finally {
-            setLoading(false);
+            if (showLoading) {
+                setLoading(false);
+            }
         }
     };
 
-    // Process data for display (add search text, apply local filters if needed)
-    const processedClasses = useMemo(() => {
-        let result = classes.map(cls => {
-            // Add _searchText for easy searching
-            const searchStr = [
-                cls.name,
-                cls.course?.name,
-                cls.course?.code,
-                cls.status,
-                cls.id
-            ].filter(Boolean).join(' ').toLowerCase();
+    const handlePageChange = (newPage) => {
+        setPagination(prev => ({ ...prev, current_page: newPage }));
+    };
 
-            return { ...cls, _searchText: searchStr };
-        });
-
-        if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase();
-            result = result.filter(cls => cls._searchText.includes(lowerTerm));
-        }
-
-        if (statusFilter !== 'all') {
-            result = result.filter(cls => cls.status === statusFilter);
-        }
-
-        return result;
-    }, [classes, searchTerm, statusFilter]);
-
-    // Calculate Stats
-    const stats = useMemo(() => {
-        // Note: If server-side pagination is strictly enforced without returning total counts for all statuses,
-        // these specific status counts will only reflect the current page. 
-        // Usually, admin dashboards need a separate "stats" endpoint or the list endpoint returns these counts.
-        // Assuming for now we just show current page or total items for simple stats.
-        return {
-            total: totalItems,
-            active: classes.filter(c => c.status === 'active').length, // This is only for current page if not provided by API
-        };
-    }, [classes, totalItems]);
-
+    const handlePerPageChange = (newPerPage) => {
+        setPagination(prev => ({
+            ...prev,
+            per_page: parseInt(newPerPage),
+            current_page: 1
+        }));
+    };
 
     const columns = useMemo(() => [
         {
@@ -181,44 +229,74 @@ const ClassesScreen = () => {
         { value: 'cancelled', label: 'Cancelled', filterFn: (row) => row.status === 'cancelled' }
     ];
 
+    // Statistics for display - use API stats if available or fallback
+    const displayTotal = stats.total || pagination.total;
+    const displayScheduled = stats.scheduled;
+    const displayInProgress = stats.in_progress;
+    const displayCompleted = stats.completed;
+
     return (
-        <div className="admin-classes-screen">
-            <div className="stats-grid">
+        <div className="space-y-4">
+            <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
                 <TabCard
                     name="Total Classes"
-                    value={stats.total}
-                    icon={BookOpen}
+                    value={displayTotal}
+                    icon={ClipboardList}
                     colorType="indigo"
+                    isActive={statusFilter === 'all'}
+                    onClick={() => setStatusFilter('all')}
                 />
-                {/* Add more stats if available from API */}
-            </div>
+                <TabCard
+                    name="Scheduled"
+                    value={displayScheduled}
+                    icon={Clock}
+                    colorType="blue"
+                    isActive={statusFilter === 'scheduled'}
+                    onClick={() => setStatusFilter('scheduled')}
+                />
+                <TabCard
+                    name="In Progress"
+                    value={displayInProgress}
+                    icon={Clock}
+                    colorType="yellow"
+                    isActive={statusFilter === 'in_progress'}
+                    onClick={() => setStatusFilter('in_progress')}
+                />
+                <TabCard
+                    name="Completed"
+                    value={displayCompleted}
+                    icon={CheckCircle}
+                    colorType="green"
+                    isActive={statusFilter === 'completed'}
+                    onClick={() => setStatusFilter('completed')}
+                />
+            </TabCardsGrid>
 
-            <div className="table-container">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100">
                 <DataTable
                     columns={columns}
-                    data={processedClasses}
+                    data={classes}
                     isLoading={loading}
                     searchable={true}
                     searchPlaceholder="Search classes..."
-                    onSearch={setSearchTerm}
-                    filterable={true}
-                    filterOptions={filterOptions}
-                    defaultFilter={statusFilter}
-                    onFilterChange={setStatusFilter}
+                    searchValue={searchQuery}
+                    onSearch={(value) => setSearchQuery(value)}
+                    filterable={false} // Use TabCards for filters or separate implementation
                     emptyMessage="No classes found."
                 />
 
-                <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    perPage={perPage}
-                    onPageChange={setPage}
-                    onPerPageChange={(newPerPage) => {
-                        setPerPage(newPerPage);
-                        setPage(1);
-                    }}
-                />
+                {classes.length > 0 && (
+                    <div className="border-t border-gray-100">
+                        <Pagination
+                            currentPage={pagination.current_page}
+                            totalPages={pagination.last_page}
+                            totalItems={pagination.total}
+                            perPage={pagination.per_page}
+                            onPageChange={handlePageChange}
+                            onPerPageChange={handlePerPageChange}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
