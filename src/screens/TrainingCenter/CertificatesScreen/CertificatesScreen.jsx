@@ -1,5 +1,6 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { FileText, Plus, Eye, Download, BookOpen, Calendar, User, Award, Building2, CheckCircle } from 'lucide-react';
@@ -12,6 +13,7 @@ import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const TrainingCenterCertificatesScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [certificates, setCertificates] = useState([]);
   const [accs, setAccs] = useState([]);
@@ -227,15 +229,15 @@ const TrainingCenterCertificatesScreen = () => {
   }, [accs.length]);
 
   useEffect(() => {
-    setHeaderTitle('Certificates');
-    setHeaderSubtitle('Issue and manage training certificates');
+    setHeaderTitle(t('certificates_screen.header.title'));
+    setHeaderSubtitle(t('certificates_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={handleOpenModal}
         className="header-create-btn"
       >
         <Plus size={20} />
-        Issue Certificate
+        {t('certificates_screen.header.issue')}
       </button>
     );
     return () => {
@@ -368,7 +370,7 @@ const TrainingCenterCertificatesScreen = () => {
         if (duplicate) {
           setErrors(prev => ({
             ...prev,
-            trainee_id_duplicate: 'A certificate has already been issued to this trainee for this class.'
+            trainee_id_duplicate: t('certificates_screen.messages.duplicate')
           }));
         } else {
           setErrors(prev => {
@@ -390,19 +392,19 @@ const TrainingCenterCertificatesScreen = () => {
     if (!formData.class_id) {
       // ... existing validation
       if (!formData.acc_id) {
-        setErrors({ acc_id: 'Please select an Accreditation' });
+        setErrors({ acc_id: t('certificates_screen.errors.select_acc') });
         setGenerating(false);
         return;
       }
       if (!formData.course_id) {
-        setErrors({ course_id: 'Please select a course' });
+        setErrors({ course_id: t('certificates_screen.errors.select_course') });
         setGenerating(false);
         return;
       }
     }
 
     if (!formData.trainee_id) {
-      setErrors({ trainee_id: 'Please select a trainee' });
+      setErrors({ trainee_id: t('certificates_screen.errors.select_trainee') });
       setGenerating(false);
       return;
     }
@@ -414,19 +416,19 @@ const TrainingCenterCertificatesScreen = () => {
         (cert.trainee_id == formData.trainee_id || cert.trainee?.id == formData.trainee_id)
       );
       if (duplicate) {
-        setErrors({ trainee_id_duplicate: 'Cannot issue certificate: Duplicate record found for this class and trainee.' });
+        setErrors({ trainee_id_duplicate: t('certificates_screen.errors.duplicate_submit') });
         setGenerating(false);
         return;
       }
     }
 
     if (!formData.issue_date) {
-      setErrors({ issue_date: 'Issue date is required' });
+      setErrors({ issue_date: t('certificates_screen.errors.issue_date_required') });
       setGenerating(false);
       return;
     }
     if (formData.expiry_date && formData.expiry_date < formData.issue_date) {
-      setErrors({ expiry_date: 'Expiry date must be after issue date' });
+      setErrors({ expiry_date: t('certificates_screen.errors.expiry_after_issue') });
       setGenerating(false);
       return;
     }
@@ -446,7 +448,7 @@ const TrainingCenterCertificatesScreen = () => {
       const response = await trainingCenterAPI.issueCertificate(submitData);
 
       // Show success message
-      alert('Certificate issued successfully!');
+      alert(t('certificates_screen.messages.issued_success'));
 
       handleCloseModal();
       loadData();
@@ -457,7 +459,7 @@ const TrainingCenterCertificatesScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Failed to issue certificate. Please try again.' });
+        setErrors({ general: t('certificates_screen.errors.server_error') });
       }
     } finally {
       setGenerating(false);
@@ -555,7 +557,7 @@ const TrainingCenterCertificatesScreen = () => {
       console.error('Failed to download certificate:', error);
 
       // Handle errors with better error messages
-      let errorMessage = 'Failed to download certificate. Please try again.';
+      let errorMessage = t('certificates_screen.errors.download_failed');
 
       if (error.response) {
         if (error.response.data instanceof Blob) {
@@ -569,11 +571,11 @@ const TrainingCenterCertificatesScreen = () => {
         } else if (error.response.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.status === 403) {
-          errorMessage = 'You do not have permission to download this certificate.';
+          errorMessage = t('certificates_screen.errors.no_permission');
         } else if (error.response.status === 404) {
-          errorMessage = 'Certificate file not found.';
+          errorMessage = t('certificates_screen.errors.not_found');
         } else if (error.response.status === 500) {
-          errorMessage = 'Server error. Please try again later.';
+          errorMessage = t('certificates_screen.errors.server_error');
         }
       } else if (error.message) {
         errorMessage = error.message;
@@ -584,14 +586,14 @@ const TrainingCenterCertificatesScreen = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('certificates_screen.status.na');
     return new Date(dateString).toLocaleDateString();
   };
 
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Certificate Number',
+      header: t('certificates_screen.table.certificate_number'),
       accessor: 'certificate_number',
       sortable: true,
       render: (value, row) => (
@@ -601,28 +603,28 @@ const TrainingCenterCertificatesScreen = () => {
           </div>
           <div>
             <div className="text-sm font-semibold text-gray-900">
-              {value || 'N/A'}
+              {value || t('certificates_screen.status.na')}
             </div>
           </div>
         </div>
       )
     },
     {
-      header: 'Trainee',
+      header: t('certificates_screen.table.trainee'),
       accessor: 'trainee_name',
       sortable: true,
       render: (value) => (
         <div className="text-sm font-semibold text-gray-900">
-          {value || 'N/A'}
+          {value || t('certificates_screen.status.na')}
         </div>
       )
     },
     {
-      header: 'Course',
+      header: t('certificates_screen.table.course'),
       accessor: 'course',
       sortable: true,
       render: (value) => {
-        const courseName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        const courseName = typeof value === 'object' ? value?.name || t('certificates_screen.status.na') : value || t('certificates_screen.status.na');
         return (
           <div className="text-sm text-gray-700">
             {courseName}
@@ -631,12 +633,12 @@ const TrainingCenterCertificatesScreen = () => {
       }
     },
     {
-      header: 'Accreditation',
+      header: t('certificates_screen.table.accreditation'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => {
         // ACC is nested in course.acc
-        const accName = row.course?.acc?.name || value?.acc?.name || 'N/A';
+        const accName = row.course?.acc?.name || value?.acc?.name || t('certificates_screen.status.na');
         return (
           <div className="text-sm text-gray-700">
             {accName}
@@ -645,7 +647,7 @@ const TrainingCenterCertificatesScreen = () => {
       }
     },
     {
-      header: 'Issue Date',
+      header: t('certificates_screen.table.issue_date'),
       accessor: 'issue_date',
       sortable: true,
       render: (value) => (
@@ -655,12 +657,11 @@ const TrainingCenterCertificatesScreen = () => {
       )
     },
     {
-      header: 'Status',
+      header: t('certificates_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => {
         let badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
-        let icon = null;
 
         switch (value) {
           case 'valid':
@@ -681,13 +682,13 @@ const TrainingCenterCertificatesScreen = () => {
 
         return (
           <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm w-20 justify-center text-center ${badgeClass}`}>
-            {value ? (typeof value === 'string' ? value.charAt(0).toUpperCase() + value.slice(1) : (value ? 'Valid' : 'Invalid')) : 'N/A'}
+            {value ? (typeof value === 'string' ? t(`certificates_screen.status.${value}`) : (value ? t('certificates_screen.status.valid') : t('certificates_screen.status.invalid'))) : t('certificates_screen.status.na')}
           </span>
         );
       }
     },
     {
-      header: 'Actions',
+      header: t('certificates_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -695,14 +696,14 @@ const TrainingCenterCertificatesScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="View Details"
+            title={t('certificates_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
           <button
             onClick={() => handleDownload(row)}
             className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Download Certificate"
+            title={t('certificates_screen.actions.download')}
           >
             <Download size={16} />
           </button>
@@ -713,7 +714,7 @@ const TrainingCenterCertificatesScreen = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              title="Verify Certificate"
+              title={t('certificates_screen.actions.verify')}
               onClick={(e) => e.stopPropagation()}
             >
               <CheckCircle size={16} />
@@ -722,14 +723,14 @@ const TrainingCenterCertificatesScreen = () => {
         </div>
       )
     }
-  ], [handleViewDetails]);
+  ], [handleViewDetails, t]);
 
   const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'valid', label: 'Valid', filterFn: (cert) => cert.status === 'valid' },
-    { value: 'expired', label: 'Expired', filterFn: (cert) => cert.status === 'expired' },
-    { value: 'revoked', label: 'Revoked', filterFn: (cert) => cert.status === 'revoked' },
-  ], []);
+    { value: 'all', label: t('certificates_screen.filters.all_status'), filterFn: () => true },
+    { value: 'valid', label: t('certificates_screen.filters.valid'), filterFn: (cert) => cert.status === 'valid' },
+    { value: 'expired', label: t('certificates_screen.filters.expired'), filterFn: (cert) => cert.status === 'expired' },
+    { value: 'revoked', label: t('certificates_screen.filters.revoked'), filterFn: (cert) => cert.status === 'revoked' },
+  ], [t]);
 
   const handleStatusFilterChange = (e) => {
     setStatusFilter(e.target.value);
@@ -755,7 +756,7 @@ const TrainingCenterCertificatesScreen = () => {
         })}
         isLoading={loading}
         searchable={true}
-        searchPlaceholder="Search by certificate number, trainee name, or course..."
+        searchPlaceholder={t('certificates_screen.table.search_placeholder')}
         filterable={false}
         sortable={false}
         onRowClick={handleRowClick}
@@ -766,10 +767,10 @@ const TrainingCenterCertificatesScreen = () => {
             onChange={handleStatusFilterChange}
             className="pagination-select border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white min-w-[140px] cursor-pointer hover:border-gray-400 transition-colors"
           >
-            <option value="all">All Status</option>
-            <option value="valid">Valid</option>
-            <option value="expired">Expired</option>
-            <option value="revoked">Revoked</option>
+            <option value="all">{t('certificates_screen.filters.all_status')}</option>
+            <option value="valid">{t('certificates_screen.filters.valid')}</option>
+            <option value="expired">{t('certificates_screen.filters.expired')}</option>
+            <option value="revoked">{t('certificates_screen.filters.revoked')}</option>
           </select>
         }
       />
@@ -793,7 +794,7 @@ const TrainingCenterCertificatesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title="Issue Certificate"
+        title={t('certificates_screen.modal.issue_title')}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="modal-form">
@@ -805,7 +806,7 @@ const TrainingCenterCertificatesScreen = () => {
 
           {/* Step 1: Select Class (Mandatory) */}
           <FormInput
-            label="Class"
+            label={t('certificates_screen.form.class')}
             name="class_id"
             type="select"
             value={formData.class_id}
@@ -814,43 +815,43 @@ const TrainingCenterCertificatesScreen = () => {
             required
             options={
               loadingClasses
-                ? [{ value: '', label: 'Loading classes...' }]
+                ? [{ value: '', label: t('certificates_screen.form.loading_classes') }]
                 : completedClasses.length > 0
                   ? [
-                    { value: '', label: 'Select Class' },
+                    { value: '', label: t('certificates_screen.form.select_class') },
                     ...completedClasses.map(cls => ({
                       value: cls.id.toString(),
-                      label: cls.course?.name || cls.name || `Class ${cls.id} `
+                      label: cls.course?.name || cls.name || `${t('certificates_screen.form.class')} ${cls.id} `
                     }))
                   ]
-                  : [{ value: '', label: 'No classes available' }]
+                  : [{ value: '', label: t('certificates_screen.form.no_classes') }]
             }
             error={errors.class_id}
-            helpText="Select a class to issue a certificate for"
+            helpText={t('certificates_screen.form.class_help')}
           />
 
           {/* Student Information - Shown when Class is selected */}
           {formData.class_id && (
             <>
               <FormInput
-                label="Trainee"
+                label={t('certificates_screen.form.trainee')}
                 name="trainee_id"
                 type="select"
                 value={formData.trainee_id}
                 onChange={handleTraineeChange}
                 required
                 error={errors.trainee_id}
-                helpText="Select a trainee from this class"
+                helpText={t('certificates_screen.form.trainee_help')}
                 options={
                   selectedClassTrainees.length > 0
                     ? [
-                      { value: '', label: 'Select Trainee' },
+                      { value: '', label: t('certificates_screen.form.select_trainee') },
                       ...selectedClassTrainees.map(trainee => ({
                         value: trainee.id.toString(),
                         label: `${trainee.first_name} ${trainee.last_name}${trainee.email ? ` (${trainee.email})` : ''} `
                       }))
                     ]
-                    : [{ value: '', label: 'No trainees in this class' }]
+                    : [{ value: '', label: t('certificates_screen.form.no_trainees') }]
                 }
               />
               {errors.trainee_id_duplicate && (
@@ -863,7 +864,7 @@ const TrainingCenterCertificatesScreen = () => {
 
           <div className="form-grid">
             <FormInput
-              label="Issue Date"
+              label={t('certificates_screen.form.issue_date')}
               name="issue_date"
               type="date"
               value={formData.issue_date}
@@ -873,13 +874,13 @@ const TrainingCenterCertificatesScreen = () => {
             />
 
             <FormInput
-              label="Expiry Date (Optional)"
+              label={t('certificates_screen.form.expiry_date')}
               name="expiry_date"
               type="date"
               value={formData.expiry_date}
               onChange={handleChange}
               error={errors.expiry_date}
-              helpText="Must be after issue date"
+              helpText={t('certificates_screen.form.expiry_help')}
             />
           </div>
 
@@ -894,14 +895,14 @@ const TrainingCenterCertificatesScreen = () => {
               onClick={handleCloseModal}
               className="form-btn form-btn-cancel"
             >
-              Cancel
+              {t('certificates_screen.buttons.cancel')}
             </button>
             <button
               type="submit"
               disabled={generating || !formData.class_id || !formData.trainee_id || !formData.issue_date}
               className="form-btn form-btn-submit"
             >
-              {generating ? 'Generating...' : 'Issue Certificate'}
+              {generating ? t('certificates_screen.buttons.generating') : t('certificates_screen.buttons.issue')}
             </button>
           </div>
         </form>
@@ -914,7 +915,7 @@ const TrainingCenterCertificatesScreen = () => {
           setDetailModalOpen(false);
           setSelectedCertificate(null);
         }}
-        title="Certificate Details"
+        title={t('certificates_screen.modal.details_title')}
         size="lg"
       >
         {selectedCertificate && (
@@ -922,17 +923,17 @@ const TrainingCenterCertificatesScreen = () => {
             <DetailForm
               data={selectedCertificate}
               fields={[
-                { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
-                { key: 'verification_code', label: 'Verification Code', icon: FileText },
-                { key: 'trainee_name', label: 'Trainee Name', icon: User },
-                { key: 'acc', label: 'Accreditation', icon: Building2, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
-                { key: 'course', label: 'Course', icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
-                { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
-                { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },
-                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'certificate_number', label: t('certificates_screen.details.certificate_number'), icon: FileText },
+                { key: 'verification_code', label: t('certificates_screen.details.verification_code'), icon: FileText },
+                { key: 'trainee_name', label: t('certificates_screen.details.trainee_name'), icon: User },
+                { key: 'acc', label: t('certificates_screen.details.accreditation'), icon: Building2, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.status.na') : value || t('certificates_screen.status.na') },
+                { key: 'course', label: t('certificates_screen.details.course'), icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.status.na') : value || t('certificates_screen.status.na') },
+                { key: 'issue_date', label: t('certificates_screen.details.issue_date'), icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'expiry_date', label: t('certificates_screen.details.expiry_date'), icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'status', label: t('certificates_screen.details.status'), type: 'status' },
                 {
                   key: 'certificate_pdf_url',
-                  label: 'Certificate File',
+                  label: t('certificates_screen.details.certificate_file'),
                   icon: Download,
                   render: (value) => (
                     <div className="flex gap-2">
@@ -944,7 +945,7 @@ const TrainingCenterCertificatesScreen = () => {
                           className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                         >
                           <Eye size={16} />
-                          View Certificate
+                          {t('certificates_screen.details.view_certificate')}
                         </a>
                       )}
                       <button
@@ -952,7 +953,7 @@ const TrainingCenterCertificatesScreen = () => {
                         className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                       >
                         <Download size={16} />
-                        Download Certificate
+                        {t('certificates_screen.details.download_certificate')}
                       </button>
                     </div>
                   )

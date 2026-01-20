@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { DollarSign, Receipt, Eye, Building2, User, ArrowDownCircle, ArrowUpCircle, Calendar, Search, Filter } from 'lucide-react';
@@ -9,6 +10,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -38,8 +40,8 @@ const PaymentTransactionsScreen = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle('Payment Transactions');
-    setHeaderSubtitle('View all payment transactions');
+    setHeaderTitle(t('payment_transactions_screen.header.title'));
+    setHeaderSubtitle(t('payment_transactions_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -113,7 +115,7 @@ const PaymentTransactionsScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Type',
+      header: t('payment_transactions_screen.table.type'),
       accessor: 'transaction_type',
       sortable: true,
       render: (value, row) => {
@@ -137,7 +139,7 @@ const PaymentTransactionsScreen = () => {
       },
     },
     {
-      header: 'Payer',
+      header: t('payment_transactions_screen.table.payer'),
       accessor: 'payer',
       sortable: true,
       render: (value, row) => (
@@ -151,17 +153,17 @@ const PaymentTransactionsScreen = () => {
               )}
             </div>
             <div>
-              <div className="payer-payee-name">{row.payer.name || 'N/A'}</div>
+              <div className="payer-payee-name">{row.payer.name || t('payment_transactions_screen.status.na')}</div>
               <div className="payer-payee-type">{row.payer.type || ''}</div>
             </div>
           </div>
         ) : (
-          <span className="payer-payee-na">N/A</span>
+          <span className="payer-payee-na">{t('payment_transactions_screen.status.na')}</span>
         )
       ),
     },
     {
-      header: 'Payee',
+      header: t('payment_transactions_screen.table.payee'),
       accessor: 'payee',
       sortable: true,
       render: (value, row) => (
@@ -175,17 +177,17 @@ const PaymentTransactionsScreen = () => {
               )}
             </div>
             <div>
-              <div className="payer-payee-name">{row.payee.name || 'N/A'}</div>
+              <div className="payer-payee-name">{row.payee.name || t('payment_transactions_screen.status.na')}</div>
               <div className="payer-payee-type">{row.payee.type || ''}</div>
             </div>
           </div>
         ) : (
-          <span className="payer-payee-na">N/A</span>
+          <span className="payer-payee-na">{t('payment_transactions_screen.status.na')}</span>
         )
       ),
     },
     {
-      header: 'Amount',
+      header: t('payment_transactions_screen.table.amount'),
       accessor: 'amount',
       sortable: true,
       render: (value, row) => (
@@ -195,7 +197,7 @@ const PaymentTransactionsScreen = () => {
       ),
     },
     {
-      header: 'Status',
+      header: t('payment_transactions_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value, row) => {
@@ -206,13 +208,13 @@ const PaymentTransactionsScreen = () => {
               status === 'refunded' ? 'refunded' : 'refunded';
         return (
           <span className={`status-badge ${statusClass}`}>
-            {row.status?.charAt(0).toUpperCase() + row.status?.slice(1) || 'N/A'}
+            {t(`payment_transactions_screen.status.${row.status}`) || t('payment_transactions_screen.status.na')}
           </span>
         );
       },
     },
     {
-      header: 'Date',
+      header: t('payment_transactions_screen.table.date'),
       accessor: 'created_at',
       sortable: true,
       render: (value, row) => (
@@ -229,7 +231,7 @@ const PaymentTransactionsScreen = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('payment_transactions_screen.status.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -238,7 +240,7 @@ const PaymentTransactionsScreen = () => {
   };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('payment_transactions_screen.status.na');
     return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -249,7 +251,8 @@ const PaymentTransactionsScreen = () => {
   };
 
   const getTransactionTypeLabel = (type) => {
-    return type?.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'N/A';
+    if (!type) return t('payment_transactions_screen.status.na');
+    return t(`payment_transactions_screen.transaction_type.${type}`) || type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const isReceived = (transaction) => {
@@ -282,7 +285,7 @@ const PaymentTransactionsScreen = () => {
   // Render reference details in a user-friendly format, excluding duplicated data
   const renderReferenceDetails = (details, parentKey = '') => {
     if (!details || typeof details !== 'object') {
-      return <span className="info-section-value">N/A</span>;
+      return <span className="info-section-value">{t('payment_transactions_screen.status.na')}</span>;
     }
 
     // Handle array of objects
@@ -318,7 +321,7 @@ const PaymentTransactionsScreen = () => {
 
     // If all fields were filtered out, show nothing
     if (filteredEntries.length === 0) {
-      return <span className="info-section-value">No additional details</span>;
+      return <span className="info-section-value">{t('payment_transactions_screen.modal.no_additional_details')}</span>;
     }
 
     return (
@@ -333,9 +336,9 @@ const PaymentTransactionsScreen = () => {
           // Handle different value types
           let displayValue = value;
           if (value === null || value === undefined) {
-            displayValue = 'N/A';
+            displayValue = t('payment_transactions_screen.status.na');
           } else if (typeof value === 'boolean') {
-            displayValue = value ? 'Yes' : 'No';
+            displayValue = value ? t('payment_transactions_screen.common.yes') : t('payment_transactions_screen.common.no');
           } else if (typeof value === 'object') {
             // Recursively render nested objects, but filter out payer/payee data
             if (Array.isArray(value)) {
@@ -382,19 +385,19 @@ const PaymentTransactionsScreen = () => {
       {summary && (
         <div className="summary-cards-grid">
           <TabCard
-            name="Total Transactions"
+            name={t('payment_transactions_screen.summary.total_transactions')}
             value={summary.total_transactions || 0}
             icon={Receipt}
             colorType="indigo"
           />
           <TabCard
-            name="Total Spent"
+            name={t('payment_transactions_screen.summary.total_spent')}
             value={formatCurrency(summary.total_spent || 0)}
             icon={ArrowUpCircle}
             colorType="red"
           />
           {/* <TabCard
-            name="Total Received"
+            name={t('payment_transactions_screen.summary.total_received')}
             value={formatCurrency(summary.total_received || 0)}
             icon={ArrowDownCircle}
             colorType="green"
@@ -411,7 +414,7 @@ const PaymentTransactionsScreen = () => {
             <Search className="search-icon" size={20} />
             <input
               type="text"
-              placeholder="Search by type, amount, status, payer, payee..."
+              placeholder={t('payment_transactions_screen.search.placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -429,10 +432,10 @@ const PaymentTransactionsScreen = () => {
               }}
               className="filter-select"
             >
-              <option value="all">All Types</option>
-              <option value="code_purchase">Code Purchase</option>
-              <option value="course_purchase">Course Purchase</option>
-              <option value="instructor_authorization">Instructor Authorization</option>
+              <option value="all">{t('payment_transactions_screen.filters.type.all')}</option>
+              <option value="code_purchase">{t('payment_transactions_screen.filters.type.code_purchase')}</option>
+              <option value="course_purchase">{t('payment_transactions_screen.filters.type.course_purchase')}</option>
+              <option value="instructor_authorization">{t('payment_transactions_screen.filters.type.instructor_authorization')}</option>
             </select>
           </div>
 
@@ -447,11 +450,11 @@ const PaymentTransactionsScreen = () => {
               }}
               className="filter-select"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
+              <option value="all">{t('payment_transactions_screen.filters.status.all')}</option>
+              <option value="pending">{t('payment_transactions_screen.filters.status.pending')}</option>
+              <option value="completed">{t('payment_transactions_screen.filters.status.completed')}</option>
+              <option value="failed">{t('payment_transactions_screen.filters.status.failed')}</option>
+              <option value="refunded">{t('payment_transactions_screen.filters.status.refunded')}</option>
             </select>
           </div>
         </div>
@@ -471,10 +474,10 @@ const PaymentTransactionsScreen = () => {
                 <div className="empty-state-icon">
                   <Receipt className="text-gray-400" size={32} />
                 </div>
-                <p className="empty-state-text">No transactions found</p>
-                <p className="empty-state-subtext">No transactions available</p>
+                <p className="empty-state-text">{t('payment_transactions_screen.table.empty')}</p>
+                <p className="empty-state-subtext">{t('payment_transactions_screen.table.empty_subtitle')}</p>
               </div>
-            ) : 'No transactions found matching your filters'
+            ) : t('payment_transactions_screen.table.empty_filtered')
           }
           searchable={false}
           filterable={false}
@@ -500,7 +503,7 @@ const PaymentTransactionsScreen = () => {
           setDetailModalOpen(false);
           setSelectedTransaction(null);
         }}
-        title="Transaction Details"
+        title={t('payment_transactions_screen.modal.title')}
         size="lg"
       >
         {selectedTransaction && (
@@ -508,45 +511,45 @@ const PaymentTransactionsScreen = () => {
             {/* Basic Info */}
             <div className="modal-grid">
               <div className="modal-info-box">
-                <p className="modal-label">Transaction Type</p>
+                <p className="modal-label">{t('payment_transactions_screen.modal.transaction_type')}</p>
                 <p className="modal-value">{getTransactionTypeLabel(selectedTransaction.transaction_type)}</p>
               </div>
               <div className="modal-info-box">
-                <p className="modal-label">Status</p>
+                <p className="modal-label">{t('payment_transactions_screen.table.status')}</p>
                 <span className={`status-badge ${selectedTransaction.status === 'completed' ? 'completed' : selectedTransaction.status === 'pending' ? 'pending' : selectedTransaction.status === 'failed' ? 'failed' : 'refunded'}`}>
-                  {selectedTransaction.status?.charAt(0).toUpperCase() + selectedTransaction.status?.slice(1) || 'N/A'}
+                  {t(`payment_transactions_screen.status.${selectedTransaction.status}`) || t('payment_transactions_screen.status.na')}
                 </span>
               </div>
               <div className="modal-info-box">
-                <p className="modal-label">Amount</p>
+                <p className="modal-label">{t('payment_transactions_screen.table.amount')}</p>
                 <p className={`modal-amount ${isReceived(selectedTransaction) ? 'received' : 'sent'}`}>
                   {isReceived(selectedTransaction) ? '+' : '-'} {formatCurrency(selectedTransaction.amount, selectedTransaction.currency)}
                 </p>
               </div>
               <div className="modal-info-box">
-                <p className="modal-label">Payment Method</p>
-                <p className="modal-value capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || 'N/A'}</p>
+                <p className="modal-label">{t('payment_transactions_screen.modal.payment_method')}</p>
+                <p className="modal-value capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || t('payment_transactions_screen.status.na')}</p>
               </div>
             </div>
 
             {/* Payer Info */}
             {selectedTransaction.payer && (
               <div className="payer-info-section">
-                <p className="info-section-title payer">Payer Information</p>
+                <p className="info-section-title payer">{t('payment_transactions_screen.modal.payer_info')}</p>
                 <div className="info-section-content">
                   <div className="info-section-row">
                     <Building2 className="info-section-icon payer" size={16} />
-                    <span className="info-section-label">Name:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.name')}:</span>
                     <span className="info-section-value">{selectedTransaction.payer.name}</span>
                   </div>
                   {selectedTransaction.payer.email && (
                     <div className="info-section-row">
-                      <span className="info-section-label">Email:</span>
+                      <span className="info-section-label">{t('payment_transactions_screen.modal.email')}:</span>
                       <span className="info-section-value">{selectedTransaction.payer.email}</span>
                     </div>
                   )}
                   <div className="info-section-row">
-                    <span className="info-section-label">Type:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.type')}:</span>
                     <span className="info-section-value">{selectedTransaction.payer.type}</span>
                   </div>
                 </div>
@@ -556,21 +559,21 @@ const PaymentTransactionsScreen = () => {
             {/* Payee Info */}
             {selectedTransaction.payee && (
               <div className="payee-info-section">
-                <p className="info-section-title payee">Payee Information</p>
+                <p className="info-section-title payee">{t('payment_transactions_screen.modal.payee_info')}</p>
                 <div className="info-section-content">
                   <div className="info-section-row">
                     <Building2 className="info-section-icon payee" size={16} />
-                    <span className="info-section-label">Name:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.name')}:</span>
                     <span className="info-section-value">{selectedTransaction.payee.name}</span>
                   </div>
                   {selectedTransaction.payee.email && (
                     <div className="info-section-row">
-                      <span className="info-section-label">Email:</span>
+                      <span className="info-section-label">{t('payment_transactions_screen.modal.email')}:</span>
                       <span className="info-section-value">{selectedTransaction.payee.email}</span>
                     </div>
                   )}
                   <div className="info-section-row">
-                    <span className="info-section-label">Type:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.type')}:</span>
                     <span className="info-section-value">{selectedTransaction.payee.type}</span>
                   </div>
                 </div>
@@ -580,7 +583,7 @@ const PaymentTransactionsScreen = () => {
             {/* Description */}
             {selectedTransaction.description && (
               <div className="description-section">
-                <p className="modal-label">Description</p>
+                <p className="modal-label">{t('payment_transactions_screen.modal.description')}</p>
                 <p className="description-text">{selectedTransaction.description}</p>
               </div>
             )}
@@ -588,20 +591,20 @@ const PaymentTransactionsScreen = () => {
             {/* Reference */}
             {selectedTransaction.reference && (
               <div className="reference-section">
-                <p className="reference-title">Reference Information</p>
+                <p className="reference-title">{t('payment_transactions_screen.modal.reference_info')}</p>
                 <div className="reference-content">
                   <div className="reference-type-row">
-                    <span className="info-section-label">Type:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.reference_type')}:</span>
                     <span className="info-section-value" style={{ marginLeft: '0.5rem' }}>
-                      {selectedTransaction.reference.type
+                      {t(`payment_transactions_screen.transaction_type.${selectedTransaction.reference.type}`) || selectedTransaction.reference.type
                         ?.split('_')
                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ') || 'N/A'}
+                        .join(' ') || t('payment_transactions_screen.status.na')}
                     </span>
                   </div>
                   {selectedTransaction.reference.details && (
                     <div className="reference-details-box">
-                      <p className="reference-details-title">Details:</p>
+                      <p className="reference-details-title">{t('payment_transactions_screen.modal.reference_details')}:</p>
                       {renderReferenceDetails(selectedTransaction.reference.details)}
                     </div>
                   )}
@@ -612,37 +615,37 @@ const PaymentTransactionsScreen = () => {
             {/* Transfer Information - Automatic Transfer System */}
             {selectedTransaction.transfer && (
               <div className="transfer-info-section">
-                <p className="info-section-title transfer">Automatic Transfer Information</p>
+                <p className="info-section-title transfer">{t('payment_transactions_screen.modal.transfer_info')}</p>
                 <div className="info-section-content">
                   <div className="transfer-breakdown">
                     <div className="transfer-row">
-                      <span className="transfer-label">Gross Amount:</span>
+                      <span className="transfer-label">{t('payment_transactions_screen.modal.gross_amount')}:</span>
                       <span className="transfer-value gross">{formatCurrency(selectedTransaction.transfer.gross_amount, selectedTransaction.currency)}</span>
                     </div>
                     <div className="transfer-row">
-                      <span className="transfer-label">Commission (15%):</span>
+                      <span className="transfer-label">{t('payment_transactions_screen.modal.commission')}:</span>
                       <span className="transfer-value commission">-{formatCurrency(selectedTransaction.transfer.commission_amount, selectedTransaction.currency)}</span>
                     </div>
                     <div className="transfer-row net-row">
-                      <span className="transfer-label">Net Amount Transferred:</span>
+                      <span className="transfer-label">{t('payment_transactions_screen.modal.net_amount')}:</span>
                       <span className="transfer-value net">{formatCurrency(selectedTransaction.transfer.net_amount, selectedTransaction.currency)}</span>
                     </div>
                   </div>
                   <div className="transfer-status-row">
-                    <span className="info-section-label">Transfer Status:</span>
+                    <span className="info-section-label">{t('payment_transactions_screen.modal.transfer_status')}:</span>
                     <span className={`status-badge ${selectedTransaction.transfer.status === 'completed' ? 'completed' : selectedTransaction.transfer.status === 'pending' ? 'pending' : 'failed'}`}>
-                      {selectedTransaction.transfer.status?.charAt(0).toUpperCase() + selectedTransaction.transfer.status?.slice(1) || 'N/A'}
+                      {t(`payment_transactions_screen.status.${selectedTransaction.transfer.status}`) || t('payment_transactions_screen.status.na')}
                     </span>
                   </div>
                   {selectedTransaction.transfer.stripe_transfer_id && (
                     <div className="info-section-row">
-                      <span className="info-section-label">Stripe Transfer ID:</span>
+                      <span className="info-section-label">{t('payment_transactions_screen.modal.stripe_transfer_id')}:</span>
                       <span className="info-section-value mono">{selectedTransaction.transfer.stripe_transfer_id}</span>
                     </div>
                   )}
                   {selectedTransaction.transfer.completed_at && (
                     <div className="info-section-row">
-                      <span className="info-section-label">Transferred At:</span>
+                      <span className="info-section-label">{t('payment_transactions_screen.modal.transferred_at')}:</span>
                       <span className="info-section-value">{formatDateTime(selectedTransaction.transfer.completed_at)}</span>
                     </div>
                   )}
@@ -653,12 +656,12 @@ const PaymentTransactionsScreen = () => {
             {/* Dates */}
             <div className="modal-grid">
               <div className="modal-info-box">
-                <p className="modal-label">Created At</p>
+                <p className="modal-label">{t('payment_transactions_screen.modal.created_at')}</p>
                 <p className="modal-value">{formatDateTime(selectedTransaction.created_at)}</p>
               </div>
               {selectedTransaction.completed_at && (
                 <div className="modal-info-box">
-                  <p className="modal-label">Completed At</p>
+                  <p className="modal-label">{t('payment_transactions_screen.modal.completed_at')}</p>
                   <p className="modal-value">{formatDateTime(selectedTransaction.completed_at)}</p>
                 </div>
               )}
@@ -667,7 +670,7 @@ const PaymentTransactionsScreen = () => {
             {/* Payment Gateway Transaction ID */}
             {selectedTransaction.payment_gateway_transaction_id && (
               <div className="payment-gateway-section">
-                <p className="modal-label">Payment Gateway Transaction ID</p>
+                <p className="modal-label">{t('payment_transactions_screen.modal.payment_gateway_id')}</p>
                 <p className="modal-value modal-mono">{selectedTransaction.payment_gateway_transaction_id}</p>
               </div>
             )}

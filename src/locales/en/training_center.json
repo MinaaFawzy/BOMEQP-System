@@ -621,5 +621,464 @@
         "na": "N/A",
         "not_set": "Not set"
         }
+    },
+    "certificates_screen": {
+    "header": {
+      "title": "Certificates",
+      "subtitle": "Issue and manage training certificates",
+      "issue": "Issue Certificate"
+    },
+
+    "table": {
+      "certificate_number": "Certificate Number",
+      "trainee": "Trainee",
+      "course": "Course",
+      "accreditation": "Accreditation",
+      "issue_date": "Issue Date",
+      "status": "Status",
+      "actions": "Actions",
+      "search_placeholder": "Search by certificate number, trainee name, or course..."
+    },
+
+    "filters": {
+      "all_status": "All Status",
+      "valid": "Valid",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "download": "Download Certificate",
+      "verify": "Verify Certificate"
+    },
+
+    "modal": {
+      "issue_title": "Issue Certificate",
+      "details_title": "Certificate Details"
+    },
+
+    "form": {
+      "class": "Class",
+      "select_class": "Select Class",
+      "loading_classes": "Loading classes...",
+      "no_classes": "No classes available",
+      "class_help": "Select a class to issue a certificate for",
+
+      "trainee": "Trainee",
+      "select_trainee": "Select Trainee",
+      "no_trainees": "No trainees in this class",
+      "trainee_help": "Select a trainee from this class",
+
+      "issue_date": "Issue Date",
+      "expiry_date": "Expiry Date (Optional)",
+      "expiry_help": "Must be after issue date"
+    },
+
+    "buttons": {
+      "cancel": "Cancel",
+      "issue": "Issue Certificate",
+      "generating": "Generating..."
+    },
+
+    "details": {
+      "certificate_number": "Certificate Number",
+      "verification_code": "Verification Code",
+      "trainee_name": "Trainee Name",
+      "accreditation": "Accreditation",
+      "course": "Course",
+      "issue_date": "Issue Date",
+      "expiry_date": "Expiry Date",
+      "status": "Status",
+      "certificate_file": "Certificate File",
+      "view_certificate": "View Certificate",
+      "download_certificate": "Download Certificate"
+    },
+
+    "status": {
+      "valid": "Valid",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "invalid": "Invalid",
+      "na": "N/A"
+    },
+
+    "messages": {
+      "issued_success": "Certificate issued successfully!",
+      "duplicate": "A certificate has already been issued to this trainee for this class."
+    },
+
+    "errors": {
+      "select_acc": "Please select an Accreditation",
+      "select_course": "Please select a course",
+      "select_trainee": "Please select a trainee",
+      "issue_date_required": "Issue date is required",
+      "expiry_after_issue": "Expiry date must be after issue date",
+      "duplicate_submit": "Cannot issue certificate: Duplicate record found for this class and trainee.",
+      "download_failed": "Failed to download certificate. Please try again.",
+      "no_permission": "You do not have permission to download this certificate.",
+      "not_found": "Certificate file not found.",
+      "server_error": "Server error. Please try again later.",
+      "load_failed": "Failed to load certificates"
+    }
+    },
+     "codes_screen": {
+        "header": {
+        "title": "Certificate Codes",
+        "subtitle": "Manage your certificate code inventory and purchases",
+        "purchase": "Purchase Codes"
+        },
+
+        "tabs": {
+        "inventory": "Inventory",
+        "purchase_history": "Purchase History"
+        },
+
+        "search": {
+        "inventory_placeholder": "Search by code, Accreditation, course, or status...",
+        "history_placeholder": "Search by Accreditation, course, quantity, amount, date, or payment method..."
+        },
+
+        "filter": {
+        "all": "All Status",
+        "available": "Available",
+        "used": "Used"
+        },
+
+        "inventory": {
+        "empty_title": "No codes in inventory",
+        "empty_subtitle_default": "Purchase codes to get started!",
+        "empty_subtitle_filtered": "Try adjusting your filters",
+
+        "total_codes": "Total Codes",
+        "available_codes": "Available",
+        "used_codes": "Used"
+        },
+
+        "history": {
+        "empty_title": "No purchase history found",
+        "empty_subtitle": "Your purchase history will appear here",
+
+        "accreditation": "Accreditation",
+        "course": "Course",
+        "quantity": "Quantity",
+        "amount": "Amount",
+        "purchase_date": "Purchase Date",
+        "payment_method": "Payment Method"
+        },
+
+        "purchase_modal": {
+        "title": "Purchase Certificate Codes",
+
+        "accreditation": "Accreditation",
+        "no_approved_acc": "No approved Accreditations available. Please get approval from an Accreditation first.",
+        "no_approved_acc_warning": "No approved Accreditations found. Please request and get approval from an Accreditation first.",
+
+        "category": "Category",
+        "select_category": "Select a category...",
+        "loading_categories": "Loading categories...",
+
+        "sub_category": "Sub-Category",
+        "select_sub_category": "Select a sub-category...",
+        "loading_sub_categories": "Loading sub-categories...",
+
+        "course": "Course",
+        "select_course": "Select a course...",
+        "loading_courses": "Loading courses...",
+        "no_courses": "No courses available for the selected sub-category",
+
+        "quantity": "Quantity",
+
+        "discount_code": "Discount Code (Optional)",
+        "no_discount_code": "No discount code",
+        "manual_discount_hint": "No discount codes available. You can enter a code manually if you have one.",
+        "discount_codes_available": "{{count}} discount code(s) available for this course",
+        "available_discount_codes": "Available Discount Codes",
+        "expires": "Expires",
+
+        "payment_method": "Payment Method",
+        "credit_card": "Credit Card",
+        "manual_payment": "Manual Payment (Upload Invoice)",
+
+        "payment_info_title": "Manual Payment Information",
+        "final_amount": "Final Amount",
+        "supported_formats": "Supported formats",
+        "max_size": "Max",
+
+        "payment_amount": "Payment Amount",
+        "payment_amount_hint": "Enter the amount you paid",
+
+        "payment_receipt": "Payment Receipt",
+
+        "credit_card_info_title": "Payment Method: Credit Card",
+        "credit_card_info_text": "Payment will be processed securely through Stripe. The total amount will be calculated including any discounts. Click \"Purchase Codes\" below to enter your card details.",
+        "select_course_first" : "Select course first" ,
+        "enter_discount_manually": "Enter discount manually"
+    },
+
+        "buttons": {
+            "cancel": "Cancel",
+            "purchase": "Purchase Codes",
+            "processing": "Processing..."
+        },
+
+        "status": {
+            "available": "Available",
+            "used": "Used",
+            "na": "N/A"
+        },
+
+        "errors": {
+            "select_acc": "Please select an Accreditation",
+            "select_course": "Please select a course",
+            "invalid_quantity": "Please enter a valid quantity",
+            "invalid_data": "Invalid data. Please check your selections and try again.",
+
+            "payment_intent_failed": "Failed to create payment intent. Please try again.",
+            "validation_failed": "Validation failed. Please check your input.",
+
+            "file_type_not_supported": "File type not supported",
+            "file_size_exceeded": "File size must be less than {{size}} MB",
+            "file_process_failed": "Failed to process file. Please try again.",
+
+            "payment_failed": "Payment verification failed. Please contact support.",
+            "purchase_failed": "Payment succeeded but failed to complete purchase. Please contact support.",
+
+            "load_failed": "Failed to load data"
+        },
+
+        "messages": {
+            "manual_payment_submitted": "Payment request submitted successfully. Waiting for approval.",
+            "purchase_success": "Codes purchased successfully!"
+        }
+    }, 
+    "payment_transactions_screen": {
+        "header": {
+        "title": "Payment Transactions",
+        "subtitle": "View all payment transactions"
+        },
+
+        "summary": {
+        "total_transactions": "Total Transactions",
+        "total_spent": "Total Spent",
+        "total_received": "Total Received"
+        },
+
+        "search": {
+        "placeholder": "Search by type, amount, status, payer, payee..."
+        },
+
+        "filters": {
+        "type": {
+            "all": "All Types",
+            "code_purchase": "Code Purchase",
+            "course_purchase": "Course Purchase",
+            "instructor_authorization": "Instructor Authorization"
+        },
+        "status": {
+            "all": "All Status",
+            "pending": "Pending",
+            "completed": "Completed",
+            "failed": "Failed",
+            "refunded": "Refunded"
+        }
+        },
+
+        "table": {
+        "type": "Type",
+        "payer": "Payer",
+        "payee": "Payee",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date",
+        "empty": "No transactions found",
+        "empty_subtitle": "No transactions available",
+        "empty_filtered": "No transactions found matching your filters"
+        },
+
+        "transaction_type": {
+        "code_purchase": "Code Purchase",
+        "course_purchase": "Course Purchase",
+        "instructor_authorization": "Instructor Authorization"
+        },
+
+        "status": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "na": "N/A"
+        },
+
+        "modal": {
+        "title": "Transaction Details",
+
+        "transaction_type": "Transaction Type",
+        "payment_method": "Payment Method",
+        "description": "Description",
+
+        "payer_info": "Payer Information",
+        "payee_info": "Payee Information",
+
+        "name": "Name",
+        "email": "Email",
+        "type": "Type",
+
+        "reference_info": "Reference Information",
+        "reference_type": "Type",
+        "reference_details": "Details",
+
+        "transfer_info": "Automatic Transfer Information",
+        "gross_amount": "Gross Amount",
+        "commission": "Commission (15%)",
+        "net_amount": "Net Amount Transferred",
+        "transfer_status": "Transfer Status",
+        "stripe_transfer_id": "Stripe Transfer ID",
+        "transferred_at": "Transferred At",
+
+        "created_at": "Created At",
+        "completed_at": "Completed At",
+
+        "payment_gateway_id": "Payment Gateway Transaction ID",
+        "no_additional_details": "No additional details"
+        },
+
+        "common": {
+        "na": "N/A",
+        "yes": "Yes",
+        "no": "No"
+        }
+    },
+    "tc_profile_screen": {
+        "header": {
+            "title": "Profile",
+            "subtitle": "Manage your training center profile information"
+        },
+
+        "actions": {
+            "edit": "Edit Profile",
+            "cancel": "Cancel",
+            "save": "Save Changes",
+            "saving": "Saving..."
+        },
+
+        "messages": {
+            "profile_updated": "Profile updated successfully!",
+            "password_changed": "Password changed successfully!"
+        },
+
+        "errors": {
+            "load_failed": "Failed to load profile. Please try again.",
+            "update_failed": "Failed to update profile. Please try again.",
+            "password_change_failed": "Failed to change password"
+        },
+
+        "sections": {
+            "company_info": {
+                "title": "Company Information",
+                "subtitle": "Basic details about your training center",
+
+                "company_name": "Company Name",
+                "website": "Website",
+                "email": "Company Email Address",
+                "phone": "Telephone Number",
+                "fax": "Fax",
+                "training_provider_type": "Training Provider Type",
+                "select_type": "Select Type"
+            },
+
+            "physical_address": {
+                "title": "Physical Address",
+                "subtitle": "Your training center's physical location",
+
+                "address": "Address",
+                "city": "City",
+                "country": "Country",
+                "postal_code": "Postal Code",
+                "select_country": "Select Country"
+            },
+
+            "mailing_address": {
+                "title": "Mailing Address",
+                "subtitle": "Where you receive correspondence",
+                "same_as_physical": "Same as Physical Address",
+
+                "address": "Mailing Address",
+                "city": "Mailing City",
+                "country": "Mailing Country",
+                "postal_code": "Mailing Postal Code"
+            },
+
+            "primary_contact": {
+                "title": "Primary Contact",
+                "subtitle": "Main point of contact for your organization",
+
+                "contact_title": "Title",
+                "first_name": "First Name",
+                "last_name": "Last Name",
+                "email": "Email Address",
+                "country": "Country",
+                "mobile": "Mobile Number",
+                "select_title": "Select Title"
+            },
+
+            "secondary_contact": {
+                "title": "Secondary Contact",
+                "subtitle": "Optional backup contact person",
+                "add": "Add Secondary Contact",
+
+                "contact_title": "Title",
+                "first_name": "First Name",
+                "last_name": "Last Name",
+                "email": "Email Address",
+                "country": "Country",
+                "mobile": "Mobile Number"
+            },
+
+            "additional_info": {
+                "title": "Additional Information",
+                "subtitle": "Registration details and preferences",
+
+                "gov_registry_number": "Company GOV Registry Number",
+                "registration_certificate": "Company Registration Certificate",
+                "registration_formats": "PDF, JPEG, or PNG (max 10MB)",
+                "view_current_certificate": "View Current Certificate",
+
+                "facility_floorplan": "Facility Floorplan (Optional)",
+                "view_current_floorplan": "View Current Floorplan",
+
+                "interested_fields": "Interested Fields (Optional)",
+                "how_did_you_hear": "How did you hear about us? (Optional)",
+                "how_did_you_hear_placeholder": "Tell us how you found out about us..."
+            }
+        },
+
+        "password": {
+            "title": "Change Password",
+            "subtitle": "Update your account password",
+
+            "current": "Current Password",
+            "new": "New Password",
+            "confirm": "Confirm New Password",
+
+            "current_placeholder": "Enter your current password",
+            "new_placeholder": "Must include uppercase, numbers & special characters",
+            "confirm_placeholder": "Confirm your new password",
+
+            "submit": "Change Password"
+        },
+
+        "language": {
+            "title": "Language Settings",
+            "subtitle": "Choose your preferred language",
+
+            "application_language": "Application Language",
+            "description": "Select the language you want to use for the application interface. The page will automatically update when you change the language."
+        },
+
+        "common": {
+            "training_center": "Training Center",
+            "no_email": "No email provided"
+        }
     }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
@@ -13,6 +14,7 @@ import './TCProfileScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const TCProfileScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,13 +92,13 @@ const TCProfileScreen = () => {
   const interestedFieldsOptions = ['QHSE', 'Food Safety', 'Management'];
 
   useEffect(() => {
-    setHeaderTitle('Profile');
-    setHeaderSubtitle('Manage your training center profile information');
+    setHeaderTitle(t('tc_profile_screen.header.title'));
+    setHeaderSubtitle(t('tc_profile_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     loadCountries();
@@ -179,7 +181,7 @@ const TCProfileScreen = () => {
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
-      setErrors({ general: 'Failed to load profile. Please try again.' });
+      setErrors({ general: t('tc_profile_screen.errors.load_failed') });
     } finally {
       setLoading(false);
     }
@@ -213,7 +215,7 @@ const TCProfileScreen = () => {
           return;
         }
         if (file.size > 10 * 1024 * 1024) {
-          setErrors({ ...errors, [name]: 'File size must be less than 10MB' });
+          setErrors({ ...errors, [name]: t('tc_profile_screen.sections.additional_info.registration_formats') });
           return;
         }
         setFormData({ ...formData, [name]: file });
@@ -314,9 +316,9 @@ const TCProfileScreen = () => {
     }
 
     // Additional Information
-    if (!formData.company_gov_registry_number) validationErrors.company_gov_registry_number = 'Government registry number is required';
+    if (!formData.company_gov_registry_number) validationErrors.company_gov_registry_number = 'Company GOV Registry Number is required';
     if (!formData.company_registration_certificate && !formData.company_registration_certificate_url) {
-      validationErrors.company_registration_certificate = 'Company registration certificate is required';
+      validationErrors.company_registration_certificate = 'Company Registration Certificate is required';
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -391,7 +393,7 @@ const TCProfileScreen = () => {
       // Update profile
       const response = await trainingCenterAPI.updateProfile(submitData);
 
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage(t('tc_profile_screen.messages.profile_updated'));
       setIsEditing(false);
       await loadProfile();
 
@@ -412,12 +414,12 @@ const TCProfileScreen = () => {
         } else if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Failed to update profile. Please try again.' });
+          setErrors({ general: t('tc_profile_screen.errors.update_failed') });
         }
       } else if (error.message) {
         setErrors({ general: error.message });
       } else {
-        setErrors({ general: 'Failed to update profile. Please try again.' });
+        setErrors({ general: t('tc_profile_screen.errors.update_failed') });
       }
     } finally {
       setSaving(false);
@@ -457,7 +459,7 @@ const TCProfileScreen = () => {
     try {
       const { authAPI } = await import('../../../services/api');
       await authAPI.changePassword(passwordData);
-      setSuccessMessage('Password changed successfully!');
+      setSuccessMessage(t('tc_profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
@@ -469,7 +471,7 @@ const TCProfileScreen = () => {
       if (error.errors) {
         setErrors(error.errors);
       } else {
-        setErrors({ password: error.message || 'Failed to change password' });
+        setErrors({ password: error.message || t('tc_profile_screen.errors.password_change_failed') });
       }
     } finally {
       setSaving(false);
@@ -542,15 +544,15 @@ const TCProfileScreen = () => {
             )}
           </div>
           <div className="profile-header-info">
-            <h1 className="profile-name">{formData.name || 'Training Center'}</h1>
-            <p className="profile-email">{formData.email || 'No email provided'}</p>
+            <h1 className="profile-name">{formData.name || t('tc_profile_screen.common.training_center')}</h1>
+            <p className="profile-email">{formData.email || t('tc_profile_screen.common.no_email')}</p>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="profile-edit-btn"
               >
                 <Edit size={18} />
-                Edit Profile
+                {t('tc_profile_screen.actions.edit')}
               </button>
             )}
           </div>
@@ -565,13 +567,13 @@ const TCProfileScreen = () => {
                 <Building2 className="text-blue-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Company Information</h2>
-                <p className="text-sm text-gray-500">Basic details about your training center</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.company_info.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.company_info.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
               <FormInput
-                label="Company Name"
+                label={t('tc_profile_screen.sections.company_info.company_name')}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
@@ -580,7 +582,7 @@ const TCProfileScreen = () => {
                 error={errors.name}
               />
               <FormInput
-                label="Website"
+                label={t('tc_profile_screen.sections.company_info.website')}
                 name="website"
                 type="url"
                 value={formData.website}
@@ -590,7 +592,7 @@ const TCProfileScreen = () => {
                 placeholder="https://example.com"
               />
               <FormInput
-                label="Company Email Address"
+                label={t('tc_profile_screen.sections.company_info.email')}
                 name="email"
                 type="email"
                 value={formData.email}
@@ -600,7 +602,7 @@ const TCProfileScreen = () => {
                 error={errors.email}
               />
               <FormInput
-                label="Telephone Number"
+                label={t('tc_profile_screen.sections.company_info.phone')}
                 name="phone"
                 type="tel"
                 value={formData.phone}
@@ -610,7 +612,7 @@ const TCProfileScreen = () => {
                 error={errors.phone}
               />
               <FormInput
-                label="Fax"
+                label={t('tc_profile_screen.sections.company_info.fax')}
                 name="fax"
                 type="tel"
                 value={formData.fax}
@@ -619,7 +621,7 @@ const TCProfileScreen = () => {
                 error={errors.fax}
               />
               <FormInput
-                label="Training Provider Type"
+                label={t('tc_profile_screen.sections.company_info.training_provider_type')}
                 name="training_provider_type"
                 type="select"
                 value={formData.training_provider_type}
@@ -628,7 +630,7 @@ const TCProfileScreen = () => {
                 disabled={!isEditing}
                 error={errors.training_provider_type}
                 options={[
-                  { value: '', label: 'Select Type' },
+                  { value: '', label: t('tc_profile_screen.sections.company_info.select_type') },
                   ...trainingProviderTypes.map(type => ({ value: type, label: type }))
                 ]}
               />
@@ -642,13 +644,13 @@ const TCProfileScreen = () => {
                 <MapPin className="text-green-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Physical Address</h2>
-                <p className="text-sm text-gray-500">Your training center's physical location</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.physical_address.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.physical_address.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
               <FormInput
-                label="Address"
+                label={t('tc_profile_screen.sections.physical_address.address')}
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
@@ -657,7 +659,7 @@ const TCProfileScreen = () => {
                 error={errors.address}
               />
               <FormInput
-                label="City"
+                label={t('tc_profile_screen.sections.physical_address.city')}
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
@@ -666,7 +668,7 @@ const TCProfileScreen = () => {
                 error={errors.city}
               />
               <FormInput
-                label="Country"
+                label={t('tc_profile_screen.sections.physical_address.country')}
                 name="country"
                 type="select"
                 value={formData.country}
@@ -675,12 +677,12 @@ const TCProfileScreen = () => {
                 disabled={!isEditing || loadingCountries}
                 error={errors.country}
                 options={[
-                  { value: '', label: 'Select Country' },
+                  { value: '', label: t('tc_profile_screen.sections.physical_address.select_country') },
                   ...countries.map(c => ({ value: c.code, label: c.name }))
                 ]}
               />
               <FormInput
-                label="Postal Code"
+                label={t('tc_profile_screen.sections.physical_address.postal_code')}
                 name="physical_postal_code"
                 value={formData.physical_postal_code}
                 onChange={handleChange}
@@ -698,8 +700,8 @@ const TCProfileScreen = () => {
                 <Mail className="text-purple-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Mailing Address</h2>
-                <p className="text-sm text-gray-500">Where you receive correspondence</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.mailing_address.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.mailing_address.subtitle')}</p>
               </div>
             </div>
             <div className="mb-4">
@@ -712,13 +714,13 @@ const TCProfileScreen = () => {
                   disabled={!isEditing}
                   className="w-4 h-4"
                 />
-                <span className="text-sm text-gray-700">Same as Physical Address</span>
+                <span className="text-sm text-gray-700">{t('tc_profile_screen.sections.mailing_address.same_as_physical')}</span>
               </label>
             </div>
             {!formData.mailing_same_as_physical && (
               <div className="profile-form-grid">
                 <FormInput
-                  label="Mailing Address"
+                  label={t('tc_profile_screen.sections.mailing_address.address')}
                   name="mailing_address"
                   value={formData.mailing_address}
                   onChange={handleChange}
@@ -727,7 +729,7 @@ const TCProfileScreen = () => {
                   error={errors.mailing_address}
                 />
                 <FormInput
-                  label="Mailing City"
+                  label={t('tc_profile_screen.sections.mailing_address.city')}
                   name="mailing_city"
                   value={formData.mailing_city}
                   onChange={handleChange}
@@ -736,7 +738,7 @@ const TCProfileScreen = () => {
                   error={errors.mailing_city}
                 />
                 <FormInput
-                  label="Mailing Country"
+                  label={t('tc_profile_screen.sections.mailing_address.country')}
                   name="mailing_country"
                   type="select"
                   value={formData.mailing_country}
@@ -745,12 +747,12 @@ const TCProfileScreen = () => {
                   disabled={!isEditing || loadingCountries}
                   error={errors.mailing_country}
                   options={[
-                    { value: '', label: 'Select Country' },
+                    { value: '', label: t('tc_profile_screen.sections.physical_address.select_country') },
                     ...countries.map(c => ({ value: c.code, label: c.name }))
                   ]}
                 />
                 <FormInput
-                  label="Mailing Postal Code"
+                  label={t('tc_profile_screen.sections.mailing_address.postal_code')}
                   name="mailing_postal_code"
                   value={formData.mailing_postal_code}
                   onChange={handleChange}
@@ -769,13 +771,13 @@ const TCProfileScreen = () => {
                 <User className="text-orange-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Primary Contact</h2>
-                <p className="text-sm text-gray-500">Main point of contact for your organization</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.primary_contact.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.primary_contact.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
               <FormInput
-                label="Title"
+                label={t('tc_profile_screen.sections.primary_contact.contact_title')}
                 name="primary_contact_title"
                 type="select"
                 value={formData.primary_contact_title}
@@ -784,12 +786,12 @@ const TCProfileScreen = () => {
                 disabled={!isEditing}
                 error={errors.primary_contact_title}
                 options={[
-                  { value: '', label: 'Select Title' },
+                  { value: '', label: t('tc_profile_screen.sections.primary_contact.select_title') },
                   ...titleOptions.map(title => ({ value: title, label: title }))
                 ]}
               />
               <FormInput
-                label="First Name"
+                label={t('tc_profile_screen.sections.primary_contact.first_name')}
                 name="primary_contact_first_name"
                 value={formData.primary_contact_first_name}
                 onChange={handleChange}
@@ -798,7 +800,7 @@ const TCProfileScreen = () => {
                 error={errors.primary_contact_first_name}
               />
               <FormInput
-                label="Last Name"
+                label={t('tc_profile_screen.sections.primary_contact.last_name')}
                 name="primary_contact_last_name"
                 value={formData.primary_contact_last_name}
                 onChange={handleChange}
@@ -807,7 +809,7 @@ const TCProfileScreen = () => {
                 error={errors.primary_contact_last_name}
               />
               <FormInput
-                label="Email Address"
+                label={t('tc_profile_screen.sections.primary_contact.email')}
                 name="primary_contact_email"
                 type="email"
                 value={formData.primary_contact_email}
@@ -817,7 +819,7 @@ const TCProfileScreen = () => {
                 error={errors.primary_contact_email}
               />
               <FormInput
-                label="Country"
+                label={t('tc_profile_screen.sections.primary_contact.country')}
                 name="primary_contact_country"
                 type="select"
                 value={formData.primary_contact_country}
@@ -826,12 +828,12 @@ const TCProfileScreen = () => {
                 disabled={!isEditing || loadingCountries}
                 error={errors.primary_contact_country}
                 options={[
-                  { value: '', label: 'Select Country' },
+                  { value: '', label: t('tc_profile_screen.sections.physical_address.select_country') },
                   ...countries.map(c => ({ value: c.code, label: c.name }))
                 ]}
               />
               <FormInput
-                label="Mobile Number"
+                label={t('tc_profile_screen.sections.primary_contact.mobile')}
                 name="primary_contact_mobile"
                 type="tel"
                 value={formData.primary_contact_mobile}
@@ -850,8 +852,8 @@ const TCProfileScreen = () => {
                 <Users className="text-cyan-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Secondary Contact</h2>
-                <p className="text-sm text-gray-500">Optional backup contact person</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.secondary_contact.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.secondary_contact.subtitle')}</p>
               </div>
             </div>
             <div className="mb-4">
@@ -864,13 +866,13 @@ const TCProfileScreen = () => {
                   disabled={!isEditing}
                   className="w-4 h-4"
                 />
-                <span className="text-sm text-gray-700">Add Secondary Contact</span>
+                <span className="text-sm text-gray-700">{t('tc_profile_screen.sections.secondary_contact.add')}</span>
               </label>
             </div>
             {formData.has_secondary_contact && (
               <div className="profile-form-grid">
                 <FormInput
-                  label="Title"
+                  label={t('tc_profile_screen.sections.secondary_contact.contact_title')}
                   name="secondary_contact_title"
                   type="select"
                   value={formData.secondary_contact_title}
@@ -879,12 +881,12 @@ const TCProfileScreen = () => {
                   disabled={!isEditing}
                   error={errors.secondary_contact_title}
                   options={[
-                    { value: '', label: 'Select Title' },
+                    { value: '', label: t('tc_profile_screen.sections.primary_contact.select_title') },
                     ...titleOptions.map(title => ({ value: title, label: title }))
                   ]}
                 />
                 <FormInput
-                  label="First Name"
+                  label={t('tc_profile_screen.sections.secondary_contact.first_name')}
                   name="secondary_contact_first_name"
                   value={formData.secondary_contact_first_name}
                   onChange={handleChange}
@@ -893,7 +895,7 @@ const TCProfileScreen = () => {
                   error={errors.secondary_contact_first_name}
                 />
                 <FormInput
-                  label="Last Name"
+                  label={t('tc_profile_screen.sections.secondary_contact.last_name')}
                   name="secondary_contact_last_name"
                   value={formData.secondary_contact_last_name}
                   onChange={handleChange}
@@ -902,7 +904,7 @@ const TCProfileScreen = () => {
                   error={errors.secondary_contact_last_name}
                 />
                 <FormInput
-                  label="Email Address"
+                  label={t('tc_profile_screen.sections.secondary_contact.email')}
                   name="secondary_contact_email"
                   type="email"
                   value={formData.secondary_contact_email}
@@ -912,7 +914,7 @@ const TCProfileScreen = () => {
                   error={errors.secondary_contact_email}
                 />
                 <FormInput
-                  label="Country"
+                  label={t('tc_profile_screen.sections.secondary_contact.country')}
                   name="secondary_contact_country"
                   type="select"
                   value={formData.secondary_contact_country}
@@ -921,12 +923,12 @@ const TCProfileScreen = () => {
                   disabled={!isEditing || loadingCountries}
                   error={errors.secondary_contact_country}
                   options={[
-                    { value: '', label: 'Select Country' },
+                    { value: '', label: t('tc_profile_screen.sections.physical_address.select_country') },
                     ...countries.map(c => ({ value: c.code, label: c.name }))
                   ]}
                 />
                 <FormInput
-                  label="Mobile Number"
+                  label={t('tc_profile_screen.sections.secondary_contact.mobile')}
                   name="secondary_contact_mobile"
                   type="tel"
                   value={formData.secondary_contact_mobile}
@@ -946,13 +948,13 @@ const TCProfileScreen = () => {
                 <FileText className="text-indigo-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Additional Information</h2>
-                <p className="text-sm text-gray-500">Registration details and preferences</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.sections.additional_info.title')}</h2>
+                <p className="text-sm text-gray-500">{t('tc_profile_screen.sections.additional_info.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
               <FormInput
-                label="Company GOV Registry Number"
+                label={t('tc_profile_screen.sections.additional_info.gov_registry_number')}
                 name="company_gov_registry_number"
                 value={formData.company_gov_registry_number}
                 onChange={handleChange}
@@ -965,7 +967,7 @@ const TCProfileScreen = () => {
             {/* Company Registration Certificate */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company Registration Certificate <span className="text-red-500">*</span>
+                {t('tc_profile_screen.sections.additional_info.registration_certificate')} <span className="text-red-500">*</span>
               </label>
               {formData.company_registration_certificate_url && !formData.company_registration_certificate && (
                 <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -976,7 +978,7 @@ const TCProfileScreen = () => {
                     className="text-sm text-primary-600 hover:underline flex items-center gap-2"
                   >
                     <FileText size={16} />
-                    View Current Certificate
+                    {t('tc_profile_screen.sections.additional_info.view_current_certificate')}
                   </a>
                 </div>
               )}
@@ -989,7 +991,7 @@ const TCProfileScreen = () => {
                     onChange={handleChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                   />
-                  <p className="mt-1 text-xs text-gray-500">PDF, JPEG, or PNG (max 10MB)</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('tc_profile_screen.sections.additional_info.registration_formats')}</p>
                   {errors.company_registration_certificate && (
                     <p className="mt-1 text-sm text-red-600">{errors.company_registration_certificate}</p>
                   )}
@@ -1006,7 +1008,7 @@ const TCProfileScreen = () => {
             {/* Facility Floorplan */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Facility Floorplan (Optional)
+                {t('tc_profile_screen.sections.additional_info.facility_floorplan')}
               </label>
               {formData.facility_floorplan_url && !formData.facility_floorplan && (
                 <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1017,7 +1019,7 @@ const TCProfileScreen = () => {
                     className="text-sm text-primary-600 hover:underline flex items-center gap-2"
                   >
                     <FileText size={16} />
-                    View Current Floorplan
+                    {t('tc_profile_screen.sections.additional_info.view_current_floorplan')}
                   </a>
                 </div>
               )}
@@ -1030,7 +1032,7 @@ const TCProfileScreen = () => {
                     onChange={handleChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                   />
-                  <p className="mt-1 text-xs text-gray-500">PDF, JPEG, or PNG (max 10MB)</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('tc_profile_screen.sections.additional_info.registration_formats')}</p>
                   {errors.facility_floorplan && (
                     <p className="mt-1 text-sm text-red-600">{errors.facility_floorplan}</p>
                   )}
@@ -1047,7 +1049,7 @@ const TCProfileScreen = () => {
             {/* Interested Fields */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Interested Fields (Optional)
+                {t('tc_profile_screen.sections.additional_info.interested_fields')}
               </label>
               <div className="space-y-2">
                 {interestedFieldsOptions.map(field => (
@@ -1068,7 +1070,7 @@ const TCProfileScreen = () => {
             {/* How did you hear about us */}
             <div className="mt-4">
               <FormInput
-                label="How did you hear about us? (Optional)"
+                label={t('tc_profile_screen.sections.additional_info.how_did_you_hear')}
                 name="how_did_you_hear_about_us"
                 textarea
                 rows={3}
@@ -1076,7 +1078,7 @@ const TCProfileScreen = () => {
                 onChange={handleChange}
                 disabled={!isEditing}
                 error={errors.how_did_you_hear_about_us}
-                placeholder="Tell us how you found out about us..."
+                placeholder={t('tc_profile_screen.sections.additional_info.how_did_you_hear_placeholder')}
               />
             </div>
           </div>
@@ -1091,7 +1093,7 @@ const TCProfileScreen = () => {
                 disabled={saving}
               >
                 <X size={18} />
-                Cancel
+                {t('tc_profile_screen.actions.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -1100,7 +1102,7 @@ const TCProfileScreen = () => {
                 loading={saving}
               >
                 <Save size={18} />
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? t('tc_profile_screen.actions.saving') : t('tc_profile_screen.actions.save')}
               </Button>
             </div>
           )}
@@ -1113,44 +1115,44 @@ const TCProfileScreen = () => {
               <KeyRound className="text-red-600" size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-              <p className="text-sm text-gray-500">Update your account password</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.password.title')}</h2>
+              <p className="text-sm text-gray-500">{t('tc_profile_screen.password.subtitle')}</p>
             </div>
           </div>
 
           <form onSubmit={handleChangePassword} className="space-y-5">
             <FormInput
-              label="Current Password"
+              label={t('tc_profile_screen.password.current')}
               type="password"
               name="current_password"
               value={passwordData.current_password}
               onChange={handlePasswordChange}
               required
               error={errors.current_password}
-              placeholder="Enter your current password"
+              placeholder={t('tc_profile_screen.password.current_placeholder')}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="New Password"
+                label={t('tc_profile_screen.password.new')}
                 type="password"
                 name="password"
                 value={passwordData.password}
                 onChange={handlePasswordChange}
                 required
                 error={errors.password}
-                placeholder="Must include uppercase, numbers & special characters"
+                placeholder={t('tc_profile_screen.password.new_placeholder')}
               />
 
               <FormInput
-                label="Confirm New Password"
+                label={t('tc_profile_screen.password.confirm')}
                 type="password"
                 name="password_confirmation"
                 value={passwordData.password_confirmation}
                 onChange={handlePasswordChange}
                 required
                 error={errors.password_confirmation}
-                placeholder="Confirm your new password"
+                placeholder={t('tc_profile_screen.password.confirm_placeholder')}
               />
             </div>
 
@@ -1163,7 +1165,7 @@ const TCProfileScreen = () => {
                 icon={<Lock size={20} />}
                 fullWidth
               >
-                Change Password
+                {t('tc_profile_screen.password.submit')}
               </Button>
             </div>
           </form>
@@ -1176,18 +1178,18 @@ const TCProfileScreen = () => {
               <Globe className="text-blue-600" size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Language Settings</h2>
-              <p className="text-sm text-gray-500">Choose your preferred language</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('tc_profile_screen.language.title')}</h2>
+              <p className="text-sm text-gray-500">{t('tc_profile_screen.language.subtitle')}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Application Language
+                {t('tc_profile_screen.language.application_language')}
               </label>
               <p className="text-sm text-gray-500 mb-4">
-                Select the language you want to use for the application interface. The page will automatically update when you change the language.
+                {t('tc_profile_screen.language.description')}
               </p>
               <LanguageSwitcher />
             </div>

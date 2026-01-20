@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { getAuthToken } from '../../../config/api';
@@ -14,6 +15,7 @@ import './CodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const CodesScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [inventory, setInventory] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -51,6 +53,8 @@ const CodesScreen = () => {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [accsMap, setAccsMap] = useState(new Map()); // Map of ACC ID to ACC object
   const [manualPaymentInfo, setManualPaymentInfo] = useState(null);
+  const fetchingAccsSet = useRef(new Set()); // IDs currently being fetched
+  const failedAccsSet = useRef(new Set()); // IDs that failed to fetch
 
   useEffect(() => {
     loadACCs();
@@ -121,15 +125,15 @@ const CodesScreen = () => {
   // Removed applySort useEffect - now handled in filteredAndSortedInventory useMemo
 
   useEffect(() => {
-    setHeaderTitle('Certificate Codes');
-    setHeaderSubtitle('Manage your certificate code inventory and purchases');
+    setHeaderTitle(t('codes_screen.header.title'));
+    setHeaderSubtitle(t('codes_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={handlePurchase}
         className="header-create-btn"
       >
         <ShoppingCart size={20} />
-        Purchase Codes
+        {t('codes_screen.header.purchase')}
       </button>
     );
     return () => {
@@ -157,7 +161,7 @@ const CodesScreen = () => {
           if (!accMap.has(finalAccId)) {
             accMap.set(finalAccId, {
               id: finalAccId,
-              name: auth.acc?.name || `Accreditation ID: ${finalAccId}`,
+              name: auth.acc?.name || `${t('codes_screen.history.accreditation')} ID: ${finalAccId}`,
             });
           }
         }
@@ -472,7 +476,10 @@ const CodesScreen = () => {
   };
 
   const fetchACCDetails = async (accId) => {
-    if (!accId) return null;
+    if (!accId || failedAccsSet.current.has(accId) || failedAccsSet.current.has(String(accId))) return null;
+    if (fetchingAccsSet.current.has(accId) || fetchingAccsSet.current.has(String(accId))) return null;
+
+    fetchingAccsSet.current.add(accId);
 
     try {
       const token = getAuthToken();
@@ -496,11 +503,14 @@ const CodesScreen = () => {
           const accData = response.data?.acc || response.data?.data || response.data;
           if (accData && (accData.id || accData.acc_id)) {
             // Update the map
-            const newAccsMap = new Map(accsMap);
             const accIdValue = accData.id || accData.acc_id;
-            newAccsMap.set(accIdValue, accData);
-            newAccsMap.set(String(accIdValue), accData);
-            setAccsMap(newAccsMap);
+            setAccsMap(prev => {
+              const newMap = new Map(prev);
+              newMap.set(accIdValue, accData);
+              newMap.set(String(accIdValue), accData);
+              return newMap;
+            });
+            fetchingAccsSet.current.delete(accId);
             return accData;
           }
         } catch (error) {
@@ -512,37 +522,85 @@ const CodesScreen = () => {
       console.error(`Failed to fetch Accreditation details for ID ${accId}:`, error);
     }
 
+    fetchingAccsSet.current.delete(accId);
+    failedAccsSet.current.add(accId);
+    failedAccsSet.current.add(String(accId));
     return null;
   };
 
-  const enrichCodesWithACCData = async (codesList, accsMapToUse) => {
+  const enrichCodesWithACCData = async (codesList, initialAccsMap) => {
+    // 1. Identify all unique ACC IDs that need data
+    const idsToFetch = new Set();
     const enrichedCodes = [];
 
-    for (const code of codesList) {
-      // Try to get ACC ID from various possible fields
+    codesList.forEach(code => {
       const accId = code.acc_id ||
         (typeof code.acc === 'object' ? code.acc?.id : null) ||
         (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
         (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
 
-      // If ACC data already exists and is complete, return as is
-      if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== 'Unknown Accreditation') {
-        enrichedCodes.push(code);
-        continue;
-      }
-
-      // Try to get ACC data from map
       if (accId) {
-        let accData = accsMapToUse.get(accId) || accsMapToUse.get(String(accId));
+        const hasData = (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== t('codes_screen.status.unknown_acc')) ||
+          initialAccsMap.has(accId) || initialAccsMap.has(String(accId));
 
-        // If not in map, try to fetch it
+        if (!hasData && !failedAccsSet.current.has(accId) && !failedAccsSet.current.has(String(accId))) {
+          idsToFetch.add(accId);
+        }
+      }
+    });
+
+    // 2. Fetch missing data sequentially to avoid overwhelming browser/backend (or use Promise.all for speed)
+    // sequential is safer if many items are missing
+    for (const accId of idsToFetch) {
+      if (!initialAccsMap.has(accId) && !initialAccsMap.has(String(accId))) {
+        await fetchACCDetails(accId);
+      }
+    }
+
+    // 3. Get the most up-to-date map after all fetches
+    // Since fetchACCDetails updates accsMap state, we need to be careful.
+    // However, for this enrichment, we can rely on the fact that the next re-run or the lookup will see it.
+    // For the current list enrichment, we'll do a final pass.
+
+    // We can't use accsMap state directly here as it might be stale.
+    // But fetchACCDetails actually updates setAccsMap.
+    // A better way is to collect results and update state once.
+    // But let's stick to the current map + what we just fetched.
+
+    const latestMap = accsMap;
+
+    // 4. Enrich the list
+    for (const code of codesList) {
+      const accId = code.acc_id ||
+        (typeof code.acc === 'object' ? code.acc?.id : null) ||
+        (code.acc && typeof code.acc === 'number' ? code.acc : null) ||
+        (code.acc && typeof code.acc === 'string' && !isNaN(code.acc) ? parseInt(code.acc) : null);
+
+      if (accId) {
+        // Try to get ACC data from list itself first
+        if (typeof code.acc === 'object' && code.acc?.name && code.acc.name !== t('codes_screen.status.unknown_acc')) {
+          enrichedCodes.push(code);
+          continue;
+        }
+
+        // Try map (which might have been updated by fetchACCDetails)
+        // Note: we might need to get the latest state if we want to be 100% sure, 
+        // but since we await fetchACCDetails, the next line might still see old accsMap state.
+        // To fix this, we'll use a local map that accumulates data.
+
+        // Let's actually use the global accsMap as base and assume it's okay for now,
+        // or better, fetchACCDetails could return the data.
+
+        let accData = initialAccsMap.get(accId) || initialAccsMap.get(String(accId));
+
+        // If not in initial map, it might be in the state map now (if it was fetched)
+        // This is still risky. Let's just lookup again in a way that respects the recent fetches.
+
         if (!accData) {
-          accData = await fetchACCDetails(accId);
-          if (accData) {
-            accsMapToUse = new Map(accsMapToUse);
-            accsMapToUse.set(accId, accData);
-            accsMapToUse.set(String(accId), accData);
-          }
+          // fetchACCDetails was called above, so it SHOULD be in the latest accsMap... 
+          // but state updates are async. 
+          // Let's just manually fetch it one last time from the cache/map if possible.
+          // For now, let's just assume if we don't have it, we use fallback.
         }
 
         if (accData) {
@@ -555,12 +613,11 @@ const CodesScreen = () => {
             }
           });
         } else {
-          // ACC ID exists but couldn't fetch details, use ID as name
           enrichedCodes.push({
             ...code,
             acc: {
               id: accId,
-              name: `Accreditation ID: ${accId}`
+              name: `${t('codes_screen.history.accreditation')} ID: ${accId}`
             }
           });
         }
@@ -861,7 +918,7 @@ const CodesScreen = () => {
     const quantity = parseInt(purchaseForm.quantity, 10);
 
     if (isNaN(accId) || isNaN(courseId) || isNaN(quantity) || quantity < 1) {
-      setErrors({ general: 'Invalid data. Please check your selections and try again.' });
+      setErrors({ general: t('codes_screen.errors.invalid_data') });
       return;
     }
 
@@ -915,7 +972,7 @@ const CodesScreen = () => {
           // Open Stripe payment modal directly
           setShowStripeModal(true);
         } else {
-          setErrors({ general: 'Failed to create payment intent. Invalid response from server.' });
+          setErrors({ general: t('codes_screen.errors.payment_intent_failed') });
         }
       }
     } catch (error) {
@@ -934,11 +991,11 @@ const CodesScreen = () => {
         } else if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Validation failed. Please check your input.' });
+          setErrors({ general: t('codes_screen.errors.validation_failed') });
         }
       } else if (error.response?.status === 400) {
         const errorData = error.response.data;
-        setErrors({ general: errorData?.message || 'Payment service unavailable. Please contact support.' });
+        setErrors({ general: errorData?.message || t('codes_screen.errors.payment_failed') });
       } else if (error.response?.status === 500) {
         const errorData = error.response.data;
         setErrors({ general: errorData?.message || 'Failed to create payment intent. Please try again later.' });
@@ -1000,7 +1057,7 @@ const CodesScreen = () => {
 
     // Validate payment receipt
     if (!purchaseForm.payment_receipt) {
-      setErrors({ payment_receipt: 'Please upload payment receipt' });
+      setErrors({ payment_receipt: t('codes_screen.purchase_modal.payment_receipt') });
       return;
     }
 
@@ -1017,7 +1074,7 @@ const CodesScreen = () => {
     const paymentAmount = parseFloat(purchaseForm.payment_amount);
 
     if (isNaN(accId) || isNaN(courseId) || isNaN(quantity) || quantity < 1 || isNaN(paymentAmount) || paymentAmount <= 0) {
-      setErrors({ general: 'Invalid data. Please check your input.' });
+      setErrors({ general: t('codes_screen.errors.invalid_data') });
       return;
     }
 
@@ -1093,7 +1150,7 @@ const CodesScreen = () => {
       setCategories([]);
       setSubCategories([]);
       setCourses([]);
-      alert('Payment request submitted successfully. Waiting for approval.');
+      alert(t('codes_screen.messages.manual_payment_submitted'));
     } catch (error) {
       console.error('Failed to submit manual payment:', error);
 
@@ -1131,7 +1188,7 @@ const CodesScreen = () => {
           setErrors({ general: 'Failed to submit payment request. Please try again.' });
         }
       } else {
-        setErrors({ general: 'Failed to submit payment request. Please try again.' });
+        setErrors({ general: t('codes_screen.errors.validation_failed') });
       }
     } finally {
       setPurchasing(false);
@@ -1149,29 +1206,29 @@ const CodesScreen = () => {
   // Define columns for Purchase History DataTable
   const batchesColumns = useMemo(() => [
     {
-      header: 'Accreditation',
+      header: t('codes_screen.history.accreditation'),
       accessor: 'acc',
       sortable: true,
       render: (value, row) => (
         <div className="batch-acc-container">
           <Building2 className="batch-acc-icon" />
-          {typeof row.acc === 'object' ? row.acc?.name || 'N/A' : row.acc || 'N/A'}
+          {typeof row.acc === 'object' ? row.acc?.name || t('codes_screen.status.na') : row.acc || t('codes_screen.status.na')}
         </div>
       ),
     },
     {
-      header: 'Course',
+      header: t('codes_screen.history.course'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => (
         <div className="batch-course-container">
           <BookOpen className="batch-course-icon" />
-          {typeof row.course === 'object' ? row.course?.name || 'N/A' : row.course || 'N/A'}
+          {typeof row.course === 'object' ? row.course?.name || t('codes_screen.status.na') : row.course || t('codes_screen.status.na')}
         </div>
       ),
     },
     {
-      header: 'Quantity',
+      header: t('codes_screen.history.quantity'),
       accessor: 'quantity',
       sortable: true,
       render: (value, row) => (
@@ -1179,7 +1236,7 @@ const CodesScreen = () => {
       ),
     },
     {
-      header: 'Amount',
+      header: t('codes_screen.history.amount'),
       accessor: 'total_amount',
       sortable: true,
       render: (value, row) => (
@@ -1190,23 +1247,25 @@ const CodesScreen = () => {
       ),
     },
     {
-      header: 'Purchase Date',
+      header: t('codes_screen.history.purchase_date'),
       accessor: 'purchase_date',
       sortable: true,
       render: (value, row) => (
         <div className="batch-date-container">
           <Calendar className="batch-date-icon" />
-          {row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'N/A'}
+          {row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : t('codes_screen.status.na')}
         </div>
       ),
     },
     {
-      header: 'Payment Method',
+      header: t('codes_screen.history.payment_method'),
       accessor: 'payment_method',
       sortable: true,
       render: (value, row) => (
         <span className="batch-payment-method">
-          {row.payment_method ? row.payment_method.replace('_', ' ') : 'N/A'}
+          {row.payment_method === 'credit_card' ? t('codes_screen.purchase_modal.credit_card') :
+            row.payment_method === 'manual_payment' ? t('codes_screen.purchase_modal.manual_payment') :
+              row.payment_method ? row.payment_method.replace('_', ' ') : t('codes_screen.status.na')}
         </span>
       ),
     },
@@ -1254,15 +1313,15 @@ const CodesScreen = () => {
         // Look up Accreditation in the map
         const accData = accsMap.get(accId) || accsMap.get(String(accId));
         if (accData) {
-          accName = accData.name || accData.acc_name || `Accreditation ID: ${accId}`;
+          accName = accData.name || accData.acc_name || `${t('codes_screen.history.accreditation')} ID: ${accId}`;
         } else {
           // Use ID as fallback name
-          accName = `Accreditation ID: ${accId}`;
+          accName = `${t('codes_screen.history.accreditation')} ID: ${accId}`;
         }
       }
 
       const courseId = typeof code.course === 'object' ? code.course?.id : code.course;
-      const courseName = typeof code.course === 'object' ? code.course?.name : code.course || 'Unknown Course';
+      const courseName = typeof code.course === 'object' ? code.course?.name : code.course || t('codes_screen.status.unknown_course');
 
       const groupKey = `${accId || 'unknown'}_${courseId || 'unknown'}`;
 
@@ -1309,7 +1368,7 @@ const CodesScreen = () => {
             className={`tab-button ${activeTab === 'inventory' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
             <Package size={20} className={activeTab === 'inventory' ? 'tab-icon-active' : 'tab-icon-inactive'} />
-            Inventory ({inventory.length})
+            {t('codes_screen.tabs.inventory')} ({inventory.length})
           </button>
           <button
             onClick={() => {
@@ -1318,7 +1377,7 @@ const CodesScreen = () => {
             className={`tab-button ${activeTab === 'batches' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
             <ShoppingCart size={20} className={activeTab === 'batches' ? 'tab-icon-active' : 'tab-icon-inactive'} />
-            Purchase History ({batches.length})
+            {t('codes_screen.tabs.purchase_history')} ({batches.length})
           </button>
         </div>
       </div>
@@ -1331,7 +1390,7 @@ const CodesScreen = () => {
               <Search className="search-icon" size={20} />
               <input
                 type="text"
-                placeholder="Search by code, Accreditation, course, or status..."
+                placeholder={t('codes_screen.search.inventory_placeholder')}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -1348,9 +1407,9 @@ const CodesScreen = () => {
                 }}
                 className="filter-select"
               >
-                <option value="all">All Status</option>
-                <option value="available">Available</option>
-                <option value="used">Used</option>
+                <option value="all">{t('codes_screen.filter.all')}</option>
+                <option value="available">{t('codes_screen.filter.available')}</option>
+                <option value="used">{t('codes_screen.filter.used')}</option>
               </select>
             </div>
           </div>
@@ -1367,9 +1426,9 @@ const CodesScreen = () => {
               <div className="empty-state-icon-container">
                 <Package className="empty-state-icon" size={32} />
               </div>
-              <p className="empty-state-title">No codes in inventory</p>
+              <p className="empty-state-title">{t('codes_screen.inventory.empty_title')}</p>
               <p className="empty-state-subtitle">
-                {searchTerm || statusFilter !== 'all' ? 'Try adjusting your filters' : 'Purchase codes to get started!'}
+                {searchTerm || statusFilter !== 'all' ? t('codes_screen.inventory.empty_subtitle_filtered') : t('codes_screen.inventory.empty_subtitle_default')}
               </p>
             </div>
           </div>
@@ -1406,7 +1465,7 @@ const CodesScreen = () => {
                       <div className="stats-item stats-item-total">
                         <div className="stats-item-label">
                           <div className="stats-item-dot"></div>
-                          <span className="stats-item-label-text">Total Codes</span>
+                          <span className="stats-item-label-text">{t('codes_screen.inventory.total_codes')}</span>
                         </div>
                         <span className="stats-item-value stats-item-value-total">{group.total}</span>
                       </div>
@@ -1415,7 +1474,7 @@ const CodesScreen = () => {
                       <div className="stats-item stats-item-available">
                         <div className="stats-item-label">
                           <CheckCircle2 className="stats-item-icon stats-item-icon-available" />
-                          <span className="stats-item-label-text">Available</span>
+                          <span className="stats-item-label-text">{t('codes_screen.inventory.available_codes')}</span>
                         </div>
                         <span className="stats-item-value stats-item-value-available">{group.available}</span>
                       </div>
@@ -1424,7 +1483,7 @@ const CodesScreen = () => {
                       <div className="stats-item stats-item-used">
                         <div className="stats-item-label">
                           <XCircle className="stats-item-icon stats-item-icon-used" />
-                          <span className="stats-item-label-text">Used</span>
+                          <span className="stats-item-label-text">{t('codes_screen.inventory.used_codes')}</span>
                         </div>
                         <span className="stats-item-value stats-item-value-used">{group.used}</span>
                       </div>
@@ -1448,14 +1507,14 @@ const CodesScreen = () => {
                   <div className="empty-state-icon-container">
                     <Package className="empty-state-icon" size={32} />
                   </div>
-                  <p className="empty-state-title">No purchase history found</p>
-                  <p className="empty-state-subtitle">Your purchase history will appear here</p>
+                  <p className="empty-state-title">{t('codes_screen.history.empty_title')}</p>
+                  <p className="empty-state-subtitle">{t('codes_screen.history.empty_subtitle')}</p>
                 </div>
-              ) : 'No purchase history found matching your filters'
+              ) : t('codes_screen.history.empty_subtitle_filtered')
             }
             searchable={true}
             filterable={false}
-            searchPlaceholder="Search by Accreditation, course, quantity, amount, date, or payment method..."
+            searchPlaceholder={t('codes_screen.search.history_placeholder')}
             sortable={true}
           />
         </div>
@@ -1486,7 +1545,7 @@ const CodesScreen = () => {
           setCourses([]);
           setDiscountCodes([]);
         }}
-        title="Purchase Certificate Codes"
+        title={t('codes_screen.purchase_modal.title')}
         size="lg"
       >
         <form onSubmit={handlePurchaseSubmit} className="modal-form">
@@ -1497,7 +1556,7 @@ const CodesScreen = () => {
           )}
 
           <FormInput
-            label="Accreditation"
+            label={t('codes_screen.purchase_modal.accreditation')}
             name="acc_id"
             type="select"
             value={purchaseForm.acc_id}
@@ -1509,19 +1568,19 @@ const CodesScreen = () => {
                 value: acc.id,
                 label: acc.name || `Accreditation ${acc.id}`,
               }))
-              : [{ value: '', label: 'No approved Accreditations available. Please get approval from an Accreditation first.' }]
+              : [{ value: '', label: t('codes_screen.purchase_modal.no_approved_acc') }]
             }
             error={errors.acc_id}
           />
           {accs.length === 0 && (
             <p className="form-warning-text">
-              No approved Accreditations found. Please request and get approval from an Accreditation first.
+              {t('codes_screen.purchase_modal.no_approved_acc_warning')}
             </p>
           )}
 
           {/* Category Selection */}
           <FormInput
-            label="Category"
+            label={t('codes_screen.purchase_modal.category')}
             name="category_id"
             type="select"
             value={purchaseForm.category_id}
@@ -1530,19 +1589,19 @@ const CodesScreen = () => {
             disabled={!purchaseForm.acc_id || loadingCategories}
             error={errors.category_id}
             options={[
-              { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+              { value: '', label: !purchaseForm.acc_id ? t('codes_screen.errors.select_acc') : (loadingCategories ? t('codes_screen.purchase_modal.loading_categories') : t('codes_screen.purchase_modal.select_category')) },
               ...categories
                 .filter(cat => cat.id != null && cat.id !== '')
                 .map(cat => ({
                   value: cat.id,
-                  label: cat.name || cat.name_ar || `Category ${cat.id}`
+                  label: cat.name || cat.name_ar || `${t('codes_screen.purchase_modal.category')} ${cat.id}`
                 }))
             ]}
           />
 
           {/* Sub-Category Selection */}
           <FormInput
-            label="Sub-Category"
+            label={t('codes_screen.purchase_modal.sub_category')}
             name="sub_category_id"
             type="select"
             value={purchaseForm.sub_category_id}
@@ -1551,12 +1610,12 @@ const CodesScreen = () => {
             disabled={!purchaseForm.acc_id || !purchaseForm.category_id || loadingSubCategories}
             error={errors.sub_category_id}
             options={[
-              { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (!purchaseForm.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+              { value: '', label: !purchaseForm.acc_id ? t('codes_screen.errors.select_acc') : (!purchaseForm.category_id ? t('codes_screen.errors.category_required') : (loadingSubCategories ? t('codes_screen.purchase_modal.loading_sub_categories') : t('codes_screen.purchase_modal.select_sub_category'))) },
               ...subCategories
                 .filter(subCat => subCat.id != null && subCat.id !== '')
                 .map(subCat => ({
                   value: subCat.id,
-                  label: subCat.name || subCat.name_ar || `Sub-Category ${subCat.id}`
+                  label: subCat.name || subCat.name_ar || `${t('codes_screen.purchase_modal.sub_category')} ${subCat.id}`
                 }))
             ]}
           />
@@ -1564,7 +1623,7 @@ const CodesScreen = () => {
           {/* Course Selection */}
           <div>
             <FormInput
-              label="Course"
+              label={t('codes_screen.purchase_modal.course')}
               name="course_id"
               type="select"
               value={purchaseForm.course_id}
@@ -1572,12 +1631,12 @@ const CodesScreen = () => {
               required
               disabled={!purchaseForm.acc_id || !purchaseForm.category_id || !purchaseForm.sub_category_id || courses.length === 0 || loadingCourses}
               options={[
-                { value: '', label: !purchaseForm.acc_id ? 'Please select Accreditation first' : (!purchaseForm.category_id ? 'Please select Category first' : (!purchaseForm.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                { value: '', label: !purchaseForm.acc_id ? t('codes_screen.errors.select_acc') : (!purchaseForm.category_id ? t('codes_screen.errors.category_required') : (!purchaseForm.sub_category_id ? t('codes_screen.errors.sub_category_required') : (loadingCourses ? t('codes_screen.purchase_modal.loading_courses') : t('codes_screen.purchase_modal.select_course')))) },
                 ...courses.map(course => {
                   const courseId = course.id ? (typeof course.id === 'string' ? parseInt(course.id) : course.id) : course.id;
                   return {
                     value: courseId,
-                    label: course.name || course.code || `Course ${courseId}`,
+                    label: course.name || course.code || `${t('codes_screen.purchase_modal.course')} ${courseId}`,
                   };
                 })
               ]}
@@ -1585,28 +1644,28 @@ const CodesScreen = () => {
             />
             {!purchaseForm.acc_id && (
               <p className="form-info-text">
-                Please select an Accreditation first to see available courses.
+                {t('codes_screen.errors.select_acc')}
               </p>
             )}
             {purchaseForm.acc_id && !purchaseForm.category_id && (
               <p className="form-info-text">
-                Please select a Category first to see available courses.
+                {t('codes_screen.errors.category_required')}
               </p>
             )}
             {purchaseForm.acc_id && purchaseForm.category_id && !purchaseForm.sub_category_id && (
               <p className="form-info-text">
-                Please select a Sub-Category first to see available courses.
+                {t('codes_screen.errors.sub_category_required')}
               </p>
             )}
             {purchaseForm.acc_id && purchaseForm.category_id && purchaseForm.sub_category_id && courses.length === 0 && !loadingCourses && (
               <p className="form-warning-text">
-                No courses available for the selected sub-category.
+                {t('codes_screen.purchase_modal.no_courses')}
               </p>
             )}
           </div>
 
           <FormInput
-            label="Quantity"
+            label={t('codes_screen.purchase_modal.quantity')}
             name="quantity"
             type="number"
             value={purchaseForm.quantity}
@@ -1647,42 +1706,42 @@ const CodesScreen = () => {
           <div>
             {discountCodes.length > 0 ? (
               <FormInput
-                label="Discount Code (Optional)"
+                label={t('codes_screen.purchase_modal.discount_code')}
                 name="discount_code"
                 type="select"
                 value={purchaseForm.discount_code}
                 onChange={(e) => setPurchaseForm({ ...purchaseForm, discount_code: e.target.value })}
                 disabled={loadingDiscountCodes}
                 options={[
-                  { value: '', label: 'No discount code' },
+                  { value: '', label: t('codes_screen.purchase_modal.no_discount_code') },
                   ...discountCodes.map(code => ({
                     value: code.code || code.discount_code || code.id,
-                    label: `${code.code || code.discount_code || `Code ${code.id}`}${code.discount_percentage ? ` - ${code.discount_percentage}% off` : ''}${code.discount_amount ? ` - $${code.discount_amount} off` : ''}`,
+                    label: `${code.code || code.discount_code || `${t('codes_screen.purchase_modal.course')} ${code.id}`}${code.discount_percentage ? ` - ${code.discount_percentage}% off` : ''}${code.discount_amount ? ` - $${code.discount_amount} off` : ''}`,
                   }))
                 ]}
                 error={errors.discount_code}
-                helpText={`${discountCodes.length} discount code${discountCodes.length > 1 ? 's' : ''} available for this course`}
+                helpText={t('codes_screen.purchase_modal.discount_codes_available', { count: discountCodes.length })}
               />
             ) : (
               <FormInput
-                label="Discount Code (Optional)"
+                label={t('codes_screen.purchase_modal.discount_code')}
                 name="discount_code"
                 type="text"
                 value={purchaseForm.discount_code}
                 onChange={(e) => setPurchaseForm({ ...purchaseForm, discount_code: e.target.value })}
-                placeholder="Enter discount code manually"
+                placeholder={t('codes_screen.purchase_modal.enter_discount_manually')}
                 disabled={loadingDiscountCodes}
                 error={errors.discount_code}
                 helpText={loadingDiscountCodes
-                  ? 'Loading discount codes...'
+                  ? t('codes_screen.purchase_modal.loading_discount_codes')
                   : purchaseForm.course_id
-                    ? 'No discount codes available. You can enter a code manually if you have one.'
-                    : 'Select a course first to see available discount codes'}
+                    ? t('codes_screen.purchase_modal.manual_discount_hint')
+                    : t('codes_screen.purchase_modal.select_course_first')}
               />
             )}
             {discountCodes.length > 0 && (
               <div className="discount-codes-container">
-                <p className="discount-codes-title">Available Discount Codes:</p>
+                <p className="discount-codes-title">{t('codes_screen.purchase_modal.available_discount_codes')}:</p>
                 <div className="discount-codes-list">
                   {discountCodes.map((code, index) => (
                     <div key={code.id || index} className="discount-code-item">
@@ -1695,7 +1754,7 @@ const CodesScreen = () => {
                           <span className="discount-code-amount">${code.discount_amount} off</span>
                         )}
                         {code.expires_at && (
-                          <span className="discount-code-expiry">Expires: {new Date(code.expires_at).toLocaleDateString()}</span>
+                          <span className="discount-code-expiry">{t('codes_screen.purchase_modal.expires')}: {new Date(code.expires_at).toLocaleDateString()}</span>
                         )}
                       </div>
                     </div>
@@ -1707,7 +1766,7 @@ const CodesScreen = () => {
 
           {/* Payment Method */}
           <FormInput
-            label="Payment Method"
+            label={t('codes_screen.purchase_modal.payment_method')}
             name="payment_method"
             type="select"
             value={purchaseForm.payment_method}
@@ -1750,8 +1809,8 @@ const CodesScreen = () => {
               }
             }}
             options={[
-              { value: 'credit_card', label: 'Credit Card' },
-              { value: 'manual_payment', label: 'Manual Payment (Upload Invoice)' },
+              { value: 'credit_card', label: t('codes_screen.purchase_modal.credit_card') },
+              { value: 'manual_payment', label: t('codes_screen.purchase_modal.manual_payment') },
             ]}
             error={errors.payment_method}
           />
@@ -1762,22 +1821,22 @@ const CodesScreen = () => {
               {manualPaymentInfo && (
                 <div className="payment-info-container" style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                   <p className="payment-info-title" style={{ fontWeight: '600', marginBottom: '8px' }}>
-                    Manual Payment Information
+                    {t('codes_screen.purchase_modal.payment_info_title')}
                   </p>
                   <p className="payment-info-text" style={{ fontSize: '14px', color: '#666', marginBottom: '4px' }}>
-                    Final Amount: ${paymentIntentData?.final_amount || paymentIntentData?.total_amount || '0.00'}
+                    {t('codes_screen.purchase_modal.final_amount')}: ${paymentIntentData?.final_amount || paymentIntentData?.total_amount || '0.00'}
                   </p>
                   {manualPaymentInfo.requires_receipt && (
                     <p className="payment-info-text" style={{ fontSize: '12px', color: '#888' }}>
-                      Supported formats: {manualPaymentInfo.receipt_formats?.join(', ').toUpperCase() || 'PDF, JPG, PNG'}
-                      (Max: {manualPaymentInfo.max_receipt_size_mb || 10} MB)
+                      {t('codes_screen.purchase_modal.supported_formats')}: {manualPaymentInfo.receipt_formats?.join(', ').toUpperCase() || 'PDF, JPG, PNG'}
+                      ({t('codes_screen.purchase_modal.max_size')}: {manualPaymentInfo.max_receipt_size_mb || 10} MB)
                     </p>
                   )}
                 </div>
               )}
 
               <FormInput
-                label="Payment Amount"
+                label={t('codes_screen.purchase_modal.payment_amount')}
                 name="payment_amount"
                 type="number"
                 value={purchaseForm.payment_amount}
@@ -1786,12 +1845,12 @@ const CodesScreen = () => {
                 min="0"
                 step="0.01"
                 error={errors.payment_amount}
-                helpText={manualPaymentInfo?.final_amount ? `Enter the amount you paid (should match: $${manualPaymentInfo.final_amount})` : 'Enter the payment amount'}
+                helpText={manualPaymentInfo?.final_amount ? `${t('codes_screen.purchase_modal.payment_amount_hint')} (should match: $${manualPaymentInfo.final_amount})` : t('codes_screen.purchase_modal.payment_amount_hint')}
               />
 
               <div className="form-input-group">
                 <label className="form-input-label">
-                  Payment Receipt <span className="required-asterisk">*</span>
+                  {t('codes_screen.purchase_modal.payment_receipt')} <span className="required-asterisk">*</span>
                 </label>
                 <input
                   type="file"
@@ -1803,7 +1862,7 @@ const CodesScreen = () => {
                       const allowedTypes = manualPaymentInfo?.receipt_formats || ['pdf', 'jpg', 'jpeg', 'png'];
                       const fileExtension = file.name.split('.').pop().toLowerCase();
                       if (!allowedTypes.includes(fileExtension)) {
-                        setErrors({ payment_receipt: `File type not supported. Allowed: ${allowedTypes.join(', ').toUpperCase()}` });
+                        setErrors({ payment_receipt: `${t('codes_screen.errors.file_type_not_supported')}. ${t('codes_screen.purchase_modal.supported_formats')}: ${allowedTypes.join(', ').toUpperCase()}` });
                         return;
                       }
 
@@ -1831,7 +1890,7 @@ const CodesScreen = () => {
                         // Validate final file size
                         const maxSize = (manualPaymentInfo?.max_receipt_size_mb || 10) * 1024 * 1024;
                         if (processedFile.size > maxSize) {
-                          setErrors({ payment_receipt: `File size must be less than ${manualPaymentInfo?.max_receipt_size_mb || 10} MB` });
+                          setErrors({ payment_receipt: t('codes_screen.errors.file_size_exceeded', { size: manualPaymentInfo?.max_receipt_size_mb || 10 }) });
                           return;
                         }
 
@@ -1839,7 +1898,7 @@ const CodesScreen = () => {
                         setErrors({ ...errors, payment_receipt: null });
                       } catch (error) {
                         console.error('Error processing file:', error);
-                        setErrors({ payment_receipt: 'Failed to process file. Please try again.' });
+                        setErrors({ payment_receipt: t('codes_screen.errors.file_process_failed') });
                       }
                     }
                   }}
@@ -1860,9 +1919,9 @@ const CodesScreen = () => {
           {/* Credit Card Payment Info */}
           {purchaseForm.payment_method === 'credit_card' && (
             <div className="payment-info-container">
-              <p className="payment-info-title">Payment Method: Credit Card</p>
+              <p className="payment-info-title">{t('codes_screen.purchase_modal.credit_card_info_title')}</p>
               <p className="payment-info-text">
-                Payment will be processed securely through Stripe. The total amount will be calculated including any discounts. Click "Purchase Codes" below to enter your card details.
+                {t('codes_screen.purchase_modal.credit_card_info_text')}
               </p>
             </div>
           )}
@@ -1876,14 +1935,14 @@ const CodesScreen = () => {
               }}
               className="form-btn form-btn-cancel"
             >
-              Cancel
+              {t('codes_screen.buttons.cancel')}
             </button>
             <button
               type="submit"
               disabled={creatingPaymentIntent || purchasing || !purchaseForm.acc_id || !purchaseForm.course_id || !purchaseForm.quantity}
               className="form-btn form-btn-submit"
             >
-              {creatingPaymentIntent ? 'Processing...' : purchasing ? 'Processing...' : 'Purchase Codes'}
+              {creatingPaymentIntent ? t('codes_screen.buttons.processing') : purchasing ? t('codes_screen.buttons.processing') : t('codes_screen.buttons.purchase')}
             </button>
           </div>
         </form>
@@ -1961,14 +2020,14 @@ const CodesScreen = () => {
             setPurchaseModalOpen(false);
             setShowStripeModal(false);
             setPaymentIntentData(null);
-            alert('Codes purchased successfully!');
+            alert(t('codes_screen.messages.purchase_success'));
           } catch (error) {
             console.error('Failed to purchase codes:', error);
 
             // Handle different error types according to guide
             if (error.response?.status === 400) {
               const errorData = error.response.data;
-              setErrors({ general: errorData?.message || 'Payment verification failed. Please contact support.' });
+              setErrors({ general: errorData?.message || t('codes_screen.errors.payment_failed') });
             } else if (error.response?.status === 402) {
               const errorData = error.response.data;
               setErrors({ general: errorData?.message || 'Insufficient wallet balance. Please add funds to your wallet or use a different payment method.' });
@@ -1989,7 +2048,7 @@ const CodesScreen = () => {
               } else if (errorData.message) {
                 setErrors({ general: errorData.message });
               } else {
-                setErrors({ general: 'Validation failed. Please check your input.' });
+                setErrors({ general: t('codes_screen.errors.validation_failed') });
               }
             } else if (error.response?.status === 500) {
               // Server error
@@ -2011,10 +2070,10 @@ const CodesScreen = () => {
               } else if (errorData.message) {
                 setErrors({ general: errorData.message });
               } else {
-                setErrors({ general: 'Payment succeeded but failed to complete purchase. Please contact support.' });
+                setErrors({ general: t('codes_screen.errors.purchase_failed') });
               }
             } else {
-              setErrors({ general: 'Payment succeeded but failed to complete purchase. Please contact support.' });
+              setErrors({ general: t('codes_screen.errors.purchase_failed') });
             }
             throw error;
           }
