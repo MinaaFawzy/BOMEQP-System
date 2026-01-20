@@ -582,6 +582,7 @@ const InstructorsScreen = () => {
                   last_name: selectedRequest.last_name || (selectedRequest.instructor?.last_name),
                   email: selectedRequest.email || (selectedRequest.instructor?.email),
                   phone: selectedRequest.phone || (selectedRequest.instructor?.phone),
+                  date_of_birth: selectedRequest.date_of_birth || (selectedRequest.instructor?.date_of_birth),
                   nationality: selectedRequest.nationality || (selectedRequest.instructor?.nationality),
                   specialization: selectedRequest.specialization || (selectedRequest.instructor?.specialization),
                 }}
@@ -590,6 +591,7 @@ const InstructorsScreen = () => {
                   { key: 'last_name', label: 'Last Name', icon: UserCircle },
                   { key: 'email', label: 'Email', type: 'email', icon: Mail },
                   { key: 'phone', label: 'Phone', icon: Phone },
+                  { key: 'date_of_birth', label: 'Date of Birth', type: 'date', icon: Calendar, showEmpty: false },
                   { key: 'nationality', label: 'Nationality', icon: Globe },
                   { key: 'specialization', label: 'Specialization', icon: Award },
                   { key: '_normalizedTrainingCenter', label: 'Training Center', icon: Building2 },

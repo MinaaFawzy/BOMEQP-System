@@ -206,14 +206,77 @@ const AllACCsScreen = () => {
   const handleViewDetails = async (acc) => {
     try {
       const data = await adminAPI.getACCDetails(acc.id);
+      const accObj = data.acc;
+
+      // Flatten/Prepare data for DetailForm
       const accData = {
-        ...data.acc,
-        categories: data.acc.categories || []
+        ...accObj,
+        categories: accObj.categories || [],
+
+        // Company Information
+        name: accObj.legal_name || accObj.name,
+        email: accObj.email,
+        phone: accObj.phone,
+        fax: accObj.fax,
+        website: accObj.website,
+
+        // Physical Address - Merged with fallbacks
+        physical_address_full: [
+          accObj.physical_address?.street || accObj.physical_street || accObj.address,
+          accObj.physical_address?.city || accObj.physical_city,
+          accObj.physical_address?.country || accObj.physical_country || accObj.country,
+          accObj.physical_address?.postal_code || accObj.physical_postal_code
+        ].filter(Boolean).join(', '),
+
+        // Mailing Address - Merged with fallbacks
+        mailing_address_full: (accObj.mailing_same_as_physical || accObj.mailing_address?.same_as_physical)
+          ? 'Same as Physical Address'
+          : [
+            accObj.mailing_address?.street || accObj.mailing_street,
+            accObj.mailing_address?.city || accObj.mailing_city,
+            accObj.mailing_address?.country || accObj.mailing_country,
+            accObj.mailing_address?.postal_code || accObj.mailing_postal_code
+          ].filter(Boolean).join(', '),
+
+        // Primary Contact - Merged with fallbacks
+        primary_contact_full_name: [
+          accObj.primary_contact?.title || accObj.primary_contact_title,
+          accObj.primary_contact?.first_name || accObj.primary_contact_first_name,
+          accObj.primary_contact?.last_name || accObj.primary_contact_last_name
+        ].filter(Boolean).join(' '),
+        primary_contact_email: accObj.primary_contact?.email || accObj.primary_contact_email,
+        primary_contact_mobile: accObj.primary_contact?.mobile || accObj.primary_contact_mobile,
+        primary_contact_country: accObj.primary_contact?.country || accObj.primary_contact_country,
+        primary_contact_passport_url: accObj.primary_contact?.passport_url || accObj.primary_contact_passport_url,
+
+        // Secondary Contact - Merged with fallbacks
+        secondary_contact_full_name: [
+          accObj.secondary_contact?.title || accObj.secondary_contact_title,
+          accObj.secondary_contact?.first_name || accObj.secondary_contact_first_name,
+          accObj.secondary_contact?.last_name || accObj.secondary_contact_last_name
+        ].filter(Boolean).join(' '),
+        secondary_contact_email: accObj.secondary_contact?.email || accObj.secondary_contact_email,
+        secondary_contact_mobile: accObj.secondary_contact?.mobile || accObj.secondary_contact_mobile,
+        secondary_contact_country: accObj.secondary_contact?.country || accObj.secondary_contact_country,
+        secondary_contact_passport_url: accObj.secondary_contact?.passport_url || accObj.secondary_contact_passport_url,
+
+        // Additional Info
+        company_gov_registry_number: accObj.company_gov_registry_number,
+        company_registration_certificate_url: accObj.company_registration_certificate_url,
+        how_did_you_hear_about_us: accObj.how_did_you_hear_about_us,
+
+        // Agreements
+        agreements_summary: [
+          accObj.agreed_to_receive_communications ? 'Receives Comms' : null,
+          accObj.agreed_to_terms_and_conditions ? 'Terms Accepted' : null
+        ].filter(Boolean).join(', ')
       };
+
       setSelectedACC(accData);
       setDetailModalOpen(true);
     } catch (error) {
       console.error('Failed to load ACC details:', error);
+      // Fallback if API fails, though details might be missing
       const accData = {
         ...acc,
         categories: acc.categories || []
@@ -637,15 +700,86 @@ const AllACCsScreen = () => {
               <DetailForm
                 data={selectedACC}
                 fields={[
-                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'name', label: 'Company Name', icon: Building2 },
                   { key: 'legal_name', label: 'Legal Name', showEmpty: false },
                   { key: 'email', label: 'Email', type: 'email', icon: Mail },
                   { key: 'phone', label: 'Phone', icon: Phone },
-                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'fax', label: 'Fax', showEmpty: false },
                   { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
                   { key: 'status', label: 'Status', type: 'status' },
+
+                  // Physical Address
+                  { key: 'physical_address_full', label: 'Physical Address', icon: MapPin, fullWidth: true, showEmpty: false },
+
+                  // Mailing Address
+                  { key: 'mailing_address_full', label: 'Mailing Address', icon: MapPin, fullWidth: true, showEmpty: false },
+
+                  // Primary Contact
+                  { key: 'primary_contact_full_name', label: 'Primary Contact Name', showEmpty: false },
+                  { key: 'primary_contact_email', label: 'Primary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'primary_contact_mobile', label: 'Primary Contact Mobile', showEmpty: false },
+                  { key: 'primary_contact_country', label: 'Primary Contact Country', showEmpty: false },
+                  {
+                    key: 'primary_contact_passport_url',
+                    label: 'Primary Contact Passport',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Passport
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  // Secondary Contact
+                  { key: 'secondary_contact_full_name', label: 'Secondary Contact Name', showEmpty: false },
+                  { key: 'secondary_contact_email', label: 'Secondary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'secondary_contact_mobile', label: 'Secondary Contact Mobile', showEmpty: false },
+                  { key: 'secondary_contact_country', label: 'Secondary Contact Country', showEmpty: false },
+                  {
+                    key: 'secondary_contact_passport_url',
+                    label: 'Secondary Contact Passport',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Passport
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  // Additional Info
+                  { key: 'company_gov_registry_number', label: 'Gov Registry Number', showEmpty: false },
+                  { key: 'how_did_you_hear_about_us', label: 'How did you hear about us?', showEmpty: false },
+                  {
+                    key: 'company_registration_certificate_url',
+                    label: 'Registration Certificate',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Certificate
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  // Misc
                   { key: 'commission_percentage', label: 'Commission Percentage', transform: (value) => value ? `${value}%` : 'Not Set', showEmpty: false },
                   {
                     key: 'stripe_account_configured', label: 'Stripe Account', transform: (value) => value ? 'Configured' : 'Not Configured', render: (value) => (
@@ -654,6 +788,7 @@ const AllACCsScreen = () => {
                       </span>
                     ), showEmpty: false
                   },
+                  { key: 'agreements_summary', label: 'Agreements', showEmpty: false, fullWidth: true },
                 ]}
               />
             </>

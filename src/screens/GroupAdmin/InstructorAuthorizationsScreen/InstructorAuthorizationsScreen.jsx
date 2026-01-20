@@ -429,6 +429,20 @@ const InstructorAuthorizationsScreen = () => {
                   }
                 },
                 {
+                  key: 'instructor',
+                  label: 'Instructor DOB',
+                  icon: Calendar,
+                  showEmpty: false,
+                  render: (value) => {
+                    if (!value || !value.date_of_birth) return null;
+                    return new Date(value.date_of_birth).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  }
+                },
+                {
                   key: 'acc',
                   label: 'ACC',
                   icon: Building2,

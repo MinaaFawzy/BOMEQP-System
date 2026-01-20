@@ -12,31 +12,66 @@ const ProfileScreen = () => {
   const { user } = useAuth();
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [formData, setFormData] = useState({
-    name: '',
+    // 1. Accreditation Body Information
     legal_name: '',
     email: '',
     phone: '',
-    country: '',
-    address: '',
+    fax: '',
     website: '',
-    registration_number: '',
-    stripe_account_id: '',
-    // Mailing Address
-    mailing_street: '',
-    mailing_city: '',
-    mailing_country: '',
-    mailing_postal_code: '',
-    // Physical Address
+
+    // 2. Physical Address
     physical_street: '',
     physical_city: '',
     physical_country: '',
     physical_postal_code: '',
+
+    // 3. Mailing Address
+    mailing_same_as_physical: false,
+    mailing_street: '',
+    mailing_city: '',
+    mailing_country: '',
+    mailing_postal_code: '',
+
+    // 4. Primary Contact
+    primary_contact_title: '',
+    primary_contact_first_name: '',
+    primary_contact_last_name: '',
+    primary_contact_email: '',
+    primary_contact_country: '',
+    primary_contact_mobile: '',
+
+    // 5. Secondary Contact
+    secondary_contact_title: '',
+    secondary_contact_first_name: '',
+    secondary_contact_last_name: '',
+    secondary_contact_email: '',
+    secondary_contact_country: '',
+    secondary_contact_mobile: '',
+
+    // 6. Additional Information
+    company_gov_registry_number: '',
+    how_did_you_hear_about_us: '',
+
+    // 7. Agreements
+    agreed_to_receive_communications: false,
+    agreed_to_terms_and_conditions: false,
+
+    // Legacy fields kept for compatibility or other logic
+    name: '',
+    stripe_account_id: '',
   });
+
+  // File states
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+
+  const [primaryPassportFile, setPrimaryPassportFile] = useState(null);
+  const [secondaryPassportFile, setSecondaryPassportFile] = useState(null);
+  const [companyCertFile, setCompanyCertFile] = useState(null);
+
   const [documents, setDocuments] = useState([]);
-  const [newDocuments, setNewDocuments] = useState([]); // Array of { file: File, document_type: string }
-  const [updatingDocuments, setUpdatingDocuments] = useState([]); // Array of { id: number, file: File, document_type: string }
+  const [newDocuments, setNewDocuments] = useState([]);
+  const [updatingDocuments, setUpdatingDocuments] = useState([]);
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +89,7 @@ const ProfileScreen = () => {
   const [stripeAccountInfo, setStripeAccountInfo] = useState(null);
   const [stripeAccountError, setStripeAccountError] = useState('');
   const [newDocumentType, setNewDocumentType] = useState('license');
-  
+
   // Countries and Cities
   const [countries, setCountries] = useState([]);
   const [mailingCities, setMailingCities] = useState([]);
@@ -74,21 +109,16 @@ const ProfileScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countries.length]);
 
-  // Load cities when mailing country changes
+  // Load cities effects
   useEffect(() => {
-    if (formData.mailing_country) {
+    if (formData.mailing_country && !formData.mailing_same_as_physical) {
       loadMailingCities(formData.mailing_country);
-    } else {
-      setMailingCities([]);
     }
-  }, [formData.mailing_country]);
+  }, [formData.mailing_country, formData.mailing_same_as_physical]);
 
-  // Load cities when physical country changes
   useEffect(() => {
     if (formData.physical_country) {
       loadPhysicalCities(formData.physical_country);
-    } else {
-      setPhysicalCities([]);
     }
   }, [formData.physical_country]);
 
@@ -99,66 +129,79 @@ const ProfileScreen = () => {
       // Handle different response structures
       const profile = response?.profile || response?.acc || response?.data || response || {};
       setProfileData(profile);
-      
+
       // Set documents
       setDocuments(profile.documents || []);
-      
-      // Find country codes if countries are loaded
-      let countryCode = profile.country || '';
-      let mailingCountryCode = profile.mailing_address?.country || '';
-      let physicalCountryCode = profile.physical_address?.country || '';
-      
-      if (countries.length > 0) {
-        if (countryCode) {
-          const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
-          if (countryObj) {
-            countryCode = countryObj.code;
-          }
-        }
-        if (mailingCountryCode) {
-          const countryObj = countries.find(c => c.name === mailingCountryCode || c.code === mailingCountryCode);
-          if (countryObj) {
-            mailingCountryCode = countryObj.code;
-          }
-        }
-        if (physicalCountryCode) {
-          const countryObj = countries.find(c => c.name === physicalCountryCode || c.code === physicalCountryCode);
-          if (countryObj) {
-            physicalCountryCode = countryObj.code;
-          }
-        }
-      }
-      
+
+      // Helper to find country code
+      const findCountryCode = (nameOrCode) => {
+        if (!nameOrCode) return '';
+        if (countries.length === 0) return nameOrCode;
+        const found = countries.find(c => c.name === nameOrCode || c.code === nameOrCode);
+        return found ? found.code : nameOrCode;
+      };
+
+      const physicalCountryCode = findCountryCode(profile.physical_address?.country || profile.country);
+      const mailingCountryCode = findCountryCode(profile.mailing_address?.country);
+
       setFormData({
-        name: profile.name || user?.name || '',
+        // 1. Accreditation Body Information
         legal_name: profile.legal_name || '',
         email: profile.email || user?.email || '',
         phone: profile.phone || user?.phone || '',
-        country: countryCode,
-        address: profile.address || user?.address || '',
+        fax: profile.fax || '',
         website: profile.website || '',
-        registration_number: profile.registration_number || '',
-        stripe_account_id: profile.stripe_account_id || '',
-        // Mailing Address
+
+        // 2. Physical Address
+        physical_street: profile.physical_address?.street || profile.address || '',
+        physical_city: profile.physical_address?.city || '',
+        physical_country: physicalCountryCode,
+        physical_postal_code: profile.physical_address?.postal_code || '',
+
+        // 3. Mailing Address
+        mailing_same_as_physical: profile.mailing_address?.same_as_physical ?? false,
         mailing_street: profile.mailing_address?.street || '',
         mailing_city: profile.mailing_address?.city || '',
         mailing_country: mailingCountryCode,
         mailing_postal_code: profile.mailing_address?.postal_code || '',
-        // Physical Address
-        physical_street: profile.physical_address?.street || '',
-        physical_city: profile.physical_address?.city || '',
-        physical_country: physicalCountryCode,
-        physical_postal_code: profile.physical_address?.postal_code || '',
+
+        // 4. Primary Contact
+        primary_contact_title: profile.primary_contact?.title || '',
+        primary_contact_first_name: profile.primary_contact?.first_name || '',
+        primary_contact_last_name: profile.primary_contact?.last_name || '',
+        primary_contact_email: profile.primary_contact?.email || '',
+        primary_contact_country: findCountryCode(profile.primary_contact?.country),
+        primary_contact_mobile: profile.primary_contact?.mobile || '',
+
+        // 5. Secondary Contact
+        secondary_contact_title: profile.secondary_contact?.title || '',
+        secondary_contact_first_name: profile.secondary_contact?.first_name || '',
+        secondary_contact_last_name: profile.secondary_contact?.last_name || '',
+        secondary_contact_email: profile.secondary_contact?.email || '',
+        secondary_contact_country: findCountryCode(profile.secondary_contact?.country),
+        secondary_contact_mobile: profile.secondary_contact?.mobile || '',
+
+        // 6. Additional Information
+        company_gov_registry_number: profile.company_gov_registry_number || '',
+        how_did_you_hear_about_us: profile.how_did_you_hear_about_us || '',
+
+        // 7. Agreements
+        agreed_to_receive_communications: profile.agreed_to_receive_communications ? true : false,
+        agreed_to_terms_and_conditions: profile.agreed_to_terms_and_conditions ? true : false,
+
+        // Legacy
+        name: profile.name || user?.name || '',
+        stripe_account_id: profile.stripe_account_id || '',
       });
-      
+
       // Load cities if countries are set
-      if (mailingCountryCode) {
+      if (mailingCountryCode && !profile.mailing_address?.same_as_physical) {
         await loadMailingCities(mailingCountryCode);
       }
       if (physicalCountryCode) {
         await loadPhysicalCities(physicalCountryCode);
       }
-      
+
       // Set logo preview if logo_url exists
       if (profile.logo_url) {
         setLogoPreview(profile.logo_url);
@@ -167,28 +210,9 @@ const ProfileScreen = () => {
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
-      // Fallback to user data if API fails
+      // Fallback to minimal data
       if (user) {
-        setFormData({
-          name: user.name || '',
-          legal_name: '',
-          email: user.email || '',
-          phone: user.phone || '',
-          country: '',
-          address: user.address || '',
-          website: '',
-          registration_number: '',
-          stripe_account_id: '',
-          mailing_street: '',
-          mailing_city: '',
-          mailing_country: '',
-          mailing_postal_code: '',
-          physical_street: '',
-          physical_city: '',
-          physical_country: '',
-          physical_postal_code: '',
-        });
-        setLogoPreview(null);
+        setFormData(prev => ({ ...prev, email: user.email, name: user.name }));
       }
       setDocuments([]);
     } finally {
@@ -223,17 +247,17 @@ const ProfileScreen = () => {
       setMailingCities([]);
       return;
     }
-    
+
     setLoadingMailingCities(true);
     try {
       const response = await publicAPI.getCities(countryCode);
       let citiesData = response.cities || response.data?.cities || response.data || response || [];
-      
+
       // Convert object to array if needed
       if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
         citiesData = Object.values(citiesData);
       }
-      
+
       setMailingCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
       console.error('Failed to load mailing cities:', error);
@@ -248,17 +272,17 @@ const ProfileScreen = () => {
       setPhysicalCities([]);
       return;
     }
-    
+
     setLoadingPhysicalCities(true);
     try {
       const response = await publicAPI.getCities(countryCode);
       let citiesData = response.cities || response.data?.cities || response.data || response || [];
-      
+
       // Convert object to array if needed
       if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
         citiesData = Object.values(citiesData);
       }
-      
+
       setPhysicalCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
       console.error('Failed to load physical cities:', error);
@@ -281,22 +305,22 @@ const ProfileScreen = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    
+    const { name, value, type, checked } = e.target;
+
     // Reset city when country changes
     const updatedFormData = {
       ...formData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     };
-    
+
     if (name === 'mailing_country') {
       updatedFormData.mailing_city = '';
     } else if (name === 'physical_country') {
       updatedFormData.physical_city = '';
     }
-    
+
     setFormData(updatedFormData);
-    
+
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -310,26 +334,26 @@ const ProfileScreen = () => {
   // Compare files by reading and hashing them
   const compareFiles = async (file1, file2) => {
     if (!file1 || !file2) return false;
-    
+
     // Quick comparison: size and name
     if (file1.size !== file2.size || file1.name !== file2.name) {
       return false;
     }
-    
+
     // Read both files and compare content hash
     try {
       const [hash1, hash2] = await Promise.all([
         calculateFileHash(file1),
         calculateFileHash(file2)
       ]);
-      
+
       return hash1 === hash2;
     } catch (error) {
       console.error('Error comparing files:', error);
       // If hash comparison fails, compare by size, name, and lastModified
-      return file1.size === file2.size && 
-             file1.name === file2.name && 
-             file1.lastModified === file2.lastModified;
+      return file1.size === file2.size &&
+        file1.name === file2.name &&
+        file1.lastModified === file2.lastModified;
     }
   };
 
@@ -357,13 +381,13 @@ const ProfileScreen = () => {
   // Check if logo file is different from current logo
   const isLogoChanged = async (newFile) => {
     if (!newFile || !profileData?.logo_url) return true;
-    
+
     try {
       // Fetch current logo to compare
       const response = await fetch(profileData.logo_url);
       const blob = await response.blob();
       const currentFile = new File([blob], profileData.logo_url.split('/').pop(), { type: blob.type });
-      
+
       return !(await compareFiles(newFile, currentFile));
     } catch (error) {
       console.error('Error comparing logo:', error);
@@ -375,13 +399,13 @@ const ProfileScreen = () => {
   // Check if document file is different from existing document
   const isDocumentChanged = async (newFile, documentUrl) => {
     if (!newFile || !documentUrl) return true;
-    
+
     try {
       // Fetch current document to compare
       const response = await fetch(documentUrl);
       const blob = await response.blob();
       const currentFile = new File([blob], documentUrl.split('/').pop(), { type: blob.type });
-      
+
       return !(await compareFiles(newFile, currentFile));
     } catch (error) {
       console.error('Error comparing document:', error);
@@ -401,14 +425,14 @@ const ProfileScreen = () => {
         e.target.value = ''; // Reset input
         return;
       }
-      
+
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrors({ logo: 'Logo size must not exceed 5MB' });
         e.target.value = ''; // Reset input
         return;
       }
-      
+
       // Compare with current logo
       const isChanged = await isLogoChanged(file);
       if (!isChanged) {
@@ -416,16 +440,16 @@ const ProfileScreen = () => {
         e.target.value = ''; // Reset input
         return;
       }
-      
+
       setLogoFile(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result);
       };
       reader.readAsDataURL(file);
-      
+
       // Clear error
       if (errors.logo) {
         setErrors(prev => {
@@ -443,293 +467,185 @@ const ProfileScreen = () => {
     setErrors({});
     setSuccessMessage('');
 
-    // Validation
+    // --- Validation ---
     const validationErrors = {};
-    const nameError = validateRequired(formData.name, 'Name');
-    if (nameError) validationErrors.name = nameError;
-    const emailError = validateEmail(formData.email);
-    if (emailError) validationErrors.email = emailError;
-    if (formData.phone) {
-      const phoneError = validatePhone(formData.phone, 10);
-      if (phoneError) validationErrors.phone = phoneError;
+
+    // 1. Acc Info
+    if (!formData.legal_name) validationErrors.legal_name = 'Legal name is required';
+    if (!formData.email) validationErrors.email = 'Email is required';
+    else if (validateEmail(formData.email)) validationErrors.email = 'Invalid email';
+    if (!formData.phone) validationErrors.phone = 'Phone is required';
+
+    // 2. Physical Address
+    if (!formData.physical_street) validationErrors.physical_street = 'Street address is required';
+    if (!formData.physical_city) validationErrors.physical_city = 'City is required';
+    if (!formData.physical_country) validationErrors.physical_country = 'Country is required';
+    if (!formData.physical_postal_code) validationErrors.physical_postal_code = 'Postal code is required';
+
+    // 3. Mailing Address (if not same)
+    if (!formData.mailing_same_as_physical) {
+      if (!formData.mailing_street) validationErrors.mailing_street = 'Street address is required';
+      if (!formData.mailing_city) validationErrors.mailing_city = 'City is required';
+      if (!formData.mailing_country) validationErrors.mailing_country = 'Country is required';
+      if (!formData.mailing_postal_code) validationErrors.mailing_postal_code = 'Postal code is required';
     }
-    if (formData.registration_number) {
-      const regError = validateMinLength(formData.registration_number, 5, 'Registration number');
-      if (regError) validationErrors.registration_number = regError;
+
+    // 4. Primary Contact
+    if (!formData.primary_contact_title) validationErrors.primary_contact_title = 'Title is required';
+    if (!formData.primary_contact_first_name) validationErrors.primary_contact_first_name = 'First name is required';
+    if (!formData.primary_contact_last_name) validationErrors.primary_contact_last_name = 'Last name is required';
+    if (!formData.primary_contact_email) validationErrors.primary_contact_email = 'Email is required';
+    else if (validateEmail(formData.primary_contact_email)) validationErrors.primary_contact_email = 'Invalid email';
+    if (!formData.primary_contact_country) validationErrors.primary_contact_country = 'Country is required';
+    if (!formData.primary_contact_mobile) validationErrors.primary_contact_mobile = 'Mobile is required';
+    // File validation: Required if not already uploaded (how to check? we can check if URL exists in profileData)
+    if (!primaryPassportFile && !profileData?.primary_contact?.passport_url) {
+      // Ideally this should be required, but for updates maybe optional if already exists? 
+      // Requirement says "Required: Yes". Assuming if it exists on backend it's fine.
+      // Let's check profileData structure for existing file.
+      // The requirement structure shows passport_url in response.
+      if (!profileData?.primary_contact?.passport_url) {
+        validationErrors.primary_contact_passport = 'Passport copy is required';
+      }
     }
+
+    // 5. Secondary Contact
+    if (!formData.secondary_contact_title) validationErrors.secondary_contact_title = 'Title is required';
+    if (!formData.secondary_contact_first_name) validationErrors.secondary_contact_first_name = 'First name is required';
+    if (!formData.secondary_contact_last_name) validationErrors.secondary_contact_last_name = 'Last name is required';
+    if (!formData.secondary_contact_email) validationErrors.secondary_contact_email = 'Email is required';
+    else if (validateEmail(formData.secondary_contact_email)) validationErrors.secondary_contact_email = 'Invalid email';
+    if (!formData.secondary_contact_country) validationErrors.secondary_contact_country = 'Country is required';
+    if (!formData.secondary_contact_mobile) validationErrors.secondary_contact_mobile = 'Mobile is required';
+    if (!secondaryPassportFile && !profileData?.secondary_contact?.passport_url) {
+      if (!profileData?.secondary_contact?.passport_url) {
+        validationErrors.secondary_contact_passport = 'Passport copy is required';
+      }
+    }
+
+    // 6. Additional Info
+    // company_gov_registry_number is optional
+    // company_registration_certificate is optional
+
+    // 7. Agreements
+    if (!formData.agreed_to_receive_communications) validationErrors.agreed_to_receive_communications = 'You must agree to receive communications';
+    if (!formData.agreed_to_terms_and_conditions) validationErrors.agreed_to_terms_and_conditions = 'You must agree to terms and conditions';
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setLoading(false);
+      // Scroll to top or first error could be nice
+      window.scrollTo(0, 0);
       return;
     }
 
     try {
-      // Check if we have documents or logo to upload/update
-      const hasDocuments = newDocuments.length > 0 || updatingDocuments.length > 0;
-      const hasLogo = logoFile !== null;
-      
-      // Check if there are any text field changes
-      const hasTextChanges = Object.keys(formData).some(key => {
-        const currentValue = formData[key];
-        const originalValue = profileData?.[key] || 
-                            (key.startsWith('mailing_') ? profileData?.mailing_address?.[key.replace('mailing_', '')] : null) ||
-                            (key.startsWith('physical_') ? profileData?.physical_address?.[key.replace('physical_', '')] : null) ||
-                            '';
-        return currentValue !== originalValue;
-      });
-      
-      // If no changes at all, show message and return
-      if (!hasDocuments && !hasLogo && !hasTextChanges) {
-        setSuccessMessage('No changes to save.');
-        setTimeout(() => setSuccessMessage(''), 3000);
-        setLoading(false);
-        return;
-      }
-      
-      // PUT /acc/profile - Update ACC profile
-      // According to API documentation, all fields are optional and partial updates are supported
-      if (hasDocuments || hasLogo) {
-        // Use FormData for file uploads (multipart/form-data)
-        const formDataToSend = new FormData();
-        
-        // Add all text fields (when sending files, send all fields in FormData)
-        Object.keys(formData).forEach(key => {
-          const value = formData[key];
-          // Only append if value is not empty (null, undefined, or empty string are skipped)
-          // But we should send all non-empty values for consistency
-          if (value !== null && value !== undefined && value !== '') {
+      // Use FormData for file uploads (multipart/form-data)
+      const formDataToSend = new FormData();
+
+      // Append all text fields
+      Object.keys(formData).forEach(key => {
+        const value = formData[key];
+        if (value !== null && value !== undefined) {
+          if (typeof value === 'boolean') {
+            formDataToSend.append(key, value ? '1' : '0');
+          } else {
             formDataToSend.append(key, value);
           }
-        });
-        
-        // Add logo file if uploaded
-        if (logoFile) {
-          formDataToSend.append('logo', logoFile);
         }
-        
-        // Add new documents (documents[][document_type] and documents[][file])
-        newDocuments.forEach((doc, index) => {
-          formDataToSend.append(`documents[${index}][document_type]`, doc.document_type);
-          formDataToSend.append(`documents[${index}][file]`, doc.file);
-        });
-        
-        // Add updating documents (documents[][id], documents[][document_type], and optionally documents[][file])
-        updatingDocuments.forEach((doc, index) => {
-          const docIndex = newDocuments.length + index;
-          formDataToSend.append(`documents[${docIndex}][id]`, doc.id.toString());
-          formDataToSend.append(`documents[${docIndex}][document_type]`, doc.document_type);
-          // Only append file if it exists (type-only updates don't need file)
-          if (doc.file) {
-            formDataToSend.append(`documents[${docIndex}][file]`, doc.file);
-          }
-        });
-        
-        // Update API call - FormData will be sent as multipart/form-data
-        const response = await accAPI.updateProfile(formDataToSend);
-        
-        // According to API documentation, response structure is: { message: "...", profile: {...} }
-        const updatedProfile = response?.profile || response || {};
-        
-        setProfileData(updatedProfile);
-        setDocuments(updatedProfile.documents || []);
-        
-        // Update logo preview if logo_url is returned
-        if (updatedProfile.logo_url) {
-          setLogoPreview(updatedProfile.logo_url);
-        } else {
-          setLogoPreview(null);
+      });
+
+      // Append Files
+      if (logoFile) formDataToSend.append('logo', logoFile);
+      if (primaryPassportFile) formDataToSend.append('primary_contact_passport', primaryPassportFile);
+      if (secondaryPassportFile) formDataToSend.append('secondary_contact_passport', secondaryPassportFile);
+      if (companyCertFile) formDataToSend.append('company_registration_certificate', companyCertFile);
+
+      // Legacy Documents (if still used alongside new structure)
+      newDocuments.forEach((doc, index) => {
+        formDataToSend.append(`documents[${index}][document_type]`, doc.document_type);
+        formDataToSend.append(`documents[${index}][file]`, doc.file);
+      });
+
+      updatingDocuments.forEach((doc, index) => {
+        const docIndex = newDocuments.length + index;
+        formDataToSend.append(`documents[${docIndex}][id]`, doc.id.toString());
+        formDataToSend.append(`documents[${docIndex}][document_type]`, doc.document_type);
+        if (doc.file) {
+          formDataToSend.append(`documents[${docIndex}][file]`, doc.file);
         }
-        
-        // Clear document arrays and logo file
-        setNewDocuments([]);
-        setUpdatingDocuments([]);
-        setLogoFile(null);
-      } else {
-        // Regular JSON update (application/json) - only send changed fields
-        const submitData = {};
-        Object.keys(formData).forEach(key => {
-          const value = formData[key];
-          const originalValue = profileData?.[key] || 
-                              (key.startsWith('mailing_') ? profileData?.mailing_address?.[key.replace('mailing_', '')] : null) ||
-                              (key.startsWith('physical_') ? profileData?.physical_address?.[key.replace('physical_', '')] : null) ||
-                              '';
-          
-          // Only include changed fields (partial update)
-          if (value !== originalValue && value !== null && value !== undefined && value !== '') {
-            submitData[key] = value;
-          }
-        });
-        
-        // Only send if there are changes
-        if (Object.keys(submitData).length > 0) {
-          const response = await accAPI.updateProfile(submitData);
-          
-          // According to API documentation, response structure is: { message: "...", profile: {...} }
-          const updatedProfile = response?.profile || response || {};
-          
-          setProfileData(updatedProfile);
-          setDocuments(updatedProfile.documents || []);
-          
-          // Update logo preview if logo_url is returned
-          if (updatedProfile.logo_url) {
-            setLogoPreview(updatedProfile.logo_url);
-          } else {
-            setLogoPreview(null);
-          }
-        }
-      }
-      
-      // Reload profile to get latest data
+      });
+
+      // Update API call
+      const response = await accAPI.updateProfile(formDataToSend);
+
+      const updatedProfile = response?.profile || response || {};
+      setProfileData(updatedProfile);
+      setDocuments(updatedProfile.documents || []);
+
+      // Update logo preview if logo_url is returned
+      if (updatedProfile.logo_url) setLogoPreview(updatedProfile.logo_url);
+      else if (!updatedProfile.logo_url && !logoFile) setLogoPreview(null);
+
+      // Clear file inputs
+      setLogoFile(null);
+      setPrimaryPassportFile(null);
+      setSecondaryPassportFile(null);
+      setCompanyCertFile(null);
+      setNewDocuments([]);
+      setUpdatingDocuments([]);
+
+      // Reload profile to ensure everything is synced
       await loadProfile();
-      
+
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
+
     } catch (error) {
       console.error('Failed to update profile:', error);
-      
-      // Handle different error types according to API documentation
-      if (error.response?.status === 401) {
-        setErrors({ general: 'Unauthenticated. Please log in again.' });
-      } else if (error.response?.status === 404) {
-        setErrors({ general: 'ACC profile not found.' });
-      } else if (error.response?.status === 422) {
-        // Validation errors - Handle nested document errors
-        const errorData = error.response.data;
-        if (errorData.errors) {
-          // Flatten nested errors (e.g., documents.0.document_type, documents.0.file)
-          const flattenedErrors = {};
-          Object.keys(errorData.errors).forEach(key => {
-            // Handle document-specific errors
-            if (key.startsWith('documents.')) {
-              // Extract the field name (e.g., "documents.0.file" -> "documents")
-              const fieldMatch = key.match(/^documents\.\d+\.(.+)$/);
-              if (fieldMatch) {
-                // Use a general documents error or the specific field
-                const fieldName = fieldMatch[1];
-                const errorMsg = Array.isArray(errorData.errors[key]) 
-                  ? errorData.errors[key][0] 
-                  : errorData.errors[key];
-                
-                // Add to documents error or create it
-                if (!flattenedErrors.documents) {
-                  flattenedErrors.documents = errorMsg;
-                } else {
-                  flattenedErrors.documents += `; ${errorMsg}`;
-                }
-              } else {
-                flattenedErrors[key] = Array.isArray(errorData.errors[key]) 
-                  ? errorData.errors[key][0] 
-                  : errorData.errors[key];
-              }
-            } else {
-              flattenedErrors[key] = Array.isArray(errorData.errors[key]) 
-                ? errorData.errors[key][0] 
-                : errorData.errors[key];
-            }
-          });
-          setErrors(flattenedErrors);
-        } else if (errorData.message) {
-          setErrors({ general: errorData.message });
-        } else {
-          setErrors({ general: 'Validation failed. Please check your input.' });
-        }
-      } else if (error.response?.status === 500) {
-        setErrors({ general: error.response.data?.message || 'Profile update failed. Please try again.' });
-      } else if (error.response?.data?.errors) {
+      if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
-      } else if (error.response?.data?.message) {
-        setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: error.message || 'Failed to update profile. Please try again.' });
+        setErrors({ general: error.response?.data?.message || error.message || 'Failed to update profile' });
       }
+      window.scrollTo(0, 0);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     setIsEditing(false);
     setErrors({});
     setNewDocuments([]);
     setUpdatingDocuments([]);
     setLogoFile(null);
-    // Reset form data to original profile
-    if (profileData) {
-      // Find country codes if countries are loaded
-      let countryCode = profileData.country || '';
-      let mailingCountryCode = profileData.mailing_address?.country || '';
-      let physicalCountryCode = profileData.physical_address?.country || '';
-      
-      if (countries.length > 0) {
-        if (countryCode) {
-          const countryObj = countries.find(c => c.name === countryCode || c.code === countryCode);
-          if (countryObj) {
-            countryCode = countryObj.code;
-          }
-        }
-        if (mailingCountryCode) {
-          const countryObj = countries.find(c => c.name === mailingCountryCode || c.code === mailingCountryCode);
-          if (countryObj) {
-            mailingCountryCode = countryObj.code;
-          }
-        }
-        if (physicalCountryCode) {
-          const countryObj = countries.find(c => c.name === physicalCountryCode || c.code === physicalCountryCode);
-          if (countryObj) {
-            physicalCountryCode = countryObj.code;
-          }
-        }
-      }
-      
-      setFormData({
-        name: profileData.name || user?.name || '',
-        legal_name: profileData.legal_name || '',
-        email: profileData.email || user?.email || '',
-        phone: profileData.phone || user?.phone || '',
-        country: countryCode,
-        address: profileData.address || user?.address || '',
-        website: profileData.website || '',
-        registration_number: profileData.registration_number || '',
-        stripe_account_id: profileData.stripe_account_id || '',
-        mailing_street: profileData.mailing_address?.street || '',
-        mailing_city: profileData.mailing_address?.city || '',
-        mailing_country: mailingCountryCode,
-        mailing_postal_code: profileData.mailing_address?.postal_code || '',
-        physical_street: profileData.physical_address?.street || '',
-        physical_city: profileData.physical_address?.city || '',
-        physical_country: physicalCountryCode,
-        physical_postal_code: profileData.physical_address?.postal_code || '',
-      });
-      setDocuments(profileData.documents || []);
-      if (profileData.logo_url) {
-        setLogoPreview(profileData.logo_url);
-      } else {
-        setLogoPreview(null);
-      }
-    }
+    setPrimaryPassportFile(null);
+    setSecondaryPassportFile(null);
+    setCompanyCertFile(null);
+
+    // Reset form data to original profile by reloading from API
+    await loadProfile();
   };
 
   // Document management handlers
   const handleAddNewDocument = (file, documentType) => {
     if (!file || !documentType) return;
-    
+
     // Validate file type
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       setErrors({ documents: 'File must be PDF, JPG, JPEG, or PNG' });
       return;
     }
-    
+
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
       setErrors({ documents: 'File size must not exceed 10MB' });
       return;
     }
-    
+
     setNewDocuments([...newDocuments, { file, document_type: documentType }]);
     if (errors.documents) {
       setErrors(prev => {
@@ -746,7 +662,7 @@ const ProfileScreen = () => {
 
   const handleUpdateDocument = async (documentId, file, documentType) => {
     if (!documentType) return;
-    
+
     if (file) {
       // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
@@ -754,13 +670,13 @@ const ProfileScreen = () => {
         setErrors({ documents: 'File must be PDF, JPG, JPEG, or PNG' });
         return;
       }
-      
+
       // Validate file size (10MB)
       if (file.size > 10 * 1024 * 1024) {
         setErrors({ documents: 'File size must not exceed 10MB' });
         return;
       }
-      
+
       // Compare with existing document if updating
       const existingDoc = documents.find(doc => doc.id === documentId);
       if (existingDoc?.document_url) {
@@ -771,7 +687,7 @@ const ProfileScreen = () => {
         }
       }
     }
-    
+
     const existingIndex = updatingDocuments.findIndex(doc => doc.id === documentId);
     if (existingIndex >= 0) {
       const updated = [...updatingDocuments];
@@ -780,7 +696,7 @@ const ProfileScreen = () => {
     } else {
       setUpdatingDocuments([...updatingDocuments, { id: documentId, file, document_type: documentType }]);
     }
-    
+
     if (errors.documents) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -833,7 +749,7 @@ const ProfileScreen = () => {
     if (e && e.preventDefault) {
       e.preventDefault();
     }
-    
+
     // Validation
     const passwordErrors = {};
     if (!passwordData.current_password) {
@@ -848,7 +764,7 @@ const ProfileScreen = () => {
       setErrors(passwordErrors);
       return;
     }
-    
+
     setChangingPassword(true);
     setErrors({});
     setSuccessMessage('');
@@ -894,7 +810,7 @@ const ProfileScreen = () => {
 
     try {
       const response = await accAPI.verifyStripeAccount(formData.stripe_account_id.trim());
-      
+
       if (response.valid && response.account) {
         setStripeAccountInfo(response.account);
         setStripeAccountError('');
@@ -923,7 +839,7 @@ const ProfileScreen = () => {
     setFormData(updatedFormData);
     setStripeAccountInfo(null);
     setStripeAccountError('');
-    
+
     // Save the profile with empty stripe_account_id
     try {
       setLoading(true);
@@ -935,7 +851,7 @@ const ProfileScreen = () => {
           formDataToSend.append(key, updatedFormData[key]);
         }
       });
-      
+
       await accAPI.updateProfile(formDataToSend);
       await loadProfile();
       setSuccessMessage('Stripe Account removed successfully!');
@@ -972,12 +888,12 @@ const ProfileScreen = () => {
       )}
 
       {/* Error Message */}
-          {errors.general && (
+      {errors.general && (
         <div className="profile-error-message">
           <AlertCircle size={20} />
           <span>{errors.general}</span>
-            </div>
-          )}
+        </div>
+      )}
 
       <div className="profile-content">
         {/* Profile Header */}
@@ -985,9 +901,9 @@ const ProfileScreen = () => {
           <div className="profile-avatar-section">
             <div className="profile-avatar-container">
               {logoPreview ? (
-                <img 
-                  src={logoPreview} 
-                  alt="Organization Logo" 
+                <img
+                  src={logoPreview}
+                  alt="Organization Logo"
                   className="profile-avatar"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -1000,7 +916,7 @@ const ProfileScreen = () => {
               <div className="profile-avatar-placeholder" style={{ display: logoPreview ? 'none' : 'flex' }}>
                 <Building2 size={48} />
               </div>
-              
+
               {/* Upload Logo Button - Inside Circle */}
               {isEditing && (
                 <label className="profile-avatar-upload-overlay" title="Click to upload logo">
@@ -1013,7 +929,7 @@ const ProfileScreen = () => {
                   />
                 </label>
               )}
-              
+
               {/* Show file name if logo is selected */}
               {isEditing && logoFile && (
                 <div className="profile-avatar-file-info">
@@ -1022,7 +938,7 @@ const ProfileScreen = () => {
                   </p>
                 </div>
               )}
-              
+
               {/* Show error if exists */}
               {isEditing && errors.logo && (
                 <div className="profile-avatar-file-info" style={{ bottom: '-3.5rem' }}>
@@ -1050,551 +966,233 @@ const ProfileScreen = () => {
 
         {/* Profile Form */}
         <form onSubmit={handleSubmit} className="profile-form">
+          {/* 1. Accreditation Body Information */}
           <div className="profile-form-section">
-            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <User className="text-blue-600" size={24} />
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-50 rounded-lg"><Building2 className="text-blue-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title" style={{ margin: 0 }}>Basic Information</h2>
-                <p className="text-sm text-gray-500 mt-1">Your personal and contact details</p>
+                <h2 className="profile-section-title">Accreditation Body Information</h2>
+                <p className="text-sm text-gray-500 mt-1">Basic organization details</p>
               </div>
             </div>
             <div className="profile-form-grid">
-          <FormInput
-            label="Name"
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleChange}
-            required
-                disabled={!isEditing}
-            error={errors.name}
-          />
-          <FormInput
-            label="Legal Name"
-            name="legal_name"
-            type="text"
-            value={formData.legal_name}
-            onChange={handleChange}
-                disabled={!isEditing}
-            error={errors.legal_name}
-            helpText="Official legal name of your organization"
-          />
-          <FormInput
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-                disabled={!isEditing}
-            error={errors.email}
-            placeholder="example@example.com"
-          />
-          <FormInput
-            label="Phone"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-                disabled={!isEditing}
-            error={errors.phone}
-            placeholder="Enter phone number (10-13 digits)"
-          />
-          <FormInput
-            label="Website"
-            name="website"
-            type="url"
-            value={formData.website}
-            onChange={handleChange}
-            placeholder="https://example.com"
-                disabled={!isEditing}
-            error={errors.website}
-          />
-          <FormInput
-                label="Registration Number"
-                name="registration_number"
-            type="text"
-                value={formData.registration_number}
-                onChange={handleChange}
-                disabled={!isEditing}
-                error={errors.registration_number}
-                placeholder="Enter registration number (minimum 5 characters)"
-                helpText="Official registration number of your organization"
-              />
+              <FormInput label="Legal Name" name="legal_name" value={formData.legal_name} onChange={handleChange} disabled={!isEditing} error={errors.legal_name} required />
+              <FormInput label="Email" name="email" type="email" value={formData.email} onChange={handleChange} disabled={!isEditing} error={errors.email} required />
+              <FormInput label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} disabled={!isEditing} error={errors.phone} required />
+              <FormInput label="Fax" name="fax" value={formData.fax} onChange={handleChange} disabled={!isEditing} error={errors.fax} />
+              <FormInput label="Website" name="website" type="url" value={formData.website} onChange={handleChange} disabled={!isEditing} error={errors.website} />
+
+              {/* Legacy Display */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <span className={`profile-status-badge ${profileData?.status || 'active'}`}>{profileData?.status || 'Active'}</span>
+              </div>
             </div>
-            
-            {/* Display Read-only Fields */}
-            {profileData && (
-              <div className="profile-readonly-info">
-                <div className="profile-info-item">
-                  <span className="profile-info-label">Status:</span>
-                  <span className={`profile-status-badge ${profileData.status || 'active'}`}>
-                    {profileData.status || 'Active'}
-                  </span>
-                </div>
-                {profileData.commission_percentage !== undefined && (
-                  <div className="profile-info-item">
-                    <span className="profile-info-label">Commission Percentage:</span>
-                    <span className="profile-info-value">{profileData.commission_percentage}%</span>
-                  </div>
-                )}
-                {profileData.stripe_account_configured !== undefined && (
-                  <div className="profile-info-item">
-                    <span className="profile-info-label">Stripe Account:</span>
-                    <span className={`profile-status-badge ${profileData.stripe_account_configured ? 'verified' : 'pending'}`}>
-                      {profileData.stripe_account_configured ? (
-                        <>
-                          <CheckCircle size={14} />
-                          Configured
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle size={14} />
-                          Not Configured
-                        </>
-                      )}
-                    </span>
-                    {profileData.stripe_account_id && (
-                      <span className="profile-info-value" style={{ marginLeft: '0.5rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>
-                        ({profileData.stripe_account_id})
-                      </span>
-                    )}
-                  </div>
-                )}
-                {profileData.created_at && (
-                  <div className="profile-info-item">
-                    <span className="profile-info-label">Created At:</span>
-                    <span className="profile-info-value">{formatDate(profileData.created_at)}</span>
-                  </div>
-                )}
-                {profileData.updated_at && (
-                  <div className="profile-info-item">
-                    <span className="profile-info-label">Last Updated:</span>
-                    <span className="profile-info-value">{formatDate(profileData.updated_at)}</span>
-                  </div>
-                )}
-                </div>
-              )}
           </div>
 
+          {/* 2. Physical Address */}
           <div className="profile-form-section">
-            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
-              <div className="p-2 bg-green-50 rounded-lg">
-                <MapPin className="text-green-600" size={24} />
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-50 rounded-lg"><MapPin className="text-green-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title" style={{ margin: 0 }}>Address Information</h2>
-                <p className="text-sm text-gray-500 mt-1">Your location and address details</p>
+                <h2 className="profile-section-title">Physical Address</h2>
+                <p className="text-sm text-gray-500 mt-1">Main office location</p>
               </div>
             </div>
-            
-            {/* Basic Address */}
-            <div className="profile-form-grid mb-6">
-              <FormInput
-                label="Address"
-                name="address"
-                type="text"
-                value={formData.address}
-                onChange={handleChange}
-                disabled={!isEditing}
-                error={errors.address}
-              />
+            <div className="profile-form-grid">
+              <FormInput label="Street Address" name="physical_street" value={formData.physical_street} onChange={handleChange} disabled={!isEditing} error={errors.physical_street} required />
+              <FormInput label="Postal Code" name="physical_postal_code" value={formData.physical_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.physical_postal_code} required />
               {isEditing ? (
-                <FormInput
-                  label="Country"
-                  name="country"
-                  type="select"
-                  value={formData.country}
-                  onChange={handleChange}
-                  disabled={loadingCountries}
-                  options={[
-                    { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
-                    ...countries.map(country => ({
-                      value: country.code,
-                      label: country.name,
-                    })),
-                  ]}
-                  error={errors.country}
-                />
+                <>
+                  <FormInput label="Country" name="physical_country" type="select" value={formData.physical_country} onChange={handleChange} disabled={loadingCountries} error={errors.physical_country} required
+                    options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                  <FormInput label="City" name="physical_city" type="select" value={formData.physical_city} onChange={handleChange} disabled={!formData.physical_country} error={errors.physical_city} required
+                    options={[{ value: '', label: 'Select City' }, ...physicalCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
+                </>
               ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                    {getCountryName(formData.country) || 'Not specified'}
-                  </div>
-                </div>
+                <>
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.physical_country)}</div>
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">City</label>{getCityName(formData.physical_city)}</div>
+                </>
               )}
             </div>
-
-            {/* Mailing Address */}
-            <div className="mb-6">
-              <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Mail className="text-green-600" size={18} />
-                Mailing Address
-              </h3>
-              <div className="profile-form-grid">
-                <FormInput
-                  label="Street"
-                  name="mailing_street"
-                  type="text"
-                  value={formData.mailing_street}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.mailing_street}
-                />
-                {isEditing ? (
-                  <>
-                    <FormInput
-                      label="Country"
-                      name="mailing_country"
-                      type="select"
-                      value={formData.mailing_country}
-                      onChange={handleChange}
-                      disabled={loadingCountries}
-                      options={[
-                        { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
-                        ...countries.map(country => ({
-                          value: country.code,
-                          label: country.name,
-                        })),
-                      ]}
-                      error={errors.mailing_country}
-                    />
-                    <FormInput
-                      label="City"
-                      name="mailing_city"
-                      type="select"
-                      value={formData.mailing_city}
-                      onChange={handleChange}
-                      disabled={!formData.mailing_country || loadingMailingCities}
-                      options={[
-                        { value: '', label: !formData.mailing_country ? 'Select country first' : loadingMailingCities ? 'Loading cities...' : 'Select City' },
-                        ...mailingCities.map(city => ({
-                          value: city.name || city,
-                          label: city.name || city,
-                        })),
-                      ]}
-                      error={errors.mailing_city}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        {getCountryName(formData.mailing_country) || 'Not specified'}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        {getCityName(formData.mailing_city) || 'Not specified'}
-                      </div>
-                    </div>
-                  </>
-                )}
-                <FormInput
-                  label="Postal Code"
-                  name="mailing_postal_code"
-                  type="text"
-                  value={formData.mailing_postal_code}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.mailing_postal_code}
-                />
-              </div>
-            </div>
-
-            {/* Physical Address */}
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <MapPin className="text-green-600" size={18} />
-                Physical Address
-              </h3>
-              <div className="profile-form-grid">
-                <FormInput
-                  label="Street"
-                  name="physical_street"
-                  type="text"
-                  value={formData.physical_street}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.physical_street}
-                />
-                {isEditing ? (
-                  <>
-                    <FormInput
-                      label="Country"
-                      name="physical_country"
-                      type="select"
-                      value={formData.physical_country}
-                      onChange={handleChange}
-                      disabled={loadingCountries}
-                      options={[
-                        { value: '', label: loadingCountries ? 'Loading countries...' : 'Select Country' },
-                        ...countries.map(country => ({
-                          value: country.code,
-                          label: country.name,
-                        })),
-                      ]}
-                      error={errors.physical_country}
-                    />
-                    <FormInput
-                      label="City"
-                      name="physical_city"
-                      type="select"
-                      value={formData.physical_city}
-                      onChange={handleChange}
-                      disabled={!formData.physical_country || loadingPhysicalCities}
-                      options={[
-                        { value: '', label: !formData.physical_country ? 'Select country first' : loadingPhysicalCities ? 'Loading cities...' : 'Select City' },
-                        ...physicalCities.map(city => ({
-                          value: city.name || city,
-                          label: city.name || city,
-                        })),
-                      ]}
-                      error={errors.physical_city}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        {getCountryName(formData.physical_country) || 'Not specified'}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        {getCityName(formData.physical_city) || 'Not specified'}
-                      </div>
-                    </div>
-                  </>
-                )}
-                <FormInput
-                  label="Postal Code"
-                  name="physical_postal_code"
-                  type="text"
-                  value={formData.physical_postal_code}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  error={errors.physical_postal_code}
-                />
-              </div>
-            </div>
           </div>
 
-          {/* Documents Section */}
+          {/* 3. Mailing Address */}
           <div className="profile-form-section">
-            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <FileText className="text-purple-600" size={24} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <h2 className="profile-section-title" style={{ margin: 0 }}>Documents</h2>
-                  {isEditing && (
-                    <select
-                      id="newDocumentType"
-                      className="document-type-dropdown-header"
-                      value={newDocumentType}
-                      onChange={(e) => {
-                        setNewDocumentType(e.target.value);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="license">License</option>
-                      <option value="registration">Registration</option>
-                      <option value="certificate">Certificate</option>
-                      <option value="other">Other</option>
-                    </select>
-                  )}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-50 rounded-lg"><Mail className="text-yellow-600" size={24} /></div>
+              <div>
+                <h2 className="profile-section-title">Mailing Address</h2>
+                <div className="flex items-center mt-2">
+                  <input type="checkbox" id="mailing_same" name="mailing_same_as_physical" checked={formData.mailing_same_as_physical} onChange={(e) => handleChange({ target: { name: 'mailing_same_as_physical', value: e.target.checked } })} disabled={!isEditing} className="mr-2 h-4 w-4 text-blue-600 rounded" />
+                  <label htmlFor="mailing_same" className="text-sm text-gray-700">Same as Physical Address</label>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Manage your organization documents</p>
               </div>
             </div>
-
-            {errors.documents && (
-              <div className="profile-error-message mb-4">
-                <AlertCircle size={20} />
-                <span>{errors.documents}</span>
-              </div>
-            )}
-
-            {/* Existing Documents */}
-            {documents.length > 0 && (
-              <div className="documents-grid mb-6">
-                {documents.map((doc) => {
-                  const updateInfo = updatingDocuments.find(d => d.id === doc.id);
-                  const currentType = updateInfo?.document_type || doc.document_type;
-                  
-                  return (
-                    <div key={doc.id} className="document-card">
-                      <div className="document-card-header">
-                        <div className="document-icon">
-                          <File size={24} />
-                        </div>
-                        <div className="document-info">
-                          <h3 className="document-title">{getDocumentTypeLabel(currentType)}</h3>
-                          <p className="document-date">Uploaded: {formatDate(doc.uploaded_at)}</p>
-                        </div>
-                        {doc.verified && (
-                          <div className="document-status">
-                            <span className="status-badge verified">
-                              <CheckCircle size={14} />
-                              Verified
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {doc.verified && doc.verified_by && (
-                        <div className="document-verification-info">
-                          <p className="text-xs text-gray-600">
-                            Verified by: {doc.verified_by.name} ({doc.verified_by.email})
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Verified at: {formatDate(doc.verified_at)}
-                    </p>
-                  </div>
-                      )}
-
-                      <div className="document-actions">
-                        <a
-                          href={doc.document_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="document-action-btn view"
-                        >
-                          <Eye size={16} />
-                          View
-                        </a>
-                        
-                        {isEditing && (
-                          <>
-                            <label className="document-action-btn update">
-                              <Upload size={16} />
-                              {updateInfo?.file ? 'Change File' : 'Update'}
-                              <input
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                style={{ display: 'none' }}
-                                onChange={(e) => {
-                                  const file = e.target.files[0];
-                                  if (file) {
-                                    handleUpdateDocument(doc.id, file, currentType);
-                                  }
-                                }}
-                              />
-                            </label>
-                            
-                            <select
-                              value={currentType}
-                              onChange={(e) => handleUpdateDocument(doc.id, null, e.target.value)}
-                              className="document-type-select"
-                              disabled={!isEditing}
-                            >
-                              <option value="license">License</option>
-                              <option value="registration">Registration</option>
-                              <option value="certificate">Certificate</option>
-                              <option value="other">Other</option>
-                            </select>
-                            
-                            {updateInfo && (
-                              <button
-                                onClick={() => handleRemoveDocumentUpdate(doc.id)}
-                                className="document-action-btn remove"
-                              >
-                                <X size={16} />
-                                Cancel
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      
-                      {updateInfo?.file && (
-                        <div className="document-update-preview">
-                          <p className="text-xs text-blue-600">
-                            New file: {updateInfo.file.name} ({(updateInfo.file.size / 1024).toFixed(2)} KB)
-                    </p>
-                  </div>
+            {!formData.mailing_same_as_physical && (
+              <div className="profile-form-grid">
+                <FormInput label="Street Address" name="mailing_street" value={formData.mailing_street} onChange={handleChange} disabled={!isEditing} error={errors.mailing_street} required />
+                <FormInput label="Postal Code" name="mailing_postal_code" value={formData.mailing_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.mailing_postal_code} required />
+                {isEditing ? (
+                  <>
+                    <FormInput label="Country" name="mailing_country" type="select" value={formData.mailing_country} onChange={handleChange} disabled={loadingCountries} error={errors.mailing_country} required
+                      options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                    <FormInput label="City" name="mailing_city" type="select" value={formData.mailing_city} onChange={handleChange} disabled={!formData.mailing_country} error={errors.mailing_city} required
+                      options={[{ value: '', label: 'Select City' }, ...mailingCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.mailing_country)}</div>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">City</label>{getCityName(formData.mailing_city)}</div>
+                  </>
                 )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* New Documents to Upload */}
-            {isEditing && newDocuments.length > 0 && (
-              <div className="new-documents-section mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">New Documents to Upload</h3>
-                <div className="documents-grid">
-                  {newDocuments.map((doc, index) => (
-                    <div key={index} className="document-card new-document">
-                      <div className="document-card-header">
-                        <div className="document-icon">
-                          <File size={24} />
-                        </div>
-                        <div className="document-info">
-                          <h3 className="document-title">{getDocumentTypeLabel(doc.document_type)}</h3>
-                          <p className="document-date">{doc.file.name} ({(doc.file.size / 1024).toFixed(2)} KB)</p>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveNewDocument(index)}
-                          className="document-remove-btn"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Upload New Document */}
-            {isEditing && (
-              <label className="upload-document-section" htmlFor="document-upload-input">
-                <div className="upload-document-content">
-                  <Upload size={24} className="upload-icon" />
-                  <div className="upload-text">
-                    <p className="upload-main-text">Click to upload document</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Accepted formats: PDF, JPG, JPEG, PNG (Max 10MB)
-                    </p>
-                  </div>
-                </div>
-                <input
-                  id="document-upload-input"
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      handleAddNewDocument(file, newDocumentType);
-                    }
-                    e.target.value = ''; // Reset input
-                  }}
-                />
-              </label>
-            )}
-            
-            {!isEditing && documents.length === 0 && (
-              <div className="no-documents-message">
-                <FileText size={48} className="text-gray-300" />
-                <p className="text-gray-500">No documents uploaded yet</p>
               </div>
             )}
           </div>
+
+          {/* 4. Primary Contact */}
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-50 rounded-lg"><User className="text-purple-600" size={24} /></div>
+              <div>
+                <h2 className="profile-section-title">Primary Contact</h2>
+                <p className="text-sm text-gray-500 mt-1">Main point of contact</p>
+              </div>
+            </div>
+            <div className="profile-form-grid">
+              <FormInput label="Title" name="primary_contact_title" type="select" value={formData.primary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
+              <FormInput label="First Name" name="primary_contact_first_name" value={formData.primary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_first_name} required />
+              <FormInput label="Last Name" name="primary_contact_last_name" value={formData.primary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_last_name} required />
+              <FormInput label="Email" name="primary_contact_email" type="email" value={formData.primary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_email} required />
+              <FormInput label="Mobile" name="primary_contact_mobile" type="tel" value={formData.primary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_mobile} required />
+              {isEditing ? (
+                <FormInput label="Country" name="primary_contact_country" type="select" value={formData.primary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.primary_contact_country} required
+                  options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+              ) : (
+                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.primary_contact_country)}</div>
+              )}
+
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Passport Copy {isEditing && <span className="text-red-500">*</span>}</label>
+                {profileData?.primary_contact?.passport_url && (
+                  <div className="mb-2">
+                    <a href={profileData.primary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Passport</a>
+                  </div>
+                )}
+                {isEditing && (
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setPrimaryPassportFile(e.target.files[0])} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                )}
+                {errors.primary_contact_passport && <p className="text-red-500 text-xs mt-1">{errors.primary_contact_passport}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Secondary Contact */}
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-indigo-50 rounded-lg"><User className="text-indigo-600" size={24} /></div>
+              <div>
+                <h2 className="profile-section-title">Secondary Contact</h2>
+                <p className="text-sm text-gray-500 mt-1">Secondary point of contact</p>
+              </div>
+            </div>
+            <div className="profile-form-grid">
+              <FormInput label="Title" name="secondary_contact_title" type="select" value={formData.secondary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
+              <FormInput label="First Name" name="secondary_contact_first_name" value={formData.secondary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_first_name} required />
+              <FormInput label="Last Name" name="secondary_contact_last_name" value={formData.secondary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_last_name} required />
+              <FormInput label="Email" name="secondary_contact_email" type="email" value={formData.secondary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_email} required />
+              <FormInput label="Mobile" name="secondary_contact_mobile" type="tel" value={formData.secondary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_mobile} required />
+              {isEditing ? (
+                <FormInput label="Country" name="secondary_contact_country" type="select" value={formData.secondary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.secondary_contact_country} required
+                  options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+              ) : (
+                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.secondary_contact_country)}</div>
+              )}
+
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Passport Copy {isEditing && <span className="text-red-500">*</span>}</label>
+                {profileData?.secondary_contact?.passport_url && (
+                  <div className="mb-2">
+                    <a href={profileData.secondary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Passport</a>
+                  </div>
+                )}
+                {isEditing && (
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setSecondaryPassportFile(e.target.files[0])} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                )}
+                {errors.secondary_contact_passport && <p className="text-red-500 text-xs mt-1">{errors.secondary_contact_passport}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* 6. Additional Information */}
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-orange-50 rounded-lg"><FileText className="text-orange-600" size={24} /></div>
+              <div>
+                <h2 className="profile-section-title">Additional Information</h2>
+                <p className="text-sm text-gray-500 mt-1">Official Documents & Details</p>
+              </div>
+            </div>
+            <div className="profile-form-grid">
+              <FormInput label="Gov Registry Number" name="company_gov_registry_number" value={formData.company_gov_registry_number} onChange={handleChange} disabled={!isEditing} error={errors.company_gov_registry_number} required />
+              <FormInput label="How did you hear about us?" name="how_did_you_hear_about_us" value={formData.how_did_you_hear_about_us} onChange={handleChange} disabled={!isEditing} error={errors.how_did_you_hear_about_us} />
+
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company Registration Certificate {isEditing && <span className="text-red-500">*</span>}</label>
+                {profileData?.company_registration_certificate_url && (
+                  <div className="mb-2">
+                    <a href={profileData.company_registration_certificate_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Certificate</a>
+                  </div>
+                )}
+                {isEditing && (
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setCompanyCertFile(e.target.files[0])} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                )}
+                {errors.company_registration_certificate && <p className="text-red-500 text-xs mt-1">{errors.company_registration_certificate}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* 7. Agreements */}
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gray-50 rounded-lg"><Shield className="text-gray-600" size={24} /></div>
+              <div>
+                <h2 className="profile-section-title">Agreements</h2>
+                <p className="text-sm text-gray-500 mt-1">Terms & Conditions</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <input type="checkbox" id="agreed_comms" name="agreed_to_receive_communications" checked={formData.agreed_to_receive_communications} onChange={(e) => handleChange({ target: { name: 'agreed_to_receive_communications', value: e.target.checked } })} disabled={!isEditing} className="mt-1 h-4 w-4 text-blue-600 rounded" />
+                <div className="ml-3">
+                  <label htmlFor="agreed_comms" className="text-sm font-medium text-gray-700">I agree to receive other communications from BOMEQP</label>
+                  {errors.agreed_to_receive_communications && <p className="text-red-500 text-xs mt-1">{errors.agreed_to_receive_communications}</p>}
+                </div>
+              </div>
+              <div className="flex items-start">
+                <input type="checkbox" id="agreed_terms" name="agreed_to_terms_and_conditions" checked={formData.agreed_to_terms_and_conditions} onChange={(e) => handleChange({ target: { name: 'agreed_to_terms_and_conditions', value: e.target.checked } })} disabled={!isEditing} className="mt-1 h-4 w-4 text-blue-600 rounded" />
+                <div className="ml-3">
+                  <label htmlFor="agreed_terms" className="text-sm font-medium text-gray-700">I confirm that I have read, understood, and accepted the terms and conditions</label>
+                  {errors.agreed_to_terms_and_conditions && <p className="text-red-500 text-xs mt-1">{errors.agreed_to_terms_and_conditions}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          {isEditing && (
+            <div className="profile-actions">
+              <button type="button" onClick={handleCancel} className="profile-cancel-btn" disabled={loading}>Cancel</button>
+              <button type="submit" className="profile-save-btn" disabled={loading}>
+                {loading ? <div className="loader small"></div> : <><Save size={18} /> Save Changes</>}
+              </button>
+            </div>
+          )}
+
         </form>
 
-        {/* Stripe Account Management Section */}
+        {/* Stripe Account Management Section
         <div className="profile-content stripe-section">
           <div className="profile-form-section">
             <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
@@ -1608,7 +1206,7 @@ const ProfileScreen = () => {
             </div>
 
             <div className="space-y-4">
-              {/* Current Status */}
+              {/* Current Status 
               {profileData?.stripe_account_configured !== undefined && (
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center justify-between mb-2">
@@ -1633,7 +1231,7 @@ const ProfileScreen = () => {
                 </div>
               )}
 
-              {/* Stripe Account ID Input */}
+              {/* Stripe Account ID Input 
               <div>
                 <FormInput
                   label="Stripe Account ID"
@@ -1651,7 +1249,7 @@ const ProfileScreen = () => {
                   helpText="Enter your Stripe Connect Account ID (must start with 'acct_')"
                 />
 
-                {/* Verify Button */}
+                 Verify Button 
                 {isEditing && formData.stripe_account_id && (
                   <div className="mt-2">
                     <button
@@ -1675,7 +1273,7 @@ const ProfileScreen = () => {
                   </div>
                 )}
 
-                {/* Verification Result */}
+                Verification Result
                 {stripeAccountInfo && (
                   <div className="mt-3 p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center mb-2">
@@ -1692,7 +1290,7 @@ const ProfileScreen = () => {
                     {(!stripeAccountInfo.charges_enabled || !stripeAccountInfo.details_submitted) && (
                       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                         <p className="text-xs text-yellow-800">
-                          <strong>Warning:</strong> This account may not be able to receive payments. 
+                          <strong>Warning:</strong> This account may not be able to receive payments.
                           Please ensure the account is fully configured in Stripe Dashboard.
                         </p>
                       </div>
@@ -1700,7 +1298,7 @@ const ProfileScreen = () => {
                   </div>
                 )}
 
-                {/* Error Message */}
+                Error Message
                 {stripeAccountError && !stripeAccountInfo && (
                   <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
                     <div className="flex items-center mb-2">
@@ -1712,7 +1310,7 @@ const ProfileScreen = () => {
                 )}
               </div>
 
-              {/* Remove Button */}
+              Remove Button
               {isEditing && profileData?.stripe_account_id && (
                 <div className="pt-2 border-t border-gray-200">
                   <button
@@ -1727,7 +1325,7 @@ const ProfileScreen = () => {
                 </div>
               )}
 
-              {/* Information */}
+              Information
               <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                 <h4 className="text-sm font-semibold text-yellow-900 mb-2">About Stripe Connect Accounts</h4>
                 <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
@@ -1739,7 +1337,7 @@ const ProfileScreen = () => {
                 </ul>
               </div>
 
-              {/* Save and Cancel Buttons */}
+              Save and Cancel Buttons
               {isEditing && (
                 <div className="flex gap-3 pt-4 border-t border-gray-200 justify-end">
                   <button
@@ -1766,8 +1364,8 @@ const ProfileScreen = () => {
                 </div>
               )}
             </div>
-          </div>
         </div>
+        </div> */}
 
         {/* Change Password Section - Separate from Profile Form */}
         <div className="profile-content password-section">

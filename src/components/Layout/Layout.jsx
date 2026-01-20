@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useHeader } from '../../context/HeaderContext';
 import { accAPI, instructorAPI } from '../../services/api';
 import NotificationBell from '../NotificationBell/NotificationBell';
+import { useTranslation } from '../../hooks/useTranslation';
 import {
   LayoutDashboard,
   Users,
@@ -31,13 +32,19 @@ import {
   Receipt,
   Clock,
   User,
+  ArrowRightLeft,
+  Link2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './Layout.css';
 
+// Updated with ArrowRightLeft and Link2 icons for new menu items
+
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const { headerActions, headerTitle, headerSubtitle } = useHeader();
+  const { t } = useTranslation('navigation');
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isSubscribed, setIsSubscribed] = useState(null); // null = loading, true/false = loaded
@@ -158,7 +165,7 @@ const Layout = ({ children }) => {
   // Menu items based on user role with grouping
   const getMenuItems = () => {
     const baseItems = [
-      { type: 'single', path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { type: 'single', path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
     ];
 
     switch (user?.role) {
@@ -169,7 +176,7 @@ const Layout = ({ children }) => {
             type: 'group',
             key: 'acc-management',
             icon: Building2,
-            label: 'ACC Management',
+            label: 'Accreditation Bodies',
             items: [
               { path: '/admin/accs', icon: FileCheck, label: 'ACC Applications' },
               { path: '/admin/training-center-applications', icon: FileCheck, label: 'TC Applications' },
@@ -206,6 +213,8 @@ const Layout = ({ children }) => {
             items: [
               { path: '/admin/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
               { path: '/admin/pending-payments', icon: Clock, label: 'Pending Payments' },
+              // { path: '/admin/transfers', icon: ArrowRightLeft, label: 'Automatic Transfers' },
+              { path: '/admin/stripe-connect', icon: Link2, label: 'Stripe Connect' },
               { path: '/admin/stripe-settings', icon: Sliders, label: 'Stripe Settings' },
             ]
           },
@@ -259,37 +268,37 @@ const Layout = ({ children }) => {
       case 'training_center_admin':
         return [
           ...baseItems,
-          { type: 'single', path: '/training-center/accs', icon: Building2, label: 'Accreditation Bodies' },
+          { type: 'single', path: '/training-center/accs', icon: Building2, label: t('accreditation_bodies') },
           {
             type: 'group',
             key: 'people-management',
             icon: Users,
-            label: 'People Management',
+            label: t('people_management'),
             items: [
-              { path: '/training-center/instructors', icon: Users, label: 'Instructors' },
-              { path: '/training-center/trainees', icon: UserCheck, label: 'Trainees' },
-              { path: '/training-center/instructor-authorizations', icon: UserCheck, label: 'Instructor Auth' },
+              { path: '/training-center/instructors', icon: Users, label: t('instructors') },
+              { path: '/training-center/trainees', icon: UserCheck, label: t('trainees') },
+              { path: '/training-center/instructor-authorizations', icon: UserCheck, label: t('instructor_authorizations') },
             ]
           },
           {
             type: 'group',
             key: 'courses-classes',
             icon: GraduationCap,
-            label: 'Courses & Classes',
+            label: t('courses_classes'),
             items: [
-              { path: '/training-center/classes', icon: GraduationCap, label: 'Classes' },
-              { path: '/training-center/certificates', icon: Award, label: 'Certificates' },
+              { path: '/training-center/classes', icon: GraduationCap, label: t('classes') },
+              { path: '/training-center/certificates', icon: Award, label: t('certificates') },
             ]
           },
           {
             type: 'group',
             key: 'financial',
             icon: Wallet,
-            label: 'Financial',
+            label: t('financial'),
             items: [
-              { path: '/training-center/codes', icon: Tag, label: 'Codes' },
+              { path: '/training-center/codes', icon: Tag, label: t('codes') },
               // { path: '/training-center/wallet', icon: Wallet, label: 'Wallet' },
-              { path: '/training-center/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
+              { path: '/training-center/payment-transactions', icon: Receipt, label: t('payment_transactions') },
             ]
           },
         ];
@@ -323,7 +332,7 @@ const Layout = ({ children }) => {
     const path = location.pathname;
 
     // Dashboard
-    if (path === '/dashboard') return 'Dashboard';
+    if (path === '/dashboard') return t('dashboard');
 
     // Group Admin routes
     if (path === '/admin/accs') return 'ACC Applications';
@@ -337,10 +346,12 @@ const Layout = ({ children }) => {
     if (path === '/admin/instructor-authorizations') return 'Instructor Commissions';
     if (path === '/admin/payment-transactions') return 'Payment Transactions';
     if (path === '/admin/pending-payments') return 'Pending Payments';
+    if (path === '/admin/stripe-connect') return 'Stripe Connect Management';
+    if (path === '/admin/transfers') return 'Automatic Transfers';
     if (path === '/admin/stripe-settings') return 'Stripe Settings';
 
     // ACC Admin routes
-    if (path === '/acc/dashboard') return 'Dashboard';
+    if (path === '/acc/dashboard') return t('dashboard');
     if (path === '/acc/subscription') return 'Subscription Management';
     if (path === '/acc/training-centers') return 'Training Centers';
     if (path === '/acc/instructors') return 'Instructors';
@@ -355,20 +366,20 @@ const Layout = ({ children }) => {
     if (path === '/acc/pending-payments') return 'Pending Payments';
 
     // Training Center routes
-    if (path === '/training-center/dashboard') return 'Dashboard';
-    if (path === '/training-center/accs') return 'Accreditation Bodies';
-    if (path === '/training-center/instructors') return 'Instructors';
-    if (path === '/training-center/trainees') return 'Trainees';
-    if (path === '/training-center/classes') return 'Classes';
-    if (path === '/training-center/codes') return 'Codes';
-    if (path === '/training-center/certificates') return 'Certificates';
-    if (path === '/training-center/instructor-authorizations') return 'Instructor Authorizations';
-    if (path === '/training-center/payment-transactions') return 'Payment Transactions';
-    if (path === '/training-center/wallet') return 'Payment Transactions';
-    if (path === '/training-center/marketplace') return 'Marketplace';
+    if (path === '/training-center/dashboard') return t('dashboard');
+    if (path === '/training-center/accs') return t('accreditation_bodies');
+    if (path === '/training-center/instructors') return t('instructors');
+    if (path === '/training-center/trainees') return t('trainees');
+    if (path === '/training-center/classes') return t('classes');
+    if (path === '/training-center/codes') return t('codes');
+    if (path === '/training-center/certificates') return t('certificates');
+    if (path === '/training-center/instructor-authorizations') return t('instructor_authorizations');
+    if (path === '/training-center/payment-transactions') return t('payment_transactions');
+    if (path === '/training-center/wallet') return t('payment_transactions');
+    if (path === '/training-center/marketplace') return t('marketplace');
 
     // Instructor routes
-    if (path === '/instructor/dashboard') return 'Dashboard';
+    if (path === '/instructor/dashboard') return t('dashboard');
     if (path === '/instructor/classes') return 'Classes';
     if (path === '/instructor/materials') return 'Materials';
     if (path === '/instructor/earnings') return 'Earnings';
@@ -386,7 +397,7 @@ const Layout = ({ children }) => {
         .join(' ');
     }
 
-    return 'Dashboard';
+    return t('dashboard');
   };
 
   const getPageSubtitle = () => {
@@ -394,7 +405,7 @@ const Layout = ({ children }) => {
 
     const path = location.pathname;
     if (path === '/dashboard' || path === '/acc/dashboard' || path === '/training-center/dashboard' || path === '/instructor/dashboard') {
-      return "Welcome back! Here's your overview";
+      return t('welcome_back_here_is_your_overview');
     }
     if (path === '/profile') return 'Manage your account settings and preferences';
     return 'Manage and view your information';
@@ -457,7 +468,13 @@ const Layout = ({ children }) => {
                     <p className="text-xs text-primary-200 mt-1 capitalize">
                       {user?.role === 'instructor'
                         ? (isAssessor ? 'Assessor' : 'Instructor')
-                        : (user?.role?.replace('_', ' ') || '')}
+                        : user?.role === 'training_center_admin'
+                          ? 'Training Center'
+                          : user?.role === 'acc_admin'
+                            ? 'Accreditation Body Admin'
+                            : user?.role === 'group_admin'
+                              ? 'Group Admin'
+                              : (user?.role?.replace('_', ' ') || '')}
                     </p>
                   </div>
                 )}
@@ -495,8 +512,8 @@ const Layout = ({ children }) => {
                                 setSidebarCollapsed(false);
                               }}
                               className={`flex items-center rounded-xl transition-all duration-200 ease-out relative px-2 py-2 justify-center w-full group-hover-trigger ${isActive
-                                  ? 'text-[var(--tertiary-color)]'
-                                  : 'text-white/80 nav-item-hover hover:bg-white/10'
+                                ? 'text-[var(--tertiary-color)]'
+                                : 'text-white/80 nav-item-hover hover:bg-white/10'
                                 }`}
                             >
                               {Icon && (
@@ -516,8 +533,8 @@ const Layout = ({ children }) => {
                             to={item.path}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center rounded-xl transition-all duration-200 ease-out relative group px-4 py-3 min-w-0 ${isActive
-                                ? 'text-[var(--tertiary-color)]'
-                                : 'text-white/80 nav-item-hover hover:scale-105 hover:shadow-md'
+                              ? 'text-[var(--tertiary-color)]'
+                              : 'text-white/80 nav-item-hover hover:scale-105 hover:shadow-md'
                               }`}
                           >
                             {Icon && (
@@ -566,8 +583,8 @@ const Layout = ({ children }) => {
                             <button
                               onClick={() => toggleGroup(item.key)}
                               className={`w-full flex items-center px-3 py-2 rounded-xl transition-all duration-200 ease-out relative group ${hasActiveChild
-                                  ? 'bg-white/10 backdrop-blur-sm'
-                                  : 'text-white/80 nav-item-hover hover:bg-white/5'
+                                ? 'bg-white/10 backdrop-blur-sm'
+                                : 'text-white/80 nav-item-hover hover:bg-white/5'
                                 }`}
                             >
                               {GroupIcon && (
@@ -595,8 +612,8 @@ const Layout = ({ children }) => {
                                         to={childItem.path}
                                         onClick={() => setSidebarOpen(false)}
                                         className={`flex items-center px-2 py-1.5 rounded-lg transition-all duration-200 ease-out relative group ${isChildActive
-                                            ? 'text-[var(--tertiary-color)]'
-                                            : 'text-white/70 nav-item-hover hover:bg-white/10 hover:text-white'
+                                          ? 'text-[var(--tertiary-color)]'
+                                          : 'text-white/70 nav-item-hover hover:bg-white/10 hover:text-white'
                                           }`}
                                       >
                                         {ChildIcon && (
@@ -638,7 +655,7 @@ const Layout = ({ children }) => {
                   size={16}
                   className={`transition-transform duration-200 group-hover:rotate-90 flex-shrink-0 ${sidebarCollapsed ? '' : 'mr-2'}`}
                 />
-                {!sidebarCollapsed && <span className="text-sm font-medium">Settings</span>}
+                {!sidebarCollapsed && <span className="text-sm font-medium">{t('settings')}</span>}
               </Link>
               <button
                 onClick={handleLogout}
@@ -649,7 +666,7 @@ const Layout = ({ children }) => {
                   size={16}
                   className={`transition-transform duration-200 group-hover:translate-x-1 flex-shrink-0 ${sidebarCollapsed ? '' : 'mr-2'}`}
                 />
-                {!sidebarCollapsed && <span className="text-sm font-medium">Logout</span>}
+                {!sidebarCollapsed && <span className="text-sm font-medium">{t('logout')}</span>}
               </button>
             </div>
           </div>

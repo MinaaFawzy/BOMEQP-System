@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { FileText, Plus, Trash2, CheckCircle, Upload, Send, Loader } from 'lucide-react';
 import FormInput from '../FormInput/FormInput';
 import { validateFile, validateMaxLength } from '../../utils/validation';
+import { useTranslation } from '../../hooks/useTranslation';
 import './AuthorizationRequestForm.css';
 
 const AuthorizationRequestForm = ({
+
   onSubmit,
   onCancel,
   submitting = false,
@@ -13,6 +15,7 @@ const AuthorizationRequestForm = ({
     additional_info: '',
   }
 }) => {
+  const { t } = useTranslation('training_center');
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
 
@@ -21,7 +24,7 @@ const AuthorizationRequestForm = ({
 
     // Validate documents
     if (formData.documents.length === 0) {
-      newErrors.general = 'Please upload at least one document';
+      newErrors.general = t('authorization_form.please_upload_at_least_one_document');
       return newErrors;
     }
 
@@ -29,12 +32,12 @@ const AuthorizationRequestForm = ({
     formData.documents.forEach((doc, index) => {
       // Validate document type
       if (!doc.type || doc.type.trim() === '') {
-        newErrors[`documents.${index}.type`] = 'Document type is required';
+        newErrors[`documents.${index}.type`] = t('authorization_form.document_type_required');
       }
 
       // Validate document file
       if (!doc.file) {
-        newErrors[`documents.${index}.file`] = 'Please upload a file';
+        newErrors[`documents.${index}.file`] = t('authorization_form.please_upload_file');
       } else {
         const fileError = validateFile(doc.file, {
           required: true,
@@ -60,7 +63,7 @@ const AuthorizationRequestForm = ({
       const additionalInfoError = validateMaxLength(
         formData.additional_info,
         5000,
-        'Additional information'
+        t('authorization_form.additional_information')
       );
       if (additionalInfoError) {
         newErrors.additional_info = additionalInfoError;
@@ -72,14 +75,14 @@ const AuthorizationRequestForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    
+
     // Call onSubmit with form data
     if (onSubmit) {
       await onSubmit(formData, setErrors);
@@ -98,7 +101,7 @@ const AuthorizationRequestForm = ({
       ...formData,
       documents: formData.documents.filter((_, i) => i !== index),
     });
-    
+
     // Clear errors for this document
     const newErrors = { ...errors };
     Object.keys(newErrors).forEach(key => {
@@ -119,7 +122,7 @@ const AuthorizationRequestForm = ({
       ...formData,
       documents: updatedDocuments,
     });
-    
+
     // Clear error for this field when user starts typing
     if (errors[`documents.${index}.${field}`]) {
       const newErrors = { ...errors };
@@ -130,7 +133,7 @@ const AuthorizationRequestForm = ({
 
   const handleFileSelect = (index, file) => {
     if (!file) return;
-    
+
     // Validate file using validation utility
     const fileError = validateFile(file, {
       required: true,
@@ -145,7 +148,7 @@ const AuthorizationRequestForm = ({
       ],
       fieldName: 'Document file'
     });
-    
+
     if (fileError) {
       setErrors({
         ...errors,
@@ -153,7 +156,7 @@ const AuthorizationRequestForm = ({
       });
       return;
     }
-    
+
     const updatedDocuments = [...formData.documents];
     updatedDocuments[index] = {
       ...updatedDocuments[index],
@@ -162,12 +165,12 @@ const AuthorizationRequestForm = ({
       fileSize: file.size,
       fileType: file.type,
     };
-    
+
     setFormData({
       ...formData,
       documents: updatedDocuments,
     });
-    
+
     // Clear error for this field
     if (errors[`documents.${index}.file`]) {
       const newErrors = { ...errors };
@@ -191,7 +194,7 @@ const AuthorizationRequestForm = ({
     });
     const fileInput = document.getElementById(`file-upload-${index}`);
     if (fileInput) fileInput.value = '';
-    
+
     // Clear error for this field
     if (errors[`documents.${index}.file`]) {
       const newErrors = { ...errors };
@@ -224,8 +227,8 @@ const AuthorizationRequestForm = ({
         <div className="authorization-request-form-overlay">
           <div className="authorization-request-form-overlay-content">
             <Loader size={32} className="authorization-request-form-spinner" />
-            <p className="authorization-request-form-overlay-text">Uploading files and submitting request...</p>
-            <p className="authorization-request-form-overlay-hint">Please wait, this may take a moment</p>
+            <p className="authorization-request-form-overlay-text">{t('authorization_form.uploading_files_please_wait')}</p>
+            <p className="authorization-request-form-overlay-hint">{t('authorization_form.please_wait_moment')}</p>
           </div>
         </div>
       )}
@@ -235,7 +238,7 @@ const AuthorizationRequestForm = ({
           <div className="authorization-request-form-section-header">
             <h3 className="authorization-request-form-section-title">
               <FileText size={20} className="authorization-request-form-section-title-icon" />
-              Documents
+              {t('authorization_form.documents')}
             </h3>
             <button
               type="button"
@@ -244,21 +247,21 @@ const AuthorizationRequestForm = ({
               className="authorization-request-form-button-add"
             >
               <Plus size={16} className="authorization-request-form-button-add-icon" />
-              Add Document
+              {t('authorization_form.add_document')}
             </button>
           </div>
 
           {formData.documents.length === 0 ? (
             <div className="authorization-request-form-warning-box">
-              <p className="authorization-request-form-warning-text">No documents added</p>
-              <p className="authorization-request-form-warning-hint">At least one document is required. Click "Add Document" to add one.</p>
+              <p className="authorization-request-form-warning-text">{t('authorization_form.no_documents_added')}</p>
+              <p className="authorization-request-form-warning-hint">{t('authorization_form.at_least_one_document_required')}</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {formData.documents.map((doc, index) => (
                 <div key={index} className="authorization-request-form-document-item">
                   <div className="authorization-request-form-document-header">
-                    <span className="authorization-request-form-document-number">Document {index + 1}</span>
+                    <span className="authorization-request-form-document-number">{t('authorization_form.document_number', { number: index + 1 })}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveDocument(index)}
@@ -272,7 +275,7 @@ const AuthorizationRequestForm = ({
                   <div className="authorization-request-form-document-grid">
                     <div>
                       <FormInput
-                        label="Document Type"
+                        label={t('authorization_form.document_type')}
                         name={`documents.${index}.type`}
                         type="select"
                         value={doc.type || ''}
@@ -281,18 +284,18 @@ const AuthorizationRequestForm = ({
                         disabled={submitting}
                         error={errors[`documents.${index}.type`]}
                         options={[
-                          { value: '', label: 'Select document type' },
-                          { value: 'license', label: 'License' },
-                          { value: 'certificate', label: 'Certificate' },
-                          { value: 'registration', label: 'Registration' },
-                          { value: 'other', label: 'Other' }
+                          { value: '', label: t('authorization_form.select_document_type') },
+                          { value: 'license', label: t('authorization_form.license') },
+                          { value: 'certificate', label: t('authorization_form.certificate') },
+                          { value: 'registration', label: t('authorization_form.registration') },
+                          { value: 'other', label: t('authorization_form.other') }
                         ]}
                       />
                     </div>
                     <div>
                       <label className="authorization-request-form-label">
-                        Upload Document <span className="authorization-request-form-label-required">*</span>
-                        <span className="authorization-request-form-label-hint">(PDF, DOC, DOCX, JPG, JPEG, PNG - Max 10MB)</span>
+                        {t('authorization_form.upload_document')} <span className="authorization-request-form-label-required">*</span>
+                        <span className="authorization-request-form-label-hint">{t('authorization_form.upload_document_hint')}</span>
                       </label>
                       <div className="authorization-request-form-file-upload-wrapper">
                         <input
@@ -310,19 +313,18 @@ const AuthorizationRequestForm = ({
                         />
                         <label
                           htmlFor={`file-upload-${index}`}
-                          className={`authorization-request-form-file-upload-label ${
-                            submitting
-                              ? 'disabled'
-                              : doc.file
+                          className={`authorization-request-form-file-upload-label ${submitting
+                            ? 'disabled'
+                            : doc.file
                               ? 'has-file'
                               : 'empty'
-                          }`}
+                            }`}
                         >
                           {doc.file ? (
                             <>
                               <CheckCircle size={16} className="authorization-request-form-file-upload-icon" />
                               <span className="authorization-request-form-file-upload-text authorization-request-form-file-upload-text-success">
-                                {doc.fileName || 'File selected'}
+                                {doc.fileName || t('authorization_form.file_selected')}
                               </span>
                               {doc.fileSize && (
                                 <span className="authorization-request-form-file-upload-size">
@@ -333,7 +335,7 @@ const AuthorizationRequestForm = ({
                           ) : (
                             <>
                               <Upload size={16} className="authorization-request-form-file-upload-icon" />
-                              <span className="authorization-request-form-file-upload-text authorization-request-form-file-upload-text-default">Click to upload file</span>
+                              <span className="authorization-request-form-file-upload-text authorization-request-form-file-upload-text-default">{t('authorization_form.click_to_upload_file')}</span>
                             </>
                           )}
                         </label>
@@ -349,7 +351,7 @@ const AuthorizationRequestForm = ({
                             disabled={submitting}
                             className="authorization-request-form-file-remove-button"
                           >
-                            Remove File
+                            {t('authorization_form.remove_file')}
                           </button>
                         </div>
                       )}
@@ -363,16 +365,16 @@ const AuthorizationRequestForm = ({
 
         {/* Additional Information */}
         <FormInput
-          label="Additional Information"
+          label={t('authorization_form.additional_information')}
           name="additional_info"
           value={formData.additional_info}
           onChange={handleAdditionalInfoChange}
           textarea
           rows={4}
-          placeholder="Provide any additional information about your training center..."
+          placeholder={t('authorization_form.provide_additional_info')}
           error={errors.additional_info}
           disabled={submitting}
-          helpText="Maximum 5000 characters"
+          helpText={t('authorization_form.maximum_5000_characters')}
         />
 
         {errors.general && (
@@ -391,7 +393,7 @@ const AuthorizationRequestForm = ({
             disabled={submitting}
             className="authorization-request-form-button authorization-request-form-button-cancel"
           >
-            Cancel
+            {t('authorization_form.cancel')}
           </button>
           <button
             type="submit"
@@ -401,12 +403,12 @@ const AuthorizationRequestForm = ({
             {submitting ? (
               <>
                 <Loader size={16} className="authorization-request-form-button-spinner" />
-                Uploading & Submitting...
+                {t('authorization_form.uploading_submitting')}
               </>
             ) : (
               <>
                 <Send size={16} className="authorization-request-form-button-icon" />
-                Submit Request
+                {t('authorization_form.submit_request')}
               </>
             )}
           </button>

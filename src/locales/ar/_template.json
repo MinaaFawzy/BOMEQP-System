@@ -1,0 +1,12 @@
+{
+  "example_key": "قيمة المثال",
+  "another_key": "قيمة أخرى",
+  "nested": {
+    "key": "قيمة متداخلة"
+  },
+  "actions": {
+    "create": "إنشاء",
+    "update": "تحديث",
+    "delete": "حذف"
+  }
+}

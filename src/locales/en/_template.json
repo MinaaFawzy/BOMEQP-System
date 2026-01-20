@@ -1,0 +1,12 @@
+{
+  "example_key": "Example Value",
+  "another_key": "Another Value",
+  "nested": {
+    "key": "Nested Value"
+  },
+  "actions": {
+    "create": "Create",
+    "update": "Update",
+    "delete": "Delete"
+  }
+}

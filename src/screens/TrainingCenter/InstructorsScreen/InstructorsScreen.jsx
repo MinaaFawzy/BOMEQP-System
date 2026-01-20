@@ -2,12 +2,9 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
-import { getAuthToken } from '../../../config/api';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
-import axios from 'axios';
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText, User } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, Globe, Send, Building2, BookOpen, FileText, User, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -19,8 +16,10 @@ import FormInput from '../../../components/FormInput/FormInput';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 const TrainingCenterInstructorsScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,14 +52,20 @@ const TrainingCenterInstructorsScreen = () => {
     last_name: '',
     email: '',
     phone: '',
+    date_of_birth: '',
     id_number: '',
     cv: null,
+    passport: null,
     specializations: [],
     is_assessor: false,
   });
   const [cvFile, setCvFile] = useState(null);
   const [cvFileName, setCvFileName] = useState('');
   const [existingCvUrl, setExistingCvUrl] = useState('');
+  const [passportFile, setPassportFile] = useState(null);
+  const [passportFileName, setPassportFileName] = useState('');
+  const [existingPassportUrl, setExistingPassportUrl] = useState('');
+  const [resizingPassport, setResizingPassport] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -86,15 +91,15 @@ const TrainingCenterInstructorsScreen = () => {
   }, [page, perPage, debouncedSearchTerm, searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle('Instructors');
-    setHeaderSubtitle('Manage your instructors');
+    setHeaderTitle(t('instructors_screen.instructors'));
+    setHeaderSubtitle(t('instructors_screen.manage_your_instructors'));
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
         className="instructors-header-button"
       >
         <Plus size={20} className="instructors-header-button-icon" />
-        Add Instructor
+        {t('instructors_screen.add_instructor')}
       </button>
     );
     return () => {
@@ -172,8 +177,10 @@ const TrainingCenterInstructorsScreen = () => {
         last_name: instructor.last_name || '',
         email: instructor.email || '',
         phone: instructor.phone || '',
+        date_of_birth: instructor.date_of_birth || '',
         id_number: instructor.id_number || '',
         cv: null,
+        passport: null,
         specializations: Array.isArray(instructor.specializations)
           ? instructor.specializations
           : (instructor.specializations ? instructor.specializations.split(',').map(s => s.trim()).filter(s => s) : []),
@@ -182,6 +189,9 @@ const TrainingCenterInstructorsScreen = () => {
       setCvFile(null);
       setCvFileName('');
       setExistingCvUrl(instructor.cv_url || '');
+      setPassportFile(null);
+      setPassportFileName('');
+      setExistingPassportUrl(instructor.passport_image_url || '');
     } else {
       setSelectedInstructor(null);
       setFormData({
@@ -189,14 +199,19 @@ const TrainingCenterInstructorsScreen = () => {
         last_name: '',
         email: '',
         phone: '',
+        date_of_birth: '',
         id_number: '',
         cv: null,
+        passport: null,
         specializations: [],
         is_assessor: false,
       });
       setCvFile(null);
       setCvFileName('');
       setExistingCvUrl('');
+      setPassportFile(null);
+      setPassportFileName('');
+      setExistingPassportUrl('');
     }
     setErrors({});
     setIsModalOpen(true);
@@ -210,14 +225,19 @@ const TrainingCenterInstructorsScreen = () => {
       last_name: '',
       email: '',
       phone: '',
+      date_of_birth: '',
       id_number: '',
       cv: null,
+      passport: null,
       specializations: [],
       is_assessor: false,
     });
     setCvFile(null);
     setCvFileName('');
     setExistingCvUrl('');
+    setPassportFile(null);
+    setPassportFileName('');
+    setExistingPassportUrl('');
     setErrors({});
   };
 
@@ -234,14 +254,14 @@ const TrainingCenterInstructorsScreen = () => {
     if (file) {
       // Validate file type
       if (file.type !== 'application/pdf') {
-        setErrors({ cv: 'Only PDF files are allowed' });
+        setErrors({ cv: t('instructors_screen.only_pdf_files_allowed') });
         e.target.value = ''; // Clear the input
         return;
       }
 
       // Validate file size (10MB = 10 * 1024 * 1024 bytes)
       if (file.size > 10 * 1024 * 1024) {
-        setErrors({ cv: 'File size must be less than 10MB' });
+        setErrors({ cv: t('instructors_screen.file_size_must_be_less_than_10mb') });
         e.target.value = ''; // Clear the input
         return;
       }
@@ -271,26 +291,166 @@ const TrainingCenterInstructorsScreen = () => {
     setErrors({});
   };
 
+  // Resize image function for passport
+  const resizePassportImage = (file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) => {
+    return new Promise((resolve) => {
+      // If it's a PDF, return as-is
+      if (file.type === 'application/pdf') {
+        resolve(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            } else {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          // Create canvas and resize
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const resizedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now(),
+                });
+                resolve(resizedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePassportFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        setErrors({ passport: t('instructors_screen.file_must_be_jpeg_jpg_png_or_pdf') });
+        return;
+      }
+      // Validate file size (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors({ passport: t('instructors_screen.file_size_must_be_less_than_10mb') });
+        return;
+      }
+
+      setResizingPassport(true);
+      try {
+        // Resize image if it's an image file (not PDF)
+        let processedFile = file;
+        if (file.type.startsWith('image/')) {
+          processedFile = await resizePassportImage(file);
+          console.log(`Passport image resized: ${file.size} bytes -> ${processedFile.size} bytes`);
+        }
+
+        setPassportFile(processedFile);
+        setPassportFileName(processedFile.name);
+        setFormData({
+          ...formData,
+          passport: processedFile,
+        });
+
+        // Clear any previous passport errors
+        if (errors.passport) {
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.passport;
+            return newErrors;
+          });
+        }
+      } catch (error) {
+        console.error('Error processing passport image:', error);
+        setErrors({ passport: t('instructors_screen.failed_to_process_image') });
+      } finally {
+        setResizingPassport(false);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setErrors({});
 
-    // Validation
+    // Validation - All fields are now required per API update
     const validationErrors = {};
-    const firstNameError = validateRequired(formData.first_name, 'First name');
+
+    // Required text fields
+    const firstNameError = validateRequired(formData.first_name, t('instructors_screen.first_name'));
     if (firstNameError) validationErrors.first_name = firstNameError;
-    const lastNameError = validateRequired(formData.last_name, 'Last name');
+
+    const lastNameError = validateRequired(formData.last_name, t('instructors_screen.last_name'));
     if (lastNameError) validationErrors.last_name = lastNameError;
+
     const emailError = validateEmail(formData.email);
     if (emailError) validationErrors.email = emailError;
-    if (formData.phone) {
-      const phoneError = validatePhone(formData.phone, 10);
-      if (phoneError) validationErrors.phone = phoneError;
+
+    const phoneError = validateRequired(formData.phone, t('instructors_screen.phone'));
+    if (phoneError) {
+      validationErrors.phone = phoneError;
+    } else {
+      const phoneFormatError = validatePhone(formData.phone, 10);
+      if (phoneFormatError) validationErrors.phone = phoneFormatError;
     }
-    if (formData.id_number) {
-      const idError = validateUKID(formData.id_number, 'ID number');
-      if (idError) validationErrors.id_number = idError;
+
+    // Date of birth validation
+    const dobError = validateRequired(formData.date_of_birth, t('instructors_screen.date_of_birth'));
+    if (dobError) {
+      validationErrors.date_of_birth = dobError;
+    } else {
+      // Validate that date is before today
+      const dob = new Date(formData.date_of_birth);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dob >= today) {
+        validationErrors.date_of_birth = t('instructors_screen.date_of_birth_must_be_before_today');
+      }
+    }
+
+    // Languages validation (minimum 1 language required)
+    if (!formData.specializations || formData.specializations.length === 0) {
+      validationErrors.specializations = t('instructors_screen.at_least_one_language_required');
+    }
+
+    // File validations - required for create, optional for update
+    if (!selectedInstructor) {
+      if (!cvFile) {
+        validationErrors.cv = t('instructors_screen.cv_required');
+      }
+      if (!passportFile) {
+        validationErrors.passport = t('instructors_screen.passport_required');
+      }
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -301,51 +461,57 @@ const TrainingCenterInstructorsScreen = () => {
 
     try {
       // Check if we need FormData (if there's a file to upload)
-      // cvFile is a File object when a new file is selected
-      const hasFile = cvFile instanceof File;
+      const hasCvFile = cvFile instanceof File;
+      const hasPassportFile = passportFile instanceof File;
+      const hasFile = hasCvFile || hasPassportFile;
 
       let submitData;
 
       if (hasFile) {
-        // Use FormData ONLY when there's a file to upload
-        // Note: FormData is required for file uploads, JSON cannot handle files
+        // Use FormData when there's a file to upload
         submitData = new FormData();
         submitData.append('first_name', formData.first_name.trim());
         submitData.append('last_name', formData.last_name.trim());
         submitData.append('email', formData.email.trim());
+        submitData.append('phone', formData.phone.trim());
+        submitData.append('date_of_birth', formData.date_of_birth);
 
-        if (formData.phone?.trim()) {
-          submitData.append('phone', formData.phone.trim());
-        }
         if (formData.id_number?.trim()) {
           submitData.append('id_number', formData.id_number.trim());
         }
 
-        // Append CV file (must be a File object)
-        submitData.append('cv', cvFile);
+        // Append CV file if provided
+        if (hasCvFile) {
+          submitData.append('cv', cvFile);
+        }
 
-        // Append specializations as array
+        // Append Passport file if provided
+        if (hasPassportFile) {
+          submitData.append('passport', passportFile);
+        }
+
+        // Append languages (use 'languages' for API, backend accepts both)
         if (formData.specializations && formData.specializations.length > 0) {
           formData.specializations.forEach(spec => {
-            submitData.append('specializations[]', spec);
+            submitData.append('languages[]', spec);
           });
         }
 
-        // Append is_assessor - convert boolean to '1' or '0' for FormData
-        // Backend expects boolean, but FormData sends strings, so we send '1'/'0' which backend can convert to boolean
+        // Append is_assessor
         submitData.append('is_assessor', formData.is_assessor === true || formData.is_assessor === 'true' || formData.is_assessor === 1 || formData.is_assessor === '1' ? '1' : '0');
 
         console.log('📦 Using FormData (file upload required)');
       } else {
-        // Use JSON object (no file upload needed) - cleaner and faster
+        // Use JSON object (no file upload needed)
         submitData = {
           first_name: formData.first_name.trim(),
           last_name: formData.last_name.trim(),
           email: formData.email.trim(),
-          phone: formData.phone?.trim() || null,
+          phone: formData.phone.trim(),
+          date_of_birth: formData.date_of_birth,
           id_number: formData.id_number?.trim() || null,
-          specializations: formData.specializations || [],
-          is_assessor: formData.is_assessor, // Boolean value (not string)
+          languages: formData.specializations || [], // Use 'languages' field name
+          is_assessor: formData.is_assessor,
         };
 
         console.log('📄 Using JSON (no file upload):', JSON.stringify(submitData, null, 2));
@@ -387,7 +553,7 @@ const TrainingCenterInstructorsScreen = () => {
       } else if (error.errors) {
         setErrors(error.errors);
       } else {
-        setErrors({ general: error.message || 'Failed to save instructor' });
+        setErrors({ general: error.message || t('training_center.instructors_screen.failed_to_save_instructor') });
       }
     } finally {
       setSaving(false);
@@ -404,7 +570,7 @@ const TrainingCenterInstructorsScreen = () => {
       await trainingCenterAPI.deleteInstructor(selectedInstructor.id);
       await loadInstructors(page, perPage);
     } catch (error) {
-      alert('Failed to delete instructor: ' + (error.message || 'Unknown error'));
+      alert(t('training_center.instructors_screen.failed_to_delete_instructor') + ': ' + (error.message || 'Unknown error'));
     }
     setIsDeleteDialogOpen(false);
     setSelectedInstructor(null);
@@ -629,13 +795,13 @@ const TrainingCenterInstructorsScreen = () => {
     try {
       // Validate
       if (!requestForm.acc_id) {
-        setRequestErrors({ general: 'Please select an ACC' });
+        setRequestErrors({ general: t('training_center.instructors_screen.please_select_acc') });
         setRequesting(false);
         return;
       }
 
       if (!requestForm.course_ids || requestForm.course_ids.length === 0) {
-        setRequestErrors({ general: 'Please select at least one course or category' });
+        setRequestErrors({ general: t('training_center.instructors_screen.please_select_at_least_one_course') });
         setRequesting(false);
         return;
       }
@@ -663,8 +829,7 @@ const TrainingCenterInstructorsScreen = () => {
       setCourseSearchTerm('');
       setSelectedInstructor(null);
 
-      const coursesCount = response?.courses_count || requestForm.course_ids.length;
-      alert(`Authorization request submitted successfully! ${coursesCount} course(s) included.`);
+      alert(`${t('instructors_screen.authorization_request_submitted')} ${coursesCount} ${t('certificates').toLowerCase()} included.`);
     } catch (error) {
       console.error('Failed to submit request:', error);
       if (error.response?.data) {
@@ -679,7 +844,7 @@ const TrainingCenterInstructorsScreen = () => {
       } else if (error.message) {
         setRequestErrors({ general: error.message });
       } else {
-        setRequestErrors({ general: 'Failed to submit request. Please try again.' });
+        setRequestErrors({ general: t('training_center.instructors_screen.failed_to_submit_request') });
       }
     } finally {
       setRequesting(false);
@@ -697,7 +862,7 @@ const TrainingCenterInstructorsScreen = () => {
   // Define columns for DataTable
   const instructorsColumns = useMemo(() => [
     {
-      header: 'Instructor',
+      header: t('instructors_screen.instructor'),
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -742,14 +907,14 @@ const TrainingCenterInstructorsScreen = () => {
               {row.first_name} {row.last_name}
             </div>
             {row.id_number && (
-              <div className="instructors-column-id">ID: {row.id_number}</div>
+              <div className="instructors-column-id">{t('instructors_screen.id_number')}: {row.id_number}</div>
             )}
           </div>
         </div>
       )
     },
     {
-      header: 'Email',
+      header: t('instructors_screen.email'),
       accessor: 'email',
       sortable: true,
       render: (value) => (
@@ -760,7 +925,7 @@ const TrainingCenterInstructorsScreen = () => {
       )
     },
     {
-      header: 'Phone',
+      header: t('instructors_screen.phone'),
       accessor: 'phone',
       sortable: true,
       render: (value) => (
@@ -770,12 +935,12 @@ const TrainingCenterInstructorsScreen = () => {
             {value}
           </div>
         ) : (
-          <span className="instructors-column-na">N/A</span>
+          <span className="instructors-column-na">{t('instructors_screen.na')}</span>
         )
       )
     },
     {
-      header: 'Status',
+      header: t('instructors_screen.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => {
@@ -794,29 +959,29 @@ const TrainingCenterInstructorsScreen = () => {
         return (
           <span className={`instructors-column-status-badge ${statusClass}`}>
             <StatusIcon size={14} className="instructors-column-status-icon" />
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+            {value ? t(`instructors_screen.${value.toLowerCase()}`, value.charAt(0).toUpperCase() + value.slice(1)) : t('instructors_screen.na')}
           </span>
         );
       }
     },
     {
-      header: 'Type',
+      header: t('instructors_screen.type'),
       accessor: 'is_assessor',
       sortable: true,
       render: (value) => (
         value ? (
           <span className="instructors-column-type-badge-blue">
-            Assessor
+            {t('instructors_screen.assessor')}
           </span>
         ) : (
           <span className="instructors-column-type-badge-gray">
-            Instructor
+            {t('instructors_screen.instructor')}
           </span>
         )
       )
     },
     {
-      header: 'Actions',
+      header: t('instructors_screen.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -827,7 +992,7 @@ const TrainingCenterInstructorsScreen = () => {
               handleOpenModal(row);
             }}
             className="instructors-action-button instructors-action-button-edit"
-            title="Edit"
+            title={t('instructors_screen.edit_instructor')}
           >
             <Edit size={16} />
           </button>
@@ -837,7 +1002,7 @@ const TrainingCenterInstructorsScreen = () => {
               handleRequestAuthorization(row);
             }}
             className="instructors-action-button instructors-action-button-send"
-            title="Request Authorization"
+            title={t('instructors_screen.request_authorization')}
           >
             <Send size={16} />
           </button>
@@ -847,7 +1012,7 @@ const TrainingCenterInstructorsScreen = () => {
               handleDelete(row);
             }}
             className="instructors-action-button instructors-action-button-delete"
-            title="Delete"
+            title={t('instructors_screen.delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -874,7 +1039,7 @@ const TrainingCenterInstructorsScreen = () => {
       {/* Stats Cards */}
       <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
         <TabCard
-          name="Total Instructors"
+          name={t('instructors_screen.total_instructors')}
           value={totalCount}
           icon={Users}
           colorType="indigo"
@@ -882,7 +1047,7 @@ const TrainingCenterInstructorsScreen = () => {
           onClick={() => setStatusFilter('all')}
         />
         <TabCard
-          name="Active"
+          name={t('instructors_screen.active')}
           value={activeCount}
           icon={CheckCircle}
           colorType="green"
@@ -890,7 +1055,7 @@ const TrainingCenterInstructorsScreen = () => {
           onClick={() => setStatusFilter('active')}
         />
         <TabCard
-          name="Pending"
+          name={t('instructors_screen.pending')}
           value={pendingCount}
           icon={Clock}
           colorType="yellow"
@@ -898,7 +1063,7 @@ const TrainingCenterInstructorsScreen = () => {
           onClick={() => setStatusFilter('pending')}
         />
         <TabCard
-          name="Suspended"
+          name={t('instructors_screen.suspended')}
           value={suspendedCount}
           icon={XCircle}
           colorType="red"
@@ -916,8 +1081,8 @@ const TrainingCenterInstructorsScreen = () => {
           searchable={true}
           sortable={true}
           filterable={true}
-          searchPlaceholder="Search by instructor name, email, or id number..."
-          emptyMessage="No instructors found"
+          searchPlaceholder={t('instructors_screen.search_instructors_placeholder')}
+          emptyMessage={t('instructors_screen.no_instructors_found')}
           defaultFilter={statusFilter}
           searchValue={searchTerm}
           onSearch={(value) => {
@@ -925,11 +1090,11 @@ const TrainingCenterInstructorsScreen = () => {
             setPage(1);
           }}
           filterOptions={[
-            { value: 'all', label: 'All Status', filterFn: null },
-            { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
-            { value: 'pending', label: 'Pending', filterFn: (row) => row.status === 'pending' },
-            { value: 'suspended', label: 'Suspended', filterFn: (row) => row.status === 'suspended' },
-            { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+            { value: 'all', label: t('instructors_screen.all_status'), filterFn: null },
+            { value: 'active', label: t('instructors_screen.active'), filterFn: (row) => row.status === 'active' },
+            { value: 'pending', label: t('instructors_screen.pending'), filterFn: (row) => row.status === 'pending' },
+            { value: 'suspended', label: t('instructors_screen.suspended'), filterFn: (row) => row.status === 'suspended' },
+            { value: 'inactive', label: t('instructors_screen.inactive'), filterFn: (row) => row.status === 'inactive' },
           ]}
           onRowClick={(instructor) => handleViewDetails(instructor)}
         />
@@ -954,13 +1119,13 @@ const TrainingCenterInstructorsScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedInstructor ? 'Edit Instructor' : 'Add New Instructor'}
+        title={selectedInstructor ? t('instructors_screen.edit_instructor') : t('instructors_screen.add_instructor')}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="instructors-form">
           <div className="instructors-form-grid">
             <FormInput
-              label="First Name"
+              label={t('instructors_screen.first_name')}
               name="first_name"
               value={formData.first_name}
               onChange={handleChange}
@@ -969,7 +1134,7 @@ const TrainingCenterInstructorsScreen = () => {
             />
 
             <FormInput
-              label="Last Name"
+              label={t('instructors_screen.last_name')}
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
@@ -980,39 +1145,51 @@ const TrainingCenterInstructorsScreen = () => {
 
           <div className="instructors-form-grid">
             <FormInput
-              label="Email"
+              label={t('instructors_screen.email')}
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
               error={errors.email}
-              placeholder="example@example.com"
+              placeholder={t('instructors_screen.example_email')}
             />
 
             <FormInput
-              label="Phone"
+              label={t('instructors_screen.phone')}
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               error={errors.phone}
-              placeholder="Enter phone number (10-13 digits)"
+              placeholder={t('instructors_screen.enter_phone_number')}
             />
           </div>
 
-          <FormInput
-            label="ID Number"
-            name="id_number"
-            value={formData.id_number}
-            onChange={handleChange}
-            error={errors.id_number}
-            placeholder="Enter ID number (minimum 8 characters)"
-          />
+          <div className="instructors-form-grid">
+            <FormInput
+              label={t('instructors_screen.date_of_birth')}
+              type="date"
+              name="date_of_birth"
+              value={formData.date_of_birth}
+              onChange={handleChange}
+              required
+              error={errors.date_of_birth}
+            />
+
+            <FormInput
+              label={t('instructors_screen.id_number')}
+              name="id_number"
+              value={formData.id_number}
+              onChange={handleChange}
+              error={errors.id_number}
+              placeholder={t('instructors_screen.enter_id_number')}
+            />
+          </div>
 
           <div>
             <label className="instructors-cv-label">
-              CV / Resume (PDF)
+              {t('instructors_screen.cv_resume_pdf')}
             </label>
 
             {/* Current CV Display */}
@@ -1024,8 +1201,8 @@ const TrainingCenterInstructorsScreen = () => {
                       <FileText className="text-white" size={20} />
                     </div>
                     <div>
-                      <p className="instructors-cv-text-title">Current CV</p>
-                      <p className="instructors-cv-text-hint">Click to view your current CV</p>
+                      <p className="instructors-cv-text-title">{t('instructors_screen.cv')}</p>
+                      <p className="instructors-cv-text-hint">{t('instructors_screen.click_to_view_current_cv')}</p>
                     </div>
                   </div>
                   <a
@@ -1035,7 +1212,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-link"
                   >
                     <FileText size={14} className="instructors-cv-link-icon" />
-                    View CV
+                    {t('instructors_screen.view_cv')}
                   </a>
                 </div>
               </div>
@@ -1061,20 +1238,20 @@ const TrainingCenterInstructorsScreen = () => {
                         <p className="instructors-upload-text-title">
                           {cvFileName}
                         </p>
-                        <p className="instructors-upload-text-hint">Click to change file</p>
+                        <p className="instructors-upload-text-hint">{t('instructors_screen.click_to_change_file')}</p>
                       </>
                     ) : (
                       <>
                         <p className="instructors-upload-text-title">
-                          {existingCvUrl ? 'Update CV' : 'Upload CV'}
+                          {existingCvUrl ? t('instructors_screen.update_cv') : t('instructors_screen.upload_cv')}
                         </p>
                         <p className="instructors-upload-text-hint">
-                          Click to select PDF document
+                          {t('instructors_screen.click_to_select_pdf')}
                         </p>
                       </>
                     )}
                     <p className="instructors-upload-text-small">
-                      PDF only, maximum 10MB
+                      {t('instructors_screen.pdf_only_max_10mb')}
                     </p>
                   </div>
                 </div>
@@ -1084,7 +1261,7 @@ const TrainingCenterInstructorsScreen = () => {
                 <div className="instructors-file-selected-box">
                   <CheckCircle className="text-green-600" size={18} />
                   <p className="instructors-file-selected-text">
-                    <span className="instructors-file-selected-bold">Selected:</span> {cvFileName}
+                    <span className="instructors-file-selected-bold">{t('instructors_screen.selected')}:</span> {cvFileName}
                   </p>
                 </div>
               )}
@@ -1097,8 +1274,105 @@ const TrainingCenterInstructorsScreen = () => {
             </div>
           </div>
 
+          {/* Passport Upload */}
+          <div>
+            <label className="instructors-cv-label">
+              {t('instructors_screen.passport_copy')} <span className="text-red-500">*</span>
+            </label>
+
+            {/* Current Passport Display */}
+            {existingPassportUrl && !passportFile && (
+              <div className="instructors-cv-display-box">
+                <div className="instructors-cv-display-flex">
+                  <div className="instructors-cv-display-inner">
+                    <div className="instructors-cv-icon-wrapper">
+                      <FileText className="text-white" size={20} />
+                    </div>
+                    <div>
+                      <p className="instructors-cv-text-title">{t('instructors_screen.passport')}</p>
+                      <p className="instructors-cv-text-hint">{t('instructors_screen.click_to_view_current_passport')}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={existingPassportUrl.startsWith('http') ? existingPassportUrl : `${API_BASE_URL}${existingPassportUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="instructors-cv-link"
+                  >
+                    <FileText size={14} className="instructors-cv-link-icon" />
+                    {t('instructors_screen.view_passport')}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Upload Area */}
+            {resizingPassport ? (
+              <div className="instructors-upload-area">
+                <div className="instructors-upload-div">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <p className="instructors-upload-text-title">{t('instructors_screen.resizing_image')}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="instructors-upload-area">
+                <label className="instructors-upload-label">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,application/pdf"
+                    onChange={handlePassportFileChange}
+                    className="instructors-upload-input"
+                    id="passport-upload-input"
+                  />
+                  <div className="instructors-upload-div">
+                    <div className="instructors-upload-inner">
+                      <div className="instructors-upload-icon-wrapper">
+                        <FileText className="text-primary-600" size={24} />
+                      </div>
+                      {passportFileName ? (
+                        <>
+                          <p className="instructors-upload-text-title">
+                            {passportFileName}
+                          </p>
+                          <p className="instructors-upload-text-hint">{t('instructors_screen.click_to_change_file')}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="instructors-upload-text-title">
+                            {existingPassportUrl ? t('instructors_screen.update_passport') : t('instructors_screen.upload_passport')}
+                          </p>
+                          <p className="instructors-upload-text-hint">
+                            {t('instructors_screen.click_to_select_document')}
+                          </p>
+                        </>
+                      )}
+                      <p className="instructors-upload-text-small">
+                        {t('instructors_screen.jpeg_png_pdf_only_max_10mb')}
+                      </p>
+                    </div>
+                  </div>
+                </label>
+
+                {passportFileName && (
+                  <div className="instructors-file-selected-box">
+                    <CheckCircle className="text-green-600" size={18} />
+                    <p className="instructors-file-selected-text">
+                      <span className="instructors-file-selected-bold">{t('instructors_screen.selected')}:</span> {passportFileName}
+                    </p>
+                  </div>
+                )}
+
+                {errors.passport && (
+                  <div className="instructors-error-box">
+                    <p className="instructors-error-text">{Array.isArray(errors.passport) ? errors.passport[0] : errors.passport}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <LanguageSelector
-            label="Languages"
+            label={t('instructors_screen.languages')}
             value={formData.specializations}
             onChange={handleSpecializationsChange}
             error={errors.specializations}
@@ -1117,10 +1391,10 @@ const TrainingCenterInstructorsScreen = () => {
               className="instructors-checkbox"
             />
             <label htmlFor="is_assessor" className="instructors-checkbox-label">
-              Is Assessor
+              {t('instructors_screen.is_assessor')}
             </label>
           </div>
-          <p className="instructors-helper-text">Mark this instructor as an assessor</p>
+          <p className="instructors-helper-text">{t('instructors_screen.mark_as_assessor')}</p>
 
           {errors.general && (
             <div className="instructors-error-box">
@@ -1143,14 +1417,14 @@ const TrainingCenterInstructorsScreen = () => {
               onClick={handleCloseModal}
               className="instructors-button-cancel"
             >
-              Cancel
+              {t('instructors_screen.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="instructors-button-submit"
             >
-              {saving ? 'Saving...' : selectedInstructor ? 'Update Instructor' : 'Add Instructor'}
+              {saving ? t('instructors_screen.saving') : selectedInstructor ? t('instructors_screen.update_instructor') : t('instructors_screen.add_instructor')}
             </button>
           </div>
         </form>
@@ -1163,7 +1437,7 @@ const TrainingCenterInstructorsScreen = () => {
           setDetailModalOpen(false);
           setSelectedInstructor(null);
         }}
-        title="Instructor Details"
+        title={t('instructors_screen.instructor_details')}
         size="lg"
       >
         {selectedInstructor && (
@@ -1171,27 +1445,28 @@ const TrainingCenterInstructorsScreen = () => {
             <DetailForm
               data={selectedInstructor}
               fields={[
-                { key: 'first_name', label: 'First Name', icon: User },
-                { key: 'last_name', label: 'Last Name', icon: User },
-                { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                { key: 'phone', label: 'Phone', icon: Phone },
-                { key: 'id_number', label: 'ID Number', showEmpty: false },
+                { key: 'first_name', label: t('instructors_screen.first_name'), icon: User },
+                { key: 'last_name', label: t('instructors_screen.last_name'), icon: User },
+                { key: 'email', label: t('instructors_screen.email'), type: 'email', icon: Mail },
+                { key: 'phone', label: t('instructors_screen.phone'), icon: Phone },
+                { key: 'date_of_birth', label: t('instructors_screen.date_of_birth'), type: 'date', icon: Calendar, showEmpty: false },
+                { key: 'id_number', label: t('instructors_screen.id_number'), showEmpty: false },
                 {
                   key: 'is_assessor',
-                  label: 'Type',
-                  transform: (value) => value ? 'Assessor' : 'Instructor',
+                  label: t('instructors_screen.type'),
+                  transform: (value) => value ? t('instructors_screen.assessor') : t('instructors_screen.instructor'),
                   render: (value) => (
-                    <span className={`detail-form-badge ${value === 'Assessor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <span className={`detail-form-badge ${value === (t('instructors_screen.assessor') || 'Assessor') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                       {value}
                     </span>
                   )
                 },
-                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'status', label: t('instructors_screen.status'), type: 'status' },
               ]}
             />
             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
               <div>
-                <h3 className="instructors-specializations-title">Specializations / Languages</h3>
+                <h3 className="instructors-specializations-title">{t('instructors_screen.specializations_languages')}</h3>
                 <div className="instructors-specializations-list">
                   {Array.isArray(selectedInstructor.specializations) ? (
                     selectedInstructor.specializations.map((spec, index) => (
@@ -1209,7 +1484,7 @@ const TrainingCenterInstructorsScreen = () => {
             )}
             {selectedInstructor.languages && selectedInstructor.languages.length > 0 && (
               <div>
-                <h3 className="instructors-specializations-title">Languages</h3>
+                <h3 className="instructors-specializations-title">{t('instructors_screen.languages')}</h3>
                 <div className="instructors-specializations-list">
                   {Array.isArray(selectedInstructor.languages) ? (
                     selectedInstructor.languages.map((lang, index) => (
@@ -1227,10 +1502,10 @@ const TrainingCenterInstructorsScreen = () => {
             )}
             {selectedInstructor.certificates_json && Array.isArray(selectedInstructor.certificates_json) && selectedInstructor.certificates_json.length > 0 && (
               <div>
-                <h3 className="instructors-specializations-title">Certificates</h3>
+                <h3 className="instructors-specializations-title">{t('certificates')}</h3>
                 <div className="instructors-certificates-list">
                   {selectedInstructor.certificates_json.map((cert, index) => {
-                    const certName = typeof cert === 'object' ? (cert.name || cert.title || cert.certificate_name || 'Certificate') : cert;
+                    const certName = typeof cert === 'object' ? (cert.name || cert.title || cert.certificate_name || t('instructors_screen.instructor')) : cert;
                     const certDate = typeof cert === 'object' && cert.date ? cert.date : null;
                     const certUrl = typeof cert === 'object' && cert.url ? cert.url : (typeof cert === 'object' && cert.file_url ? cert.file_url : null);
 
@@ -1253,7 +1528,7 @@ const TrainingCenterInstructorsScreen = () => {
                                 </p>
                               )}
                               {!certDate && (
-                                <p className="instructors-certificate-text-hint">Certificate document</p>
+                                <p className="instructors-certificate-text-hint">{t('instructors_screen.click_to_select_document')}</p>
                               )}
                             </div>
                           </div>
@@ -1265,7 +1540,7 @@ const TrainingCenterInstructorsScreen = () => {
                               className="instructors-certificate-link"
                             >
                               <FileText size={14} className="instructors-certificate-link-icon" />
-                              View PDF
+                              {t('instructors_screen.view_cv')}
                             </a>
                           )}
                         </div>
@@ -1279,18 +1554,18 @@ const TrainingCenterInstructorsScreen = () => {
               <div className="instructors-detail-item">
                 <p className="instructors-detail-label">
                   <Building2 size={16} className="instructors-detail-label-icon" />
-                  Training Center
+                  {t('title')}
                 </p>
                 <p className="instructors-detail-value">
                   {typeof selectedInstructor.training_center === 'object'
-                    ? selectedInstructor.training_center.name || selectedInstructor.training_center.email || 'N/A'
+                    ? selectedInstructor.training_center.name || selectedInstructor.training_center.email || t('instructors_screen.na')
                     : selectedInstructor.training_center}
                 </p>
               </div>
             )}
             {selectedInstructor.created_at && (
               <div className="instructors-detail-item">
-                <p className="instructors-detail-label">Created At</p>
+                <p className="instructors-detail-label">{t('created_at')}</p>
                 <p className="instructors-detail-value">
                   {new Date(selectedInstructor.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -1304,7 +1579,7 @@ const TrainingCenterInstructorsScreen = () => {
             )}
             {selectedInstructor.updated_at && (
               <div className="instructors-detail-item">
-                <p className="instructors-detail-label">Last Updated</p>
+                <p className="instructors-detail-label">{t('updated_at')}</p>
                 <p className="instructors-detail-value">
                   {new Date(selectedInstructor.updated_at).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -1324,8 +1599,8 @@ const TrainingCenterInstructorsScreen = () => {
                       <FileText className="text-white" size={28} />
                     </div>
                     <div>
-                      <p className="instructors-cv-box-text-title">Curriculum Vitae</p>
-                      <p className="instructors-cv-box-text-hint">Click the button to view the instructor's CV</p>
+                      <p className="instructors-cv-box-text-title">{t('instructors_screen.cv')}</p>
+                      <p className="instructors-cv-box-text-hint">{t('instructors_screen.click_to_view_current_cv')}</p>
                     </div>
                   </div>
                   <a
@@ -1337,7 +1612,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-box-link"
                   >
                     <FileText size={18} className="instructors-cv-box-link-icon" />
-                    View CV
+                    {t('instructors_screen.view_cv')}
                   </a>
                 </div>
               </div>
@@ -1354,9 +1629,9 @@ const TrainingCenterInstructorsScreen = () => {
           setSelectedInstructor(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Instructor"
-        message={`Are you sure you want to delete "${selectedInstructor?.first_name} ${selectedInstructor?.last_name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('instructors_screen.delete_instructor')}
+        message={t('instructors_screen.delete_confirmation_message', { name: `${selectedInstructor?.first_name} ${selectedInstructor?.last_name}` })}
+        confirmText={t('instructors_screen.delete')}
         variant="danger"
       />
 
@@ -1377,7 +1652,7 @@ const TrainingCenterInstructorsScreen = () => {
           setSubCategoriesMap({});
           setCourseSearchTerm('');
         }}
-        title={`Request Authorization for ${selectedInstructor ? `${selectedInstructor.first_name} ${selectedInstructor.last_name}` : 'Instructor'}`}
+        title={t('instructors_screen.request_authorization_for', { name: selectedInstructor ? `${selectedInstructor.first_name} ${selectedInstructor.last_name}` : t('instructors_screen.instructor') })}
         size="lg"
       >
         <form onSubmit={handleRequestSubmit} className="instructors-request-form">
@@ -1388,7 +1663,7 @@ const TrainingCenterInstructorsScreen = () => {
           )}
 
           <FormInput
-            label="Accreditation Body"
+            label={t('instructors_screen.accreditation_body')}
             name="acc_id"
             type="select"
             value={requestForm.acc_id}
@@ -1399,25 +1674,25 @@ const TrainingCenterInstructorsScreen = () => {
                 value: acc.id,
                 label: acc.name || `Accreditation Body ${acc.id}`,
               }))
-              : [{ value: '', label: 'No approved Accreditation Bodies available' }]
+              : [{ value: '', label: t('instructors_screen.no_approved_acc_available') }]
             }
             error={requestErrors.acc_id}
             disabled={accs.length === 0}
           />
           {accs.length === 0 && (
             <p className="instructors-request-warning">
-              No approved Accreditation Bodies found. Please request and get approval from an Accreditation Body first.
+              {t('instructors_screen.no_approved_acc_found')}
             </p>
           )}
 
           {/* Courses Tree */}
           <div>
             <label className="instructors-request-label">
-              Select Courses for Authorization <span className="instructors-request-label-required">*</span>
+              {t('instructors_screen.select_courses_for_authorization')} <span className="instructors-request-label-required">*</span>
             </label>
 
             {!requestForm.acc_id ? (
-              <p className="instructors-request-warning">Please select Accreditation Body first</p>
+              <p className="instructors-request-warning">{t('instructors_screen.please_select_acc')}</p>
             ) : (
               <>
                 {/* Search bar */}
@@ -1429,15 +1704,15 @@ const TrainingCenterInstructorsScreen = () => {
                       type="text"
                       value={courseSearchTerm}
                       onChange={(e) => setCourseSearchTerm(e.target.value)}
-                      placeholder="Search courses..."
+                      placeholder={t('instructors_screen.search_courses')}
                     />
                   </div>
                 )}
 
                 {loadingTree ? (
-                  <p className="instructors-request-warning">Loading categories and courses...</p>
+                  <p className="instructors-request-warning">{t('instructors_screen.load_categories_courses')}</p>
                 ) : categories.length === 0 ? (
-                  <p className="instructors-request-warning">No categories found for this ACC.</p>
+                  <p className="instructors-request-warning">{t('instructors_screen.no_categories_found')}</p>
                 ) : (
                   <div className="instructors-categories-container">
                     {categories.map(category => {
@@ -1576,7 +1851,7 @@ const TrainingCenterInstructorsScreen = () => {
                                                   <span className="instructors-course-subcategory">({course.code})</span>
                                                 )}
                                                 {isAuthorized && (
-                                                  <span className="instructors-course-authorized-badge">Selected</span>
+                                                  <span className="instructors-course-authorized-badge">{t('instructors_screen.selected')}</span>
                                                 )}
                                               </div>
                                             </div>
@@ -1620,14 +1895,14 @@ const TrainingCenterInstructorsScreen = () => {
               }}
               className="instructors-button-cancel"
             >
-              Cancel
+              {t('instructors_screen.cancel')}
             </button>
             <button
               type="submit"
               disabled={requesting}
               className="instructors-button-submit"
             >
-              {requesting ? 'Submitting...' : 'Submit Request'}
+              {requesting ? t('instructors_screen.submitting') : t('instructors_screen.submit_request')}
             </button>
           </div>
         </form>

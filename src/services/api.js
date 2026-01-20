@@ -190,7 +190,7 @@ export const adminAPI = {
   // ACC Management
   getACCApplications: (params) => api.get('/admin/accs/applications', { params }),
   getACCApplication: (id) => api.get(`/admin/accs/applications/${id}`),
-  approveACCApplication: (id) => api.put(`/admin/accs/applications/${id}/approve`),
+  approveACCApplication: (id, data) => api.put(`/admin/accs/applications/${id}/approve`, data),
   rejectACCApplication: (id, data) => api.put(`/admin/accs/applications/${id}/reject`, data),
   createACCSpace: (id) => api.post(`/admin/accs/${id}/create-space`),
   generateACCCredentials: (id) => api.post(`/admin/accs/${id}/generate-credentials`),
@@ -273,6 +273,24 @@ export const adminAPI = {
   getPendingPayments: (params) => api.get('/admin/code-batches/pending-payments', { params }),
   approvePayment: (id, data) => api.put(`/admin/code-batches/${id}/approve-payment`, data),
   rejectPayment: (id, data) => api.put(`/admin/code-batches/${id}/reject-payment`, data),
+
+  // Stripe Connect Admin Portal
+  getAllStripeConnectAccounts: (params) => api.get('/admin/stripe-connect/accounts', { params }),
+  getStripeConnectAccountDetails: (accountType, accountId) => api.get(`/admin/stripe-connect/accounts/${accountType}/${accountId}`),
+  initiateStripeConnect: (data) => api.post('/admin/stripe-connect/initiate', data),
+  getStripeConnectStatus: (accountType, accountId) => api.get(`/admin/stripe-connect/status/${accountType}/${accountId}`),
+  retryStripeConnect: (accountType, accountId) => api.post(`/admin/stripe-connect/retry/${accountType}/${accountId}`),
+  disconnectStripeConnect: (accountType, accountId) => api.delete(`/admin/stripe-connect/disconnect/${accountType}/${accountId}`),
+  resendStripeOnboardingLink: (data) => api.post('/admin/stripe-connect/resend-link', data),
+  getStripeConnectLogs: (params) => api.get('/admin/stripe-connect/logs', { params }),
+  getStripeConnectStats: () => api.get('/admin/stripe-connect/stats'),
+  getAdminActivityLogs: (params) => api.get('/admin/activity-logs', { params }),
+
+  // Automatic Transfer System
+  getAllTransfers: (params) => api.get('/admin/transfers', { params }),
+  getTransferDetails: (id) => api.get(`/admin/transfers/${id}`),
+  getTransferSummaryReport: (params) => api.get('/admin/transfers/reports/summary', { params }),
+  retryFailedTransfer: (id) => api.post(`/admin/transfers/${id}/retry`),
 };
 
 // ACC Admin APIs

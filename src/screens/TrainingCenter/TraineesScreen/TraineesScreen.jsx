@@ -14,8 +14,10 @@ import './TraineesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 const TraineesScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [trainees, setTrainees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,7 @@ const TraineesScreen = () => {
     last_name: '',
     email: '',
     phone: '',
+    nationality: '',
     id_number: '',
     id_image: null,
     card_image: null,
@@ -69,15 +72,15 @@ const TraineesScreen = () => {
   }, [page, perPage, debouncedSearchTerm, searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle('Trainees');
-    setHeaderSubtitle('Manage your trainees');
+    setHeaderTitle(t('trainees.header.title'));
+    setHeaderSubtitle(t('trainees.header.subtitle'));
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
         className="trainees-header-button"
       >
         <Plus size={20} className="trainees-header-button-icon" />
-        Add Trainee
+        {t('trainees.actions.addTrainee')}
       </button>
     );
     return () => {
@@ -153,6 +156,7 @@ const TraineesScreen = () => {
         last_name: trainee.last_name || '',
         email: trainee.email || '',
         phone: trainee.phone || '',
+        nationality: trainee.nationality || '',
         id_number: trainee.id_number || '',
         id_image: null,
         card_image: null,
@@ -168,6 +172,7 @@ const TraineesScreen = () => {
         last_name: '',
         email: '',
         phone: '',
+        nationality: '',
         id_number: '',
         id_image: null,
         card_image: null,
@@ -189,6 +194,7 @@ const TraineesScreen = () => {
       last_name: '',
       email: '',
       phone: '',
+      nationality: '',
       id_number: '',
       id_image: null,
       card_image: null,
@@ -275,12 +281,13 @@ const TraineesScreen = () => {
       // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
       if (!validTypes.includes(file.type)) {
-        setErrors({ [type]: 'File must be jpeg, jpg, png, or pdf' });
+        setErrors({ [type]: t('trainees.errors.fileType') });
+
         return;
       }
       // Validate file size (10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setErrors({ [type]: 'File size must be less than 10MB' });
+        setErrors({ [type]: t('trainees.errors.fileSize') });
         return;
       }
 
@@ -315,7 +322,7 @@ const TraineesScreen = () => {
         setErrors({});
       } catch (error) {
         console.error('Error processing image:', error);
-        setErrors({ [type]: 'Failed to process image. Please try again.' });
+        setErrors({ [type]: t('trainees.errors.fileProcessing') });
       } finally {
         setResizingImage(null);
       }
@@ -351,24 +358,46 @@ const TraineesScreen = () => {
     setSaving(true);
     setErrors({});
 
-    // Validation
+    // Validation - All fields are now required per API update
     const validationErrors = {};
-    if (!selectedTrainee) {
-      // For create mode, validate required fields
-      const firstNameError = validateRequired(formData.first_name, 'First name');
-      if (firstNameError) validationErrors.first_name = firstNameError;
-      const lastNameError = validateRequired(formData.last_name, 'Last name');
-      if (lastNameError) validationErrors.last_name = lastNameError;
-    }
+
+    // Required text fields
+    const firstNameError = validateRequired(formData.first_name, 'First name');
+    if (firstNameError) validationErrors.first_name = firstNameError;
+
+    const lastNameError = validateRequired(formData.last_name, 'Last name');
+    if (lastNameError) validationErrors.last_name = lastNameError;
+
     const emailError = validateEmail(formData.email);
     if (emailError) validationErrors.email = emailError;
-    if (formData.phone) {
-      const phoneError = validatePhone(formData.phone, 10);
-      if (phoneError) validationErrors.phone = phoneError;
+
+    const phoneError = validateRequired(formData.phone, 'Phone');
+    if (phoneError) {
+      validationErrors.phone = phoneError;
+    } else {
+      const phoneFormatError = validatePhone(formData.phone, 10);
+      if (phoneFormatError) validationErrors.phone = phoneFormatError;
     }
-    if (formData.id_number) {
-      const idError = validateUKID(formData.id_number, 'ID number');
-      if (idError) validationErrors.id_number = idError;
+
+    const nationalityError = validateRequired(formData.nationality, 'Nationality');
+    if (nationalityError) validationErrors.nationality = nationalityError;
+
+    const idNumberError = validateRequired(formData.id_number, 'ID number');
+    if (idNumberError) {
+      validationErrors.id_number = idNumberError;
+    } else {
+      const idFormatError = validateUKID(formData.id_number, 'ID number');
+      if (idFormatError) validationErrors.id_number = idFormatError;
+    }
+
+    // File validations - required for create, optional for update
+    if (!selectedTrainee) {
+      if (!formData.id_image) {
+        validationErrors.id_image = t('trainees.errors.idImageRequired');
+      }
+      if (!formData.card_image) {
+        validationErrors.card_image = t('trainees.errors.cardImageRequired');
+      }
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -383,8 +412,8 @@ const TraineesScreen = () => {
       if (selectedTrainee) {
         console.log('🔄 Starting UPDATE for trainee ID:', selectedTrainee.id);
 
-        // Step 1: Build FormData - Only include fields you want to update (partial updates)
-        // Text fields - only append if field has value
+        // Step 1: Build FormData - All fields are required per API update
+        // Text fields - all required
         if (formData.first_name !== undefined && formData.first_name !== null && formData.first_name.trim()) {
           submitFormData.append('first_name', formData.first_name.trim());
         }
@@ -396,6 +425,9 @@ const TraineesScreen = () => {
         }
         if (formData.phone !== undefined && formData.phone !== null && formData.phone.trim()) {
           submitFormData.append('phone', formData.phone.trim());
+        }
+        if (formData.nationality !== undefined && formData.nationality !== null && formData.nationality.trim()) {
+          submitFormData.append('nationality', formData.nationality.trim());
         }
         if (formData.id_number !== undefined && formData.id_number !== null && formData.id_number.trim()) {
           submitFormData.append('id_number', formData.id_number.trim());
@@ -464,6 +496,7 @@ const TraineesScreen = () => {
         submitFormData.append('last_name', formData.last_name.trim());
         submitFormData.append('email', formData.email.trim());
         submitFormData.append('phone', formData.phone.trim());
+        submitFormData.append('nationality', formData.nationality.trim());
         submitFormData.append('id_number', formData.id_number.trim());
         submitFormData.append('status', formData.status);
 
@@ -525,7 +558,7 @@ const TraineesScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: error.message || 'Failed to save trainee' });
+        setErrors({ general: error.message || t('trainees.errors.unknown') });
       }
     } finally {
       setSaving(false);
@@ -542,7 +575,7 @@ const TraineesScreen = () => {
       await trainingCenterAPI.deleteTrainee(selectedTrainee.id);
       await loadTrainees(page, perPage);
     } catch (error) {
-      alert('Failed to delete trainee: ' + (error.message || 'Unknown error'));
+      alert(t('trainees.errors.deleteFailedPrefix') + (error.message || t('trainees.errors.unknown')));
     }
     setIsDeleteDialogOpen(false);
     setSelectedTrainee(null);
@@ -569,7 +602,7 @@ const TraineesScreen = () => {
   // Define columns for DataTable
   const traineesColumns = useMemo(() => [
     {
-      header: 'Trainee',
+      header: t('trainees.table.columns.trainee'),
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -618,7 +651,7 @@ const TraineesScreen = () => {
       )
     },
     {
-      header: 'Email',
+      header: t('trainees.table.columns.email'),
       accessor: 'email',
       sortable: true,
       render: (value) => (
@@ -629,7 +662,7 @@ const TraineesScreen = () => {
       )
     },
     {
-      header: 'Phone',
+      header: t('trainees.table.columns.phone'),
       accessor: 'phone',
       sortable: true,
       render: (value) => (
@@ -639,20 +672,28 @@ const TraineesScreen = () => {
             {value}
           </div>
         ) : (
-          <span className="trainees-column-na">N/A</span>
+          <span className="trainees-column-na">{t('trainees.common.na')}</span>
         )
       )
     },
     {
-      header: 'ID Number',
-      accessor: 'id_number',
+      header: t('trainees.table.columns.nationality'),
+      accessor: 'nationality',
       sortable: true,
       render: (value) => (
-        <span className="trainees-column-id-number">{value || 'N/A'}</span>
+        <span className="trainees-column-nationality">{value || t('trainees.common.na')}</span>
       )
     },
     {
-      header: 'Status',
+      header: t('trainees.table.columns.idNumber'),
+      accessor: 'id_number',
+      sortable: true,
+      render: (value) => (
+        <span className="trainees-column-id-number">{value || t('trainees.common.na')}</span>
+      )
+    },
+    {
+      header: t('trainees.table.columns.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => {
@@ -666,13 +707,13 @@ const TraineesScreen = () => {
         return (
           <span className={`trainees-column-status-badge ${config.class}`}>
             <StatusIcon size={14} className="trainees-column-status-icon" />
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+            {value ? t(`trainees.status.${value}`) : t('trainees.common.na')}
           </span>
         );
       }
     },
     {
-      header: 'Classes',
+      header: t('trainees.table.columns.classes'),
       accessor: 'training_classes',
       sortable: false,
       render: (value) => (
@@ -682,12 +723,12 @@ const TraineesScreen = () => {
             <span className="trainees-column-classes-count">{value.length}</span>
           </div>
         ) : (
-          <span className="trainees-column-na">0</span>
+          <span className="trainees-column-na">{t('trainees.common.zero')}</span>
         )
       )
     },
     {
-      header: 'Actions',
+      header: t('trainees.table.columns.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -698,7 +739,7 @@ const TraineesScreen = () => {
               handleOpenModal(row);
             }}
             className="trainees-action-button trainees-action-button-edit"
-            title="Edit"
+            title={t('trainees.actions.edit')}
           >
             <Edit size={16} />
           </button>
@@ -708,7 +749,7 @@ const TraineesScreen = () => {
               handleDelete(row);
             }}
             className="trainees-action-button trainees-action-button-delete"
-            title="Delete"
+            title={t('trainees.actions.delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -727,7 +768,7 @@ const TraineesScreen = () => {
       {/* Stats Cards */}
       <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
         <TabCard
-          name="Total Trainees"
+          name={t('trainees.stats.total')}
           value={totalCount}
           icon={UserCheck}
           colorType="indigo"
@@ -735,7 +776,7 @@ const TraineesScreen = () => {
           onClick={() => setStatusFilter('all')}
         />
         <TabCard
-          name="Active"
+          name={t('trainees.status.active')}
           value={activeCount}
           icon={CheckCircle}
           colorType="green"
@@ -743,7 +784,7 @@ const TraineesScreen = () => {
           onClick={() => setStatusFilter('active')}
         />
         <TabCard
-          name="Inactive"
+          name={t('trainees.status.inactive')}
           value={inactiveCount}
           icon={Clock}
           colorType="blue"
@@ -751,7 +792,7 @@ const TraineesScreen = () => {
           onClick={() => setStatusFilter('inactive')}
         />
         <TabCard
-          name="Suspended"
+          name={t('trainees.status.suspended')}
           value={suspendedCount}
           icon={XCircle}
           colorType="red"
@@ -775,13 +816,13 @@ const TraineesScreen = () => {
           searchable={true}
           sortable={true}
           filterable={true}
-          searchPlaceholder="Search by name, email, phone, or ID number..."
-          emptyMessage="No trainees found"
+          searchPlaceholder={t('trainees.table.searchPlaceholder')}
+          emptyMessage={t('trainees.table.emptyMessage')}
           filterOptions={[
-            { value: 'all', label: 'All Status', filterFn: null },
-            { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
-            { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
-            { value: 'suspended', label: 'Suspended', filterFn: (row) => row.status === 'suspended' },
+            { value: 'all', label: t('trainees.filters.allStatus'), filterFn: null },
+            { value: 'active', label: t('trainees.status.active'), filterFn: (row) => row.status === 'active' },
+            { value: 'inactive', label: t('trainees.status.inactive'), filterFn: (row) => row.status === 'inactive' },
+            { value: 'suspended', label: t('trainees.status.suspended'), filterFn: (row) => row.status === 'suspended' },
           ]}
           defaultFilter={statusFilter}
           onRowClick={(trainee) => handleViewDetails(trainee)}
@@ -807,21 +848,21 @@ const TraineesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedTrainee ? 'Edit Trainee' : 'Add New Trainee'}
+        title={selectedTrainee ? t('trainees.actions.updateTrainee') : t('trainees.actions.addTrainee')}
         size="lg"
       >
         {saving && (
           <div className="trainees-form-loading-overlay">
             <div className="trainees-form-loading-spinner">
               <div className="trainees-form-spinner"></div>
-              <p className="trainees-form-loading-text">Saving trainee...</p>
+              <p className="trainees-form-loading-text">{t('trainees.modal.saving')}</p>
             </div>
           </div>
         )}
         <form onSubmit={handleSubmit} className={`trainees-form ${saving ? 'trainees-form-saving' : ''}`}>
           <div className="trainees-form-grid">
             <FormInput
-              label="First Name"
+              label={t('trainees.form.firstName')}
               name="first_name"
               value={formData.first_name}
               onChange={handleChange}
@@ -831,7 +872,7 @@ const TraineesScreen = () => {
             />
 
             <FormInput
-              label="Last Name"
+              label={t('trainees.form.lastName')}
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
@@ -843,7 +884,7 @@ const TraineesScreen = () => {
 
           <div className="trainees-form-grid">
             <FormInput
-              label="Email"
+              label={t('trainees.form.email')}
               type="email"
               name="email"
               value={formData.email}
@@ -854,7 +895,7 @@ const TraineesScreen = () => {
             />
 
             <FormInput
-              label="Phone"
+              label={t('trainees.form.phone')}
               type="tel"
               name="phone"
               value={formData.phone}
@@ -867,26 +908,39 @@ const TraineesScreen = () => {
 
           <div className="trainees-form-grid">
             <FormInput
-              label="ID Number"
+              label={t('trainees.form.nationality')}
+              name="nationality"
+              value={formData.nationality}
+              onChange={handleChange}
+              required
+              error={errors.nationality}
+              disabled={saving}
+              placeholder={t('trainees.placeholders.nationality')}
+            />
+
+            <FormInput
+              label={t('trainees.form.idNumber')}
               name="id_number"
               value={formData.id_number}
               onChange={handleChange}
               required
               error={errors.id_number}
               disabled={saving}
-              placeholder="Enter ID number (minimum 8 characters)"
+              placeholder={t('trainees.placeholders.idNumber')}
             />
+          </div>
 
+          <div className="trainees-form-grid">
             <FormInput
-              label="Status"
+              label={t('trainees.form.status')}
               name="status"
               type="select"
               value={formData.status}
               onChange={handleChange}
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'suspended', label: 'Suspended' },
+                { value: 'active', label: t('trainees.status.active') },
+                { value: 'inactive', label: t('trainees.status.inactive') },
+                { value: 'suspended', label: t('trainees.status.suspended') },
               ]}
               error={errors.status}
               disabled={saving}
@@ -896,13 +950,13 @@ const TraineesScreen = () => {
           {/* ID Image Upload */}
           <div>
             <label className="trainees-image-label">
-              ID Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
+              {t('trainees.upload.idImage')} <span className="trainees-image-label-required">*</span>
             </label>
 
             {resizingImage === 'id_image' ? (
               <div className="trainees-image-resizing">
                 <div className="trainees-image-resizing-spinner"></div>
-                <p className="trainees-image-resizing-text">Resizing image...</p>
+                <p className="trainees-image-resizing-text">{t('trainees.upload.resizing')}</p>
               </div>
             ) : idImagePreview ? (
               <div className="trainees-image-preview-container">
@@ -924,7 +978,7 @@ const TraineesScreen = () => {
                         />
                         <div className="trainees-image-change-button">
                           <Upload size={18} />
-                          <span className="trainees-image-change-text">Change</span>
+                          <span className="trainees-image-change-text">{t('trainees.upload.change')}</span>
                         </div>
                       </label>
                       <button
@@ -934,7 +988,7 @@ const TraineesScreen = () => {
                         disabled={saving}
                       >
                         <X size={18} />
-                        <span className="trainees-image-remove-text">Remove</span>
+                        <span className="trainees-image-remove-text">{t('trainees.upload.remove')}</span>
                       </button>
                     </div>
                   </div>
@@ -961,13 +1015,13 @@ const TraineesScreen = () => {
                       <Upload className="text-white" size={28} />
                     </div>
                     <p className="trainees-image-upload-text-title">
-                      Upload ID Image
+                      {t('trainees.upload.uploadIdTitle')}
                     </p>
                     <p className="trainees-image-upload-text-hint">
-                      Click to browse or drag and drop
+                      {t('trainees.upload.hint')}
                     </p>
                     <p className="trainees-image-upload-text-small">
-                      JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)
+                      {t('trainees.upload.formatsHint')}
                     </p>
                   </div>
                 </div>
@@ -984,13 +1038,13 @@ const TraineesScreen = () => {
           {/* Card Image Upload */}
           <div>
             <label className="trainees-image-label">
-              Card Image {!selectedTrainee && <span className="trainees-image-label-required">*</span>}
+              {t('trainees.upload.cardImage')} <span className="trainees-image-label-required">*</span>
             </label>
 
             {resizingImage === 'card_image' ? (
               <div className="trainees-image-resizing">
                 <div className="trainees-image-resizing-spinner"></div>
-                <p className="trainees-image-resizing-text">Resizing image...</p>
+                <p className="trainees-image-resizing-text">{t('trainees.upload.resizing')}</p>
               </div>
             ) : cardImagePreview ? (
               <div className="trainees-image-preview-container">
@@ -1012,7 +1066,7 @@ const TraineesScreen = () => {
                         />
                         <div className="trainees-image-change-button">
                           <Upload size={18} />
-                          <span className="trainees-image-change-text">Change</span>
+                          <span className="trainees-image-change-text">{t('trainees.upload.change')}</span>
                         </div>
                       </label>
                       <button
@@ -1022,7 +1076,7 @@ const TraineesScreen = () => {
                         disabled={saving}
                       >
                         <X size={18} />
-                        <span className="trainees-image-remove-text">Remove</span>
+                        <span className="trainees-image-remove-text">{t('trainees.upload.remove')}</span>
                       </button>
                     </div>
                   </div>
@@ -1049,13 +1103,13 @@ const TraineesScreen = () => {
                       <Upload className="text-white" size={28} />
                     </div>
                     <p className="trainees-image-upload-text-title">
-                      Upload Card Image
+                      {t('trainees.upload.uploadCardTitle')}
                     </p>
                     <p className="trainees-image-upload-text-hint">
-                      Click to browse or drag and drop
+                      {t('trainees.upload.hint')}
                     </p>
                     <p className="trainees-image-upload-text-small">
-                      JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)
+                      {t('trainees.upload.formatsHint')}
                     </p>
                   </div>
                 </div>
@@ -1072,10 +1126,10 @@ const TraineesScreen = () => {
           {/* Enrolled Classes */}
           <div>
             <label className="trainees-classes-label">
-              Enrolled Classes
+              {t('trainees.classes.title')}
             </label>
             {trainingClasses.length === 0 ? (
-              <p className="trainees-classes-empty">No training classes available</p>
+              <p className="trainees-classes-empty">{t('trainees.classes.empty')}</p>
             ) : (
               <div className="trainees-classes-container">
                 {trainingClasses.map(trainingClass => (
@@ -1092,7 +1146,7 @@ const TraineesScreen = () => {
                     />
                     <div className="trainees-class-info">
                       <span className="trainees-class-name">
-                        {trainingClass.course?.name || trainingClass.name || `Class ${trainingClass.id}`}
+                        {trainingClass.course?.name || trainingClass.name || t('trainees.classes.classFallback', { id: trainingClass.id })}
                       </span>
                       {trainingClass.start_date && trainingClass.end_date && (
                         <div className="trainees-class-date">
@@ -1131,14 +1185,14 @@ const TraineesScreen = () => {
               onClick={handleCloseModal}
               className="trainees-button-cancel"
             >
-              Cancel
+              {t('trainees.buttons.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="trainees-button-submit"
             >
-              {saving ? 'Saving...' : selectedTrainee ? 'Update Trainee' : 'Add Trainee'}
+              {saving ? 'Saving...' : selectedTrainee ? t('trainees.header.updateTrainee') : t('trainees.header.addTrainee')}
             </button>
           </div>
         </form>
@@ -1151,7 +1205,7 @@ const TraineesScreen = () => {
           setDetailModalOpen(false);
           setSelectedTrainee(null);
         }}
-        title="Trainee Details"
+        title={t('trainees.details.title')}
         size="lg"
       >
         {selectedTrainee && (
@@ -1159,12 +1213,13 @@ const TraineesScreen = () => {
             <DetailForm
               data={selectedTrainee}
               fields={[
-                { key: 'first_name', label: 'First Name', icon: User },
-                { key: 'last_name', label: 'Last Name', icon: User },
-                { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                { key: 'phone', label: 'Phone', icon: Phone },
-                { key: 'id_number', label: 'ID Number', showEmpty: false },
-                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'first_name', label: t('trainees.fields.firstName'), icon: User },
+                { key: 'last_name', label: t('trainees.fields.lastName'), icon: User },
+                { key: 'email', label: t('trainees.fields.email'), type: 'email', icon: Mail },
+                { key: 'phone', label: t('trainees.fields.phone'), icon: Phone },
+                { key: 'nationality', label: t('trainees.fields.nationality'), icon: User },
+                { key: 'id_number', label: t('trainees.fields.idNumber'), showEmpty: false },
+                { key: 'status', label: t('trainees.fields.status'), type: 'status' },
               ]}
             />
 
@@ -1172,7 +1227,7 @@ const TraineesScreen = () => {
             <div className="trainees-detail-images-grid">
               {selectedTrainee.id_image_url && (
                 <div className="trainees-detail-image-box">
-                  <p className="trainees-detail-image-label">ID Image</p>
+                  <p className="trainees-detail-image-label">{t('trainees.upload.idImage')}</p>
                   <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
                     <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>
@@ -1180,7 +1235,7 @@ const TraineesScreen = () => {
               )}
               {selectedTrainee.card_image_url && (
                 <div className="trainees-detail-image-box">
-                  <p className="trainees-detail-image-label">Card Image</p>
+                  <p className="trainees-detail-image-label">{t('trainees.upload.cardImage')}</p>
                   <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
                     <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>
@@ -1194,7 +1249,7 @@ const TraineesScreen = () => {
               <details className="trainees-classes-dropdown">
                 <summary className="trainees-classes-dropdown-summary">
                   <span className="trainees-classes-dropdown-title">
-                    Enrolled Classes ({selectedTrainee.training_classes.length})
+                    {t('trainees.details.enrolledClassesWithCount', { count: selectedTrainee.training_classes.length })}
                   </span>
                   <ChevronDown size={20} className="trainees-classes-dropdown-icon" />
                 </summary>
@@ -1204,7 +1259,7 @@ const TraineesScreen = () => {
                       <div className="trainees-class-detail-header">
                         <div>
                           <p className="trainees-class-detail-name">
-                            {tc.course?.name || tc.name || `Class ${tc.id}`}
+                            {tc.course?.name || tc.name || t('trainees.classes.classFallback', { id: tc.id })}
                           </p>
                           {tc.start_date && tc.end_date && (
                             <p className="trainees-class-detail-date">
@@ -1214,7 +1269,7 @@ const TraineesScreen = () => {
                           )}
                           {tc.instructor && (
                             <p className="trainees-class-detail-instructor">
-                              Instructor: {tc.instructor.first_name} {tc.instructor.last_name}
+                              {t('trainees.classes.instructorPrefix')} {tc.instructor.first_name} {tc.instructor.last_name}
                             </p>
                           )}
                         </div>
@@ -1245,9 +1300,9 @@ const TraineesScreen = () => {
           setSelectedTrainee(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Trainee"
-        message={`Are you sure you want to delete "${selectedTrainee?.first_name} ${selectedTrainee?.last_name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('trainees.deleteDialog.title')}
+        message={t('trainees.deleteDialog.message', { name: `${selectedTrainee?.first_name} ${selectedTrainee?.last_name}` })}
+        confirmText={t('trainees.actions.delete')}
         variant="danger"
       />
     </div>

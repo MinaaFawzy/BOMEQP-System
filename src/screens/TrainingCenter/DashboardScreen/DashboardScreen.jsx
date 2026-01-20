@@ -6,10 +6,12 @@ import DashboardCard from '../../../components/DashboardCard/DashboardCard';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import StateSection from '../../../components/StateSection/StateSection';
 import StateItem from '../../../components/StateItem/StateItem';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './DashboardScreen.css';
 
 const TrainingCenterDashboardScreen = () => {
+  const { t } = useTranslation('training_center');
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [counts, setCounts] = useState({
@@ -26,13 +28,14 @@ const TrainingCenterDashboardScreen = () => {
   }, []);
 
   const loadDashboard = async () => {
+
     try {
       // Use the dedicated dashboard endpoint
       const data = await trainingCenterAPI.getDashboard();
-      
+
       // API returns: authorized_accreditations, classes, instructors, trainees, certificates, training_center_state { status, registration_date, accreditation_status }, charts { classes_over_time, classes_status_distribution }
       setDashboardData(data);
-      
+
       setCounts({
         accs: data.authorized_accreditations || 0,
         classes: data.classes || 0,
@@ -66,7 +69,7 @@ const TrainingCenterDashboardScreen = () => {
           {/* Stats Cards */}
           <div className="dashboard-stats-grid">
             {/* Certificates Card */}
-           {/* <DashboardCard
+            {/* <DashboardCard
               icon={Award}
               colorType="certificates"
               label="Certificates"
@@ -74,14 +77,14 @@ const TrainingCenterDashboardScreen = () => {
               hint="Click to view details"
               onClick={() => navigate('/training-center/certificates')}
             />*/}
-            
+
             {/* Accreditation Card */}
             <DashboardCard
               icon={Building2}
               colorType="acc"
-              label="Authorized Accreditation"
+              label={t('dashboard.authorized_accreditation')}
               value={counts.accs}
-              hint="Click to view details"
+              hint={t('dashboard.click_to_view_details')}
               onClick={() => navigate('/training-center/accs')}
             />
 
@@ -89,9 +92,9 @@ const TrainingCenterDashboardScreen = () => {
             <DashboardCard
               icon={BookOpen}
               colorType="classes"
-              label="Classes"
+              label={t('dashboard.classes')}
               value={counts.classes}
-              hint="Click to view details"
+              hint={t('dashboard.click_to_view_details')}
               onClick={() => navigate('/training-center/classes')}
             />
 
@@ -99,9 +102,9 @@ const TrainingCenterDashboardScreen = () => {
             <DashboardCard
               icon={Users}
               colorType="instructors"
-              label="Instructors"
+              label={t('dashboard.instructors')}
               value={counts.instructors}
-              hint="Click to view details"
+              hint={t('dashboard.click_to_view_details')}
               onClick={() => navigate('/training-center/instructors')}
             />
 
@@ -109,9 +112,9 @@ const TrainingCenterDashboardScreen = () => {
             <DashboardCard
               icon={GraduationCap}
               colorType="classes"
-              label="Trainees"
+              label={t('dashboard.trainees')}
               value={counts.trainees}
-              hint="Click to view details"
+              hint={t('dashboard.click_to_view_details')}
               onClick={() => navigate('/training-center/trainees')}
             />
 
@@ -124,25 +127,25 @@ const TrainingCenterDashboardScreen = () => {
               {/* Classes Over Time Chart */}
               {dashboardData.charts.classes_over_time && dashboardData.charts.classes_over_time.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Classes Over Time</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.classes_over_time')}</h2>
                   <ResponsiveContainer width="100%" height={350}>
                     <BarChart data={dashboardData.charts.classes_over_time} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                      <XAxis 
-                        dataKey="month_name" 
+                      <XAxis
+                        dataKey="month_name"
                         stroke="#374151"
                         style={{ fontSize: '13px', fontWeight: '500' }}
                         tick={{ fill: '#374151' }}
                       />
-                      <YAxis 
+                      <YAxis
                         stroke="#374151"
                         style={{ fontSize: '13px', fontWeight: '500' }}
                         tick={{ fill: '#374151' }}
                       />
-                      <Tooltip 
-                        formatter={(value) => [value, 'Classes']}
-                        contentStyle={{ 
-                          backgroundColor: '#fff', 
+                      <Tooltip
+                        formatter={(value) => [value, t('dashboard.classes')]}
+                        contentStyle={{
+                          backgroundColor: '#fff',
                           border: '2px solid #10B981',
                           borderRadius: '8px',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
@@ -151,10 +154,10 @@ const TrainingCenterDashboardScreen = () => {
                         labelStyle={{ fontWeight: '600', color: '#111827', marginBottom: '5px' }}
                       />
                       <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                      <Bar 
-                        dataKey="count" 
+                      <Bar
+                        dataKey="count"
                         fill="#10B981"
-                        name="Classes"
+                        name={t('dashboard.classes')}
                         radius={[8, 8, 0, 0]}
                         stroke="#059669"
                         strokeWidth={1}
@@ -167,7 +170,7 @@ const TrainingCenterDashboardScreen = () => {
               {/* Classes Status Distribution Chart */}
               {dashboardData.charts.classes_status_distribution && dashboardData.charts.classes_status_distribution.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Classes Status Distribution</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.classes_status_distribution')}</h2>
                   <ResponsiveContainer width="100%" height={350}>
                     <PieChart>
                       <Pie
@@ -187,7 +190,7 @@ const TrainingCenterDashboardScreen = () => {
                           return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
                         })}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
@@ -211,7 +214,7 @@ const TrainingCenterDashboardScreen = () => {
                           return null;
                         }}
                       />
-                      <Legend 
+                      <Legend
                         wrapperStyle={{ paddingTop: '20px' }}
                         iconType="circle"
                         formatter={(value, entry) => {
@@ -226,24 +229,24 @@ const TrainingCenterDashboardScreen = () => {
           )}
 
           {/* Training Center State Section */}
-          <StateSection title="Training Center State" titleIcon={Building2}>
+          <StateSection title={t('dashboard.training_center_state')} titleIcon={Building2}>
             <StateItem
               icon={CheckCircle}
               iconColorType="green"
-              label="Status"
-              value={dashboardData.training_center_state?.status || 'N/A'}
+              label={t('dashboard.status')}
+              value={dashboardData.training_center_state?.status || t('instructors_screen.na')}
               capitalize={true}
             />
             <StateItem
               icon={Calendar}
               iconColorType="blue"
-              label="Registration Date"
-              value={dashboardData.training_center_state?.registration_date || 'N/A'}
+              label={t('dashboard.registration_date')}
+              value={dashboardData.training_center_state?.registration_date || t('instructors_screen.na')}
             />
             <StateItem
               icon={Award}
               iconColorType="purple"
-              label="Accreditation Status"
+              label={t('dashboard.accreditation_status')}
               value={dashboardData.training_center_state?.accreditation_status || 'Not Verified'}
             />
           </StateSection>

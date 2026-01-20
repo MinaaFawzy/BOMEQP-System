@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
@@ -12,6 +13,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './InstructorAuthorizationsScreen.css';
 
 const InstructorAuthorizationsScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [authorizations, setAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,17 +55,17 @@ const InstructorAuthorizationsScreen = () => {
   }, [page, perPage, debouncedSearchTerm, statusFilter, paymentStatusFilter, searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle('Instructor Authorizations');
-    setHeaderSubtitle('View and pay for instructor authorization requests');
+    setHeaderTitle(t('instructor_authorizations.header.title'));
+    setHeaderSubtitle(t('instructor_authorizations.header.subtitle'));
     setHeaderActions(
       <button
         onClick={() => loadData(page, perPage, searchTerm, statusFilter, paymentStatusFilter, true)}
         disabled={loading}
         className="header-refresh-btn"
-        title="Refresh data"
+        title={t('instructor_authorizations.header.refresh')}
       >
         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-        Refresh
+        {t('instructor_authorizations.header.refresh')}
       </button>
     );
     return () => {
@@ -72,7 +74,7 @@ const InstructorAuthorizationsScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, loading]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, loading, t]);
 
   // Debug: Log authorizations when they change
   useEffect(() => {
@@ -181,11 +183,11 @@ const InstructorAuthorizationsScreen = () => {
   const handlePay = (authorization) => {
     // Check if authorization is ready for payment
     if (authorization.status !== 'approved' || authorization.group_admin_status !== 'commission_set') {
-      alert('This authorization is not ready for payment. Please wait for Group Admin approval.');
+      alert(t('instructor_authorizations.payment.not_ready'));
       return;
     }
     if (authorization.payment_status === 'paid') {
-      alert('This authorization has already been paid.');
+      alert(t('instructor_authorizations.payment.already_paid'));
       return;
     }
 
@@ -315,7 +317,7 @@ const InstructorAuthorizationsScreen = () => {
       setShowStripeModal(false);
       setSelectedAuthorization(null);
       setPaymentIntentData(null);
-      alert('Payment successful. Instructor is now officially authorized.');
+      alert(t('instructor_authorizations.payment.success'));
     } catch (error) {
       console.error('Failed to complete authorization payment:', error);
 
@@ -458,7 +460,7 @@ const InstructorAuthorizationsScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Instructor',
+      header: t('instructor_authorizations.table.instructor'),
       accessor: 'instructor',
       sortable: true,
       render: (value, row) => (
@@ -478,7 +480,7 @@ const InstructorAuthorizationsScreen = () => {
       ),
     },
     {
-      header: 'Accreditation',
+      header: t('instructor_authorizations.table.accreditation'),
       accessor: 'acc',
       sortable: true,
       render: (value, row) => (
@@ -489,7 +491,7 @@ const InstructorAuthorizationsScreen = () => {
       ),
     },
     {
-      header: 'Authorization Price',
+      header: t('instructor_authorizations.table.authorization_price'),
       accessor: 'authorization_price',
       sortable: true,
       render: (value, row) => (
@@ -500,7 +502,7 @@ const InstructorAuthorizationsScreen = () => {
       ),
     },
     {
-      header: 'Status',
+      header: t('instructor_authorizations.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value, row) => {
@@ -512,14 +514,14 @@ const InstructorAuthorizationsScreen = () => {
             <span className={`status-badge ${statusClass}`}>
               {row.status === 'pending' && <Clock size={12} className="status-icon" />}
               {row.status === 'approved' && <CheckCircle size={12} className="status-icon" />}
-              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
+              {row.status ? t(`instructor_authorizations.status.${row.status}`) : t('instructor_authorizations.status.na')}
             </span>
           </div>
         );
       },
     },
     {
-      header: 'Payment Status',
+      header: t('instructor_authorizations.table.payment_status'),
       accessor: 'payment_status',
       sortable: true,
       render: (value, row) => {
@@ -531,14 +533,14 @@ const InstructorAuthorizationsScreen = () => {
               {row.payment_status === 'pending' && <Clock size={12} className="payment-status-icon" />}
               {row.payment_status === 'paid' && <CheckCircle size={12} className="payment-status-icon" />}
               {row.payment_status === 'failed' && <AlertCircle size={12} className="payment-status-icon" />}
-              {row.payment_status ? row.payment_status.charAt(0).toUpperCase() + row.payment_status.slice(1) : 'Pending'}
+              {row.payment_status ? t(`instructor_authorizations.status.${row.payment_status}`) : t('instructor_authorizations.status.pending')}
             </span>
           </div>
         );
       },
     },
     {
-      header: 'Actions',
+      header: t('instructor_authorizations.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => {
@@ -551,7 +553,7 @@ const InstructorAuthorizationsScreen = () => {
                 handleViewDetails(row);
               }}
               className="action-btn-view"
-              title="View Details"
+              title={t('instructor_authorizations.actions.view_details')}
             >
               <Eye size={16} />
             </button>
@@ -562,7 +564,7 @@ const InstructorAuthorizationsScreen = () => {
                   handlePay(row);
                 }}
                 className="action-btn-pay"
-                title="Pay Authorization"
+                title={t('instructor_authorizations.actions.pay_authorization')}
               >
                 <CreditCard size={16} />
               </button>
@@ -571,7 +573,7 @@ const InstructorAuthorizationsScreen = () => {
         );
       },
     },
-  ], [handlePay, handleViewDetails]);
+  ], [handlePay, handleViewDetails, t]);
 
   // Filter options for DataTable (status filter)
   const filterOptions = useMemo(() => [
@@ -627,14 +629,14 @@ const InstructorAuthorizationsScreen = () => {
           data={dataWithSearchText}
           onRowClick={handleViewDetails}
           isLoading={loading}
-          emptyMessage="No authorizations found matching your filters"
+          emptyMessage={t('instructor_authorizations.table.empty')}
           searchable={true}
           searchValue={searchTerm}
           onSearch={(value) => {
             setSearchTerm(value);
             setPage(1);
           }}
-          searchPlaceholder="Search by name, ID, or Accreditation..."
+          searchPlaceholder={t('instructor_authorizations.table.search_placeholder')}
           // Remove default filterOptions and use customFilters for server-side filtering
           filterable={false}
           customFilters={
@@ -648,11 +650,11 @@ const InstructorAuthorizationsScreen = () => {
                   setPage(1);
                 }}
               >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="returned">Returned</option>
+                <option value="all">{t('instructor_authorizations.filters.all_status')}</option>
+                <option value="pending">{t('instructor_authorizations.filters.pending')}</option>
+                <option value="approved">{t('instructor_authorizations.filters.approved')}</option>
+                <option value="rejected">{t('instructor_authorizations.filters.rejected')}</option>
+                <option value="returned">{t('instructor_authorizations.filters.returned')}</option>
               </select>
               <select
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
@@ -663,10 +665,10 @@ const InstructorAuthorizationsScreen = () => {
                   setPage(1);
                 }}
               >
-                <option value="all">All Payment Status</option>
-                <option value="pending">Unpaid</option>
-                <option value="paid">Paid</option>
-                <option value="failed">Failed</option>
+                <option value="all">{t('instructor_authorizations.filters.all_payment_status')}</option>
+                <option value="pending">{t('instructor_authorizations.filters.unpaid')}</option>
+                <option value="paid">{t('instructor_authorizations.filters.paid')}</option>
+                <option value="failed">{t('instructor_authorizations.filters.failed')}</option>
               </select>
             </div>
           }
@@ -697,7 +699,7 @@ const InstructorAuthorizationsScreen = () => {
           setSelectedAuthorization(null);
           setErrors({});
         }}
-        title="Pay Instructor Authorization"
+        title={t('instructor_authorizations.payment.title')}
         size="md"
       >
         <form onSubmit={handlePaymentSubmit} className="payment-modal-form">
@@ -709,9 +711,9 @@ const InstructorAuthorizationsScreen = () => {
 
           {selectedAuthorization && (
             <div className="payment-info-container">
-              <p className="payment-info-text">Instructor: <span className="payment-info-value">{selectedAuthorization.instructor?.first_name} {selectedAuthorization.instructor?.last_name}</span></p>
-              <p className="payment-info-text">Accreditation: <span className="payment-info-value">{selectedAuthorization.acc?.name}</span></p>
-              <p className="payment-info-text">Authorization Price: <span className="payment-info-value">${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}</span></p>
+              <p className="payment-info-text">{t('instructor_authorizations.payment.instructor')}: <span className="payment-info-value">{selectedAuthorization.instructor?.first_name} {selectedAuthorization.instructor?.last_name}</span></p>
+              <p className="payment-info-text">{t('instructor_authorizations.payment.accreditation')}: <span className="payment-info-value">{selectedAuthorization.acc?.name}</span></p>
+              <p className="payment-info-text">{t('instructor_authorizations.payment.authorization_price')}: <span className="payment-info-value">${parseFloat(selectedAuthorization.authorization_price || 0).toFixed(2)}</span></p>
             </div>
           )}
 
@@ -733,12 +735,12 @@ const InstructorAuthorizationsScreen = () => {
           */}
 
           <div className="payment-method-info">
-            <p className="payment-method-title">Payment Method: Credit Card</p>
+            <p className="payment-method-title">{t('instructor_authorizations.payment.method_title')}</p>
             <p className="payment-method-text">
-              Payment will be processed securely through Stripe. Click "Pay Now" below to enter your card details.
+              {t('instructor_authorizations.payment.method_description')}
             </p>
             <p className="payment-method-price">
-              <strong>Authorization Price:</strong> ${parseFloat(selectedAuthorization?.authorization_price || 0).toFixed(2)}
+              <strong>{t('instructor_authorizations.payment.authorization_price')}:</strong> ${parseFloat(selectedAuthorization?.authorization_price || 0).toFixed(2)}
             </p>
           </div>
 
@@ -752,14 +754,14 @@ const InstructorAuthorizationsScreen = () => {
               }}
               className="payment-modal-btn payment-modal-btn-cancel"
             >
-              Cancel
+              {t('instructor_authorizations.payment.cancel')}
             </button>
             <button
               type="submit"
               disabled={creatingPaymentIntent || processing || !selectedAuthorization}
               className="payment-modal-btn payment-modal-btn-submit"
             >
-              {creatingPaymentIntent ? 'Processing...' : processing ? 'Processing...' : 'Pay Now'}
+              {creatingPaymentIntent ? t('instructor_authorizations.payment.processing') : processing ? t('instructor_authorizations.payment.processing') : t('instructor_authorizations.payment.pay_now')}
             </button>
           </div>
         </form>
@@ -772,7 +774,7 @@ const InstructorAuthorizationsScreen = () => {
           setDetailModalOpen(false);
           setSelectedAuthorization(null);
         }}
-        title="Authorization Details"
+        title={t('instructor_authorizations.details.title')}
         size="lg"
       >
         {selectedAuthorization && (
@@ -782,53 +784,53 @@ const InstructorAuthorizationsScreen = () => {
               fields={[
                 {
                   key: 'instructor',
-                  label: 'Instructor',
+                  label: t('instructor_authorizations.payment.instructor'),
                   icon: Users,
                   render: (value) => {
-                    if (!value) return 'N/A';
-                    return `${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A';
+                    if (!value) return t('instructor_authorizations.status.na');
+                    return `${value.first_name || ''} ${value.last_name || ''}`.trim() || t('instructor_authorizations.status.na');
                   }
                 },
                 {
                   key: 'acc',
-                  label: 'Accreditation',
+                  label: t('instructor_authorizations.payment.accreditation'),
                   icon: Building2,
-                  render: (value) => value?.name || 'N/A'
+                  render: (value) => value?.name || t('instructor_authorizations.status.na')
                 },
                 {
                   key: 'courses',
-                  label: 'Courses',
+                  label: t('instructors_screen.languages'),
                   icon: BookOpen,
                   render: (value, data) => {
                     if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
                       return data.courses.map((course, idx) =>
-                        typeof course === 'object' ? course?.name || course?.course_name || 'N/A' : course || 'N/A'
+                        typeof course === 'object' ? course?.name || course?.course_name || t('instructor_authorizations.status.na') : course || t('instructor_authorizations.status.na')
                       ).join(', ');
                     } else if (data.course) {
                       return typeof data.course === 'object'
-                        ? data.course?.name || data.course?.course_name || 'N/A'
-                        : data.course || 'N/A';
+                        ? data.course?.name || data.course?.course_name || t('instructor_authorizations.status.na')
+                        : data.course || t('instructor_authorizations.status.na');
                     }
-                    return 'N/A';
+                    return t('instructor_authorizations.status.na');
                   }
                 },
                 {
                   key: 'authorization_price',
-                  label: 'Authorization Price',
+                  label: t('instructor_authorizations.payment.authorization_price'),
                   icon: DollarSign,
                   render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
                 },
-                { key: 'status', label: 'Status', type: 'status' },
-                { key: 'payment_status', label: 'Payment Status', type: 'status' },
+                { key: 'status', label: t('instructor_authorizations.table.status'), type: 'status' },
+                { key: 'payment_status', label: t('instructor_authorizations.table.payment_status'), type: 'status' },
               ]}
             />
             {selectedAuthorization.group_admin_status && (
               <div className="detail-modal-group-admin">
-                <p className="detail-modal-group-admin-title">Group Admin Status</p>
+                <p className="detail-modal-group-admin-title">{t('instructor_authorizations.details.group_admin_status')}</p>
                 <p className="detail-modal-group-admin-text">
-                  {selectedAuthorization.group_admin_status === 'pending' && 'Waiting for Group Admin approval'}
-                  {selectedAuthorization.group_admin_status === 'commission_set' && 'Ready for payment'}
-                  {selectedAuthorization.group_admin_status === 'completed' && 'Authorization completed'}
+                  {selectedAuthorization.group_admin_status === 'pending' && t('instructor_authorizations.details.waiting_admin')}
+                  {selectedAuthorization.group_admin_status === 'commission_set' && t('instructor_authorizations.details.ready_for_payment')}
+                  {selectedAuthorization.group_admin_status === 'completed' && t('instructor_authorizations.details.completed')}
                 </p>
               </div>
             )}
@@ -842,7 +844,7 @@ const InstructorAuthorizationsScreen = () => {
                   className="detail-modal-pay-btn"
                 >
                   <CreditCard size={20} className="detail-modal-pay-icon" />
-                  Pay Authorization
+                  {t('instructor_authorizations.details.pay_authorization')}
                 </button>
               </div>
             )}

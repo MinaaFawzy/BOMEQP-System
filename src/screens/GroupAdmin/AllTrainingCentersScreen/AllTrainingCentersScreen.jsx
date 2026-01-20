@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
-import { Building2, Eye, Mail, MapPin, School, CheckCircle, Clock, Edit, ClipboardList, XCircle, Phone, Globe } from 'lucide-react';
+import { Building2, Eye, Mail, MapPin, School, CheckCircle, Clock, Edit, ClipboardList, XCircle, Phone, Globe, User, FileText, ExternalLink } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -539,17 +539,117 @@ const AllTrainingCentersScreen = () => {
           {selectedTC && (
             <>
               <DetailForm
-                data={selectedTC}
+                data={{
+                  ...selectedTC,
+                  primary_contact_name: [
+                    selectedTC.primary_contact_title,
+                    selectedTC.primary_contact_first_name,
+                    selectedTC.primary_contact_last_name
+                  ].filter(Boolean).join(' '),
+                  secondary_contact_name: [
+                    selectedTC.secondary_contact_title,
+                    selectedTC.secondary_contact_first_name,
+                    selectedTC.secondary_contact_last_name
+                  ].filter(Boolean).join(' '),
+                  full_address: [
+                    selectedTC.address,
+                    selectedTC.city,
+                    selectedTC.country,
+                    selectedTC.physical_postal_code
+                  ].filter(Boolean).join(', '),
+                  mailing_full_address: [
+                    selectedTC.mailing_address,
+                    selectedTC.mailing_city,
+                    selectedTC.mailing_country,
+                    selectedTC.mailing_postal_code
+                  ].filter(Boolean).join(', '),
+                }}
                 fields={[
-                  { key: 'name', label: 'Name', icon: Building2 },
-                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
-                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                  { key: 'phone', label: 'Phone', icon: Phone },
-                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
-                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  // Company Information
+                  { key: 'name', label: 'Company Name', icon: Building2 },
                   { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'email', label: 'Company Email', type: 'email', icon: Mail },
+                  { key: 'phone', label: 'Telephone Number', icon: Phone },
+                  { key: 'fax', label: 'Fax', icon: Phone, showEmpty: false },
+                  { key: 'training_provider_type', label: 'Training Provider Type', showEmpty: false },
+
+                  // Physical Address
+                  { key: 'full_address', label: 'Physical Address', icon: MapPin, fullWidth: true, showEmpty: false },
+
+                  // Mailing Address
+                  {
+                    key: 'mailing_same_as_physical',
+                    label: 'Mailing Same as Physical',
+                    transform: (value) => value ? 'Yes' : 'No',
+                    showEmpty: false
+                  },
+                  { key: 'mailing_full_address', label: 'Mailing Address', icon: Mail, fullWidth: true, showEmpty: false },
+
+                  // Primary Contact
+                  { key: 'primary_contact_name', label: 'Primary Contact', icon: User, showEmpty: false },
+                  { key: 'primary_contact_email', label: 'Primary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'primary_contact_country', label: 'Primary Contact Country', showEmpty: false },
+                  { key: 'primary_contact_mobile', label: 'Primary Contact Mobile', showEmpty: false },
+
+                  // Secondary Contact
+                  {
+                    key: 'has_secondary_contact',
+                    label: 'Has Secondary Contact',
+                    transform: (value) => value ? 'Yes' : 'No',
+                    showEmpty: false
+                  },
+                  { key: 'secondary_contact_name', label: 'Secondary Contact', icon: User, showEmpty: false },
+                  { key: 'secondary_contact_email', label: 'Secondary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'secondary_contact_country', label: 'Secondary Contact Country', showEmpty: false },
+                  { key: 'secondary_contact_mobile', label: 'Secondary Contact Mobile', showEmpty: false },
+
+                  // Additional Information
+                  { key: 'company_gov_registry_number', label: 'GOV Registry Number', showEmpty: false },
+                  {
+                    key: 'company_registration_certificate_url',
+                    label: 'Registration Certificate',
+                    showEmpty: false,
+                    render: (value) => (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium"
+                      >
+                        <FileText size={16} className="mr-2" />
+                        View Certificate
+                        <ExternalLink size={14} className="ml-1 opacity-70" />
+                      </a>
+                    )
+                  },
+                  {
+                    key: 'facility_floorplan_url',
+                    label: 'Facility Floorplan',
+                    showEmpty: false,
+                    render: (value) => (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium"
+                      >
+                        <MapPin size={16} className="mr-2" />
+                        View Floorplan
+                        <ExternalLink size={14} className="ml-1 opacity-70" />
+                      </a>
+                    )
+                  },
+                  {
+                    key: 'interested_fields',
+                    label: 'Interested Fields',
+                    transform: (value) => Array.isArray(value) ? value.join(', ') : value,
+                    showEmpty: false
+                  },
+                  { key: 'how_did_you_hear_about_us', label: 'How Did You Hear About Us', showEmpty: false },
+
+                  // Legacy fields
+                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
                   { key: 'status', label: 'Status', type: 'status' },
                 ]}
               />

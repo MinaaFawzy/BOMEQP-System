@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
@@ -14,6 +15,7 @@ import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
 const ClassesScreen = () => {
+  const { t } = useTranslation('training_center');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [classes, setClasses] = useState([]);
   const [instructors, setInstructors] = useState([]);
@@ -158,15 +160,15 @@ const ClassesScreen = () => {
   }, [formData.course_id, isModalOpen, availableCourses, instructors]);
 
   useEffect(() => {
-    setHeaderTitle('Classes');
-    setHeaderSubtitle('Manage your training classes');
+    setHeaderTitle(t('classes_screen.header.title'));
+    setHeaderSubtitle(t('classes_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
         className="header-create-btn"
       >
         <Plus size={20} className="header-create-btn-icon" />
-        Create Class
+        {t('classes_screen.header.create')}
       </button>
     );
     return () => {
@@ -175,7 +177,7 @@ const ClassesScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, t]);
 
   // Load instructors separately to avoid reloading on search
   useEffect(() => {
@@ -570,22 +572,22 @@ const ClassesScreen = () => {
       if (!selectedClass) {
         // When creating, validate all required fields
         if (!formData.acc_id) {
-          setErrors({ acc_id: 'ACC is required' });
+          setErrors({ acc_id: t('classes_screen.errors.acc_required') });
           setSaving(false);
           return;
         }
         if (!formData.category_id) {
-          setErrors({ category_id: 'Category is required' });
+          setErrors({ category_id: t('classes_screen.errors.category_required') });
           setSaving(false);
           return;
         }
         if (!formData.sub_category_id) {
-          setErrors({ sub_category_id: 'Sub-Category is required' });
+          setErrors({ sub_category_id: t('classes_screen.errors.sub_category_required') });
           setSaving(false);
           return;
         }
         if (!formData.course_id) {
-          setErrors({ course_id: 'Course is required' });
+          setErrors({ course_id: t('classes_screen.errors.course_required') });
           setSaving(false);
           return;
         }
@@ -593,22 +595,22 @@ const ClassesScreen = () => {
 
       // These fields are always required (both create and update)
       if (!formData.name) {
-        setErrors({ name: 'Class Name is required' });
+        setErrors({ name: t('classes_screen.errors.class_name_required') });
         setSaving(false);
         return;
       }
       if (!formData.instructor_id) {
-        setErrors({ instructor_id: 'Instructor is required' });
+        setErrors({ instructor_id: t('classes_screen.errors.instructor_required') });
         setSaving(false);
         return;
       }
       if (!formData.start_date) {
-        setErrors({ start_date: 'Start date is required' });
+        setErrors({ start_date: t('classes_screen.errors.start_date_required') });
         setSaving(false);
         return;
       }
       if (!formData.end_date) {
-        setErrors({ end_date: 'End date is required' });
+        setErrors({ end_date: t('classes_screen.errors.end_date_required') });
         setSaving(false);
         return;
       }
@@ -657,7 +659,7 @@ const ClassesScreen = () => {
       } else if (error.errors) {
         setErrors(error.errors);
       } else {
-        setErrors({ general: error.message || 'Failed to save class. Please check all required fields.' });
+        setErrors({ general: error.message || t('classes_screen.errors.save_failed') });
       }
     } finally {
       setSaving(false);
@@ -674,7 +676,7 @@ const ClassesScreen = () => {
       await trainingCenterAPI.deleteClass(selectedClass.id);
       await loadData(page, perPage);
     } catch (error) {
-      alert('Failed to delete class: ' + (error.message || 'Unknown error'));
+      alert(t('instructor_authorizations.errors.failed_to_load') + ': ' + (error.message || t('instructor_authorizations.status.na')));
     }
     setIsDeleteDialogOpen(false);
     setSelectedClass(null);
@@ -704,12 +706,12 @@ const ClassesScreen = () => {
   };
 
   const handleMarkComplete = async (classItem) => {
-    if (window.confirm('Mark this class as complete?')) {
+    if (window.confirm(t('classes_screen.details.mark_complete') + '?')) {
       try {
         await trainingCenterAPI.markClassComplete(classItem.id);
         await loadData(page, perPage);
       } catch (error) {
-        alert('Failed to mark class as complete: ' + (error.message || 'Unknown error'));
+        alert(t('classes_screen.errors.save_failed') + ': ' + (error.message || t('classes_screen.common.na')));
       }
     }
   };
@@ -717,21 +719,21 @@ const ClassesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Class Name',
+      header: t('classes_screen.table.class_name'),
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
         <div className="font-semibold text-gray-900">
-          {value || 'N/A'}
+          {value || t('classes_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Course',
+      header: t('classes_screen.table.course'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => {
-        const courseName = typeof row.course === 'string' ? row.course : (row.course?.name || 'N/A');
+        const courseName = typeof row.course === 'string' ? row.course : (row.course?.name || t('classes_screen.common.na'));
         return (
           <div className="course-container">
             <div className="course-name">
@@ -742,7 +744,7 @@ const ClassesScreen = () => {
       },
     },
     {
-      header: 'Instructor',
+      header: t('classes_screen.table.instructor'),
       accessor: 'instructor',
       sortable: true,
       render: (value, row) => {
@@ -750,7 +752,7 @@ const ClassesScreen = () => {
           ? row.instructor
           : (row.instructor?.first_name && row.instructor?.last_name
             ? `${row.instructor.first_name} ${row.instructor.last_name}`
-            : 'N/A');
+            : t('classes_screen.common.na'));
         return (
           <div className="instructor-container">
             <Users className="instructor-icon" />
@@ -760,40 +762,40 @@ const ClassesScreen = () => {
       },
     },
     {
-      header: 'Start Date',
+      header: t('classes_screen.table.start_date'),
       accessor: 'start_date',
       sortable: true,
       render: (value, row) => (
         <div className="date-container">
           <Calendar className="date-icon" />
-          {row.start_date ? new Date(row.start_date).toLocaleDateString() : 'N/A'}
+          {row.start_date ? new Date(row.start_date).toLocaleDateString() : t('classes_screen.common.na')}
         </div>
       ),
     },
     {
-      header: 'End Date',
+      header: t('classes_screen.table.end_date'),
       accessor: 'end_date',
       sortable: true,
       render: (value, row) => (
         <div className="date-container">
           <Calendar className="date-icon" />
-          {row.end_date ? new Date(row.end_date).toLocaleDateString() : 'N/A'}
+          {row.end_date ? new Date(row.end_date).toLocaleDateString() : t('classes_screen.common.na')}
         </div>
       ),
     },
     {
-      header: 'Exam Date',
+      header: t('classes_screen.table.exam_date'),
       accessor: 'exam_date',
       sortable: true,
       render: (value) => (
         <div className="date-container">
           <Calendar className="date-icon" style={{ color: '#9333ea' }} />
-          {value ? new Date(value).toLocaleDateString() : 'Not set'}
+          {value ? new Date(value).toLocaleDateString() : t('classes_screen.common.not_set')}
         </div>
       ),
     },
     {
-      header: 'Grade',
+      header: t('classes_screen.table.grade'),
       accessor: 'exam_score',
       sortable: true,
       render: (value) => (
@@ -801,13 +803,13 @@ const ClassesScreen = () => {
           {value !== null && value !== undefined ? (
             <span className="font-semibold text-indigo-600">{parseInt(value)}</span>
           ) : (
-            <span className="text-gray-400">N/A</span>
+            <span className="text-gray-400">{t('classes_screen.common.na')}</span>
           )}
         </div>
       ),
     },
     {
-      header: 'Status',
+      header: t('classes_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value, row) => {
@@ -825,14 +827,14 @@ const ClassesScreen = () => {
           <div className="status-container">
             <span className={`status-badge ${statusClass}`}>
               <StatusIcon size={14} className="status-icon" />
-              {row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
+              {row.status ? t(`classes_screen.status.${row.status}`) : t('classes_screen.common.na')}
             </span>
           </div>
         );
       },
     },
     {
-      header: 'Enrollment',
+      header: t('classes_screen.table.enrollment'),
       accessor: 'enrollment',
       sortable: false,
       render: (value, row) => {
@@ -868,20 +870,20 @@ const ClassesScreen = () => {
               }
             }}
           >
-            {row.enrolled_count || 0} / {row.course?.max_capacity || 'N/A'}
+            {row.enrolled_count || 0} / {row.course?.max_capacity || t('classes_screen.common.na')}
           </div>
         );
       },
     },
-  ], []);
+  ], [t]);
 
   // Filter options for DataTable
   const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'scheduled', label: 'Scheduled', filterFn: (row) => row.status === 'scheduled' },
-    { value: 'completed', label: 'Completed', filterFn: (row) => row.status === 'completed' },
-    { value: 'cancelled', label: 'Cancelled', filterFn: (row) => row.status === 'cancelled' },
-  ], []);
+    { value: 'all', label: t('classes_screen.status.all'), filterFn: () => true },
+    { value: 'scheduled', label: t('classes_screen.status.scheduled'), filterFn: (row) => row.status === 'scheduled' },
+    { value: 'completed', label: t('classes_screen.status.completed'), filterFn: (row) => row.status === 'completed' },
+    { value: 'cancelled', label: t('classes_screen.status.cancelled'), filterFn: (row) => row.status === 'cancelled' },
+  ], [t]);
 
   // Add searchable text to each row for better search functionality
   const dataWithSearchText = useMemo(() => {
@@ -950,7 +952,7 @@ const ClassesScreen = () => {
       <div className="stats-cards-grid">
 
         <TabCard
-          name="Total Classes"
+          name={t('classes_screen.stats.total')}
           value={totalCount}
           icon={GraduationCap}
           colorType="indigo"
@@ -962,7 +964,7 @@ const ClassesScreen = () => {
           }}
         />
         <TabCard
-          name="Scheduled"
+          name={t('classes_screen.stats.scheduled')}
           value={scheduledCount}
           icon={Calendar}
           colorType="blue"
@@ -974,7 +976,7 @@ const ClassesScreen = () => {
           }}
         />
         <TabCard
-          name="Completed"
+          name={t('classes_screen.stats.completed')}
           value={completedCount}
           icon={CheckCircle}
           colorType="green"
@@ -1003,14 +1005,14 @@ const ClassesScreen = () => {
                 <div className="empty-state-icon-container">
                   <GraduationCap className="empty-state-icon" size={32} />
                 </div>
-                <p className="empty-state-title">No classes found</p>
-                <p className="empty-state-subtitle">Create your first class to get started!</p>
+                <p className="empty-state-title">{t('classes_screen.table.no_classes')}</p>
+                <p className="empty-state-subtitle">{t('classes_screen.table.no_classes_subtitle')}</p>
               </div>
-            ) : 'No classes found matching your filters'
+            ) : t('classes_screen.table.no_classes_filtered')
           }
           searchable={true}
           filterable={false} // We sort by status using TabCards
-          searchPlaceholder="Search by course or instructor..."
+          searchPlaceholder={t('classes_screen.table.search_placeholder')}
           searchValue={searchTerm}
           onSearch={(value) => {
             setSearchTerm(value);
@@ -1040,7 +1042,7 @@ const ClassesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedClass ? 'Edit Class' : 'Create New Class'}
+        title={selectedClass ? t('classes_screen.header.edit') : t('classes_screen.header.create')}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="modal-form">
@@ -1049,7 +1051,7 @@ const ClassesScreen = () => {
             <>
               {/* ACC Selection */}
               <FormInput
-                label="Accreditation"
+                label={t('classes_screen.form.accreditation')}
                 name="acc_id"
                 type="select"
                 value={formData.acc_id}
@@ -1057,7 +1059,7 @@ const ClassesScreen = () => {
                 required
                 error={errors.acc_id}
                 options={[
-                  { value: '', label: 'Select an Accreditation...' },
+                  { value: '', label: t('classes_screen.form.select_accreditation') },
                   ...availableACCs.map(acc => ({
                     value: acc.id,
                     label: acc.name || `Accreditation ${acc.id}`
@@ -1066,16 +1068,16 @@ const ClassesScreen = () => {
               />
               {availableACCs.length === 0 && !loading && (
                 <div className="form-warning">
-                  <p className="form-warning-title">No Accreditations available</p>
+                  <p className="form-warning-title">{t('classes_screen.form.no_accreditations')}</p>
                   <p className="form-warning-text">
-                    Please ensure you have authorization from at least one Accreditation. Authorized Accreditations will appear here.
+                    {t('classes_screen.form.no_accreditations_help')}
                   </p>
                 </div>
               )}
 
               {/* Category Selection */}
               <FormInput
-                label="Category"
+                label={t('classes_screen.form.category')}
                 name="category_id"
                 type="select"
                 value={formData.category_id}
@@ -1084,7 +1086,7 @@ const ClassesScreen = () => {
                 disabled={!formData.acc_id || loadingCategories}
                 error={errors.category_id}
                 options={[
-                  { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (loadingCategories ? 'Loading categories...' : 'Select a category...') },
+                  { value: '', label: !formData.acc_id ? t('classes_screen.form.select_accreditation') : (loadingCategories ? 'Loading categories...' : t('classes_screen.form.select_category')) },
                   ...categories
                     .filter(cat => cat.id != null && cat.id !== '')
                     .map(cat => ({
@@ -1096,7 +1098,7 @@ const ClassesScreen = () => {
 
               {/* Sub-Category Selection */}
               <FormInput
-                label="Sub-Category"
+                label={t('classes_screen.form.sub_category')}
                 name="sub_category_id"
                 type="select"
                 value={formData.sub_category_id}
@@ -1105,7 +1107,7 @@ const ClassesScreen = () => {
                 disabled={!formData.acc_id || !formData.category_id || loadingSubCategories}
                 error={errors.sub_category_id}
                 options={[
-                  { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (!formData.category_id ? 'Please select Category first' : (loadingSubCategories ? 'Loading sub-categories...' : 'Select a sub-category...')) },
+                  { value: '', label: !formData.acc_id ? t('classes_screen.form.select_accreditation') : (!formData.category_id ? t('classes_screen.form.select_category_first') : (loadingSubCategories ? 'Loading sub-categories...' : t('classes_screen.form.select_sub_category'))) },
                   ...subCategories
                     .filter(subCat => subCat.id != null && subCat.id !== '')
                     .map(subCat => ({
@@ -1118,7 +1120,7 @@ const ClassesScreen = () => {
               {/* Course Selection */}
               <div>
                 <FormInput
-                  label="Course"
+                  label={t('classes_screen.form.course')}
                   name="course_id"
                   type="select"
                   value={formData.course_id}
@@ -1127,7 +1129,7 @@ const ClassesScreen = () => {
                   disabled={!formData.acc_id || !formData.category_id || !formData.sub_category_id || loadingCourses}
                   error={errors.course_id}
                   options={[
-                    { value: '', label: !formData.acc_id ? 'Please select Accreditation first' : (!formData.category_id ? 'Please select Category first' : (!formData.sub_category_id ? 'Please select Sub-Category first' : (loadingCourses ? 'Loading courses...' : 'Select a course...'))) },
+                    { value: '', label: !formData.acc_id ? t('classes_screen.form.select_accreditation') : (!formData.category_id ? t('classes_screen.form.select_category_first') : (!formData.sub_category_id ? t('classes_screen.form.select_sub_category') : (loadingCourses ? 'Loading courses...' : t('classes_screen.form.select_course')))) },
                     ...availableCourses.map(course => {
                       const courseName = course.name || course.code || `Course ${course.id}`;
                       return { value: course.id, label: courseName };
@@ -1136,9 +1138,9 @@ const ClassesScreen = () => {
                 />
                 {availableCourses.length === 0 && !loadingCourses && formData.sub_category_id && (
                   <div className="form-warning">
-                    <p className="form-warning-title">No courses available</p>
+                    <p className="form-warning-title">{t('classes_screen.form.no_courses')}</p>
                     <p className="form-warning-text">
-                      No courses found for the selected sub-category. Please select a different sub-category.
+                      {t('classes_screen.form.no_courses_help')}
                     </p>
                   </div>
                 )}
@@ -1148,19 +1150,19 @@ const ClassesScreen = () => {
 
 
           <FormInput
-            label="Class Name"
+            label={t('classes_screen.form.class_name')}
             name="name"
             type="text"
             value={formData.name}
             onChange={handleChange}
             required
-            placeholder="e.g. Class A - January 2024"
+            placeholder={t('classes_screen.form.class_name_placeholder')}
             error={errors.name}
           />
 
           <div>
             <FormInput
-              label="Instructor"
+              label={t('classes_screen.form.instructor')}
               name="instructor_id"
               type="select"
               value={formData.instructor_id}
@@ -1168,36 +1170,36 @@ const ClassesScreen = () => {
               required
               error={errors.instructor_id}
               options={[
-                { value: '', label: 'Select an instructor...' },
+                { value: '', label: t('classes_screen.form.select_instructor') },
                 ...(filteredInstructors.length > 0
                   ? filteredInstructors.map(inst => ({
                     value: inst.id,
                     label: `${inst.first_name} ${inst.last_name}${inst.is_assessor ? ' (Assessor)' : ''}`
                   }))
-                  : [{ value: '', label: 'No instructors available', disabled: true }]
+                  : [{ value: '', label: t('classes_screen.form.no_instructors'), disabled: true }]
                 )
               ]}
             />
             {selectedCourseData?.assessor_required && filteredInstructors.length === 0 && (
               <div className="form-warning">
                 <p className="form-warning-title">
-                  ⚠️ This course requires an assessor, but no assessors are available.
+                  ⚠️ {t('classes_screen.form.assessor_required_title')}, {t('classes_screen.form.assessor_required_no')}
                 </p>
                 <p className="form-warning-text">
-                  Please mark at least one instructor as an assessor before creating this class.
+                  {t('instructors_screen.mark_as_assessor')}
                 </p>
               </div>
             )}
             {selectedCourseData?.assessor_required && filteredInstructors.length > 0 && (
               <p className="form-info">
-                ℹ️ This course requires an assessor. Only assessors are shown.
+                ℹ️ {t('classes_screen.form.assessor_required_title')}. {t('classes_screen.form.assessor_required_info')}
               </p>
             )}
           </div>
 
           <div className="form-grid">
             <FormInput
-              label="Start Date"
+              label={t('classes_screen.form.start_date')}
               name="start_date"
               type="date"
               value={formData.start_date}
@@ -1207,7 +1209,7 @@ const ClassesScreen = () => {
             />
 
             <FormInput
-              label="End Date"
+              label={t('classes_screen.form.end_date')}
               name="end_date"
               type="date"
               value={formData.end_date}
@@ -1219,23 +1221,23 @@ const ClassesScreen = () => {
 
           <div className="form-grid">
             <FormInput
-              label="Exam Date (Optional)"
+              label={t('classes_screen.form.exam_date')}
               name="exam_date"
               type="date"
               value={formData.exam_date}
               onChange={handleChange}
               error={errors.exam_date}
-              helpText="Date when the exam is scheduled (must be after or equal to start date)"
+              helpText={t('classes_screen.form.exam_date_help')}
             />
 
             <FormInput
-              label="Grade (Optional)"
+              label={t('classes_screen.form.grade')}
               name="exam_score"
               type="number"
               value={formData.exam_score}
               onChange={handleChange}
               error={errors.exam_score}
-              helpText="Grade (0-100)"
+              helpText={t('classes_screen.form.grade_help')}
               min="0"
               max="100"
               step="1"
@@ -1243,7 +1245,7 @@ const ClassesScreen = () => {
           </div>
 
           <FormInput
-            label="Location"
+            label={t('classes_screen.form.location')}
             name="location"
             type="select"
             value={formData.location}
@@ -1251,16 +1253,15 @@ const ClassesScreen = () => {
             required
             error={errors.location}
             options={[
-              { value: 'physical', label: 'Physical' },
-              { value: 'online', label: 'Online' },
-              { value: 'hybrid', label: 'Hybrid' }
+              { value: 'physical', label: t('classes_screen.form.physical') },
+              { value: 'online', label: t('classes_screen.form.online') },
+              { value: 'hybrid', label: t('classes_screen.form.hybrid') }
             ]}
           />
 
-          {/* Trainees Selection */}
           <div className="form-group">
             <label className="form-label">
-              Trainees (Optional)
+              {t('classes_screen.trainees.title')}
             </label>
             <div className="trainees-selection-container">
               {/* Search Input */}
@@ -1268,7 +1269,7 @@ const ClassesScreen = () => {
                 <Search size={18} className="trainees-search-icon" />
                 <input
                   type="text"
-                  placeholder="Search trainees by name, email, or ID..."
+                  placeholder={t('classes_screen.trainees.search_placeholder')}
                   value={traineeSearchTerm}
                   onChange={(e) => setTraineeSearchTerm(e.target.value)}
                   className="trainees-search-input"
@@ -1288,7 +1289,7 @@ const ClassesScreen = () => {
               {selectedTraineeIds.length > 0 && (
                 <div className="trainees-selected-count">
                   <Users size={16} />
-                  <span>{selectedTraineeIds.length} trainee{selectedTraineeIds.length !== 1 ? 's' : ''} selected</span>
+                  <span>{t('classes_screen.trainees.selected', { count: selectedTraineeIds.length })}</span>
                 </div>
               )}
 
@@ -1297,13 +1298,13 @@ const ClassesScreen = () => {
                 {loadingTrainees ? (
                   <div className="trainees-loading">
                     <div className="loading-spinner-small"></div>
-                    <span>Loading trainees...</span>
+                    <span>{t('classes_screen.trainees.loading')}</span>
                   </div>
                 ) : filteredTrainees.length === 0 ? (
                   <div className="trainees-empty">
                     <Users size={24} className="trainees-empty-icon" />
                     <p className="trainees-empty-text">
-                      {traineeSearchTerm ? 'No trainees found matching your search.' : 'No trainees available.'}
+                      {traineeSearchTerm ? t('classes_screen.trainees.no_trainees_search') : t('classes_screen.trainees.no_trainees')}
                     </p>
                   </div>
                 ) : (
@@ -1366,7 +1367,7 @@ const ClassesScreen = () => {
 
           {Object.keys(errors).filter(key => key !== 'general').length > 0 && (
             <div className="form-error-general">
-              <p className="form-error-general-text">Please fix the following errors:</p>
+              <p className="form-error-general-text">{t('authorization_form.at_least_one_document_required')}</p>
               <ul className="form-error-list">
                 {Object.entries(errors)
                   .filter(([key]) => key !== 'general')
@@ -1385,14 +1386,14 @@ const ClassesScreen = () => {
               onClick={handleCloseModal}
               className="form-btn form-btn-cancel"
             >
-              Cancel
+              {t('classes_screen.actions.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="form-btn form-btn-submit"
             >
-              {saving ? 'Saving...' : selectedClass ? 'Update Class' : 'Create Class'}
+              {saving ? t('classes_screen.actions.saving') : selectedClass ? t('classes_screen.header.update') : t('classes_screen.actions.save')}
             </button>
           </div>
         </form>
@@ -1405,7 +1406,7 @@ const ClassesScreen = () => {
           setDetailModalOpen(false);
           setSelectedClass(null);
         }}
-        title="Class Details"
+        title={t('classes_screen.details.title')}
         size="lg"
       >
         {selectedClass && (
@@ -1416,26 +1417,26 @@ const ClassesScreen = () => {
               fields={[
                 {
                   key: 'name',
-                  label: 'Class Name',
-                  render: (value, data) => data.name || 'N/A'
+                  label: t('classes_screen.table.class_name'),
+                  render: (value, data) => data.name || t('classes_screen.common.na')
                 },
-                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'status', label: t('classes_screen.table.status'), type: 'status' },
               ]}
             />
 
             {/* Course Information */}
             <div className="detail-modal-section detail-modal-section-blue">
-              <p className="detail-modal-section-title detail-modal-section-title-blue">Course Information</p>
+              <p className="detail-modal-section-title detail-modal-section-title-blue">{t('classes_screen.details.course_info')}</p>
               <div className="detail-modal-section-grid">
                 <div className="detail-modal-section-item">
-                  <p className="detail-modal-section-label detail-modal-section-label-blue">Course Name</p>
+                  <p className="detail-modal-section-label detail-modal-section-label-blue">{t('classes_screen.table.course')}</p>
                   <p className="detail-modal-section-value detail-modal-section-value-blue">
-                    {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
+                    {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || t('classes_screen.common.na'))}
                   </p>
                 </div>
                 {selectedClass.course?.code && (
                   <div className="detail-modal-section-item">
-                    <p className="detail-modal-section-label detail-modal-section-label-blue">Course Code</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">{t('codes')}</p>
                     <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.code}</p>
                   </div>
                 )}
@@ -1447,13 +1448,13 @@ const ClassesScreen = () => {
                 )}
                 {selectedClass.course?.duration && (
                   <div className="detail-modal-section-item">
-                    <p className="detail-modal-section-label detail-modal-section-label-blue">Duration</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">{t('trainees.table.columns.classes')}</p>
                     <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.duration}</p>
                   </div>
                 )}
                 {selectedClass.course?.description && (
                   <div className="detail-modal-section-item detail-modal-section-full">
-                    <p className="detail-modal-section-label detail-modal-section-label-blue">Description</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-blue">{t('accreditations.description')}</p>
                     <p className="detail-modal-section-value detail-modal-section-value-blue">{selectedClass.course.description}</p>
                   </div>
                 )}
@@ -1462,34 +1463,34 @@ const ClassesScreen = () => {
 
             {/* Instructor Information */}
             <div className="detail-modal-section detail-modal-section-purple">
-              <p className="detail-modal-section-title detail-modal-section-title-purple">Instructor Information</p>
+              <p className="detail-modal-section-title detail-modal-section-title-purple">{t('classes_screen.details.instructor_info')}</p>
               <div className="detail-modal-section-grid">
                 <div className="detail-modal-section-item">
-                  <p className="detail-modal-section-label detail-modal-section-label-purple">Name</p>
+                  <p className="detail-modal-section-label detail-modal-section-label-purple">{t('classes_screen.table.instructor')}</p>
                   <p className="detail-modal-section-value detail-modal-section-value-purple">
                     {typeof selectedClass.instructor === 'string'
                       ? selectedClass.instructor
                       : (selectedClass.instructor?.first_name && selectedClass.instructor?.last_name
                         ? `${selectedClass.instructor.first_name} ${selectedClass.instructor.last_name}`
-                        : 'N/A')}
+                        : t('classes_screen.common.na'))}
                   </p>
                 </div>
                 {selectedClass.instructor?.email && (
                   <div className="detail-modal-section-item">
-                    <p className="detail-modal-section-label detail-modal-section-label-purple">Email</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">{t('email')}</p>
                     <p className="detail-modal-section-value detail-modal-section-value-purple">{selectedClass.instructor.email}</p>
                   </div>
                 )}
                 {selectedClass.instructor?.phone && (
                   <div className="detail-modal-section-item">
-                    <p className="detail-modal-section-label detail-modal-section-label-purple">Phone</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">{t('phone')}</p>
                     <p className="detail-modal-section-value detail-modal-section-value-purple">{selectedClass.instructor.phone}</p>
                   </div>
                 )}
                 {selectedClass.instructor?.is_assessor && (
                   <div className="detail-modal-section-item">
-                    <p className="detail-modal-section-label detail-modal-section-label-purple">Role</p>
-                    <p className="detail-modal-section-value detail-modal-section-value-purple">Assessor</p>
+                    <p className="detail-modal-section-label detail-modal-section-label-purple">{t('instructors_screen.type')}</p>
+                    <p className="detail-modal-section-value detail-modal-section-value-purple">{t('instructors_screen.assessor')}</p>
                   </div>
                 )}
               </div>
@@ -1498,13 +1499,13 @@ const ClassesScreen = () => {
             {/* Schedule Information */}
             <div className="detail-modal-grid">
               <div className="detail-modal-item">
-                <p className="detail-modal-label">Start Date</p>
+                <p className="detail-modal-label">{t('classes_screen.table.start_date')}</p>
                 <p className="detail-modal-value">
                   {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  }) : 'N/A'}
+                  }) : t('classes_screen.common.na')}
                 </p>
                 {selectedClass.start_date && (
                   <p className="detail-modal-time">
@@ -1516,13 +1517,13 @@ const ClassesScreen = () => {
                 )}
               </div>
               <div className="detail-modal-item">
-                <p className="detail-modal-label">End Date</p>
+                <p className="detail-modal-label">{t('classes_screen.table.end_date')}</p>
                 <p className="detail-modal-value">
                   {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  }) : 'N/A'}
+                  }) : t('classes_screen.common.na')}
                 </p>
                 {selectedClass.end_date && (
                   <p className="detail-modal-time">
@@ -1535,7 +1536,7 @@ const ClassesScreen = () => {
               </div>
               {selectedClass.exam_date && (
                 <div className="detail-modal-item" style={{ backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }}>
-                  <p className="detail-modal-label" style={{ color: '#9333ea' }}>Exam Date</p>
+                  <p className="detail-modal-label" style={{ color: '#9333ea' }}>{t('classes_screen.table.exam_date')}</p>
                   <p className="detail-modal-value" style={{ color: '#7e22ce' }}>
                     {new Date(selectedClass.exam_date).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -1547,7 +1548,7 @@ const ClassesScreen = () => {
               )}
               {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
                 <div className="detail-modal-item" style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe' }}>
-                  <p className="detail-modal-label" style={{ color: '#4f46e5' }}>Grade</p>
+                  <p className="detail-modal-label" style={{ color: '#4f46e5' }}>{t('classes_screen.table.grade')}</p>
                   <p className="detail-modal-value" style={{ color: '#4338ca', fontWeight: 'bold' }}>
                     {parseInt(selectedClass.exam_score)}
                   </p>
@@ -1558,15 +1559,15 @@ const ClassesScreen = () => {
             {/* Additional Information */}
             <div className="detail-modal-grid">
               <div className="detail-modal-item">
-                <p className="detail-modal-label">Location</p>
+                <p className="detail-modal-label">{t('classes_screen.form.location')}</p>
                 <p className="detail-modal-value">
-                  {selectedClass.location ? selectedClass.location.charAt(0).toUpperCase() + selectedClass.location.slice(1) : 'N/A'}
+                  {selectedClass.location ? selectedClass.location.charAt(0).toUpperCase() + selectedClass.location.slice(1) : t('classes_screen.common.na')}
                 </p>
               </div>
               <div className="detail-modal-item">
-                <p className="detail-modal-label">Enrollment</p>
+                <p className="detail-modal-label">{t('classes_screen.table.enrollment')}</p>
                 <p className="detail-modal-value">
-                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
+                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || t('classes_screen.common.na')}
                 </p>
                 {selectedClass.course?.max_capacity && (
                   <div className="detail-modal-progress-container">
@@ -1588,7 +1589,7 @@ const ClassesScreen = () => {
 
             {/* Trainees Section - Always show */}
             <div className="detail-modal-section detail-modal-section-blue">
-              <p className="detail-modal-section-title detail-modal-section-title-blue">Enrolled Trainees</p>
+              <p className="detail-modal-section-title detail-modal-section-title-blue">{t('classes_screen.details.enrolled_trainees')}</p>
               {selectedClass.trainees && Array.isArray(selectedClass.trainees) && selectedClass.trainees.length > 0 ? (
                 <div className="detail-modal-trainees-list">
                   {selectedClass.trainees.map((trainee, index) => (
@@ -1600,7 +1601,7 @@ const ClassesScreen = () => {
                         </div>
                         <div className="detail-modal-trainee-id">
                           <Hash size={14} className="detail-modal-trainee-id-icon" />
-                          <span>{trainee.id_number || trainee.id || 'N/A'}</span>
+                          <span>{trainee.id_number || trainee.id || t('classes_screen.common.na')}</span>
                         </div>
                       </div>
                     </div>
@@ -1609,8 +1610,8 @@ const ClassesScreen = () => {
               ) : (
                 <div className="text-center py-8">
                   <Users className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-gray-500 font-medium">No trainees enrolled</p>
-                  <p className="text-sm text-gray-400 mt-1">No trainees have been enrolled in this class yet.</p>
+                  <p className="text-gray-500 font-medium">{t('classes_screen.details.no_enrolled')}</p>
+                  <p className="text-sm text-gray-400 mt-1">{t('classes_screen.trainees.no_trainees')}</p>
                 </div>
               )}
             </div>
@@ -1618,11 +1619,11 @@ const ClassesScreen = () => {
             {/* Additional Fields */}
             {(selectedClass.created_at || selectedClass.updated_at || selectedClass.notes) && (
               <div className="detail-modal-section detail-modal-section-yellow">
-                <p className="detail-modal-section-title detail-modal-section-title-yellow">Additional Information</p>
+                <p className="detail-modal-section-title detail-modal-section-title-yellow">{t('classes_screen.details.additional')}</p>
                 <div className="detail-modal-additional-list">
                   {selectedClass.created_at && (
                     <div className="detail-modal-additional-item">
-                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Created At</p>
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">{t('created_at')}</p>
                       <p className="detail-modal-additional-value detail-modal-additional-value-yellow">
                         {new Date(selectedClass.created_at).toLocaleString('en-US')}
                       </p>
@@ -1630,7 +1631,7 @@ const ClassesScreen = () => {
                   )}
                   {selectedClass.updated_at && (
                     <div className="detail-modal-additional-item">
-                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Last Updated</p>
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">{t('updated_at')}</p>
                       <p className="detail-modal-additional-value detail-modal-additional-value-yellow">
                         {new Date(selectedClass.updated_at).toLocaleString('en-US')}
                       </p>
@@ -1638,7 +1639,7 @@ const ClassesScreen = () => {
                   )}
                   {selectedClass.notes && (
                     <div className="detail-modal-additional-item">
-                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">Notes</p>
+                      <p className="detail-modal-additional-label detail-modal-additional-label-yellow">{t('additional_information')}</p>
                       <p className="detail-modal-additional-value detail-modal-additional-value-yellow">{selectedClass.notes}</p>
                     </div>
                   )}
@@ -1657,7 +1658,7 @@ const ClassesScreen = () => {
                   className="detail-modal-action-btn"
                 >
                   <CheckCircle size={20} className="detail-modal-action-icon" />
-                  Mark as Complete
+                  {t('classes_screen.details.mark_complete')}
                 </button>
               </div>
             )}
@@ -1672,18 +1673,18 @@ const ClassesScreen = () => {
           setEnrollmentModalOpen(false);
           setSelectedClassForEnrollment(null);
         }}
-        title="Enrolled Trainees"
+        title={t('classes_screen.details.enrolled_trainees')}
         size="lg"
       >
         {selectedClassForEnrollment && (
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 rounded-lg mb-4">
-              <p className="text-sm text-gray-500 mb-1">Class Information</p>
+              <p className="text-sm text-gray-500 mb-1">{t('classes_screen.details.course_info')}</p>
               <p className="text-base font-semibold text-gray-900">
-                {selectedClassForEnrollment.course?.name || 'N/A'}
+                {selectedClassForEnrollment.course?.name || t('classes_screen.common.na')}
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                Enrollment: {selectedClassForEnrollment.enrolled_count || 0} / {selectedClassForEnrollment.course?.max_capacity || 'N/A'}
+                {t('classes_screen.table.enrollment')}: {selectedClassForEnrollment.enrolled_count || 0} / {selectedClassForEnrollment.course?.max_capacity || t('classes_screen.common.na')}
               </p>
             </div>
 
@@ -1695,7 +1696,7 @@ const ClassesScreen = () => {
                       <div>
                         <p className="text-sm text-gray-500 mb-1 flex items-center">
                           <Users size={14} className="mr-1" />
-                          Name
+                          {t('name')}
                         </p>
                         <p className="text-base font-semibold text-gray-900">
                           {trainee.first_name} {trainee.last_name}
@@ -1704,17 +1705,17 @@ const ClassesScreen = () => {
                       <div>
                         <p className="text-sm text-gray-500 mb-1 flex items-center">
                           <Mail size={14} className="mr-1" />
-                          Email
+                          {t('email')}
                         </p>
                         <p className="text-base font-semibold text-gray-900">
-                          {trainee.email || 'N/A'}
+                          {trainee.email || t('classes_screen.common.na')}
                         </p>
                       </div>
                       {trainee.phone && (
                         <div>
                           <p className="text-sm text-gray-500 mb-1 flex items-center">
                             <Phone size={14} className="mr-1" />
-                            Phone
+                            {t('phone')}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
                             {trainee.phone}
@@ -1725,7 +1726,7 @@ const ClassesScreen = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1 flex items-center">
                             <Hash size={14} className="mr-1" />
-                            ID Number
+                            {t('trainees.table.columns.idNumber')}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
                             {trainee.id_number}
@@ -1736,7 +1737,7 @@ const ClassesScreen = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1 flex items-center">
                             <Calendar size={14} className="mr-1" />
-                            Enrolled At
+                            {t('request_date')}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
                             {new Date(trainee.enrolled_at).toLocaleString('en-US', {
@@ -1753,7 +1754,7 @@ const ClassesScreen = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1 flex items-center">
                             <CheckCircle size={14} className="mr-1" />
-                            Completed At
+                            {t('reviewed_at')}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
                             {new Date(trainee.completed_at).toLocaleString('en-US', {
@@ -1769,14 +1770,14 @@ const ClassesScreen = () => {
                       <div>
                         <p className="text-sm text-gray-500 mb-1 flex items-center">
                           <Clock size={14} className="mr-1" />
-                          Status
+                          {t('status')}
                         </p>
                         <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${trainee.status === 'completed' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
                           trainee.status === 'enrolled' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
                             'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
                           }`}>
                           {trainee.status === 'completed' && <CheckCircle size={12} className="mr-1" />}
-                          {trainee.status ? trainee.status.charAt(0).toUpperCase() + trainee.status.slice(1) : 'N/A'}
+                          {trainee.status ? t(`classes_screen.status.${trainee.status}`) : t('classes_screen.common.na')}
                         </span>
                       </div>
                     </div>
@@ -1786,8 +1787,8 @@ const ClassesScreen = () => {
             ) : (
               <div className="text-center py-8">
                 <Users className="mx-auto text-gray-400 mb-4" size={48} />
-                <p className="text-gray-500 font-medium">No trainees enrolled</p>
-                <p className="text-sm text-gray-400 mt-1">No trainees have been enrolled in this class yet.</p>
+                <p className="text-gray-500 font-medium">{t('classes_screen.details.no_enrolled')}</p>
+                <p className="text-sm text-gray-400 mt-1">{t('classes_screen.trainees.no_trainees')}</p>
               </div>
             )}
           </div>
@@ -1802,9 +1803,9 @@ const ClassesScreen = () => {
           setSelectedClass(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Class"
-        message={`Are you sure you want to delete this class? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('classes_screen.actions.delete_title')}
+        message={t('classes_screen.actions.delete_confirm')}
+        confirmText={t('classes_screen.actions.delete')}
         variant="danger"
       />
     </div>

@@ -609,6 +609,46 @@ const PaymentTransactionsScreen = () => {
               </div>
             )}
 
+            {/* Transfer Information - Automatic Transfer System */}
+            {selectedTransaction.transfer && (
+              <div className="transfer-info-section">
+                <p className="info-section-title transfer">Automatic Transfer Information</p>
+                <div className="info-section-content">
+                  <div className="transfer-breakdown">
+                    <div className="transfer-row">
+                      <span className="transfer-label">Gross Amount:</span>
+                      <span className="transfer-value gross">{formatCurrency(selectedTransaction.transfer.gross_amount, selectedTransaction.currency)}</span>
+                    </div>
+                    <div className="transfer-row">
+                      <span className="transfer-label">Commission (15%):</span>
+                      <span className="transfer-value commission">-{formatCurrency(selectedTransaction.transfer.commission_amount, selectedTransaction.currency)}</span>
+                    </div>
+                    <div className="transfer-row net-row">
+                      <span className="transfer-label">Net Amount Transferred:</span>
+                      <span className="transfer-value net">{formatCurrency(selectedTransaction.transfer.net_amount, selectedTransaction.currency)}</span>
+                    </div>
+                  </div>
+                  <div className="transfer-status-row">
+                    <span className="info-section-label">Transfer Status:</span>
+                    <span className={`status-badge ${selectedTransaction.transfer.status === 'completed' ? 'completed' : selectedTransaction.transfer.status === 'pending' ? 'pending' : 'failed'}`}>
+                      {selectedTransaction.transfer.status?.charAt(0).toUpperCase() + selectedTransaction.transfer.status?.slice(1) || 'N/A'}
+                    </span>
+                  </div>
+                  {selectedTransaction.transfer.stripe_transfer_id && (
+                    <div className="info-section-row">
+                      <span className="info-section-label">Stripe Transfer ID:</span>
+                      <span className="info-section-value mono">{selectedTransaction.transfer.stripe_transfer_id}</span>
+                    </div>
+                  )}
+                  {selectedTransaction.transfer.completed_at && (
+                    <div className="info-section-row">
+                      <span className="info-section-label">Transferred At:</span>
+                      <span className="info-section-value">{formatDateTime(selectedTransaction.transfer.completed_at)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Dates */}
             <div className="modal-grid">

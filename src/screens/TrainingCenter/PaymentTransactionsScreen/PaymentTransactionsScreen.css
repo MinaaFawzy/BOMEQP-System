@@ -596,3 +596,87 @@ button:active {
   transform: scale(0.95);
 }
 
+/* Transfer Information Section */
+.transfer-info-section {
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 0.5rem;
+  border: 1px solid #bbf7d0;
+}
+
+.info-section-title.transfer {
+  color: #15803d;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.transfer-breakdown {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.transfer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.transfer-row:last-child {
+  border-bottom: none;
+}
+
+.transfer-row.net-row {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #15803d;
+  border-bottom: none;
+}
+
+.transfer-label {
+  font-size: 0.875rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.transfer-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.transfer-value.gross {
+  color: #111827;
+}
+
+.transfer-value.commission {
+  color: #dc2626;
+}
+
+.transfer-value.net {
+  color: #15803d;
+  font-size: 1.25rem;
+}
+
+.transfer-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-section-value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}

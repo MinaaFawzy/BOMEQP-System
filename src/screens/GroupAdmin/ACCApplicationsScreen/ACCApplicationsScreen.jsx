@@ -19,7 +19,9 @@ const ACCApplicationsScreen = () => {
   const [selectedApp, setSelectedApp] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [commissionPercentage, setCommissionPercentage] = useState('10');
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Pagination State
@@ -156,12 +158,30 @@ const ACCApplicationsScreen = () => {
     }));
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = (app) => {
+    setSelectedApp(app);
+    setCommissionPercentage('10'); // Default 10%
+    setApproveDialogOpen(true);
+  };
+
+  const confirmApprove = async () => {
+    const commission = parseFloat(commissionPercentage);
+
+    if (isNaN(commission) || commission < 0 || commission > 100) {
+      alert('Please enter a valid commission percentage between 0 and 100');
+      return;
+    }
+
     try {
-      await adminAPI.approveACCApplication(id);
+      await adminAPI.approveACCApplication(selectedApp.id, {
+        commission_percentage: commission
+      });
       await loadApplications();
+      setApproveDialogOpen(false);
+      setSelectedApp(null);
+      setCommissionPercentage('10');
     } catch (error) {
-      alert('Failed to approve application: ' + (error.message || 'Unknown error'));
+      alert('Failed to approve application: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
     }
   };
 
@@ -392,9 +412,9 @@ const ACCApplicationsScreen = () => {
                 variant="success"
                 fullWidth
                 icon={<CheckCircle size={20} />}
-                onClick={async () => {
-                  await handleApprove(selectedApp.id);
+                onClick={() => {
                   setDetailModalOpen(false);
+                  handleApprove(selectedApp);
                 }}
               >
                 Approve Application
@@ -458,6 +478,59 @@ const ACCApplicationsScreen = () => {
               onClick={confirmReject}
             >
               Reject Application
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Approve Dialog */}
+      <Modal
+        isOpen={approveDialogOpen}
+        onClose={() => {
+          setApproveDialogOpen(false);
+          setSelectedApp(null);
+          setCommissionPercentage('10');
+        }}
+        title="Approve ACC Application"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Please set the commission percentage for this ACC:
+          </p>
+          <FormInput
+            label="Commission Percentage (%)"
+            name="commission_percentage"
+            type="number"
+            value={commissionPercentage}
+            onChange={(e) => setCommissionPercentage(e.target.value)}
+            min="0"
+            max="100"
+            step="0.1"
+            required
+            placeholder="Enter commission percentage (0-100)"
+          />
+          <p className="text-sm text-gray-500">
+            This percentage will be applied to all transactions involving this ACC.
+          </p>
+          <div className="flex space-x-3 pt-4">
+            <Button
+              variant="outline"
+              fullWidth
+              onClick={() => {
+                setApproveDialogOpen(false);
+                setSelectedApp(null);
+                setCommissionPercentage('10');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="success"
+              fullWidth
+              onClick={confirmApprove}
+            >
+              Approve Application
             </Button>
           </div>
         </div>

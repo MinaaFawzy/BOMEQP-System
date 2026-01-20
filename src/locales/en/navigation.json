@@ -1,0 +1,65 @@
+{
+  "dashboard": "Dashboard",
+  "home": "Home",
+  "menu": "Menu",
+  "accreditation_bodies": "Accreditation Bodies",
+  "instructors": "Instructors",
+  "trainees": "Trainees",
+  "classes": "Classes",
+  "codes": "Codes",
+  "certificates": "Certificates",
+  "instructor_authorizations": "Instructor Authorizations",
+  "payment_transactions": "Payment Transactions",
+  "marketplace": "Marketplace",
+  "people_management": "People Management",
+  "courses_classes": "Courses & Classes",
+  "financial": "Financial",
+  "welcome_back_here_is_your_overview": "Welcome back! Here is your overview",
+  
+  "group_admin": {
+    "title": "Group Admin",
+    "acc_applications": "ACC Applications",
+    "training_center_applications": "Training Center Applications",
+    "all_accs": "All ACCs",
+    "all_training_centers": "All Training Centers",
+    "all_instructors": "All Instructors",
+    "all_courses": "All Courses",
+    "categories": "Categories",
+    "financial": "Financial",
+    "payment_transactions": "Payment Transactions",
+    "reports": "Reports",
+    "instructor_authorizations": "Instructor Authorizations",
+    "stripe_settings": "Stripe Settings",
+    "classes": "Classes",
+    "pending_payments": "Pending Payments", 
+    "people_management": "People Management",
+    "courses_classes": "Courses & Classes"
+  },
+  
+  "acc_admin": {
+    "title": "ACC Admin",
+    "dashboard": "Dashboard",
+    "subscription": "Subscription",
+    "profile": "Profile",
+    "training_centers": "Training Centers",
+    "instructors": "Instructors",
+    "courses": "Courses",
+    "certificates": "Certificates",
+    "certificate_templates": "Certificate Templates",
+    "materials": "Materials",
+    "discount_codes": "Discount Codes",
+    "categories": "Categories",
+    "classes": "Classes",
+    "payment_transactions": "Payment Transactions",
+    "pending_payments": "Pending Payments"
+  },
+  
+  "instructor": {
+    "title": "Instructor",
+    "dashboard": "Dashboard",
+    "classes": "Classes",
+    "materials": "Materials",
+    "earnings": "Earnings",
+    "profile": "Profile"
+  }
+}

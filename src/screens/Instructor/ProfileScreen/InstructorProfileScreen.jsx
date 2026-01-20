@@ -6,11 +6,10 @@ import { validateEmail, validatePhone, validateRequired, validateUKID, validateP
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
-import { 
+import {
   User, Mail, Lock, Save, KeyRound,
-  Phone, MapPin, FileText, Upload, X, CheckCircle, Award, Calendar, Eye, Trash2, Edit
+  Phone, MapPin, FileText, Upload, X, CheckCircle, Award, Calendar, Eye, Trash2, Edit, Clock, Building2
 } from 'lucide-react';
-import axios from 'axios';
 import './InstructorProfileScreen.css';
 
 const InstructorProfileScreen = () => {
@@ -18,7 +17,7 @@ const InstructorProfileScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   // Instructor profile data
   const [instructorData, setInstructorData] = useState(null);
   const [cvUrl, setCvUrl] = useState(null);
@@ -26,22 +25,26 @@ const InstructorProfileScreen = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoUrl, setPhotoUrl] = useState(null);
-  
+  const [passportFile, setPassportFile] = useState(null);
+  const [passportUrl, setPassportUrl] = useState(null);
+  const [uploadingPassport, setUploadingPassport] = useState(false);
+
   // Countries and Cities
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
-  
+
   // Certificates
   const [certificates, setCertificates] = useState([]);
   const [newCertificates, setNewCertificates] = useState([]); // Array of { name, issue_date, file }
-  
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: user?.email || '',
     phone: '',
+    date_of_birth: '',
     country: '',
     city: '',
     id_number: '',
@@ -100,7 +103,7 @@ const InstructorProfileScreen = () => {
       const profileResponse = await instructorAPI.getProfile();
       const instructorProfile = profileResponse.profile || profileResponse.instructor || profileResponse;
       setInstructorData(instructorProfile);
-      
+
       // Find country code if country is a name (not code)
       let countryCode = instructorProfile.country || '';
       if (countryCode && countries.length > 0) {
@@ -109,37 +112,45 @@ const InstructorProfileScreen = () => {
           countryCode = countryObj.code;
         }
       }
-      
+
       const cityName = instructorProfile.city || '';
-      
+
       setFormData({
         first_name: instructorProfile.first_name || '',
         last_name: instructorProfile.last_name || '',
         email: instructorProfile.email || user?.email || '',
         phone: instructorProfile.phone || '',
+        date_of_birth: instructorProfile.date_of_birth ? instructorProfile.date_of_birth.split('T')[0] : '',
         country: countryCode,
         city: cityName,
         id_number: instructorProfile.id_number || '',
-        specializations: instructorProfile.specializations || [],
+        specializations: instructorProfile.specializations || instructorProfile.languages || [],
       });
-      
+
       // Set certificates
       setCertificates(instructorProfile.certificates || []);
-      
+
       // Load cities if country exists
       if (countryCode) {
         await loadCities(countryCode);
       }
-      
+
       if (instructorProfile.cv_url || instructorProfile.cv) {
         setCvUrl(instructorProfile.cv_url || instructorProfile.cv);
       }
-      
+
       // Set photo URL if available
       if (instructorProfile.photo_url || instructorProfile.photo) {
         setPhotoUrl(instructorProfile.photo_url || instructorProfile.photo);
       } else {
         setPhotoUrl(null);
+      }
+
+      // Set passport URL if available
+      if (instructorProfile.passport_image_url || instructorProfile.passport) {
+        setPassportUrl(instructorProfile.passport_image_url || instructorProfile.passport);
+      } else {
+        setPassportUrl(null);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -166,16 +177,16 @@ const InstructorProfileScreen = () => {
       setCities([]);
       return;
     }
-    
+
     setLoadingCities(true);
     try {
       const response = await publicAPI.getCities(countryCode);
       let citiesData = response.cities || response.data?.cities || response.data || response || [];
-      
+
       if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
         citiesData = Object.values(citiesData);
       }
-      
+
       setCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
       console.error('Failed to load cities:', error);
@@ -234,33 +245,40 @@ const InstructorProfileScreen = () => {
 
     try {
       let updatedInstructor;
-      
-      // Check if we have certificates to upload or photo file
+
+      // Check if we have certificates to upload or photo file or passport file
       const hasCertificates = newCertificates.length > 0;
       const hasPhotoFile = photoFile instanceof File;
-      
-      if (hasCertificates || hasPhotoFile) {
+      const hasPassportFile = passportFile instanceof File;
+
+      if (hasCertificates || hasPhotoFile || hasPassportFile) {
         // Use FormData for file uploads
         const formDataToSend = new FormData();
-        
+
         // Add basic fields
         if (formData.first_name) formDataToSend.append('first_name', formData.first_name);
         if (formData.last_name) formDataToSend.append('last_name', formData.last_name);
         if (formData.phone) formDataToSend.append('phone', formData.phone);
+        if (formData.date_of_birth) formDataToSend.append('date_of_birth', formData.date_of_birth);
         if (formData.country) formDataToSend.append('country', formData.country);
         if (formData.city) formDataToSend.append('city', formData.city);
         if (formData.id_number) formDataToSend.append('id_number', formData.id_number);
         if (formData.specializations && formData.specializations.length > 0) {
           formData.specializations.forEach(spec => {
-            formDataToSend.append('specializations[]', spec);
+            formDataToSend.append('languages[]', spec);
           });
         }
-        
+
         // Add photo if selected
         if (hasPhotoFile) {
           formDataToSend.append('photo', photoFile);
         }
-        
+
+        // Add passport if selected
+        if (hasPassportFile) {
+          formDataToSend.append('passport', passportFile);
+        }
+
         // Add new certificates only
         newCertificates.forEach((cert, index) => {
           formDataToSend.append(`certificates[${index}][name]`, cert.name);
@@ -269,7 +287,7 @@ const InstructorProfileScreen = () => {
             formDataToSend.append(`certificates[${index}][certificate_file]`, cert.file);
           }
         });
-        
+
         // Print FormData contents
         console.log('📦 FormData Contents:');
         console.log('📋 FormData object:', formDataToSend);
@@ -281,7 +299,7 @@ const InstructorProfileScreen = () => {
           }
         }
         console.log('📤 Sending POST request to /instructor/profile');
-        
+
         const response = await instructorAPI.updateProfile(formDataToSend);
         updatedInstructor = response.profile || response.instructor || response;
         setInstructorData(updatedInstructor);
@@ -291,6 +309,10 @@ const InstructorProfileScreen = () => {
           setPhotoUrl(updatedInstructor.photo_url || updatedInstructor.photo);
           setPhotoFile(null);
         }
+        if (hasPassportFile && (updatedInstructor.passport_image_url || updatedInstructor.passport)) {
+          setPassportUrl(updatedInstructor.passport_image_url || updatedInstructor.passport);
+          setPassportFile(null);
+        }
         setSuccess('Profile updated successfully!');
       } else {
         // Regular JSON update
@@ -298,23 +320,24 @@ const InstructorProfileScreen = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone || null,
+          date_of_birth: formData.date_of_birth || null,
           country: formData.country || null,
           city: formData.city || null,
           id_number: formData.id_number || null,
-          specializations: formData.specializations || [],
+          languages: formData.specializations || [],
         };
-        
+
         // Print update payload
         console.log('📄 JSON Update Payload:');
         console.log(JSON.stringify(updatePayload, null, 2));
         console.log('📤 Sending POST request to /instructor/profile');
-        
+
         const response = await instructorAPI.updateProfile(updatePayload);
         updatedInstructor = response.profile || response.instructor || response;
-      setInstructorData(updatedInstructor);
-      setSuccess('Profile updated successfully!');
+        setInstructorData(updatedInstructor);
+        setSuccess('Profile updated successfully!');
       }
-      
+
       // Update form data
       setFormData(prev => ({
         ...prev,
@@ -327,19 +350,19 @@ const InstructorProfileScreen = () => {
         id_number: updatedInstructor.id_number || prev.id_number || '',
         specializations: updatedInstructor.specializations || prev.specializations || [],
       }));
-      
+
       if (updatedInstructor.cv_url || updatedInstructor.cv) {
         setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
       }
-      
+
       // Update photo URL if changed
       if (updatedInstructor.photo_url || updatedInstructor.photo) {
         setPhotoUrl(updatedInstructor.photo_url || updatedInstructor.photo);
       }
-      
+
       // Reload profile to get latest data
       await loadProfile();
-      
+
       // Close edit mode after successful save
       setIsEditingProfile(false);
     } catch (error) {
@@ -551,7 +574,7 @@ const InstructorProfileScreen = () => {
     try {
       const resizedBlob = await resizeImage(file);
       const resizedFile = new File([resizedBlob], file.name, { type: file.type });
-      
+
       // Set photo file and create preview
       setPhotoFile(resizedFile);
       const reader = new FileReader();
@@ -566,6 +589,62 @@ const InstructorProfileScreen = () => {
       console.error('Failed to resize image:', error);
       setErrors({ ...errors, photo: 'Failed to process image' });
       e.target.value = '';
+    }
+
+    e.target.value = '';
+  };
+
+  const handlePassportFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Clear previous errors
+    setErrors({ ...errors, passport: undefined });
+
+    // Validate file type - allow jpg, jpeg, png, pdf
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const fileType = file.type.toLowerCase();
+    if (!allowedTypes.includes(fileType)) {
+      setErrors({ ...errors, passport: 'Please select a valid file (JPG, JPEG, PNG, or PDF only)' });
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors({ ...errors, passport: 'File size must be less than 10MB' });
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingPassport(true);
+    try {
+      // If it's an image, resize it; if PDF, use as-is
+      if (file.type.startsWith('image/')) {
+        const resizedBlob = await resizeImage(file);
+        const resizedFile = new File([resizedBlob], file.name, { type: file.type });
+
+        // Set passport file and create preview
+        setPassportFile(resizedFile);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPassportUrl(reader.result);
+        };
+        reader.onerror = () => {
+          setErrors({ ...errors, passport: 'Failed to load file preview' });
+        };
+        reader.readAsDataURL(resizedFile);
+      } else {
+        // For PDF, just set the file
+        setPassportFile(file);
+        setPassportUrl(null); // No preview for PDF
+      }
+    } catch (error) {
+      console.error('Failed to process passport file:', error);
+      setErrors({ ...errors, passport: 'Failed to process file' });
+      e.target.value = '';
+    } finally {
+      setUploadingPassport(false);
     }
 
     e.target.value = '';
@@ -637,7 +716,7 @@ const InstructorProfileScreen = () => {
                 Edit Profile
               </Button>
             )}
-            </div>
+          </div>
 
           <form onSubmit={handleUpdateProfile} className="space-y-5">
             {/* Profile Photo Section */}
@@ -689,145 +768,238 @@ const InstructorProfileScreen = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <FormInput
-                  label="First Name"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleProfileChange}
-                  required
+              <FormInput
+                label="First Name"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleProfileChange}
+                required
                 disabled={!isEditingProfile}
-                  error={errors.first_name}
-                />
+                error={errors.first_name}
+              />
 
-                <FormInput
-                  label="Last Name"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleProfileChange}
-                  required
+              <FormInput
+                label="Last Name"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleProfileChange}
+                required
                 disabled={!isEditingProfile}
-                  error={errors.last_name}
-                />
-              </div>
+                error={errors.last_name}
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <FormInput
-                  label="Email Address"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleProfileChange}
-                  required
+              <FormInput
+                label="Email Address"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleProfileChange}
+                required
                 disabled
-                  error={errors.email}
+                error={errors.email}
                 helpText="Email cannot be changed"
-                />
+              />
 
-                <FormInput
-                  label="Phone Number"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleProfileChange}
+              <FormInput
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleProfileChange}
                 disabled={!isEditingProfile}
-                  error={errors.phone}
-                />
-              </div>
+                error={errors.phone}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <FormInput
+                label="Date of Birth"
+                name="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={handleProfileChange}
+                disabled={!isEditingProfile}
+                error={errors.date_of_birth}
+                required
+              />
+
+              <FormInput
+                label="ID Number"
+                name="id_number"
+                value={formData.id_number}
+                onChange={handleProfileChange}
+                disabled={!isEditingProfile}
+                error={errors.id_number}
+                placeholder="Enter ID number (minimum 8 characters)"
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Country
-                  </label>
+                  Country
+                </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      name="country"
-                      value={formData.country}
-                      onChange={handleProfileChange}
+                  <select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleProfileChange}
                     className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${!isEditingProfile ? 'no-dropdown-arrow' : ''}`}
                     disabled={!isEditingProfile || loadingCountries}
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((country) => (
-                        <option key={country.code} value={country.code}>
-                          {country.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {errors.country && (
-                  <p className="mt-1 text-sm text-red-600">{errors.country}</p>
-                  )}
+                  >
+                    <option value="">Select Country</option>
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                {errors.country && (
+                  <p className="mt-1 text-sm text-red-600">{errors.country}</p>
+                )}
+              </div>
 
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City
-                  </label>
+                  City
+                </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleProfileChange}
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleProfileChange}
                     className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${!isEditingProfile ? 'no-dropdown-arrow' : ''}`}
                     disabled={!isEditingProfile || !formData.country || loadingCities}
-                        >
-                          <option value="">Select City</option>
+                  >
+                    <option value="">Select City</option>
                     {cities.map((city, index) => (
-                            <option key={index} value={city.name}>
-                              {city.name}
-                            </option>
-                          ))}
-                        </select>
-                  </div>
-                  {errors.city && (
-                  <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                  )}
+                      <option key={index} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                {errors.city && (
+                  <p className="mt-1 text-sm text-red-600">{errors.city}</p>
+                )}
               </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <FormInput
-                  label="ID Number"
-                  name="id_number"
-                  value={formData.id_number}
-                  onChange={handleProfileChange}
+              <FormInput
+                label="ID Number"
+                name="id_number"
+                value={formData.id_number}
+                onChange={handleProfileChange}
                 disabled={!isEditingProfile}
-                  error={errors.id_number}
-                  placeholder="Enter ID number (minimum 8 characters)"
-                />
-                
-                {/* Assessor Status (Read-only) */}
+                error={errors.id_number}
+                placeholder="Enter ID number (minimum 8 characters)"
+              />
+
+              {/* Assessor Status (Read-only) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type
-                  </label>
+                  Type
+                </label>
                 <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
-                    {instructorData?.is_assessor ? (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                        Assessor
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                        Instructor
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">This field is managed by your Training Center</p>
+                  {instructorData?.is_assessor ? (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      Assessor
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                      Instructor
+                    </span>
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">This field is managed by your Training Center</p>
               </div>
 
-              {/* Specializations */}
-              <LanguageSelector
+              {/* Account Status (Read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Account Status
+                </label>
+                <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
+                  {instructorData?.status === 'active' && (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                      <CheckCircle size={16} className="mr-2" />
+                      Active
+                    </span>
+                  )}
+                  {instructorData?.status === 'pending' && (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                      <Clock size={16} className="mr-2" />
+                      Pending
+                    </span>
+                  )}
+                  {instructorData?.status === 'suspended' && (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                      <X size={16} className="mr-2" />
+                      Suspended
+                    </span>
+                  )}
+                  {instructorData?.status === 'inactive' && (
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                      Inactive
+                    </span>
+                  )}
+                  {!instructorData?.status && (
+                    <span className="text-sm text-gray-500">N/A</span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Your account status is managed by your Training Center</p>
+              </div>
+            </div>
+
+            {/* Training Center Information (Read-only) */}
+            {instructorData?.training_center && (
+              <div className="pt-4 border-t border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Training Center
+                </label>
+                <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
+                      <Building2 className="text-primary-600" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {instructorData.training_center.name || 'N/A'}
+                      </p>
+                      {instructorData.training_center.email && (
+                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <Mail size={12} />
+                          {instructorData.training_center.email}
+                        </p>
+                      )}
+                      {instructorData.training_center.phone && (
+                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <Phone size={12} />
+                          {instructorData.training_center.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">You are registered under this training center</p>
+              </div>
+            )}
+
+            {/* Specializations */}
+            <LanguageSelector
               label="Specializations"
-                value={formData.specializations}
-                onChange={(specializations) => {
-                  setFormData({ ...formData, specializations });
-                  setErrors({});
-                }}
-                error={errors.specializations}
+              value={formData.specializations}
+              onChange={(specializations) => {
+                setFormData({ ...formData, specializations });
+                setErrors({});
+              }}
+              error={errors.specializations}
               disabled={!isEditingProfile}
             />
 
@@ -854,9 +1026,9 @@ const InstructorProfileScreen = () => {
                         <FileText className="text-green-600 flex-shrink-0 mt-1" size={24} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900 mb-2">Current CV</p>
-                          <a 
-                            href={cvUrl} 
-                            target="_blank" 
+                          <a
+                            href={cvUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                           >
@@ -895,9 +1067,9 @@ const InstructorProfileScreen = () => {
                             <FileText className="text-green-600 flex-shrink-0 mt-1" size={24} />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-gray-900 mb-2">Current CV</p>
-                              <a 
-                                href={cvUrl} 
-                                target="_blank" 
+                              <a
+                                href={cvUrl}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                               >
@@ -952,6 +1124,129 @@ const InstructorProfileScreen = () => {
                       )}
                     </div>
 
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Passport Copy Section */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                    <FileText className="text-blue-600" size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Passport Copy</h3>
+                    <p className="text-sm text-gray-500">Upload or update your passport document</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Current Passport Display */}
+                {passportUrl && !isEditingProfile && (
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <FileText className="text-blue-600 flex-shrink-0 mt-1" size={24} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 mb-2">Current Passport</p>
+                          <a
+                            href={passportUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
+                          >
+                            <FileText size={16} />
+                            {passportUrl.split('/').pop().split('?')[0] || 'View Passport'}
+                          </a>
+                          <p className="text-xs text-gray-500">
+                            Click the link above to view your current passport in a new tab
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No Passport Message */}
+                {!passportUrl && !uploadingPassport && !isEditingProfile && (
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <FileText className="text-gray-400" size={20} />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">No passport uploaded</p>
+                        <p className="text-xs text-gray-500 mt-1">Click Edit Profile to upload your passport</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload/Edit Passport */}
+                {isEditingProfile && (
+                  <div className="space-y-3">
+                    {passportUrl && (
+                      <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <FileText className="text-blue-600 flex-shrink-0 mt-1" size={24} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 mb-2">Current Passport</p>
+                              <a
+                                href={passportUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
+                              >
+                                <FileText size={16} />
+                                {passportUrl.split('/').pop().split('?')[0] || 'View Passport'}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {passportUrl ? 'Update Passport' : 'Upload Passport'}
+                      </label>
+                      <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,application/pdf"
+                          onChange={handlePassportFileSelect}
+                          disabled={uploadingPassport}
+                          className="hidden"
+                        />
+                        <div className="text-center">
+                          {uploadingPassport ? (
+                            <>
+                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">Processing passport...</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600">
+                                {passportUrl ? 'Click to update passport' : 'Click to upload passport'}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">JPG, PNG, or PDF, maximum 10MB</p>
+                            </>
+                          )}
+                        </div>
+                      </label>
+                      {errors.passport && (
+                        <p className="mt-2 text-sm text-red-600">{errors.passport}</p>
+                      )}
+                      {passportFile && (
+                        <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
+                          <CheckCircle size={16} />
+                          Passport file selected: {passportFile.name}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1138,62 +1433,62 @@ const InstructorProfileScreen = () => {
           <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
             <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center mr-4">
               <KeyRound className="text-red-600" size={24} />
-                </div>
-                <div>
+            </div>
+            <div>
               <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
               <p className="text-sm text-gray-500">Update your account password</p>
-                </div>
-              </div>
+            </div>
+          </div>
 
           <form onSubmit={handleChangePassword} className="space-y-5">
-                <FormInput
-                  label="Current Password"
-                  type="password"
-                  name="current_password"
-                  value={passwordData.current_password}
-                  onChange={handlePasswordChange}
-                  required
-                  error={errors.current_password}
-                  placeholder="Enter your current password"
-                />
+            <FormInput
+              label="Current Password"
+              type="password"
+              name="current_password"
+              value={passwordData.current_password}
+              onChange={handlePasswordChange}
+              required
+              error={errors.current_password}
+              placeholder="Enter your current password"
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput
-                    label="New Password"
-                    type="password"
-                    name="password"
-                    value={passwordData.password}
-                    onChange={handlePasswordChange}
-                    required
-                    error={errors.password}
-                    placeholder="Must include uppercase, numbers & special characters"
-                  />
+              <FormInput
+                label="New Password"
+                type="password"
+                name="password"
+                value={passwordData.password}
+                onChange={handlePasswordChange}
+                required
+                error={errors.password}
+                placeholder="Must include uppercase, numbers & special characters"
+              />
 
-                  <FormInput
-                    label="Confirm New Password"
-                    type="password"
-                    name="password_confirmation"
-                    value={passwordData.password_confirmation}
-                    onChange={handlePasswordChange}
-                    required
-                    error={errors.password_confirmation}
-                    placeholder="Confirm your new password"
-                  />
-                </div>
+              <FormInput
+                label="Confirm New Password"
+                type="password"
+                name="password_confirmation"
+                value={passwordData.password_confirmation}
+                onChange={handlePasswordChange}
+                required
+                error={errors.password_confirmation}
+                placeholder="Confirm your new password"
+              />
+            </div>
 
             <div className="pt-2">
-                  <Button
-                    type="submit"
-                    variant="danger"
-                    disabled={saving}
-                    loading={saving}
-                    icon={<Lock size={20} />}
-                    fullWidth
-                  >
-                    Change Password
-                  </Button>
-                </div>
-              </form>
+              <Button
+                type="submit"
+                variant="danger"
+                disabled={saving}
+                loading={saving}
+                icon={<Lock size={20} />}
+                fullWidth
+              >
+                Change Password
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -179,15 +179,33 @@ const CertificateTemplatesScreen = () => {
     navigate(`/acc/certificate-templates/${template.id}/design`);
   };
 
-  const handleDelete = async (template) => {
-    if (!window.confirm(`Are you sure you want to delete "${template.name}"?`)) return;
+  const handleDelete = async (template, force = false) => {
+    // First confirmation
+    if (!force && !window.confirm(`Are you sure you want to delete "${template.name}"?`)) {
+      return;
+    }
 
     try {
-      await accAPI.deleteTemplate(template.id);
+      await accAPI.deleteTemplate(template.id, force);
       loadTemplates();
     } catch (error) {
       console.error('Failed to delete template:', error);
-      alert('Failed to delete template. Please try again.');
+      
+      // Check if error is because template is in use
+      const errorData = error?.response?.data;
+      if (errorData?.certificate_count && errorData?.certificate_count > 0) {
+        const count = errorData.certificate_count;
+        const message = `This template is being used by ${count} certificate${count > 1 ? 's' : ''}.\n\n` +
+                       `If you delete this template, all ${count} associated certificate${count > 1 ? 's' : ''} will also be deleted.\n\n` +
+                       `Do you want to proceed with deleting the template and all associated certificates?`;
+        
+        if (window.confirm(message)) {
+          // User confirmed force delete
+          handleDelete(template, true);
+        }
+      } else {
+        alert(errorData?.message || 'Failed to delete template. Please try again.');
+      }
     }
   };
 

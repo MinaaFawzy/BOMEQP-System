@@ -26,6 +26,8 @@ import InstructorAuthorizationsScreen from './screens/GroupAdmin/InstructorAutho
 import StripeSettingsScreen from './screens/GroupAdmin/StripeSettingsScreen/StripeSettingsScreen';
 import GroupAdminPendingPaymentsScreen from './screens/GroupAdmin/PendingPaymentsScreen/PendingPaymentsScreen';
 import GroupAdminClassesScreen from './screens/GroupAdmin/ClassesScreen/ClassesScreen';
+import StripeConnectScreen from './screens/GroupAdmin/StripeConnectScreen/StripeConnectScreen';
+import TransfersScreen from './screens/GroupAdmin/TransfersScreen/TransfersScreen';
 
 // ACC Admin screens
 import ACCDashboardScreen from './screens/ACCAdmin/DashboardScreen/DashboardScreen';
@@ -56,6 +58,7 @@ import WalletScreen from './screens/TrainingCenter/WalletScreen/WalletScreen';
 import MarketplaceScreen from './screens/TrainingCenter/MarketplaceScreen/MarketplaceScreen';
 import TrainingCenterInstructorAuthorizationsScreen from './screens/TrainingCenter/InstructorAuthorizationsScreen/InstructorAuthorizationsScreen';
 import TrainingCenterPaymentTransactionsScreen from './screens/TrainingCenter/PaymentTransactionsScreen/PaymentTransactionsScreen';
+import TCProfileScreen from './screens/TrainingCenter/TCProfileScreen/TCProfileScreen';
 
 // Instructor screens
 import InstructorDashboardScreen from './screens/Instructor/DashboardScreen/DashboardScreen';
@@ -82,6 +85,8 @@ const ProfileRoute = () => {
         <ACCProfileScreen />
       ) : user?.role === 'instructor' ? (
         <InstructorProfileScreen />
+      ) : user?.role === 'training_center_admin' ? (
+        <TCProfileScreen />
       ) : (
         <ProfileScreen />
       )}
@@ -159,6 +164,8 @@ function App() {
                         <Route path="reports" element={<ReportsScreen />} />
                         <Route path="instructor-authorizations" element={<InstructorAuthorizationsScreen />} />
                         <Route path="stripe-settings" element={<StripeSettingsScreen />} />
+                        <Route path="stripe-connect" element={<StripeConnectScreen />} />
+                        <Route path="transfers" element={<TransfersScreen />} />
                         <Route path="classes" element={<GroupAdminClassesScreen />} />
                         <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
                       </Routes>

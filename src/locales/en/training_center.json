@@ -1,0 +1,625 @@
+{
+    "title": "Training Center",
+    "accs": "Accreditation Bodies",
+    "instructors": "Instructors",
+    "classes": "Classes",
+    "codes": "Codes",
+    "certificates": "Certificates",
+    "wallet": "Wallet",
+    "marketplace": "Marketplace",
+    "payment_transactions": "Payment Transactions", 
+    "people_management": "People Management",
+    "courses_classes": "Courses & Classes",
+    "financial": "Financial", 
+    "acc_name": "ACC Name",
+    "email": "Email",
+    "country": "Country",
+    "request_date": "Request Date",
+    "reviewed_at": "Reviewed At",
+    "additional_information": "Additional Information",
+    "acc_comment_return_reason": "ACC Comment / Return Reason",
+    "rejection_reason": "Rejection Reason",
+    "submitted_documents": "Submitted Documents", 
+    "request_authorization": "Request Authorization",
+    "authorization_request_details": "Authorization Request Details", 
+    "ID": "ID" , 
+    "status": "Status",
+    "training_center_state": "Training Center State",
+    "authorized_accreditation": "Authorized Accreditation",
+    "classes_over_time": "Classes Over Time",
+    "classes_status_distribution": "Classes Status Distribution",
+    "total_classes": "Total Classes",
+    "active_classes": "Active Classes",
+    "completed_classes": "Completed Classes",
+    "cancelled_classes": "Cancelled Classes",
+    "pending_classes": "Pending Classes",
+    "in_progress_classes": "In Progress Classes",
+    "scheduled_classes": "Scheduled Classes",
+    "total_trainees": "Total Trainees",
+    "active_trainees": "Active Trainees",
+    "completed_trainees": "Completed Trainees",
+    "cancelled_trainees": "Cancelled Trainees",
+    "pending_trainees": "Pending Trainees",
+    "in_progress_trainees": "In Progress Trainees",
+    "scheduled_trainees": "Scheduled Trainees",
+    "total_instructors": "Total Instructors",
+    "active_instructors": "Active Instructors",
+    "completed_instructors": "Completed Instructors",
+    "cancelled_instructors": "Cancelled Instructors",
+    "pending_instructors": "Pending Instructors",
+    "in_progress_instructors": "In Progress Instructors",
+    "scheduled_instructors": "Scheduled Instructors",
+    "total_accs": "Total ACCs",
+    "active_accs": "Active ACCs",
+    "completed_accs": "Completed ACCs",
+    "cancelled_accs": "Cancelled ACCs",
+    "pending_accs": "Pending ACCs",
+    "in_progress_accs": "In Progress ACCs",
+    "scheduled_accs": "Scheduled ACCs",
+    "total_certificates": "Total Certificates",
+    "active_certificates": "Active Certificates",
+    "completed_certificates": "Completed Certificates",
+    "cancelled_certificates": "Cancelled Certificates",
+    "pending_certificates": "Pending Certificates",
+    "in_progress_certificates": "In Progress Certificates",
+    "scheduled_certificates": "Scheduled Certificates",
+    "total_payments": "Total Payments",
+    "active_payments": "Active Payments",
+    "completed_payments": "Completed Payments",
+    "cancelled_payments": "Cancelled Payments",
+    "pending_payments": "Pending Payments",
+    "in_progress_payments": "In Progress Payments",
+    "scheduled_payments": "Scheduled Payments",
+    "total_materials": "Total Materials",
+    "active_materials": "Active Materials",
+    "completed_materials": "Completed Materials",
+    "cancelled_materials": "Cancelled Materials",
+    "pending_materials": "Pending Materials",
+    "in_progress_materials": "In Progress Materials",
+    "scheduled_materials": "Scheduled Materials",
+    "welcome_back_here_is_your_overview": "Welcome back! Here is your overview",
+    "available_accreditation": "Available Accreditation",
+    "accreditation_body_name": "Accreditation Body Name",
+    "authorized_accs": "Authorized ACCs",
+    "my_authorizations": "My Authorizations",
+    "actions": "Actions",
+    "search_by_name_email_or_country": "Search by name, email or country",
+    "id": "ID", 
+    "name":"Name", 
+    "phone":"Phone", 
+    "address":"Address", 
+    "created_at":"Created At", 
+    "updated_at":"Updated At" , 
+    "browse_and_request_authorization_from_Accreditation_Bodies": "Browse and request authorization from Accreditation Bodies",
+    "accreditation_Bodies": "Accreditation Bodies", 
+    "accreditation_body_details" : "Accreditation Body Details",
+    "request_authorization_from": "Request Authorization From",
+    "documents": "Documents",
+    "no_documents_added": "No documents added",
+    "add_documents": "Add Documents",
+    "at_least_one_document_is_required_click_add_document_to_add_one": "At least one document is required. Click 'Add Document' to add one.",
+    "provide_additional_information_to_help_the_accreditation_body_understand_your_request": "Provide additional information to help the accreditation body understand your request.",
+    "maximum_5000_characters": "Maximum 5000 characters",
+    "submit_request": "Submit Request",
+    "cancel": "Cancel", 
+    "physical_address" : "Physical Address",
+    "mailing_address" : "Mailing Address",
+    "primary_contact" : "Primary Contact",
+    "secondary_contact" : "Secondary Contact",
+    "agreements" : "Agreements",
+    "primary_contact_full_name": "Primary Contact Full Name",
+    "primary_contact_email": "Primary Contact Email",
+    "primary_contact_mobile": "Primary Contact Mobile",
+    "primary_contact_country": "Primary Contact Country",
+    "company_gov_registry_number": "Company Gov Registry Number",
+    "gov_registry_number": "Gov Registry Number",
+    
+    "dashboard": {
+        "authorized_accreditation": "Authorized Accreditations",
+        "classes": "Classes",
+        "classes_over_time": "Classes Over Time",
+        "classes_status_distribution": "Classes Status Distribution",
+        "training_center_state": "Training Center State",
+        "status": "Status",
+        "registration_date": "Registration Date",
+        "accreditation_status": "Accreditation Status",
+        "instructors": "Instructors",
+        "trainees": "Trainees",
+        "click_to_view_details": "Click to view details"
+    },
+    "accreditations": {
+        "accreditation_Bodies": "Accreditation Bodies",
+        "browse_and_request_authorization_from_Accreditation_Bodies": "Browse and request authorization from Accreditation Bodies",
+        "available_accreditation": "Available Accreditation Bodies",
+        "my_authorizations": "My Authorizations",
+        "accreditation_body_name": "Accreditation Body Name",
+        "active": "Active",
+        "email": "Email",
+        "country": "Country",
+        "status": "Status",
+        "actions": "Actions",
+        "view_details": "View Details",
+        "view_info": "View Information",
+        "request_authorization": "Request Authorization",
+        "acc": "Accreditation Body",
+        "request_date": "Request Date",
+        "reviewed_at": "Reviewed At",
+        "search_by_name_email_or_country": "Search by name, email, or country...",
+        "no_accs_found": "No accreditation bodies found",
+        "search_by_accreditations_name_or_status": "Search by accreditation name or status...",
+        "no_authorization_requests_found": "No authorization requests found",
+        "request_authorization_from": "Request Authorization from",
+        "accreditation_body_details": "Accreditation Body Details",
+        "authorization_request_details": "Authorization Request Details",
+        "id": "ID",
+        "name": "Name",
+        "phone": "Phone",
+        "website": "Website",
+        "physical_address": "Physical Address",
+        "mailing_address": "Mailing Address",
+        "primary_contact": "Primary Contact",
+        "primary_contact_email": "Primary Contact Email",
+        "primary_contact_mobile": "Primary Contact Mobile",
+        "primary_contact_country": "Primary Contact Country",
+        "gov_registry_number": "Government Registry Number",
+        "description": "Description",
+        "created_at": "Created At",
+        "updated_at": "Updated At",
+        "additional_info": "Additional Information",
+        "acc_id": "Accreditation Body ID",
+        "authorization_request_submitted_successfully": "Authorization request submitted successfully",
+        "authorization_request_already_exists": "Authorization request already exists",
+        "no_valid_documents_uploaded": "No valid documents uploaded",
+        "use_formdata_with_structure": "Please use FormData with the correct structure",
+        "server_error_occurred": "Server error occurred",
+        "failed_to_submit_request": "Failed to submit request",
+        "additional_information": "Additional Information",
+        "accreditation_body_comment_return_reason": "Accreditation Body Comment / Return Reason",
+        "rejection_reason": "Rejection Reason",
+        "submitted_documents": "Submitted Documents",
+        "acc_name": "Accreditation Body Name",
+        "available": "Available",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "returned": "Returned",
+        "na": "N/A"
+    },
+    "authorization_form": {
+        "documents": "Documents",
+        "add_document": "Add Document",
+        "no_documents_added": "No documents added",
+        "at_least_one_document_required": "At least one document is required. Click \"Add Document\" to add one.",
+        "document_number": "Document {{number}}",
+        "document_type": "Document Type",
+        "select_document_type": "Select document type",
+        "license": "License",
+        "certificate": "Certificate",
+        "registration": "Registration",
+        "other": "Other",
+        "upload_document": "Upload Document",
+        "upload_document_hint": "(PDF, DOC, DOCX, JPG, JPEG, PNG - Max 10MB)",
+        "file_selected": "File selected",
+        "click_to_upload_file": "Click to upload file",
+        "remove_file": "Remove File",
+        "additional_information": "Additional Information",
+        "provide_additional_info": "Provide any additional information about your training center...",
+        "maximum_5000_characters": "Maximum 5000 characters",
+        "cancel": "Cancel",
+        "submit_request": "Submit Request",
+        "uploading_submitting": "Uploading & Submitting...",
+        "uploading_files_please_wait": "Uploading files and submitting request...",
+        "please_wait_moment": "Please wait, this may take a moment",
+        "please_upload_at_least_one_document": "Please upload at least one document",
+        "document_type_required": "Document type is required",
+        "please_upload_file": "Please upload a file"
+    },
+    "instructors_screen": {
+        "instructors": "Instructors",
+        "manage_your_instructors": "Manage your instructors",
+        "add_instructor": "Add Instructor",
+
+        "total_instructors": "Total Instructors",
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended",
+        "inactive": "Inactive",
+        "all_status": "All",
+
+        "search_instructors_placeholder": "Search instructors...",
+        "no_instructors_found": "No instructors found",
+
+        "instructor": "Instructor",
+        "email": "Email",
+        "phone": "Phone",
+        "status": "Status",
+        "type": "Type",
+        "actions": "Actions",
+
+        "assessor": "Assessor",
+        "na": "N/A",
+
+        "add_instructor_title": "Add Instructor",
+        "edit_instructor": "Edit Instructor",
+        "update_instructor": "Update Instructor",
+
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "example_email": "example@email.com",
+        "enter_phone_number": "Enter phone number",
+        "date_of_birth": "Date of Birth",
+        "id_number": "ID Number",
+        "enter_id_number": "Enter ID number",
+        "cv": "CV",
+        "passport": "Passport",
+        "cv_resume_pdf": "CV / Resume (PDF)",
+        "upload_cv": "Upload CV",
+        "update_cv": "Update CV",
+        "view_cv": "View CV",
+        "click_to_select_pdf": "Click to select PDF",
+        "pdf_only_max_10mb": "PDF only (Max 10MB)",
+        "only_pdf_files_allowed": "Only PDF files are allowed",
+        "file_size_must_be_less_than_10mb": "File size must be less than 10MB",
+        "cv_required": "CV file is required",
+
+        "passport_copy": "Passport Copy",
+        "upload_passport": "Upload Passport",
+        "update_passport": "Update Passport",
+        "view_passport": "View Passport",
+        "click_to_select_document": "Click to select document",
+        "jpeg_png_pdf_only_max_10mb": "JPEG, PNG or PDF only (Max 10MB)",
+        "passport_required": "Passport file is required",
+        "file_must_be_jpeg_jpg_png_or_pdf": "File must be JPEG, JPG, PNG, or PDF",
+        "resizing_image": "Resizing image...",
+
+        "languages": "Languages",
+        "is_assessor": "Is Assessor",
+        "mark_as_assessor": "Mark this instructor as an assessor",
+
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "submit_request": "Submit Request",
+        "submitting": "Submitting...",
+
+        "delete": "Delete",
+        "delete_instructor": "Delete Instructor",
+        "delete_confirmation_message": "Are you sure you want to delete {{name}}?",
+        "failed_to_delete_instructor": "Failed to delete instructor",
+        "failed_to_save_instructor": "Failed to save instructor",
+
+        "authorization_request_submitted": "Authorization request submitted.",
+        "request_authorization_for": "Request authorization for {{name}}",
+        "please_select_acc": "Please select an accreditation body",
+        "please_select_at_least_one_course": "Please select at least one course",
+
+        "search_courses": "Search courses",
+        "load_categories_courses": "Loading categories and courses...",
+        "no_categories_found": "No categories found",
+        "select_courses_for_authorization": "Select courses for authorization",
+        "no_approved_acc_available": "No approved accreditation available",
+        "no_approved_acc_found": "No approved accreditation found",
+
+        "selected": "Selected"
+    }, 
+    
+    "trainees":{
+        "header": {
+            "title": "Trainees",
+            "subtitle": "Manage your trainees",
+            "addTrainee": "Add Trainee", 
+            "updateTrainee": "Update Trainee"
+        },
+        "stats": {
+            "total": "Total Trainees"
+        },
+        "table": {
+            "searchPlaceholder": "Search by name, email, phone, or ID number...",
+            "emptyMessage": "No trainees found",
+            "columns": {
+            "trainee": "Trainee",
+            "email": "Email",
+            "phone": "Phone",
+            "nationality": "Nationality",
+            "idNumber": "ID Number",
+            "status": "Status",
+            "classes": "Classes",
+            "actions": "Actions"
+            }
+        },
+        "filters": {
+            "allStatus": "All Status"
+        },
+        "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "nationality": "Nationality",
+        "idNumber": "ID Number",
+        "status": "Status"
+    },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "suspended": "Suspended"
+        },
+        "actions": {
+            "edit": "Edit",
+            "delete": "Delete", 
+            "updateTrainee": "Update Trainee",
+            "deleteTrainee": "Delete Trainee",
+            "viewTrainee": "View Trainee", 
+            "addTrainee": "Add Trainee"
+        },
+        "modal": {
+            "addTitle": "Add New Trainee",
+            "editTitle": "Edit Trainee",
+            "saving": "Saving trainee..."
+        },
+        "buttons": {
+            "cancel": "Cancel",
+            "saving": "Saving...",
+            "update": "Update Trainee",
+            "add": "Add Trainee"
+        },
+        "fields": {
+            "firstName": "First Name",
+            "lastName": "Last Name",
+            "email": "Email",
+            "phone": "Phone",
+            "nationality": "Nationality",
+            "idNumber": "ID Number",
+            "status": "Status"
+        },
+        "placeholders": {
+            "nationality": "Enter nationality",
+            "idNumber": "Enter ID number (minimum 8 characters)"
+        },
+        "upload": {
+            "idImage": "ID Image",
+            "cardImage": "Card Image",
+            "resizing": "Resizing image...",
+            "change": "Change",
+            "remove": "Remove",
+            "uploadIdTitle": "Upload ID Image",
+            "uploadCardTitle": "Upload Card Image",
+            "hint": "Click to browse or drag and drop",
+            "formatsHint": "JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)"
+        },
+        "classes": {
+            "title": "Enrolled Classes",
+            "empty": "No training classes available",
+            "classFallback": "Class {{id}}",
+            "instructorPrefix": "Instructor:"
+        },
+        "details": {
+            "title": "Trainee Details",
+            "enrolledClassesWithCount": "Enrolled Classes ({{count}})"
+        },
+        "deleteDialog": {
+            "title": "Delete Trainee",
+            "message": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+        },
+        "common": {
+            "na": "N/A",
+            "zero": "0"
+        },
+        "errors": {
+            "fileType": "File must be jpeg, jpg, png, or pdf",
+            "fileSize": "File size must be less than 10MB",
+            "processImage": "Failed to process image. Please try again.",
+            "idImageRequired": "ID image is required",
+            "cardImageRequired": "Card image is required",
+            "deleteFailedPrefix": "Failed to delete trainee: ",
+            "unknown": "Unknown error"
+        }
+    },
+    "instructor_authorizations": {
+        "header": {
+        "title": "Instructor Authorizations",
+        "subtitle": "View and pay for instructor authorization requests",
+        "refresh": "Refresh data"
+        },
+
+        "table": {
+        "instructor": "Instructor",
+        "accreditation": "Accreditation",
+        "authorization_price": "Authorization Price",
+        "status": "Status",
+        "payment_status": "Payment Status",
+        "actions": "Actions",
+        "empty": "No authorizations found matching your filters",
+        "search_placeholder": "Search by name, ID, or Accreditation..."
+        },
+
+        "filters": {
+        "all_status": "All Status",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "returned": "Returned",
+        "all_payment_status": "All Payment Status",
+        "unpaid": "Unpaid",
+        "paid": "Paid",
+        "failed": "Failed"
+        },
+
+        "actions": {
+        "view_details": "View Details",
+        "pay_authorization": "Pay Authorization"
+        },
+
+        "payment": {
+        "title": "Pay Instructor Authorization",
+        "instructor": "Instructor",
+        "accreditation": "Accreditation",
+        "authorization_price": "Authorization Price",
+        "method_title": "Payment Method: Credit Card",
+        "method_description": "Payment will be processed securely through Stripe. Click \"Pay Now\" below to enter your card details.",
+        "pay_now": "Pay Now",
+        "processing": "Processing...",
+        "cancel": "Cancel",
+        "success": "Payment successful. Instructor is now officially authorized.",
+        "not_ready": "This authorization is not ready for payment. Please wait for Group Admin approval.",
+        "already_paid": "This authorization has already been paid.",
+        "invalid_price": "Invalid authorization price. Please contact support."
+        },
+
+        "details": {
+        "title": "Authorization Details",
+        "group_admin_status": "Group Admin Status",
+        "waiting_admin": "Waiting for Group Admin approval",
+        "ready_for_payment": "Ready for payment",
+        "completed": "Authorization completed",
+        "pay_authorization": "Pay Authorization"
+        },
+
+        "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "returned": "Returned",
+        "paid": "Paid",
+        "failed": "Failed",
+        "na": "N/A"
+        },
+
+        "errors": {
+        "no_authorization_selected": "No authorization selected",
+        "payment_not_completed": "Payment not completed. Status: {{status}}",
+        "payment_verification_failed": "Payment verification failed. Please contact support.",
+        "payment_completed_but_failed": "Payment succeeded but failed to complete authorization. Please contact support.",
+        "failed_to_create_payment_intent": "Failed to create payment intent. Please try again.",
+        "failed_to_load": "Failed to load instructor authorizations"
+        }
+    }, 
+    "classes_screen": {
+        "header": {
+        "title": "Classes",
+        "subtitle": "Manage your training classes",
+        "create": "Create Class",
+        "edit": "Edit Class",
+        "update": "Update Class"
+        },
+
+        "stats": {
+        "total": "Total Classes",
+        "scheduled": "Scheduled",
+        "completed": "Completed"
+        },
+
+        "table": {
+        "class_name": "Class Name",
+        "course": "Course",
+        "instructor": "Instructor",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "exam_date": "Exam Date",
+        "grade": "Grade",
+        "status": "Status",
+        "enrollment": "Enrollment",
+        "no_classes": "No classes found",
+        "no_classes_subtitle": "Create your first class to get started!",
+        "no_classes_filtered": "No classes found matching your filters",
+        "search_placeholder": "Search by course or instructor..."
+        },
+
+        "status": {
+        "all": "All Status",
+        "scheduled": "Scheduled",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+        },
+
+        "form": {
+        "accreditation": "Accreditation",
+        "select_accreditation": "Select an Accreditation...",
+        "no_accreditations": "No Accreditations available",
+        "no_accreditations_help": "Please ensure you have authorization from at least one Accreditation.",
+
+        "category": "Category",
+        "select_category": "Select a category...",
+        "select_category_first": "Please select Category first",
+
+        "sub_category": "Sub-Category",
+        "select_sub_category": "Select a sub-category...",
+
+        "course": "Course",
+        "select_course": "Select a course...",
+        "no_courses": "No courses available",
+        "no_courses_help": "No courses found for the selected sub-category.",
+
+        "class_name": "Class Name",
+        "class_name_placeholder": "e.g. Class A - January 2024",
+
+        "instructor": "Instructor",
+        "select_instructor": "Select an instructor...",
+        "no_instructors": "No instructors available",
+
+        "assessor_required_title": "This course requires an assessor",
+        "assessor_required_no": "No assessors are available.",
+        "assessor_required_info": "Only assessors are shown.",
+
+        "start_date": "Start Date",
+        "end_date": "End Date",
+
+        "exam_date": "Exam Date (Optional)",
+        "exam_date_help": "Date when the exam is scheduled",
+
+        "grade": "Grade (Optional)",
+        "grade_help": "Grade (0-100)",
+
+        "location": "Location",
+        "physical": "Physical",
+        "online": "Online",
+        "hybrid": "Hybrid"
+        },
+
+        "trainees": {
+        "title": "Trainees (Optional)",
+        "search_placeholder": "Search trainees by name, email, or ID...",
+        "selected": "{{count}} trainee(s) selected",
+        "loading": "Loading trainees...",
+        "no_trainees": "No trainees available",
+        "no_trainees_search": "No trainees found matching your search"
+        },
+
+        "details": {
+        "title": "Class Details",
+        "course_info": "Course Information",
+        "instructor_info": "Instructor Information",
+        "schedule": "Schedule Information",
+        "additional": "Additional Information",
+        "enrolled_trainees": "Enrolled Trainees",
+        "no_enrolled": "No trainees enrolled",
+        "mark_complete": "Mark as Complete"
+        },
+
+        "actions": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "delete": "Delete",
+        "delete_title": "Delete Class",
+        "delete_confirm": "Are you sure you want to delete this class? This action cannot be undone."
+        },
+
+        "errors": {
+        "acc_required": "Accreditation is required",
+        "category_required": "Category is required",
+        "sub_category_required": "Sub-Category is required",
+        "course_required": "Course is required",
+        "class_name_required": "Class Name is required",
+        "instructor_required": "Instructor is required",
+        "start_date_required": "Start date is required",
+        "end_date_required": "End date is required",
+        "save_failed": "Failed to save class. Please check all required fields."
+        },
+
+        "common": {
+        "na": "N/A",
+        "not_set": "Not set"
+        }
+    }
+}

@@ -5,8 +5,9 @@ import { authAPI, instructorAPI, publicAPI, trainingCenterAPI } from '../../../s
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
+import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 import { validateEmail, validatePhone, validatePassword, validatePasswordConfirmation, validateRequired, validateUKID } from '../../../utils/validation';
-import { 
+import {
   User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound,
   Phone, MapPin, FileText, Upload, X, Award, Building2, Globe, Edit
 } from 'lucide-react';
@@ -20,24 +21,24 @@ const ProfileScreen = () => {
   const [saving, setSaving] = useState(false);
   const isInstructor = user?.role === 'instructor';
   const isTrainingCenter = user?.role === 'training_center_admin';
-  
+
   // Instructor profile data
   const [instructorData, setInstructorData] = useState(null);
   const [cvFile, setCvFile] = useState(null);
   const [cvUrl, setCvUrl] = useState(null);
   const [uploadingCv, setUploadingCv] = useState(false);
-  
+
   // Training Center profile data
   const [logoFile, setLogoFile] = useState(null);
   const [logoUrl, setLogoUrl] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Countries and Cities
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -72,17 +73,17 @@ const ProfileScreen = () => {
   // Use ref to track if profile has been loaded to prevent duplicate calls
   const profileLoadedRef = useRef(false);
   const lastRoleRef = useRef(user?.role);
-  
+
   useEffect(() => {
     const currentRole = user?.role;
     const roleChanged = currentRole !== lastRoleRef.current;
-    
+
     // Reset profile loaded flag if role changed
     if (roleChanged) {
       profileLoadedRef.current = false;
       lastRoleRef.current = currentRole;
     }
-    
+
     // Only load profile once per role
     if (!profileLoadedRef.current) {
       // For training center and instructor, wait for countries to load first
@@ -102,7 +103,7 @@ const ProfileScreen = () => {
 
   // Use ref to track last loaded country to prevent duplicate city API calls
   const lastLoadedCountryRef = useRef(null);
-  
+
   useEffect(() => {
     if (isTrainingCenter && formData.country && formData.country !== lastLoadedCountryRef.current) {
       lastLoadedCountryRef.current = formData.country;
@@ -141,11 +142,11 @@ const ProfileScreen = () => {
       if (isInstructor) {
         // Load instructor profile
         const profileResponse = await instructorAPI.getProfile();
-        
+
         // Extract instructor data from response (check profile.profile or profile.instructor)
         const instructorProfile = profileResponse.profile || profileResponse.instructor || profileResponse;
         setInstructorData(instructorProfile);
-        
+
         // Find country code if country is a name (not code)
         let countryCode = instructorProfile.country || '';
         if (countryCode && countries.length > 0) {
@@ -155,9 +156,9 @@ const ProfileScreen = () => {
             countryCode = countryObj.code;
           }
         }
-        
+
         const cityName = instructorProfile.city || '';
-        
+
         setFormData({
           first_name: instructorProfile.first_name || '',
           last_name: instructorProfile.last_name || '',
@@ -168,18 +169,18 @@ const ProfileScreen = () => {
           id_number: instructorProfile.id_number || '',
           specializations: instructorProfile.specializations || [],
         });
-        
+
         // Set CV URL if exists
         if (instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume) {
           setCvUrl(instructorProfile.cv_url || instructorProfile.cv || instructorProfile.resume_url || instructorProfile.resume);
         }
-        
+
         // Note: loadCities will be called by useEffect when formData.country changes
       } else if (isTrainingCenter) {
         // Load Training Center profile using trainingCenterAPI.getProfile()
         const response = await trainingCenterAPI.getProfile();
         const profileData = response.profile || response.training_center || response;
-        
+
         // Find country code if country is a name (not code)
         let countryCode = profileData.country || '';
         if (countryCode && countries.length > 0) {
@@ -188,7 +189,7 @@ const ProfileScreen = () => {
             countryCode = countryObj.code;
           }
         }
-        
+
         setFormData({
           name: profileData.name || profileData.training_center_name || '',
           legal_name: profileData.legal_name || '',
@@ -203,11 +204,11 @@ const ProfileScreen = () => {
           website: profileData.website || profileData.website_url || '',
           description: profileData.description || profileData.bio || '',
         });
-        
+
         if (profileData.logo_url || profileData.logo || profileData.avatar) {
           setLogoUrl(profileData.logo_url || profileData.logo || profileData.avatar);
         }
-        
+
         // Note: loadCities will be called by useEffect when formData.country changes
         // Note: Don't call updateUser here to avoid triggering re-renders
       } else {
@@ -249,17 +250,17 @@ const ProfileScreen = () => {
       setCities([]);
       return;
     }
-    
+
     setLoadingCities(true);
     try {
       const response = await publicAPI.getCities(countryCode);
       let citiesData = response.cities || response.data?.cities || response.data || response || [];
-      
+
       // Convert object to array if needed (when API returns object with numeric keys)
       if (!Array.isArray(citiesData) && typeof citiesData === 'object') {
         citiesData = Object.values(citiesData);
       }
-      
+
       // Ensure cities is always an array
       setCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
@@ -287,7 +288,7 @@ const ProfileScreen = () => {
     if (file) {
       // Clear previous errors
       setErrors({ ...errors, logo: undefined });
-      
+
       // Validate file type - only allow jpg, jpeg, png
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       const fileType = file.type.toLowerCase();
@@ -295,14 +296,14 @@ const ProfileScreen = () => {
         setErrors({ ...errors, logo: 'Please select a valid image file (JPG, JPEG, or PNG only)' });
         return;
       }
-      
+
       // Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB in bytes
       if (file.size > maxSize) {
         setErrors({ ...errors, logo: 'Image size must be less than 5MB' });
         return;
       }
-      
+
       // Set logo file and create preview
       setLogoFile(file);
       const reader = new FileReader();
@@ -387,12 +388,12 @@ const ProfileScreen = () => {
           id_number: formData.id_number || null,
           specializations: formData.specializations || [],
         };
-        
+
         const response = await instructorAPI.updateProfile(updatePayload);
         const updatedInstructor = response.profile || response.instructor || response;
         setInstructorData(updatedInstructor);
         setSuccess('Profile updated successfully!');
-        
+
         // Update form data with response data to ensure sync
         setFormData(prev => ({
           ...prev,
@@ -405,7 +406,7 @@ const ProfileScreen = () => {
           id_number: updatedInstructor.id_number || prev.id_number || '',
           specializations: updatedInstructor.specializations || prev.specializations || [],
         }));
-        
+
         // Update CV URL if changed
         if (updatedInstructor.cv_url || updatedInstructor.cv) {
           setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
@@ -413,13 +414,13 @@ const ProfileScreen = () => {
       } else if (isTrainingCenter) {
         // Update Training Center profile
         const hasLogoFile = logoFile instanceof File;
-        
+
         // Use FormData if logo file is being uploaded (POST method required for file uploads)
         // Otherwise, we can use regular JSON (PUT method) for text-only updates
         if (hasLogoFile) {
           // Use FormData for file uploads (POST method with multipart/form-data)
           const submitData = new FormData();
-          
+
           // Add all form fields (only send fields that have values)
           if (formData.name) submitData.append('name', formData.name);
           if (formData.legal_name) submitData.append('legal_name', formData.legal_name);
@@ -430,14 +431,14 @@ const ProfileScreen = () => {
           if (formData.country) submitData.append('country', formData.country);
           if (formData.city) submitData.append('city', formData.city);
           if (formData.website) submitData.append('website', formData.website);
-          
+
           // Add logo file (POST method required for file uploads)
           submitData.append('logo', logoFile);
-          
+
           // Use trainingCenterAPI.updateProfile (uses POST with _method=PUT for FormData)
           const response = await trainingCenterAPI.updateProfile(submitData);
           const updatedProfile = response.profile || response.training_center || response;
-          
+
           // Update logo URL from response
           if (updatedProfile.logo_url || updatedProfile.logo) {
             setLogoUrl(updatedProfile.logo_url || updatedProfile.logo);
@@ -450,7 +451,7 @@ const ProfileScreen = () => {
           // Note: Currently using FormData even for text-only to maintain consistency
           // But we could optimize this to use PUT with JSON in the future
           const submitData = new FormData();
-          
+
           // Add all form fields (only send fields that have values)
           if (formData.name) submitData.append('name', formData.name);
           if (formData.legal_name) submitData.append('legal_name', formData.legal_name);
@@ -461,11 +462,11 @@ const ProfileScreen = () => {
           if (formData.country) submitData.append('country', formData.country);
           if (formData.city) submitData.append('city', formData.city);
           if (formData.website) submitData.append('website', formData.website);
-          
+
           // Use trainingCenterAPI.updateProfile (uses POST with _method=PUT for FormData)
           const response = await trainingCenterAPI.updateProfile(submitData);
           const updatedProfile = response.profile || response.training_center || response;
-          
+
           setIsEditing(false);
           setSuccess(response.message || 'Profile updated successfully!');
         }
@@ -538,13 +539,13 @@ const ProfileScreen = () => {
         setErrors({ cv: 'Please upload a PDF or Word document' });
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrors({ cv: 'File size must be less than 5MB' });
         return;
       }
-      
+
       setCvFile(file);
       setErrors({});
     }
@@ -552,7 +553,7 @@ const ProfileScreen = () => {
 
   const handleCvUpload = async () => {
     if (!cvFile) return;
-    
+
     setUploadingCv(true);
     setErrors({});
     setSuccess('');
@@ -560,12 +561,12 @@ const ProfileScreen = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('cv', cvFile);
-      
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || 
-                   sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
-      
+
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') ||
+        sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
+
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-      
+
       const response = await axios.put(`${API_BASE_URL}/instructor/profile`, formDataToSend, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -579,7 +580,7 @@ const ProfileScreen = () => {
         setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
       }
       setInstructorData(updatedInstructor);
-      
+
       // Update form data with all fields from response
       setFormData(prev => ({
         ...prev,
@@ -616,15 +617,15 @@ const ProfileScreen = () => {
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || 
-                   sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
-      
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') ||
+        sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
+
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
-      
+
       // Send request to remove CV (set cv to null)
       const formDataToSend = new FormData();
       formDataToSend.append('cv', '');
-      
+
       const response = await axios.put(`${API_BASE_URL}/instructor/profile`, formDataToSend, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -638,7 +639,7 @@ const ProfileScreen = () => {
       setCvUrl(null);
       setCvFile(null);
       setSuccess('CV removed successfully!');
-      
+
       // Update form data with all fields from response
       setFormData(prev => ({
         ...prev,
@@ -690,7 +691,7 @@ const ProfileScreen = () => {
                 <User className="text-primary-600" size={24} />
               </div>
               <div>
-              <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
                 <p className="text-sm text-gray-500">Update your personal details</p>
               </div>
             </div>
@@ -1107,7 +1108,7 @@ const ProfileScreen = () => {
                 </div>
               )}
             </form>
-        </div>
+          </div>
 
           {/* Change Password Section */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -1172,6 +1173,31 @@ const ProfileScreen = () => {
             </form>
           </div>
 
+          {/* Language Settings Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
+                <Globe className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Language Settings</h2>
+                <p className="text-sm text-gray-500">Choose your preferred language</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Application Language
+                </label>
+                <p className="text-sm text-gray-500 mb-4">
+                  Select the language you want to use for the application interface. The page will automatically update when you change the language.
+                </p>
+                <LanguageSwitcher />
+              </div>
+            </div>
+          </div>
+
           {/* Instructor CV Section */}
           {isInstructor && (
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -1194,9 +1220,9 @@ const ProfileScreen = () => {
                         <FileText className="text-green-600 flex-shrink-0 mt-1" size={24} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900 mb-2">Current CV</p>
-                          <a 
-                            href={cvUrl} 
-                            target="_blank" 
+                          <a
+                            href={cvUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                           >

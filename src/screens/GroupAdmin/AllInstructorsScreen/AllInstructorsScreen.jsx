@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
-import { Users, Mail, Phone, Building2, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User } from 'lucide-react';
+import { validateEmail, validatePhone, validateRequired, validateMinLength, validateUKID } from '../../../utils/validation';
+import { Users, Mail, Phone, Building2, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -651,6 +651,7 @@ const AllInstructorsScreen = () => {
                     { key: 'last_name', label: 'Last Name', icon: User },
                     { key: 'email', label: 'Email', type: 'email', icon: Mail },
                     { key: 'phone', label: 'Phone', icon: Phone },
+                    { key: 'date_of_birth', label: 'Date of Birth', type: 'date', icon: Calendar, showEmpty: false },
                     { key: 'id_number', label: 'ID Number', showEmpty: false },
                     { key: 'status', label: 'Status', type: 'status' },
                   ]}
