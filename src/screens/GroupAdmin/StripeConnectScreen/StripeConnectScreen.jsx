@@ -1,16 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Link2, Users, CheckCircle, XCircle, Clock, Search, Filter, Eye, Play, RotateCcw, Unlink } from 'lucide-react';
+import { Link2, Users, User, Mail, Calendar, CheckCircle, XCircle, Clock, Search, Filter, Eye, Play, RotateCcw, Unlink } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import TabCard from '../../../components/TabCard/TabCard';
+import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import Pagination from '../../../components/Pagination/Pagination';
 import CustomButton from '../../../components/CustomButton/CustomButton';
 import './StripeConnectScreen.css';
 
 const StripeConnectScreen = () => {
-    const { setHeaderTitle, setHeaderSubtitle } = useHeader();
+    const { setHeaderTitle, setHeaderSubtitle, setHeaderActions } = useHeader();
     const [accounts, setAccounts] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ const StripeConnectScreen = () => {
     const [loadingAllAccounts, setLoadingAllAccounts] = useState(false);
     const [selectedAccountForInitiate, setSelectedAccountForInitiate] = useState(null);
     const [initiateCountry, setInitiateCountry] = useState('EG');
+    const [countries, setCountries] = useState([]);
 
     // Debounce search
     useEffect(() => {
@@ -51,17 +53,37 @@ const StripeConnectScreen = () => {
     useEffect(() => {
         setHeaderTitle('Stripe Connect Management');
         setHeaderSubtitle('Manage Stripe Connect accounts for all users');
+        setHeaderActions(
+            <button
+                onClick={handleOpenInitiateModal}
+                className="header-create-btn"
+            >
+                <Play size={20} className="header-create-btn-icon" />
+                Initiate Connect
+            </button>
+        );
         return () => {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
+            setHeaderActions(null);
         };
-    }, [setHeaderTitle, setHeaderSubtitle]);
+    }, [setHeaderTitle, setHeaderSubtitle, setHeaderActions]);
 
     useEffect(() => {
         loadAccounts();
         loadStats();
+        loadCountries();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, perPage, debouncedSearch, statusFilter, typeFilter]);
+
+    const loadCountries = async () => {
+        try {
+            const data = await publicAPI.getCountries();
+            setCountries(data?.countries || data || []);
+        } catch (error) {
+            console.error('Failed to load countries:', error);
+        }
+    };
 
     const loadAccounts = async () => {
         setLoading(true);
@@ -218,35 +240,74 @@ const StripeConnectScreen = () => {
     };
 
     const getStatusBadge = (status) => {
-        const statusMap = {
-            connected: { label: 'Connected', class: 'status-connected' },
-            pending: { label: 'Pending', class: 'status-pending' },
-            failed: { label: 'Failed', class: 'status-failed' },
-            inactive: { label: 'Inactive', class: 'status-inactive' },
-            updating: { label: 'Updating', class: 'status-updating' }
+        const statusConfig = {
+            connected: {
+                label: 'Connected',
+                badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
+                icon: CheckCircle
+            },
+            pending: {
+                label: 'Pending',
+                badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
+                icon: Clock
+            },
+            failed: {
+                label: 'Failed',
+                badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
+                icon: XCircle
+            },
+            inactive: {
+                label: 'Inactive',
+                badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
+                icon: Clock
+            },
+            updating: {
+                label: 'Updating',
+                badgeClass: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300',
+                icon: Clock
+            }
         };
-        const statusInfo = statusMap[status] || { label: status, class: 'status-inactive' };
-        return <span className={`status-badge ${statusInfo.class}`}>{statusInfo.label}</span>;
+
+        const config = statusConfig[status] || statusConfig.inactive;
+        const Icon = config.icon;
+
+        return (
+            <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
+                <Icon size={12} className="mr-1" />
+                {config.label}
+            </span>
+        );
     };
 
     const columns = useMemo(() => [
         {
-            header: 'Name',
+            header: 'Account',
             accessor: 'name',
             sortable: true,
+            render: (value, row) => (
+                <div className="flex items-center">
+                    <div className="w-10 h-10 mr-3 flex items-center justify-center bg-gray-100 rounded-lg">
+                        <User className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div>
+                        <div className="font-medium text-gray-900">{value}</div>
+                        {row.type && (
+                            <div className="text-xs text-gray-500 uppercase">{row.type.replace('_', ' ')}</div>
+                        )}
+                    </div>
+                </div>
+            )
         },
         {
             header: 'Email',
             accessor: 'email',
             sortable: true,
-        },
-        {
-            header: 'Type',
-            accessor: 'type',
-            sortable: true,
             render: (value) => (
-                <span className="type-badge">{value?.replace('_', ' ').toUpperCase()}</span>
-            ),
+                <div className="flex items-center text-sm text-gray-600">
+                    <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                    {value || 'N/A'}
+                </div>
+            )
         },
         {
             header: 'Stripe Status',
@@ -258,7 +319,12 @@ const StripeConnectScreen = () => {
             header: 'Connected At',
             accessor: 'stripe_connected_at',
             sortable: true,
-            render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
+            render: (value) => (
+                <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                    {value ? new Date(value).toLocaleDateString() : 'N/A'}
+                </div>
+            )
         },
         {
             header: 'Actions',
@@ -298,10 +364,10 @@ const StripeConnectScreen = () => {
     ], [actionLoading]);
 
     return (
-        <div className="stripe-connect-container">
+        <div className="space-y-4">
             {/* Statistics Cards */}
             {stats && (
-                <div className="summary-cards-grid">
+                <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
                     <TabCard
                         name="Total Accounts"
                         value={stats.total || 0}
@@ -326,90 +392,57 @@ const StripeConnectScreen = () => {
                         icon={XCircle}
                         colorType="red"
                     />
-                </div>
+                </TabCardsGrid>
             )}
 
-            {/* Search and Filters */}
-            <div className="search-filters-section">
-                <div className="search-filters-container">
-                    <div className="search-input-container">
-                        <Search className="search-icon" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search by name or email..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
-                        />
-                    </div>
-
-                    <div className="filter-container">
-                        <Filter className="filter-icon" size={20} />
-                        <select
-                            value={typeFilter}
-                            onChange={(e) => {
-                                setTypeFilter(e.target.value);
-                                setPage(1);
-                            }}
-                            className="filter-select"
-                        >
-                            <option value="all">All Types</option>
-                            <option value="acc">ACC</option>
-                            <option value="training_center">Training Center</option>
-                            <option value="instructor">Instructor</option>
-                        </select>
-                    </div>
-
-                    <div className="filter-container">
-                        <Filter className="filter-icon" size={20} />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPage(1);
-                            }}
-                            className="filter-select"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="connected">Connected</option>
-                            <option value="pending">Pending</option>
-                            <option value="failed">Failed</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <CustomButton
-                        onClick={handleOpenInitiateModal}
-                        icon={Play}
-                        variant="primary"
-                    >
-                        Initiate Connect
-                    </CustomButton>
-                </div>
-            </div>
-
-            {/* Accounts Table */}
-            <div className="datatable-container">
+            {/* DataTable */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 <DataTable
                     columns={columns}
                     data={accounts}
                     onView={handleViewDetails}
                     isLoading={loading}
                     emptyMessage="No accounts found"
-                    searchable={false}
+                    searchable={true}
+                    searchValue={searchTerm}
+                    onSearch={setSearchTerm}
+                    searchPlaceholder="Search by name or email..."
                     filterable={false}
+                    customFilters={
+                        <div className="flex gap-2">
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                                <option value="all">All Status</option>
+                                <option value="connected">Connected</option>
+                                <option value="pending">Pending</option>
+                                <option value="failed">Failed</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    }
                 />
-                <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    perPage={perPage}
-                    onPageChange={setPage}
-                    onPerPageChange={(newPerPage) => {
-                        setPerPage(newPerPage);
-                        setPage(1);
-                    }}
-                />
+
+                {accounts.length > 0 && (
+                    <div className="border-t border-gray-100">
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalItems={totalItems}
+                            perPage={perPage}
+                            onPageChange={setPage}
+                            onPerPageChange={(newPerPage) => {
+                                setPerPage(newPerPage);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
+                )}
             </div>
 
             <Modal
@@ -445,7 +478,7 @@ const StripeConnectScreen = () => {
                                 <option value="">-- Select an account --</option>
                                 {allAccountsForDropdown.map((account) => (
                                     <option key={`${account.type}-${account.id}`} value={`${account.type}-${account.id}`}>
-                                        {account.name} ({account.email}) - {account.type.replace('_', ' ').toUpperCase()}
+                                        {account.name}
                                     </option>
                                 ))}
                             </select>
@@ -453,31 +486,44 @@ const StripeConnectScreen = () => {
                     </div>
                     <div className="form-group">
                         <label>Country</label>
-                        <input
-                            type="text"
+                        <select
                             value={initiateCountry}
                             onChange={(e) => setInitiateCountry(e.target.value)}
                             className="form-control"
-                            placeholder="Country code (e.g., EG)"
-                        />
+                        >
+                            <option value="">-- Select a country --</option>
+                            {Array.isArray(countries) ? (
+                                countries.map((c) => (
+                                    <option key={c.code || c.id} value={c.code || c.id}>
+                                        {c.name}
+                                    </option>
+                                ))
+                            ) : (
+                                Object.entries(countries).map(([code, name]) => (
+                                    <option key={code} value={code}>
+                                        {name}
+                                    </option>
+                                ))
+                            )}
+                        </select>
                     </div>
                     <div className="modal-actions">
-                        <CustomButton
+                        <button
                             onClick={handleInitiateConnect}
-                            loading={actionLoading}
-                            variant="primary"
+                            disabled={actionLoading}
+                            className="custom-button custom-button-primary"
                         >
-                            Initiate
-                        </CustomButton>
-                        <CustomButton
+                            {actionLoading ? 'Initiating...' : 'Initiate'}
+                        </button>
+                        <button
                             onClick={() => {
                                 setInitiateModalOpen(false);
                                 setSelectedAccountForInitiate(null);
                             }}
-                            variant="secondary"
+                            className="custom-button custom-button-secondary"
                         >
                             Cancel
-                        </CustomButton>
+                        </button>
                     </div>
                 </div>
             </Modal>
@@ -567,20 +613,23 @@ const StripeConnectScreen = () => {
 
                         <div className="modal-actions">
                             {selectedAccount.stripe_status?.status === 'pending' && (
-                                <CustomButton
+                                <button
                                     onClick={handleResendLink}
-                                    loading={actionLoading}
-                                    variant="primary"
+                                    disabled={actionLoading}
+                                    className="custom-button custom-button-primary"
                                 >
-                                    Resend Onboarding Link
-                                </CustomButton>
+                                    {actionLoading ? 'Sending...' : 'Resend Onboarding Link'}
+                                </button>
                             )}
-                            <CustomButton
-                                onClick={() => setDetailModalOpen(false)}
-                                variant="secondary"
+                            <button
+                                onClick={() => {
+                                    setDetailModalOpen(false);
+                                    setSelectedAccount(null);
+                                }}
+                                className="custom-button custom-button-secondary"
                             >
                                 Close
-                            </CustomButton>
+                            </button>
                         </div>
                     </div>
                 )}
