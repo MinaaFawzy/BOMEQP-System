@@ -51,5 +51,24 @@
   "language": "اللغة",
   "theme": "المظهر",
   "dark_mode": "الوضع الداكن",
-  "light_mode": "الوضع الفاتح"
+  "light_mode": "الوضع الفاتح",
+  "pagination": {
+    "info": {
+      "showing": "عرض",
+      "to": "إلى",
+      "of": "من",
+      "results": "نتيجة"
+    },
+
+    "per_page": {
+      "label": "عرض:"
+    },
+
+    "controls": {
+      "first_page": "الصفحة الأولى",
+      "previous_page": "الصفحة السابقة",
+      "next_page": "الصفحة التالية",
+      "last_page": "الصفحة الأخيرة"
+    }
+  }
 }

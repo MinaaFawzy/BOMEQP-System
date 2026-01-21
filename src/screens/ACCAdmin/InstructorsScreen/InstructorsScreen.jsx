@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Users, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Building2, FileText, Globe, Phone, Calendar, Award, BookOpen, Hash, MapPin, CreditCard, UserCircle, User, Search } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -76,8 +78,8 @@ const InstructorsScreen = () => {
   }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle('Instructors');
-    setHeaderSubtitle('Manage instructor authorizations and requests');
+    setHeaderTitle(t('instructors_screen.header.title'));
+    setHeaderSubtitle(t('instructors_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -162,7 +164,7 @@ const InstructorsScreen = () => {
           _normalizedEmail: instructor.email || '',
           _normalizedDate: item.request_date || item.created_at || item.updated_at,
           // Handle Training Center Name safely
-          _normalizedTrainingCenter: item.training_center?.name || item.training_center?.legal_name || 'N/A',
+          _normalizedTrainingCenter: item.training_center?.name || item.training_center?.legal_name || t('instructors_screen.common.na'),
           _trainingCenterId: item.training_center_id,
           _isRequest: true,
           status: item.status || 'pending'
@@ -221,8 +223,9 @@ const InstructorsScreen = () => {
 
   // Define columns for DataTable
   const columns = useMemo(() => [
+
     {
-      header: 'Instructor',
+      header: t('instructors_screen.table.instructor'),
       accessor: '_normalizedName',
       sortable: true,
       render: (value, row) => {
@@ -260,35 +263,35 @@ const InstructorsScreen = () => {
               )}
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
+              <div className="text-sm font-semibold text-gray-900">{value || t('instructors_screen.common.na')}</div>
             </div>
           </div>
         );
       }
     },
     {
-      header: 'Email',
+      header: t('instructors_screen.table.email'),
       accessor: '_normalizedEmail',
       sortable: true,
       render: (value) => (
         <div className="flex items-center text-sm text-gray-600">
           <Mail className="h-4 w-4 mr-2 text-gray-400" />
-          {value || 'N/A'}
+          {value || t('instructors_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Date',
+      header: t('instructors_screen.table.date'),
       accessor: '_normalizedDate',
       sortable: true,
       render: (value) => (
         <span className="text-sm text-gray-600">
-          {value ? new Date(value).toLocaleDateString() : 'N/A'}
+          {value ? new Date(value).toLocaleDateString() : t('instructors_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Status',
+      header: t('instructors_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value, row) => {
@@ -319,13 +322,13 @@ const InstructorsScreen = () => {
         return (
           <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
             <Icon size={12} className="mr-1" />
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+            {value ? t(`instructors_screen.status.${value}`) : t('instructors_screen.common.na')}
           </span>
         );
       }
     },
     {
-      header: 'Actions',
+      header: t('instructors_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -333,7 +336,7 @@ const InstructorsScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="View Details"
+            title={t('instructors_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
@@ -344,7 +347,7 @@ const InstructorsScreen = () => {
                 handleApprove(row);
               }}
               className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              title="Approve"
+              title={t('instructors_screen.actions.approve')}
             >
               <CheckCircle size={16} />
             </button>
@@ -358,7 +361,7 @@ const InstructorsScreen = () => {
 
   const confirmApprove = async () => {
     if (!authorizationPrice || parseFloat(authorizationPrice) <= 0) {
-      alert('Please enter a valid authorization price');
+      alert('Please enter a valid authorization price'); // No key for this in provided JSON, using literal or check generic error from API response
       return;
     }
     try {
@@ -370,9 +373,9 @@ const InstructorsScreen = () => {
       setApproveModalOpen(false);
       setSelectedRequest(null);
       setAuthorizationPrice('');
-      alert('Instructor approved successfully. Waiting for Group Admin to set commission percentage.');
+      alert(t('instructors_screen.approval.success'));
     } catch (error) {
-      alert('Failed to approve: ' + (error.message || 'Unknown error'));
+      alert(t('instructors_screen.messages.approve_failed') + ': ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -384,7 +387,7 @@ const InstructorsScreen = () => {
 
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason');
+      alert(t('instructors_screen.rejection.missing_reason'));
       return;
     }
     try {
@@ -394,7 +397,7 @@ const InstructorsScreen = () => {
       setRejectModalOpen(false);
       setSelectedRequest(null);
       setRejectionReason('');
-      alert('Instructor request rejected');
+      alert(t('instructors_screen.rejection.success'));
     } catch (error) {
       alert('Failed to reject: ' + (error.message || 'Unknown error'));
     }
@@ -408,7 +411,7 @@ const InstructorsScreen = () => {
 
   const confirmReturn = async () => {
     if (!returnComment.trim()) {
-      alert('Please provide a return comment');
+      alert(t('instructors_screen.return.missing_comment'));
       return;
     }
     try {
@@ -418,7 +421,7 @@ const InstructorsScreen = () => {
       setReturnModalOpen(false);
       setSelectedRequest(null);
       setReturnComment('');
-      alert('Request returned for revision');
+      alert(t('instructors_screen.return.success'));
     } catch (error) {
       alert('Failed to return request: ' + (error.message || 'Unknown error'));
     }
@@ -431,7 +434,7 @@ const InstructorsScreen = () => {
       <div className="mb-6">
         <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
           <TabCard
-            name="Total"
+            name={t('instructors_screen.tabs.total')}
             value={stats.total}
             icon={Users}
             colorType="indigo"
@@ -442,7 +445,7 @@ const InstructorsScreen = () => {
             }}
           />
           <TabCard
-            name="Pending"
+            name={t('instructors_screen.tabs.pending')}
             value={stats.pending}
             icon={Clock}
             colorType="yellow"
@@ -453,7 +456,7 @@ const InstructorsScreen = () => {
             }}
           />
           <TabCard
-            name="Active"
+            name={t('instructors_screen.tabs.active')}
             value={stats.active}
             icon={CheckCircle}
             colorType="green"
@@ -464,7 +467,7 @@ const InstructorsScreen = () => {
             }}
           />
           <TabCard
-            name="Returned"
+            name={t('instructors_screen.tabs.returned')}
             value={stats.returned}
             icon={ArrowLeft}
             colorType="blue"
@@ -482,7 +485,7 @@ const InstructorsScreen = () => {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search instructors..."
+            placeholder={t('instructors_screen.search.placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -502,7 +505,7 @@ const InstructorsScreen = () => {
           searchable={false} // Disable client-side search
           sortable={true}
           filterable={false}
-          emptyMessage="No instructors found"
+          emptyMessage={t('instructors_screen.table.empty')}
           onRowClick={(item) => handleRowClick(item)}
         />
 
@@ -528,7 +531,7 @@ const InstructorsScreen = () => {
           setDetailModalOpen(false);
           setSelectedRequest(null);
         }}
-        title={selectedRequest?._isRequest ? "Instructor Request Details" : "Instructor Details"}
+        title={selectedRequest?._isRequest ? t('instructors_screen.details.request_title') : t('instructors_screen.details.details_title')}
         size="lg"
       >
         {selectedRequest && (
@@ -538,18 +541,18 @@ const InstructorsScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <FileText className="mr-2" size={20} />
-                  Request Information
+                  {t('instructors_screen.details.request_info')}
                 </h3>
                 <DetailForm
                   data={selectedRequest}
                   fields={[
-                    { key: 'id', label: 'Request ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                    { key: 'training_center_id', label: 'Training Center ID', icon: Building2, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                    { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'status', label: 'Status', type: 'status', icon: Clock },
-                    { key: 'payment_status', label: 'Payment Status', render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? value.toUpperCase() : 'PENDING'}</span>, icon: CreditCard },
-                    { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'id', label: t('instructors_screen.details.request_id'), icon: Hash, render: (value) => value ? `#${value}` : t('instructors_screen.common.na'), showEmpty: false },
+                    { key: 'training_center_id', label: t('instructors_screen.details.training_center_id'), icon: Building2, render: (value) => value ? `#${value}` : t('instructors_screen.common.na'), showEmpty: false },
+                    { key: 'request_date', label: t('instructors_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'status', label: t('instructors_screen.table.status'), type: 'status', icon: Clock },
+                    { key: 'payment_status', label: t('instructors_screen.details.payment_status'), render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? (value === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}</span>, icon: CreditCard },
+                    { key: 'created_at', label: t('instructors_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'updated_at', label: t('instructors_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                   ]}
                 />
               </div>
@@ -559,7 +562,7 @@ const InstructorsScreen = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <User className="mr-2" size={20} />
-                Instructor Information
+                {t('instructors_screen.details.instructor_info')}
               </h3>
               <div className="mb-6 flex justify-center">
                 {selectedRequest.photo_url || (selectedRequest.instructor && selectedRequest.instructor.photo_url) ? (
@@ -587,14 +590,14 @@ const InstructorsScreen = () => {
                   specialization: selectedRequest.specialization || (selectedRequest.instructor?.specialization),
                 }}
                 fields={[
-                  { key: 'first_name', label: 'First Name', icon: UserCircle },
-                  { key: 'last_name', label: 'Last Name', icon: UserCircle },
-                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                  { key: 'phone', label: 'Phone', icon: Phone },
-                  { key: 'date_of_birth', label: 'Date of Birth', type: 'date', icon: Calendar, showEmpty: false },
-                  { key: 'nationality', label: 'Nationality', icon: Globe },
-                  { key: 'specialization', label: 'Specialization', icon: Award },
-                  { key: '_normalizedTrainingCenter', label: 'Training Center', icon: Building2 },
+                  { key: 'first_name', label: t('instructors_screen.fields.first_name'), icon: UserCircle },
+                  { key: 'last_name', label: t('instructors_screen.fields.last_name'), icon: UserCircle },
+                  { key: 'email', label: t('instructors_screen.fields.email'), type: 'email', icon: Mail },
+                  { key: 'phone', label: t('instructors_screen.fields.phone'), icon: Phone },
+                  { key: 'date_of_birth', label: t('instructors_screen.fields.date_of_birth'), type: 'date', icon: Calendar, showEmpty: false },
+                  { key: 'nationality', label: t('instructors_screen.fields.nationality'), icon: Globe },
+                  { key: 'specialization', label: t('instructors_screen.fields.specialization'), icon: Award },
+                  { key: '_normalizedTrainingCenter', label: t('instructors_screen.fields.training_center'), icon: Building2 },
                 ]}
               />
             </div>
@@ -604,14 +607,14 @@ const InstructorsScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <FileText className="mr-2" size={20} />
-                  Documents
+                  {t('instructors_screen.details.documents')}
                 </h3>
                 <div className="space-y-2">
                   {selectedRequest.documents_json.map((doc, index) => (
                     <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `Document ${index + 1}`}</p>
+                          <p className="font-medium text-gray-900">{doc.type || doc.document_type || `${t('instructors_screen.documents.document')} ${index + 1}`}</p>
                           {doc.description && (
                             <p className="text-sm text-gray-500 mt-1">{doc.description}</p>
                           )}
@@ -623,7 +626,7 @@ const InstructorsScreen = () => {
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                           >
-                            View Document
+                            {t('instructors_screen.documents.view_document')}
                           </a>
                         )}
                       </div>
@@ -636,9 +639,9 @@ const InstructorsScreen = () => {
             {/* Authorization Details (if present) */}
             {selectedRequest.authorization_price && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Authorization Details</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('instructors_screen.details.authorization_details')}</h3>
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-500 mb-1">Authorization Price</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('instructors_screen.details.authorization_price')}</p>
                   <p className="text-2xl font-bold text-green-900">
                     ${parseFloat(selectedRequest.authorization_price).toFixed(2)}
                   </p>
@@ -651,7 +654,7 @@ const InstructorsScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <XCircle className="mr-2 text-red-600" size={20} />
-                  Rejection Reason
+                  {t('instructors_screen.rejection.reason_label')}
                 </h3>
                 <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                   <p className="text-base text-gray-900">{selectedRequest.rejection_reason}</p>
@@ -664,7 +667,7 @@ const InstructorsScreen = () => {
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="flex items-center mb-2">
                   <ArrowLeft className="h-5 w-5 text-blue-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-blue-900">Return Comment</h3>
+                  <h3 className="text-lg font-semibold text-blue-900">{t('instructors_screen.return.comment_label')}</h3>
                 </div>
                 <p className="text-base text-gray-900">{selectedRequest.return_comment}</p>
               </div>
@@ -679,7 +682,7 @@ const InstructorsScreen = () => {
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
                 >
                   <CheckCircle size={20} className="mr-2" />
-                  Approve
+                  {t('instructors_screen.common.approve')}
                 </button>
                 <button
                   onClick={() => {
@@ -691,7 +694,7 @@ const InstructorsScreen = () => {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center"
                 >
                   <XCircle size={20} className="mr-2" />
-                  Reject
+                  {t('instructors_screen.common.reject')}
                 </button>
                 <button
                   onClick={() => {
@@ -703,7 +706,7 @@ const InstructorsScreen = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
                 >
                   <ArrowLeft size={20} className="mr-2" />
-                  Return
+                  {t('instructors_screen.common.return')}
                 </button>
               </div>
             )}
@@ -746,13 +749,13 @@ const InstructorsScreen = () => {
           setSelectedRequest(null);
           setAuthorizationPrice('');
         }}
-        title="Approve Instructor Request"
+        title={t('instructors_screen.approval.modal_title')}
         size="md"
       >
         <div className="space-y-4">
-          <p className="text-gray-600">Please set the authorization price for this instructor:</p>
+          <p className="text-gray-600">{t('instructors_screen.approval.description')}</p>
           <FormInput
-            label="Authorization Price"
+            label={t('instructors_screen.approval.price_label')}
             name="authorization_price"
             type="number"
             value={authorizationPrice}
@@ -760,10 +763,10 @@ const InstructorsScreen = () => {
             required
             min="0"
             step="0.01"
-            placeholder="500.00"
+            placeholder={t('instructors_screen.approval.price_placeholder')}
           />
           <p className="text-sm text-gray-500">
-            After approval, Group Admin will need to set the commission percentage before Training Center can pay.
+            {t('instructors_screen.approval.note')}
           </p>
           <div className="flex space-x-3 pt-4">
             <button
@@ -774,13 +777,13 @@ const InstructorsScreen = () => {
               }}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
             >
-              Cancel
+              {t('instructors_screen.common.cancel')}
             </button>
             <button
               onClick={confirmApprove}
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              Approve
+              {t('instructors_screen.common.approve')}
             </button>
           </div>
         </div>
@@ -794,7 +797,7 @@ const InstructorsScreen = () => {
           setSelectedRequest(null);
           setRejectionReason('');
         }}
-        title="Reject Instructor Request"
+        title={t('instructors_screen.rejection.modal_title')}
         size="md"
       >
         <div className="space-y-4">

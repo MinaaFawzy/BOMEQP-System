@@ -18,7 +18,7 @@
   "logout": "تسجيل الخروج",
   "settings": "الإعدادات",
   "welcome_back_here_is_your_overview": "مرحباً بعودتك! إليك نظرة عامة",
-  
+
   "group_admin": {
     "title": "مدير المجموعة",
     "acc_applications": "طلبات ACC",
@@ -36,7 +36,7 @@
     "classes": "الفصول",
     "pending_payments": "المدفوعات المعلقة"
   },
-  
+
   "acc_admin": {
     "title": "مدير ACC",
     "dashboard": "لوحة التحكم",
@@ -52,18 +52,35 @@
     "categories": "الفئات",
     "classes": "الفصول",
     "payment_transactions": "معاملات الدفع",
-    "pending_payments": "المدفوعات المعلقة", 
+    "pending_payments": "المدفوعات المعلقة",
     "people_management": "إدارة الأفراد",
     "courses_classes": "الدورات والفصول",
     "financial": "المالية"
   },
-  
-  "instructor": {
-    "title": "المدرب",
+  "acc_drawer": {
+    "dashboard": "لوحة التحكم",
+    "subscription": "الاشتراك",
+    "management": "الإدارة",
+    "training_centers": "مراكز التدريب",
+    "instructors": "المدربين",
+    "courses_and_content": "الدورات والمحتوى",
+    "courses": "الدورات",
+    "classes": "الفصول",
+    "certificate_templates": "قوالب الشهادات",
+    "discount_codes": "رموز الخصم",
+    "course_categories": "فئات الدورات",
+    "financial": "المالية",
+    "payment_transactions": "معاملات الدفع",
+    "pending_payments": "الدفعات المعلقة",
+    "students": "الطلاب",
+    "certificates": "الشهادات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "instructor_drawer": {
     "dashboard": "لوحة التحكم",
     "classes": "الفصول",
-    "materials": "المواد",
-    "earnings": "الأرباح",
-    "profile": "الملف الشخصي"
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
   }
 }

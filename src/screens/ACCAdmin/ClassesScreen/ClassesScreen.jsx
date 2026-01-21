@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { GraduationCap, Eye, Clock, Calendar, MapPin, Users, User, Building2, BookOpen, Mail, Phone, Globe, CheckCircle, XCircle, FileText, Image as ImageIcon, Hash, Search } from 'lucide-react';
@@ -9,6 +10,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './ClassesScreen.css';
 
 const ClassesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,8 @@ const ClassesScreen = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-    setHeaderTitle('Classes');
-    setHeaderSubtitle('View all classes from authorized training centers');
+    setHeaderTitle(t('classes_screen.header.title'));
+    setHeaderSubtitle(t('classes_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -126,17 +128,17 @@ const ClassesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Class Name',
+      header: t('classes_screen.table.class_name'),
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
         <div className="font-semibold text-gray-900">
-          {value || 'N/A'}
+          {value || t('classes_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Course',
+      header: t('classes_screen.table.course'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => (
@@ -146,17 +148,17 @@ const ClassesScreen = () => {
           </div>
           <div>
             <div className="text-sm font-semibold text-gray-900">
-              {value?.name || 'N/A'}
+              {value?.name || t('classes_screen.common.na')}
             </div>
             {value?.code && (
-              <div className="text-xs text-gray-500">Code: {value.code}</div>
+              <div className="text-xs text-gray-500">{t('classes_screen.fields.course_code')}: {value.code}</div>
             )}
           </div>
         </div>
       )
     },
     {
-      header: 'Training Center',
+      header: t('classes_screen.table.training_center'),
       accessor: 'training_center',
       sortable: true,
       render: (value) => (
@@ -165,17 +167,17 @@ const ClassesScreen = () => {
             <Building2 className="h-4 w-4 text-blue-600" />
           </div>
           <div className="text-sm font-medium text-gray-900">
-            {value?.name || 'N/A'}
+            {value?.name || t('classes_screen.common.na')}
           </div>
         </div>
       )
     },
     {
-      header: 'Instructor',
+      header: t('classes_screen.table.instructor'),
       accessor: 'instructor',
       sortable: true,
       render: (value) => {
-        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        if (!value) return <span className="text-sm text-gray-400">{t('classes_screen.common.na')}</span>;
         return (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
@@ -183,7 +185,7 @@ const ClassesScreen = () => {
             </div>
             <div>
               <div className="text-sm font-medium text-gray-900">
-                {`${value.first_name || ''} ${value.last_name || ''}`.trim() || 'N/A'}
+                {`${value.first_name || ''} ${value.last_name || ''}`.trim() || t('classes_screen.common.na')}
               </div>
               {value.email && (
                 <div className="text-xs text-gray-500">{value.email}</div>
@@ -194,7 +196,7 @@ const ClassesScreen = () => {
       }
     },
     {
-      header: 'Schedule',
+      header: t('classes_screen.table.schedule'),
       accessor: 'start_date',
       sortable: true,
       render: (value, row) => (
@@ -205,14 +207,14 @@ const ClassesScreen = () => {
           </div>
           {row.end_date && (
             <div className="text-xs text-gray-500 mt-1">
-              to {formatDate(row.end_date)}
+              {t('classes_screen.common.to')} {formatDate(row.end_date)}
             </div>
           )}
         </div>
       )
     },
     {
-      header: 'Exam Date',
+      header: t('classes_screen.table.exam_date'),
       accessor: 'exam_date',
       sortable: true,
       render: (value) => (
@@ -223,13 +225,13 @@ const ClassesScreen = () => {
               <span className="font-medium">{formatDate(value)}</span>
             </div>
           ) : (
-            <span className="text-gray-400">Not set</span>
+            <span className="text-gray-400">{t('classes_screen.common.na')}</span>
           )}
         </div>
       )
     },
     {
-      header: 'Exam Score',
+      header: t('classes_screen.table.exam_score'),
       accessor: 'exam_score',
       sortable: true,
       render: (value) => (
@@ -240,13 +242,13 @@ const ClassesScreen = () => {
               <span className="font-semibold">{parseInt(value)}</span>
             </div>
           ) : (
-            <span className="text-gray-400">N/A</span>
+            <span className="text-gray-400">{t('classes_screen.common.na')}</span>
           )}
         </div>
       )
     },
     {
-      header: 'Location',
+      header: t('classes_screen.table.location'),
       accessor: 'location',
       sortable: true,
       render: (value, row) => (
@@ -254,7 +256,7 @@ const ClassesScreen = () => {
           <span className="text-lg">{getLocationIcon(value)}</span>
           <div>
             <div className="text-sm font-medium text-gray-900 capitalize">
-              {value || 'N/A'}
+              {value || t('classes_screen.common.na')}
             </div>
             {row.location_details && (
               <div className="text-xs text-gray-500 truncate max-w-xs">
@@ -266,7 +268,7 @@ const ClassesScreen = () => {
       )
     },
     {
-      header: 'Capacity',
+      header: t('classes_screen.table.capacity'),
       accessor: 'enrolled_count',
       sortable: true,
       render: (value, row) => (
@@ -274,11 +276,11 @@ const ClassesScreen = () => {
           <Users className="h-4 w-4 text-gray-400" />
           <div>
             <div className="text-sm font-semibold text-gray-900">
-              {value || 0} / {row.course?.max_capacity || 'N/A'}
+              {value || 0} / {row.course?.max_capacity || t('classes_screen.common.na')}
             </div>
             {row.course?.max_capacity && (
               <div className="text-xs text-gray-500">
-                {Math.round(((value || 0) / row.course.max_capacity) * 100)}% full
+                {t('classes_screen.fields.full_percentage', { percent: Math.round(((value || 0) / row.course.max_capacity) * 100) })}
               </div>
             )}
           </div>
@@ -286,17 +288,17 @@ const ClassesScreen = () => {
       )
     },
     {
-      header: 'Status',
+      header: t('classes_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(value)}`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1).replace('_', ' ') : 'N/A'}
+          {value ? t(`classes_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1).replace('_', ' ') }) : t('classes_screen.status.na')}
         </span>
       )
     },
     {
-      header: 'Actions',
+      header: t('classes_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -304,7 +306,7 @@ const ClassesScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="View Details"
+            title={t('classes_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
@@ -316,7 +318,7 @@ const ClassesScreen = () => {
   // filteredData removed - using server-side filtering
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('classes_screen.common.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -325,7 +327,7 @@ const ClassesScreen = () => {
   };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('classes_screen.common.na');
     return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -370,7 +372,7 @@ const ClassesScreen = () => {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Search classes..."
+              placeholder={t('classes_screen.search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -390,11 +392,11 @@ const ClassesScreen = () => {
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
             >
-              <option value="all">All Status</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="all">{t('classes_screen.filters.all')}</option>
+              <option value="scheduled">{t('classes_screen.filters.scheduled')}</option>
+              <option value="in_progress">{t('classes_screen.filters.in_progress')}</option>
+              <option value="completed">{t('classes_screen.filters.completed')}</option>
+              <option value="cancelled">{t('classes_screen.filters.cancelled')}</option>
             </select>
           </div>
         </div>
@@ -409,7 +411,7 @@ const ClassesScreen = () => {
           searchable={false}
           sortable={true}
           filterable={false}
-          emptyMessage="No classes found"
+          emptyMessage={t('classes_screen.table.empty')}
           onRowClick={(classItem) => handleRowClick(classItem)}
         />
 
@@ -435,7 +437,7 @@ const ClassesScreen = () => {
           setDetailModalOpen(false);
           setSelectedClass(null);
         }}
-        title="Class Details"
+        title={t('classes_screen.details.modal_title')}
         size="lg"
       >
         {selectedClass && (
@@ -444,14 +446,14 @@ const ClassesScreen = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <GraduationCap className="mr-2" size={20} />
-                Class Information
+                {t('classes_screen.details.class_info')}
               </h3>
               <DetailForm
                 data={selectedClass}
                 fields={[
-                  { key: 'status', label: 'Status', type: 'status', icon: Clock },
-                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'status', label: t('classes_screen.fields.status'), type: 'status', icon: Clock },
+                  { key: 'created_at', label: t('classes_screen.fields.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: t('classes_screen.fields.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                 ]}
               />
             </div>
@@ -461,35 +463,35 @@ const ClassesScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <BookOpen className="mr-2" size={20} />
-                  Course Information
+                  {t('classes_screen.details.course_info')}
                 </h3>
                 <DetailForm
                   data={selectedClass.course}
                   fields={[
-                    { key: 'name', label: 'Course Name', icon: BookOpen },
-                    { key: 'code', label: 'Course Code', icon: Hash, showEmpty: false },
-                    { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
-                    { key: 'duration_hours', label: 'Duration', icon: Clock, render: (value) => value ? `${value} hours` : 'N/A', showEmpty: false },
-                    { key: 'level', label: 'Level', render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A', showEmpty: false },
-                    { key: 'max_capacity', label: 'Max Capacity', render: (value) => value ? `${value} trainees` : 'N/A', showEmpty: false },
-                    { key: 'status', label: 'Course Status', type: 'status', showEmpty: false },
+                    { key: 'name', label: t('classes_screen.fields.course_name'), icon: BookOpen },
+                    { key: 'code', label: t('classes_screen.fields.course_code'), icon: Hash, showEmpty: false },
+                    { key: 'name_ar', label: t('classes_screen.fields.course_name_ar'), showEmpty: false },
+                    { key: 'duration_hours', label: t('classes_screen.fields.duration'), icon: Clock, render: (value) => value ? t('classes_screen.fields.duration_hours', { count: value }) : t('classes_screen.common.na'), showEmpty: false },
+                    { key: 'level', label: t('classes_screen.fields.level'), render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : t('classes_screen.common.na'), showEmpty: false },
+                    { key: 'max_capacity', label: t('classes_screen.fields.max_capacity'), render: (value) => value ? `${value} ${t('classes_screen.common.trainees')}` : t('classes_screen.common.na'), showEmpty: false },
+                    { key: 'status', label: t('classes_screen.fields.course_status'), type: 'status', showEmpty: false },
                   ]}
                 />
                 {selectedClass.course.description && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Description</p>
+                    <p className="text-sm text-gray-500 mb-1">{t('classes_screen.fields.description')}</p>
                     <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedClass.course.description}</p>
                   </div>
                 )}
                 {selectedClass.course.sub_category && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Sub Category</p>
+                    <p className="text-sm text-gray-500 mb-1">{t('classes_screen.fields.sub_category')}</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {selectedClass.course.sub_category.name || 'N/A'}
+                      {selectedClass.course.sub_category.name || t('classes_screen.common.na')}
                     </p>
                     {selectedClass.course.sub_category.category && (
                       <p className="text-sm text-gray-600 mt-1">
-                        Category: {selectedClass.course.sub_category.category.name || 'N/A'}
+                        {t('classes_screen.fields.category')}: {selectedClass.course.sub_category.category.name || t('classes_screen.common.na')}
                       </p>
                     )}
                   </div>
@@ -502,18 +504,18 @@ const ClassesScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Building2 className="mr-2" size={20} />
-                  Training Center Information
+                  {t('classes_screen.details.training_center_info')}
                 </h3>
                 <DetailForm
                   data={selectedClass.training_center}
                   fields={[
-                    { key: 'name', label: 'Name', icon: Building2 },
-                    { key: 'email', label: 'Email', type: 'email', icon: Mail, showEmpty: false },
-                    { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
-                    { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
-                    { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
-                    { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
-                    { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                    { key: 'name', label: t('classes_screen.fields.name'), icon: Building2 },
+                    { key: 'email', label: t('classes_screen.fields.email'), type: 'email', icon: Mail, showEmpty: false },
+                    { key: 'phone', label: t('classes_screen.fields.phone'), icon: Phone, showEmpty: false },
+                    { key: 'website', label: t('classes_screen.fields.website'), type: 'url', icon: Globe, showEmpty: false },
+                    { key: 'address', label: t('classes_screen.fields.address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                    { key: 'city', label: t('classes_screen.fields.city'), icon: MapPin, showEmpty: false },
+                    { key: 'country', label: t('classes_screen.fields.country'), icon: MapPin, showEmpty: false },
                   ]}
                 />
               </div>
@@ -524,17 +526,17 @@ const ClassesScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <User className="mr-2" size={20} />
-                  Instructor Information
+                  {t('classes_screen.details.instructor_info')}
                 </h3>
                 <DetailForm
                   data={selectedClass.instructor}
                   fields={[
-                    { key: 'first_name', label: 'First Name', icon: User },
-                    { key: 'last_name', label: 'Last Name', icon: User },
-                    { key: 'email', label: 'Email', type: 'email', icon: Mail, showEmpty: false },
-                    { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
-                    { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                    { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
+                    { key: 'first_name', label: t('classes_screen.fields.first_name'), icon: User },
+                    { key: 'last_name', label: t('classes_screen.fields.last_name'), icon: User },
+                    { key: 'email', label: t('classes_screen.fields.email'), type: 'email', icon: Mail, showEmpty: false },
+                    { key: 'phone', label: t('classes_screen.fields.phone'), icon: Phone, showEmpty: false },
+                    { key: 'country', label: t('classes_screen.fields.country'), icon: MapPin, showEmpty: false },
+                    { key: 'city', label: t('classes_screen.fields.city'), icon: MapPin, showEmpty: false },
                   ]}
                 />
               </div>
@@ -544,22 +546,22 @@ const ClassesScreen = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Calendar className="mr-2" size={20} />
-                Schedule Information
+                {t('classes_screen.details.schedule_info')}
               </h3>
               <DetailForm
                 data={selectedClass}
                 fields={[
-                  { key: 'start_date', label: 'Start Date', type: 'datetime', icon: Calendar },
-                  { key: 'end_date', label: 'End Date', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'exam_date', label: 'Exam Date', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'exam_score', label: 'Exam Score', icon: FileText, render: (value) => value !== null && value !== undefined ? `${parseInt(value)}` : 'N/A', showEmpty: false },
-                  { key: 'start_time', label: 'Start Time', icon: Clock, showEmpty: false },
-                  { key: 'end_time', label: 'End Time', icon: Clock, showEmpty: false },
+                  { key: 'start_date', label: t('classes_screen.fields.start_date'), type: 'datetime', icon: Calendar },
+                  { key: 'end_date', label: t('classes_screen.fields.end_date'), type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'exam_date', label: t('classes_screen.fields.exam_date'), type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'exam_score', label: t('classes_screen.fields.exam_score'), icon: FileText, render: (value) => value !== null && value !== undefined ? `${parseInt(value)}` : t('classes_screen.common.na'), showEmpty: false },
+                  { key: 'start_time', label: t('classes_screen.fields.start_time'), icon: Clock, showEmpty: false },
+                  { key: 'end_time', label: t('classes_screen.fields.end_time'), icon: Clock, showEmpty: false },
                 ]}
               />
               {selectedClass.schedule_json && Object.keys(selectedClass.schedule_json).length > 0 && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Weekly Schedule</p>
+                  <p className="text-sm font-medium text-gray-700 mb-3">{t('classes_screen.details.weekly_schedule')}</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(selectedClass.schedule_json).map(([day, time]) => (
                       <div key={day} className="p-3 bg-white rounded-lg border border-gray-200">
@@ -574,17 +576,17 @@ const ClassesScreen = () => {
 
             {/* Location & Capacity */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Location & Capacity</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('classes_screen.details.location_capacity')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
                     <MapPin size={14} />
-                    Location Type
+                    {t('classes_screen.fields.location_type')}
                   </p>
-                  <p className="text-base font-semibold text-gray-900 capitalize">{selectedClass.location || 'N/A'}</p>
+                  <p className="text-base font-semibold text-gray-900 capitalize">{selectedClass.location || t('classes_screen.common.na')}</p>
                   {selectedClass.location_details && (
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500 mb-1">Location Details</p>
+                      <p className="text-sm text-gray-500 mb-1">{t('classes_screen.fields.location_details')}</p>
                       <p className="text-sm text-gray-700">{selectedClass.location_details}</p>
                     </div>
                   )}
@@ -592,10 +594,10 @@ const ClassesScreen = () => {
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
                     <Users size={14} />
-                    Capacity
+                    {t('classes_screen.fields.capacity')}
                   </p>
                   <p className="text-base font-semibold text-gray-900">
-                    {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
+                    {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || t('classes_screen.common.na')}
                   </p>
                   {selectedClass.course?.max_capacity && (
                     <div className="mt-3">
@@ -608,7 +610,7 @@ const ClassesScreen = () => {
                         ></div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {Math.round(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100)}% full
+                        {t('classes_screen.fields.full_percentage', { percent: Math.round(((selectedClass.enrolled_count || 0) / selectedClass.course.max_capacity) * 100) })}
                       </p>
                     </div>
                   )}
@@ -621,12 +623,12 @@ const ClassesScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Users className="mr-2" size={20} />
-                  Trainees ({selectedClass.trainees.length})
+                  {t('classes_screen.details.trainees')} ({selectedClass.trainees.length})
                 </h3>
                 {selectedClass.trainees.length === 0 ? (
                   <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-700">No trainees enrolled in this class</p>
+                    <p className="text-sm font-medium text-gray-700">{t('classes_screen.details.no_trainees')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -667,7 +669,7 @@ const ClassesScreen = () => {
                                 {trainee.first_name} {trainee.last_name}
                               </p>
                               {trainee.id_number && (
-                                <p className="text-xs text-gray-500">ID: {trainee.id_number}</p>
+                                <p className="text-xs text-gray-500">{t('classes_screen.fields.trainee_id')}: {trainee.id_number}</p>
                               )}
                             </div>
                           </div>

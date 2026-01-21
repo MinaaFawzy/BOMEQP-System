@@ -1,0 +1,309 @@
+{
+  "dashboard_screen": {
+    "errors": {
+      "load_failed": "Failed to load dashboard data"
+    },
+
+    "stats": {
+      "total_classes": "Total Classes",
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+
+      "click_to_view_all": "Click to view all",
+      "scheduled_classes": "Scheduled classes",
+      "finished_classes": "Finished classes"
+    },
+
+    "charts": {
+      "earnings_over_time": "Earnings Over Time",
+      "earnings": "Earnings",
+      "classes_status_distribution": "Classes Status Distribution",
+      "count": "Count"
+    },
+
+    "recent_classes": {
+      "title": "Recent Classes",
+      "view_all": "View All",
+
+      "table": {
+        "course": "Course",
+        "training_center": "Training Center",
+        "dates": "Dates",
+        "status": "Status",
+        "students": "Students",
+        "code_prefix": "Code:"
+      },
+
+      "empty": {
+        "title": "No classes found",
+        "subtitle": "You don't have any classes yet"
+      }
+    },
+
+    "profile_summary": {
+      "title": "Profile Summary",
+      "name": "Name",
+      "email": "Email",
+      "view_full_profile": "View Full Profile"
+    },
+
+    "training_centers": {
+      "title": "Training Centers",
+      "view_all_with_count": "View All ({{count}})",
+      "empty": "No training centers found"
+    },
+
+    "accs": {
+      "title": "Accreditation Bodies",
+      "authorized": "Authorized",
+      "view_all_with_count": "View All ({{count}})",
+      "empty": "No ACCs found"
+    },
+
+    "status": {
+      "scheduled": "Scheduled",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+
+    "location": {
+      "online": "Online"
+    },
+
+    "common": {
+      "na": "N/A",
+      "to": "to",
+      "class_one": "class",
+      "class_other": "classes"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "My Classes",
+      "subtitle": "View and manage your assigned classes"
+    },
+
+    "search": {
+      "placeholder": "Search classes..."
+    },
+
+    "filters": {
+      "all": "All Classes",
+      "scheduled": "Scheduled",
+      "completed": "Completed"
+    },
+
+    "table": {
+      "course": "Course",
+      "training_center": "Training Center",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "exam_date": "Exam Date",
+      "exam_score": "Exam Score",
+      "status": "Status",
+      "enrolled": "Enrolled",
+      "empty": "No classes assigned yet."
+    },
+
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "default": "Unknown",
+      "not_set": "Not set",
+      "na": "N/A"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "mark_complete": "Mark as Complete"
+    },
+
+    "details": {
+      "modal_title": "Class Details",
+
+      "course": "Course",
+      "training_center": "Training Center",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "exam_date": "Exam Date",
+      "exam_score": "Exam Score",
+      "enrollment": "Enrollment",
+      "status": "Status",
+      "location": "Location",
+
+      "materials_title": "Course Materials",
+      "download": "Download"
+    },
+
+    "complete": {
+      "modal_title": "Mark Class as Complete",
+
+      "completion_rate": "Completion Rate (%)",
+      "completion_rate_placeholder": "e.g., 95",
+
+      "notes": "Notes (Optional)",
+      "notes_placeholder": "Add any notes about the class completion...",
+
+      "cancel": "Cancel",
+      "confirm": "Mark Complete"
+    },
+
+    "validation": {
+      "completion_rate_required": "Please enter completion rate percentage"
+    },
+
+    "messages": {
+      "marked_complete_success": "Class marked as complete!",
+      "mark_complete_failed": "Failed to mark complete"
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "Profile",
+      "subtitle": "Manage your account settings and preferences",
+      "edit": "Edit Profile"
+    },
+
+    "sections": {
+      "profile_info": {
+        "title": "Profile Information",
+        "subtitle": "Update your personal details"
+      },
+      "cv": {
+        "title": "CV / Resume",
+        "subtitle": "Upload or update your curriculum vitae"
+      },
+      "passport": {
+        "title": "Passport Copy",
+        "subtitle": "Upload or update your passport document"
+      },
+      "certificates": {
+        "title": "Certificates",
+        "subtitle": "Manage your professional certificates"
+      },
+      "password": {
+        "title": "Change Password",
+        "subtitle": "Update your account password"
+      },
+      "language": {
+        "title": "Language Settings",
+        "subtitle": "Choose your preferred system language",
+        "application_language": "Application Language"
+      }
+    },
+
+    "form": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email Address",
+      "email_help": "Email cannot be changed",
+      "phone": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "id_number": "ID Number",
+      "id_placeholder": "Enter ID number (minimum 8 characters)",
+
+      "country": "Country",
+      "city": "City",
+      "select_country": "Select Country",
+      "select_city": "Select City",
+
+      "type": "Type",
+      "account_status": "Account Status",
+      "training_center": "Training Center",
+
+      "specializations": "Specializations"
+    },
+
+    "profile_photo": {
+      "label": "Profile Photo",
+      "select": "Select Photo",
+      "change": "Change Photo",
+      "hint": "JPG, JPEG, PNG only, max 5MB"
+    },
+
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "inactive": "Inactive",
+      "assessor": "Assessor",
+      "instructor": "Instructor"
+    },
+
+    "cv": {
+      "current": "Current CV",
+      "view": "View CV",
+      "none": "No CV uploaded",
+      "none_hint": "Click Edit Profile to upload your CV",
+      "upload": "Upload CV",
+      "update": "Update CV",
+      "uploading": "Uploading CV...",
+      "remove": "Remove CV",
+      "remove_confirm": "Are you sure you want to remove your CV? This action cannot be undone.",
+      "hint": "PDF only, maximum 10MB"
+    },
+
+    "passport": {
+      "current": "Current Passport",
+      "view": "View Passport",
+      "none": "No passport uploaded",
+      "none_hint": "Click Edit Profile to upload your passport",
+      "upload": "Upload Passport",
+      "update": "Update Passport",
+      "processing": "Processing passport...",
+      "hint": "JPG, PNG, or PDF, maximum 10MB"
+    },
+
+    "certificates": {
+      "add": "Add Certificate",
+      "new_title": "New Certificates to Add",
+      "name": "Certificate Name",
+      "issue_date": "Issue Date",
+      "file": "Certificate File (PDF)",
+      "view": "View Certificate",
+      "none": "No certificates added yet",
+      "selected": "Selected:"
+    },
+
+    "password": {
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "current_placeholder": "Enter your current password",
+      "new_placeholder": "Must include uppercase, numbers & special characters",
+      "confirm_placeholder": "Confirm your new password",
+      "submit": "Change Password"
+    },
+
+    "buttons": {
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+
+    "messages": {
+      "profile_updated": "Profile updated successfully!",
+      "password_changed": "Password changed successfully!"
+    },
+
+    "validation": {
+      "required": "This field is required",
+      "invalid_email": "Invalid email address",
+      "photo_type": "Please select a valid image file (JPG, JPEG, or PNG only)",
+      "photo_size": "Image size must not exceed 5MB",
+      "file_type": "Only PDF files are allowed",
+      "file_size": "File size must be less than 10MB",
+      "password_required": "Current password is required",
+      "password_failed": "Failed to change password"
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  }
+}

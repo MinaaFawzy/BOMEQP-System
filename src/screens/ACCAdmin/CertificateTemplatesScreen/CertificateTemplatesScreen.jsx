@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
@@ -10,6 +11,7 @@ import DetailForm from '../../../components/DetailForm/DetailForm';
 import './CertificateTemplatesScreen.css';
 
 const CertificateTemplatesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const navigate = useNavigate();
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [templates, setTemplates] = useState([]);
@@ -35,15 +37,15 @@ const CertificateTemplatesScreen = () => {
   }, []);
 
   useEffect(() => {
-    setHeaderTitle('Certificate Templates');
-    setHeaderSubtitle('Create and manage certificate templates');
+    setHeaderTitle(t('certificate_templates_screen.header.title'));
+    setHeaderSubtitle(t('certificate_templates_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={handleOpenModal}
         className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 transition-colors"
       >
         <Plus size={20} />
-        Create Template
+        {t('certificate_templates_screen.header.create')}
       </button>
     );
     return () => {
@@ -168,7 +170,7 @@ const CertificateTemplatesScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Failed to save template. Please try again.' });
+        setErrors({ general: t('certificate_templates_screen.errors.save_failed') });
       }
     } finally {
       setSaving(false);
@@ -181,7 +183,7 @@ const CertificateTemplatesScreen = () => {
 
   const handleDelete = async (template, force = false) => {
     // First confirmation
-    if (!force && !window.confirm(`Are you sure you want to delete "${template.name}"?`)) {
+    if (!force && !window.confirm(t('certificate_templates_screen.confirmations.delete', { name: template.name }))) {
       return;
     }
 
@@ -190,21 +192,19 @@ const CertificateTemplatesScreen = () => {
       loadTemplates();
     } catch (error) {
       console.error('Failed to delete template:', error);
-      
+
       // Check if error is because template is in use
       const errorData = error?.response?.data;
       if (errorData?.certificate_count && errorData?.certificate_count > 0) {
         const count = errorData.certificate_count;
-        const message = `This template is being used by ${count} certificate${count > 1 ? 's' : ''}.\n\n` +
-                       `If you delete this template, all ${count} associated certificate${count > 1 ? 's' : ''} will also be deleted.\n\n` +
-                       `Do you want to proceed with deleting the template and all associated certificates?`;
-        
+        const message = t('certificate_templates_screen.errors.delete_in_use', { count });
+
         if (window.confirm(message)) {
           // User confirmed force delete
           handleDelete(template, true);
         }
       } else {
-        alert(errorData?.message || 'Failed to delete template. Please try again.');
+        alert(errorData?.message || t('certificate_templates_screen.errors.delete_failed'));
       }
     }
   };
@@ -228,30 +228,30 @@ const CertificateTemplatesScreen = () => {
 
   const columns = [
     {
-      header: 'Name',
+      header: t('certificate_templates_screen.table.name'),
       accessor: 'name',
       sortable: true,
       render: (value) => (
         <div className="text-sm font-semibold text-gray-900">
-          {value || 'N/A'}
+          {value || t('certificate_templates_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Category',
+      header: t('certificate_templates_screen.table.category'),
       accessor: 'category',
       sortable: true,
       render: (value, row) => {
         const category = typeof value === 'object' ? value : categories.find(c => c.id === row.category_id);
         return (
           <div className="text-sm text-gray-700">
-            {category?.name || category?.name_ar || 'N/A'}
+            {category?.name || category?.name_ar || t('certificate_templates_screen.common.na')}
           </div>
         );
       }
     },
     {
-      header: 'Status',
+      header: t('certificate_templates_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
@@ -259,12 +259,12 @@ const CertificateTemplatesScreen = () => {
           ? 'bg-green-100 text-green-800'
           : 'bg-gray-100 text-gray-800'
           }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`certificate_templates_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('certificate_templates_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Actions',
+      header: t('certificate_templates_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -272,28 +272,28 @@ const CertificateTemplatesScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
-            title="View Details"
+            title={t('certificate_templates_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
           <button
             onClick={() => handleEdit(row)}
             className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100"
-            title="Edit"
+            title={t('certificate_templates_screen.actions.edit')}
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => handleOpenDesigner(row)}
             className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100"
-            title="Design Template"
+            title={t('certificate_templates_screen.actions.design')}
           >
             <ImageIcon size={16} />
           </button>
           <button
             onClick={() => handleDelete(row)}
             className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
-            title="Delete"
+            title={t('certificate_templates_screen.actions.delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -303,9 +303,9 @@ const CertificateTemplatesScreen = () => {
   ];
 
   const filterOptions = [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'active', label: 'Active', filterFn: (t) => t.status === 'active' },
-    { value: 'inactive', label: 'Inactive', filterFn: (t) => t.status === 'inactive' },
+    { value: 'all', label: t('certificate_templates_screen.filters.all'), filterFn: () => true },
+    { value: 'active', label: t('certificate_templates_screen.filters.active'), filterFn: (t) => t.status === 'active' },
+    { value: 'inactive', label: t('certificate_templates_screen.filters.inactive'), filterFn: (t) => t.status === 'inactive' },
   ];
 
 
@@ -317,7 +317,7 @@ const CertificateTemplatesScreen = () => {
         data={templates}
         isLoading={loading}
         searchable={true}
-        searchPlaceholder="Search templates..."
+        searchPlaceholder={t('certificate_templates_screen.search.placeholder')}
         filterable={true}
         filterOptions={filterOptions}
         defaultFilter="all"
@@ -329,13 +329,13 @@ const CertificateTemplatesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={isEditMode ? 'Edit Template' : 'Create Template'}
+        title={isEditMode ? t('certificate_templates_screen.modal.edit_title') : t('certificate_templates_screen.modal.create_title')}
         size="md"
       >
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <FormInput
-              label="Template Name"
+              label={t('certificate_templates_screen.form.template_name')}
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -344,14 +344,14 @@ const CertificateTemplatesScreen = () => {
             />
 
             <FormInput
-              label="Category"
+              label={t('certificate_templates_screen.form.category')}
               name="category_id"
               type="select"
               value={formData.category_id}
               onChange={handleChange}
               required
               options={[
-                { value: '', label: 'Select Category' },
+                { value: '', label: t('certificate_templates_screen.form.select_category') },
                 ...categories.map(cat => ({
                   value: cat.id.toString(),
                   label: cat.name || cat.name_ar || `Category ${cat.id}`
@@ -361,15 +361,15 @@ const CertificateTemplatesScreen = () => {
             />
 
             <FormInput
-              label="Status"
+              label={t('certificate_templates_screen.form.status')}
               name="status"
               type="select"
               value={formData.status}
               onChange={handleChange}
               required
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' }
+                { value: 'active', label: t('certificate_templates_screen.status.active') },
+                { value: 'inactive', label: t('certificate_templates_screen.status.inactive') }
               ]}
               error={errors.status}
             />
@@ -384,14 +384,14 @@ const CertificateTemplatesScreen = () => {
                 onClick={handleCloseModal}
                 className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                Cancel
+                {t('certificate_templates_screen.buttons.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={saving}
                 className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : isEditMode ? 'Update' : 'Create'}
+                {saving ? t('certificate_templates_screen.buttons.saving') : isEditMode ? t('certificate_templates_screen.buttons.update') : t('certificate_templates_screen.buttons.create')}
               </button>
             </div>
           </div>
@@ -408,38 +408,38 @@ const CertificateTemplatesScreen = () => {
           setDetailModalOpen(false);
           setSelectedTemplate(null);
         }}
-        title="Template Details"
+        title={t('certificate_templates_screen.modal.details_title')}
         size="lg"
       >
         {selectedTemplate && (
           <DetailForm
             data={selectedTemplate}
             fields={[
-              { key: 'name', label: 'Template Name' },
+              { key: 'name', label: t('certificate_templates_screen.details.template_name') },
               {
                 key: 'category',
-                label: 'Category',
+                label: t('certificate_templates_screen.details.category'),
                 render: (value) => {
                   const category = typeof value === 'object' ? value : categories.find(c => c.id === selectedTemplate.category_id);
-                  return category?.name || category?.name_ar || 'N/A';
+                  return category?.name || category?.name_ar || t('certificate_templates_screen.common.na');
                 }
               },
-              { key: 'status', label: 'Status' },
+              { key: 'status', label: t('certificate_templates_screen.details.status') },
               {
                 key: 'config_json',
-                label: 'Configuration',
+                label: t('certificate_templates_screen.details.configuration'),
                 render: (value) => value ? (
                   <pre className="text-xs bg-gray-50 p-3 rounded overflow-auto max-h-64">
                     {JSON.stringify(value, null, 2)}
                   </pre>
-                ) : 'No configuration'
+                ) : t('certificate_templates_screen.details.no_configuration')
               },
               {
                 key: 'background_image_url',
-                label: 'Background Image',
+                label: t('certificate_templates_screen.details.background_image'),
                 render: (value) => value ? (
                   <img src={value} alt="Background" className="max-w-full h-48 object-contain border rounded" />
-                ) : 'No background image'
+                ) : t('certificate_templates_screen.details.no_background')
               },
             ]}
           />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { CreditCard, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
@@ -8,6 +9,7 @@ import StripePaymentModal from '../../../components/StripePaymentModal/StripePay
 import './SubscriptionScreen.css';
 
 const SubscriptionScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,8 @@ const SubscriptionScreen = () => {
   }, []);
 
   useEffect(() => {
-    setHeaderTitle('Subscription Management');
-    setHeaderSubtitle('Manage your ACC subscription and payment details');
+    setHeaderTitle(t('subscription_screen.header.title'));
+    setHeaderSubtitle(t('subscription_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -181,22 +183,23 @@ const SubscriptionScreen = () => {
       setPaymentModalOpen(false);
       setShowStripeModal(false);
       setPaymentIntentData(null);
-      alert('Subscription payment processed successfully!');
+      setPaymentIntentData(null);
+      alert(t('subscription_screen.messages.payment_success'));
       window.location.reload();
     } catch (error) {
       console.error('Failed to complete subscription payment:', error);
-      
+
       // Handle different error types
       if (error.response?.status === 400) {
         const errorData = error.response.data;
-        setErrors({ general: errorData?.message || 'Payment verification failed. Please contact support.' });
+        setErrors({ general: errorData?.message || t('subscription_screen.errors.payment_verification_failed') });
       } else if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -208,10 +211,10 @@ const SubscriptionScreen = () => {
         if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Payment succeeded but failed to process subscription. Please contact support.' });
+          setErrors({ general: t('subscription_screen.errors.payment_process_failed') });
         }
       } else {
-        setErrors({ general: 'Payment succeeded but failed to process subscription. Please contact support.' });
+        setErrors({ general: t('subscription_screen.errors.payment_process_failed') });
       }
       throw error;
     }
@@ -222,12 +225,12 @@ const SubscriptionScreen = () => {
     // Validate amount before creating payment intent
     const amount = parseFloat(paymentForm.amount);
     if (!paymentForm.amount || isNaN(amount) || amount <= 0) {
-      setErrors({ amount: 'Please enter a valid amount greater than 0' });
+      setErrors({ amount: t('subscription_screen.errors.invalid_amount') });
       return;
     }
 
     if (amount < 1) {
-      setErrors({ amount: 'Amount must be at least $1.00' });
+      setErrors({ amount: t('subscription_screen.errors.min_amount') });
       return;
     }
 
@@ -240,7 +243,7 @@ const SubscriptionScreen = () => {
       const response = await accAPI.createSubscriptionPaymentIntent({
         amount: amount,
       });
-      
+
       if (response.success && response.client_secret && response.payment_intent_id) {
         setPaymentIntentData(response);
         setPaymentForm(prev => ({
@@ -250,18 +253,18 @@ const SubscriptionScreen = () => {
         // Open Stripe payment modal directly
         setShowStripeModal(true);
       } else {
-        setErrors({ general: 'Failed to create payment intent. Invalid response from server.' });
+        setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
       }
     } catch (error) {
       console.error('Failed to create payment intent:', error);
-      
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -275,26 +278,26 @@ const SubscriptionScreen = () => {
         setErrors({ general: errorData?.message || 'Payment service unavailable. Please contact support.' });
       } else if (error.response?.status === 500) {
         const errorData = error.response.data;
-        setErrors({ general: errorData?.message || 'Failed to create payment intent. Please try again later.' });
+        setErrors({ general: errorData?.message || t('subscription_screen.errors.create_payment_intent_failed') });
       } else if (error.response?.data) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
         } else if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Failed to create payment intent. Please try again.' });
+          setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
         }
       } else if (error.message) {
         setErrors({ general: error.message });
       } else {
-        setErrors({ general: 'Failed to create payment intent. Please try again.' });
+        setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
       }
     } finally {
       setCreatingPaymentIntent(false);
@@ -303,7 +306,7 @@ const SubscriptionScreen = () => {
 
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Auto-create payment intent and open Stripe modal
     await handlePaymentClick();
   };
@@ -433,21 +436,21 @@ const SubscriptionScreen = () => {
       setRenewModalOpen(false);
       setShowRenewStripeModal(false);
       setRenewPaymentIntentData(null);
-      alert('Subscription renewed successfully!');
+      alert(t('subscription_screen.messages.renew_success'));
     } catch (error) {
       console.error('Failed to complete subscription renewal:', error);
-      
+
       // Handle different error types
       if (error.response?.status === 400) {
         const errorData = error.response.data;
-        setErrors({ general: errorData?.message || 'Payment verification failed. Please contact support.' });
+        setErrors({ general: errorData?.message || t('subscription_screen.errors.payment_verification_failed') });
       } else if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -459,10 +462,10 @@ const SubscriptionScreen = () => {
         if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Payment succeeded but failed to renew subscription. Please contact support.' });
+          setErrors({ general: t('subscription_screen.errors.renew_failed') });
         }
       } else {
-        setErrors({ general: 'Payment succeeded but failed to renew subscription. Please contact support.' });
+        setErrors({ general: t('subscription_screen.errors.renew_failed') });
       }
       throw error;
     }
@@ -473,12 +476,12 @@ const SubscriptionScreen = () => {
     // Validate amount before creating payment intent
     const amount = parseFloat(renewForm.amount);
     if (!renewForm.amount || isNaN(amount) || amount <= 0) {
-      setErrors({ amount: 'Please enter a valid amount greater than 0' });
+      setErrors({ amount: t('subscription_screen.errors.invalid_amount') });
       return;
     }
 
     if (amount < 1) {
-      setErrors({ amount: 'Amount must be at least $1.00' });
+      setErrors({ amount: t('subscription_screen.errors.min_amount') });
       return;
     }
 
@@ -491,7 +494,7 @@ const SubscriptionScreen = () => {
       const response = await accAPI.createRenewalPaymentIntent({
         amount: amount,
       });
-      
+
       if (response.success && response.client_secret && response.payment_intent_id) {
         setRenewPaymentIntentData(response);
         setRenewForm(prev => ({
@@ -501,18 +504,18 @@ const SubscriptionScreen = () => {
         // Open Stripe payment modal directly
         setShowRenewStripeModal(true);
       } else {
-        setErrors({ general: 'Failed to create payment intent. Invalid response from server.' });
+        setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
       }
     } catch (error) {
       console.error('Failed to create payment intent:', error);
-      
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -526,26 +529,26 @@ const SubscriptionScreen = () => {
         setErrors({ general: errorData?.message || 'Payment service unavailable. Please contact support.' });
       } else if (error.response?.status === 500) {
         const errorData = error.response.data;
-        setErrors({ general: errorData?.message || 'Failed to create payment intent. Please try again later.' });
+        setErrors({ general: errorData?.message || t('subscription_screen.errors.create_payment_intent_failed') });
       } else if (error.response?.data) {
         const errorData = error.response.data;
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
         } else if (errorData.message) {
           setErrors({ general: errorData.message });
         } else {
-          setErrors({ general: 'Failed to create payment intent. Please try again.' });
+          setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
         }
       } else if (error.message) {
         setErrors({ general: error.message });
       } else {
-        setErrors({ general: 'Failed to create payment intent. Please try again.' });
+        setErrors({ general: t('subscription_screen.errors.create_payment_intent_failed') });
       }
     } finally {
       setCreatingPaymentIntent(false);
@@ -554,7 +557,7 @@ const SubscriptionScreen = () => {
 
   const handleRenewSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Auto-create payment intent and open Stripe modal
     await handleRenewClick();
   };
@@ -573,16 +576,16 @@ const SubscriptionScreen = () => {
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 mb-6">
               <AlertCircle className="h-10 w-10 text-yellow-600" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Active Subscription</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">{t('subscription_screen.no_subscription.title')}</h2>
             <p className="text-gray-600 mb-6">
-              You need to subscribe to access all ACC features. Please complete your subscription payment to continue.
+              {t('subscription_screen.no_subscription.description')}
             </p>
             <button
               onClick={handlePayment}
               className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
             >
               <CreditCard className="inline-block mr-2" size={20} />
-              Subscribe Now
+              {t('subscription_screen.no_subscription.subscribe_now')}
             </button>
           </div>
         </div>
@@ -591,13 +594,12 @@ const SubscriptionScreen = () => {
         <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">Current Subscription</h2>
-              <p className="text-gray-600 mt-1">Manage your subscription details</p>
+              <h2 className="text-2xl font-semibold text-gray-900">{t('subscription_screen.current_subscription.title')}</h2>
+              <p className="text-gray-600 mt-1">{t('subscription_screen.current_subscription.subtitle')}</p>
             </div>
-            <span className={`px-4 py-2 rounded-full font-medium ${
-              subscription.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {subscription.payment_status?.toUpperCase() || 'PENDING'}
+            <span className={`px-4 py-2 rounded-full font-medium ${subscription.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+              {subscription.payment_status === 'paid' ? t('subscription_screen.current_subscription.status.paid') : t('subscription_screen.current_subscription.status.pending')}
             </span>
           </div>
 
@@ -605,31 +607,31 @@ const SubscriptionScreen = () => {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center mb-2">
                 <Calendar className="text-primary-600 mr-2" size={20} />
-                <span className="font-medium text-gray-700">Start Date</span>
+                <span className="font-medium text-gray-700">{t('subscription_screen.current_subscription.fields.start_date')}</span>
               </div>
               <p className="text-lg font-semibold text-gray-900">
-                {subscription.subscription_start_date 
-                  ? new Date(subscription.subscription_start_date).toLocaleDateString() 
-                  : 'N/A'}
+                {subscription.subscription_start_date
+                  ? new Date(subscription.subscription_start_date).toLocaleDateString()
+                  : t('subscription_screen.common.na')}
               </p>
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center mb-2">
                 <Calendar className="text-primary-600 mr-2" size={20} />
-                <span className="font-medium text-gray-700">End Date</span>
+                <span className="font-medium text-gray-700">{t('subscription_screen.current_subscription.fields.end_date')}</span>
               </div>
               <p className="text-lg font-semibold text-gray-900">
-                {subscription.subscription_end_date 
-                  ? new Date(subscription.subscription_end_date).toLocaleDateString() 
-                  : 'N/A'}
+                {subscription.subscription_end_date
+                  ? new Date(subscription.subscription_end_date).toLocaleDateString()
+                  : t('subscription_screen.common.na')}
               </p>
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center mb-2">
                 <CreditCard className="text-primary-600 mr-2" size={20} />
-                <span className="font-medium text-gray-700">Amount</span>
+                <span className="font-medium text-gray-700">{t('subscription_screen.current_subscription.fields.amount')}</span>
               </div>
               <p className="text-lg font-semibold text-gray-900">
                 ${subscription.amount?.toLocaleString() || '0.00'}
@@ -640,10 +642,10 @@ const SubscriptionScreen = () => {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center mb-2">
                   <CheckCircle className="text-primary-600 mr-2" size={20} />
-                  <span className="font-medium text-gray-700">Auto Renew</span>
+                  <span className="font-medium text-gray-700">{t('subscription_screen.current_subscription.fields.auto_renew')}</span>
                 </div>
                 <p className="text-lg font-semibold text-gray-900">
-                  {subscription.auto_renew ? 'Enabled' : 'Disabled'}
+                  {subscription.auto_renew ? t('subscription_screen.current_subscription.fields.enabled') : t('subscription_screen.current_subscription.fields.disabled')}
                 </p>
               </div>
             )}
@@ -656,14 +658,14 @@ const SubscriptionScreen = () => {
                 className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
               >
                 <CreditCard className="inline-block mr-2" size={18} />
-                Pay Subscription
+                {t('subscription_screen.current_subscription.actions.pay_subscription')}
               </button>
             )}
             <button
               onClick={handleRenew}
               className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
             >
-              Manage Renewal
+              {t('subscription_screen.current_subscription.actions.manage_renewal')}
             </button>
           </div>
         </div>
@@ -676,7 +678,7 @@ const SubscriptionScreen = () => {
           setPaymentModalOpen(false);
           setErrors({});
         }}
-        title="Subscribe / Pay Subscription"
+        title={t('subscription_screen.payment_modal.title')}
         size="md"
       >
         <form onSubmit={handlePaymentSubmit} className="space-y-4">
@@ -687,7 +689,7 @@ const SubscriptionScreen = () => {
           )}
 
           <FormInput
-            label="Amount"
+            label={t('subscription_screen.payment_modal.amount')}
             name="amount"
             type="number"
             value={paymentForm.amount}
@@ -695,7 +697,7 @@ const SubscriptionScreen = () => {
             required
             min="1"
             step="0.01"
-            placeholder="5000.00"
+            placeholder={t('subscription_screen.payment_modal.amount_placeholder')}
             error={errors.amount}
           />
 
@@ -717,9 +719,9 @@ const SubscriptionScreen = () => {
           */}
 
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-2">Payment Method: Credit Card</p>
+            <p className="text-sm text-blue-900 font-semibold mb-2">{t('subscription_screen.payment_modal.payment_method_title')}</p>
             <p className="text-xs text-blue-700">
-              Payment will be processed securely through Stripe. Click "Pay Now" below to enter your card details.
+              {t('subscription_screen.payment_modal.payment_method_description')}
             </p>
           </div>
 
@@ -732,14 +734,14 @@ const SubscriptionScreen = () => {
               }}
               className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
-              Cancel
+              {t('subscription_screen.payment_modal.cancel')}
             </button>
             <button
               type="submit"
               disabled={creatingPaymentIntent || processing || !paymentForm.amount || parseFloat(paymentForm.amount) <= 0}
               className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
             >
-              {creatingPaymentIntent ? 'Processing...' : processing ? 'Processing...' : 'Pay Now'}
+              {creatingPaymentIntent ? t('subscription_screen.payment_modal.processing') : processing ? t('subscription_screen.payment_modal.processing') : t('subscription_screen.payment_modal.pay_now')}
             </button>
           </div>
         </form>
@@ -752,7 +754,7 @@ const SubscriptionScreen = () => {
           setRenewModalOpen(false);
           setErrors({});
         }}
-        title="Manage Subscription Renewal"
+        title={t('subscription_screen.renewal_modal.title')}
         size="md"
       >
         <form onSubmit={handleRenewSubmit} className="space-y-4">
@@ -763,7 +765,7 @@ const SubscriptionScreen = () => {
           )}
 
           <FormInput
-            label="Amount"
+            label={t('subscription_screen.renewal_modal.amount')}
             name="amount"
             type="number"
             value={renewForm.amount}
@@ -771,7 +773,7 @@ const SubscriptionScreen = () => {
             required
             min="1"
             step="0.01"
-            placeholder="10000.00"
+            placeholder={t('subscription_screen.renewal_modal.amount_placeholder')}
             error={errors.amount}
           />
 
@@ -793,9 +795,9 @@ const SubscriptionScreen = () => {
           */}
 
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-2">Payment Method: Credit Card</p>
+            <p className="text-sm text-blue-900 font-semibold mb-2">{t('subscription_screen.renewal_modal.payment_method_title')}</p>
             <p className="text-xs text-blue-700">
-              Payment will be processed securely through Stripe. Click "Renew Subscription" below to enter your card details.
+              {t('subscription_screen.renewal_modal.payment_method_description')}
             </p>
           </div>
 
@@ -808,11 +810,11 @@ const SubscriptionScreen = () => {
                 className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
               />
               <span className="ml-3 text-gray-700 font-medium">
-                Enable Auto-Renewal
+                {t('subscription_screen.renewal_modal.auto_renew')}
               </span>
             </label>
             <p className="mt-2 text-sm text-gray-500">
-              When enabled, your subscription will automatically renew at the end of the current period.
+              {t('subscription_screen.renewal_modal.auto_renew_hint')}
             </p>
           </div>
 
@@ -825,14 +827,14 @@ const SubscriptionScreen = () => {
               }}
               className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
-              Cancel
+              {t('subscription_screen.renewal_modal.cancel')}
             </button>
             <button
               type="submit"
               disabled={creatingPaymentIntent || processing || !renewForm.amount || parseFloat(renewForm.amount) <= 0}
               className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
             >
-              {creatingPaymentIntent ? 'Processing...' : processing ? 'Processing...' : 'Renew Subscription'}
+              {creatingPaymentIntent ? t('subscription_screen.renewal_modal.processing') : processing ? t('subscription_screen.renewal_modal.processing') : t('subscription_screen.renewal_modal.renew')}
             </button>
           </div>
         </form>

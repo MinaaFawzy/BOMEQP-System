@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { GraduationCap, Plus, Edit, Trash2, Eye, Clock, DollarSign, Hash, Calendar, BookOpen, Search } from 'lucide-react';
@@ -12,6 +13,7 @@ import { validateRequired, validateNumber, validateMinLength, validateMaxLength 
 import './CoursesScreen.css';
 
 const CoursesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const handleOpenModalRef = useRef(null);
   const [courses, setCourses] = useState([]);
@@ -76,8 +78,8 @@ const CoursesScreen = () => {
 
   // Set header actions and title
   useEffect(() => {
-    setHeaderTitle('Courses');
-    setHeaderSubtitle('Manage and organize your course catalog');
+    setHeaderTitle(t('courses_screen.header.title'));
+    setHeaderSubtitle(t('courses_screen.header.subtitle'));
 
     setHeaderActions(
       <button
@@ -89,7 +91,7 @@ const CoursesScreen = () => {
         className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center transition-colors shadow-lg hover:shadow-xl"
       >
         <Plus size={20} className="mr-2" />
-        Add Course
+        {t('courses_screen.header.add')}
       </button>
     );
 
@@ -289,9 +291,9 @@ const CoursesScreen = () => {
 
     // Validate course fields
     if (!formData.name || formData.name.trim() === '') {
-      newErrors.name = 'Course name is required';
+      newErrors.name = t('courses_screen.validation.course_name_required');
     } else if (formData.name.length > 255) {
-      newErrors.name = 'Course name must be at most 255 characters';
+      newErrors.name = t('courses_screen.validation.course_name_max');
     }
 
     if (formData.name_ar && formData.name_ar.length > 255) {
@@ -299,57 +301,57 @@ const CoursesScreen = () => {
     }
 
     if (!formData.code || formData.code.trim() === '') {
-      newErrors.code = 'Course code is required';
+      newErrors.code = t('courses_screen.validation.course_code_required');
     } else if (formData.code.length > 255) {
-      newErrors.code = 'Course code must be at most 255 characters';
+      newErrors.code = t('courses_screen.validation.course_code_max');
     }
 
     if (!formData.sub_category_id) {
-      newErrors.sub_category_id = 'Sub category is required';
+      newErrors.sub_category_id = t('courses_screen.validation.sub_category_required');
     }
 
     const durationError = validateRequired(formData.duration_hours, 'Duration');
     if (durationError) {
-      newErrors.duration_hours = durationError;
+      newErrors.duration_hours = t('courses_screen.validation.duration_min');
     } else {
       const durationNum = parseInt(formData.duration_hours);
       if (isNaN(durationNum) || durationNum < 1) {
-        newErrors.duration_hours = 'Duration must be at least 1 hour';
+        newErrors.duration_hours = t('courses_screen.validation.duration_min');
       }
     }
 
     // Validate max_capacity (required field)
     if (!formData.max_capacity || formData.max_capacity.toString().trim() === '') {
-      newErrors.max_capacity = 'Max capacity is required';
+      newErrors.max_capacity = t('courses_screen.validation.capacity_required');
     } else {
       const maxCapacityNum = parseInt(formData.max_capacity);
       if (isNaN(maxCapacityNum) || maxCapacityNum < 1) {
-        newErrors.max_capacity = 'Max capacity must be at least 1';
+        newErrors.max_capacity = t('courses_screen.validation.capacity_min');
       }
     }
 
     if (!formData.level) {
       newErrors.level = 'Level is required';
     } else if (!['beginner', 'intermediate', 'advanced'].includes(formData.level)) {
-      newErrors.level = 'Invalid level selected';
+      newErrors.level = t('courses_screen.validation.invalid_level');
     }
 
     if (!formData.status) {
       newErrors.status = 'Status is required';
     } else if (!['active', 'inactive', 'archived'].includes(formData.status)) {
-      newErrors.status = 'Invalid status selected';
+      newErrors.status = t('courses_screen.validation.invalid_status');
     }
 
     // Validate pricing if base_price is provided (pricing is completely optional)
     if (pricingData.base_price) {
       // If pricing is provided, base_price and currency are required
-      const basePriceError = validateNumber(pricingData.base_price, 'Base price', 0);
+      const basePriceError = validateNumber(pricingData.base_price, 'Base Price', 0);
       if (basePriceError) {
         newErrors.base_price = basePriceError;
       }
 
       if (!pricingData.currency || pricingData.currency.trim() === '') {
-        newErrors.currency = 'Currency is required when pricing is set';
+        newErrors.currency = t('courses_screen.validation.currency_required');
       } else if (pricingData.currency.length !== 3) {
         newErrors.currency = 'Currency must be a 3-character code (e.g., USD)';
       }
@@ -414,7 +416,7 @@ const CoursesScreen = () => {
       handleCloseModal();
       // Reload courses
       await loadCourses();
-      alert(selectedCourse ? 'Course updated successfully!' : 'Course created successfully!');
+      alert(selectedCourse ? t('courses_screen.messages.updated_success') : t('courses_screen.messages.created_success'));
     } catch (error) {
       console.error('Failed to save course:', error);
       console.error('Error response:', error.response);
@@ -439,7 +441,7 @@ const CoursesScreen = () => {
         setErrors({ general: error.response?.data?.message || error.message || 'Failed to save course' });
       }
 
-      alert(`Error: ${error.response?.data?.message || error.message || 'Failed to save course'}`);
+      alert(`${t('courses_screen.messages.save_failed')}: ${error.response?.data?.message || error.message || 'Failed to save course'}`);
     } finally {
       setSaving(false);
     }
@@ -454,8 +456,9 @@ const CoursesScreen = () => {
     try {
       await accAPI.deleteCourse(selectedCourse.id);
       await loadCourses();
+      alert(t('courses_screen.messages.deleted_success'));
     } catch (error) {
-      alert('Failed to delete course: ' + (error.message || 'Unknown error'));
+      alert(t('courses_screen.messages.save_failed') + ': ' + (error.message || 'Unknown error'));
     }
     setIsDeleteDialogOpen(false);
     setSelectedCourse(null);
@@ -482,7 +485,7 @@ const CoursesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Course',
+      header: t('courses_screen.table.course'),
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -491,47 +494,47 @@ const CoursesScreen = () => {
             <GraduationCap className="h-5 w-5 text-primary-600" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-gray-900">{value || 'N/A'}</div>
-            {row.code && <div className="text-xs text-gray-400 mt-1">Code: {row.code}</div>}
+            <div className="text-sm font-semibold text-gray-900">{value || t('courses_screen.common.na')}</div>
+            {row.code && <div className="text-xs text-gray-400 mt-1">{t('courses_screen.form.course_code')}: {row.code}</div>}
           </div>
         </div>
       )
     },
     {
-      header: 'Level',
+      header: t('courses_screen.table.level'),
       accessor: 'level',
       sortable: true,
       render: (value) => (
         <span className="px-3 py-1.5 inline-flex text-xs font-bold rounded-full shadow-sm bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 capitalize">
-          {value || 'N/A'}
+          {value || t('courses_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Duration',
+      header: t('courses_screen.table.duration'),
       accessor: 'duration_hours',
       sortable: true,
       render: (value) => (
         <div className="flex items-center text-sm text-gray-600">
           <Clock className="h-4 w-4 mr-2 text-gray-400" />
-          {value ? `${value} hrs` : 'N/A'}
+          {value ? `${value} ${t('courses_screen.common.hours')}` : t('courses_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Status',
+      header: t('courses_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
           }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`courses_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('courses_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Pricing',
+      header: t('courses_screen.table.pricing'),
       accessor: 'pricing',
       sortable: false,
       render: (value, row) => {
@@ -545,26 +548,26 @@ const CoursesScreen = () => {
             {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
           </div>
         ) : (
-          <span className="text-sm text-gray-400">Not set</span>
+          <span className="text-sm text-gray-400">{t('courses_screen.pricing.not_set')}</span>
         );
       }
     },
     {
-      header: 'Assessor',
+      header: t('courses_screen.table.assessor'),
       accessor: 'assessor_required',
       sortable: true,
       render: (value) => (
         value ? (
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-            Required
+            {t('courses_screen.assessor.required')}
           </span>
         ) : (
-          <span className="text-sm text-gray-400">Not Required</span>
+          <span className="text-sm text-gray-400">{t('courses_screen.assessor.not_required')}</span>
         )
       )
     },
     {
-      header: 'Actions',
+      header: t('courses_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -572,14 +575,14 @@ const CoursesScreen = () => {
           <button
             onClick={() => handleOpenModal(row)}
             className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Edit"
+            title={t('courses_screen.actions.edit')}
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => handleDelete(row)}
             className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="Delete"
+            title={t('courses_screen.actions.delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -598,7 +601,7 @@ const CoursesScreen = () => {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder={t('courses_screen.search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -618,9 +621,9 @@ const CoursesScreen = () => {
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="all">{t('courses_screen.filters.all_status')}</option>
+              <option value="active">{t('courses_screen.filters.active')}</option>
+              <option value="inactive">{t('courses_screen.filters.inactive')}</option>
             </select>
           </div>
         </div>
@@ -635,7 +638,7 @@ const CoursesScreen = () => {
           searchable={false}
           sortable={true}
           filterable={false}
-          emptyMessage="No courses found"
+          emptyMessage={t('courses_screen.table.no_courses')}
           onRowClick={(course) => handleRowClick(course)}
         />
 
@@ -658,13 +661,13 @@ const CoursesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedCourse ? 'Edit Course' : 'Add New Course'}
+        title={selectedCourse ? t('courses_screen.header.edit') : t('courses_screen.header.add')}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Course Name (English)"
+              label={t('courses_screen.form.course_name_en')}
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -673,7 +676,7 @@ const CoursesScreen = () => {
             />
 
             <FormInput
-              label="Course Name (Arabic)"
+              label={t('courses_screen.form.course_name_ar')}
               name="name_ar"
               value={formData.name_ar}
               onChange={handleChange}
@@ -683,7 +686,7 @@ const CoursesScreen = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Course Code"
+              label={t('courses_screen.form.course_code')}
               name="code"
               value={formData.code}
               onChange={handleChange}
@@ -693,7 +696,7 @@ const CoursesScreen = () => {
             />
 
             <FormInput
-              label="Sub Category"
+              label={t('courses_screen.form.sub_category')}
               name="sub_category_id"
               type="select"
               value={formData.sub_category_id}
@@ -708,7 +711,7 @@ const CoursesScreen = () => {
           </div>
 
           <FormInput
-            label="Description"
+            label={t('courses_screen.form.description')}
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -719,7 +722,7 @@ const CoursesScreen = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Duration (Hours)"
+              label={t('courses_screen.form.duration_hours')}
               name="duration_hours"
               type="number"
               value={formData.duration_hours}
@@ -730,7 +733,7 @@ const CoursesScreen = () => {
             />
 
             <FormInput
-              label="Max Capacity"
+              label={t('courses_screen.form.max_capacity')}
               name="max_capacity"
               type="number"
               value={formData.max_capacity}
@@ -744,29 +747,29 @@ const CoursesScreen = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Level"
+              label={t('courses_screen.form.level')}
               name="level"
               type="select"
               value={formData.level}
               onChange={handleChange}
               options={[
-                { value: 'beginner', label: 'Beginner' },
-                { value: 'intermediate', label: 'Intermediate' },
-                { value: 'advanced', label: 'Advanced' },
+                { value: 'beginner', label: t('courses_screen.filters.beginner') },
+                { value: 'intermediate', label: t('courses_screen.filters.intermediate') },
+                { value: 'advanced', label: t('courses_screen.filters.advanced') },
               ]}
               error={errors.level}
             />
 
             <FormInput
-              label="Status"
+              label={t('courses_screen.form.status')}
               name="status"
               type="select"
               value={formData.status}
               onChange={handleChange}
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'archived', label: 'Archived' },
+                { value: 'active', label: t('courses_screen.filters.active') },
+                { value: 'inactive', label: t('courses_screen.filters.inactive') },
+                { value: 'archived', label: t('courses_screen.filters.archived') },
               ]}
               error={errors.status}
             />
@@ -786,25 +789,25 @@ const CoursesScreen = () => {
               className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
             />
             <label htmlFor="assessor_required" className="text-sm font-medium text-gray-700">
-              Assessor Required
+              {t('courses_screen.form.assessor_required')}
             </label>
           </div>
-          <p className="text-xs text-gray-500 -mt-2 ml-6">This course requires an assessor</p>
+          <p className="text-xs text-gray-500 -mt-2 ml-6">{t('courses_screen.form.assessor_required_hint')}</p>
 
           {/* Pricing Section */}
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <DollarSign size={20} className="text-primary-600" />
-              Pricing Information (Optional)
+              {t('courses_screen.pricing.information_title')}
             </h3>
             <p className="text-sm text-gray-500 mb-4">
-              Optional: Set pricing at creation time. You can create a course without pricing and add it later if needed. Commission percentages are managed by Group Admins separately.
+              {t('courses_screen.pricing.optional_note')}
             </p>
 
             {/* Base Price and Currency */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
-                label="Base Price"
+                label={t('courses_screen.pricing.base_price')}
                 name="base_price"
                 type="number"
                 value={pricingData.base_price}
@@ -816,7 +819,7 @@ const CoursesScreen = () => {
               />
 
               <FormInput
-                label="Currency"
+                label={t('courses_screen.pricing.currency')}
                 name="currency"
                 type="select"
                 value={pricingData.currency}
@@ -842,14 +845,14 @@ const CoursesScreen = () => {
               onClick={handleCloseModal}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Cancel
+              {t('courses_screen.actions.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving...' : selectedCourse ? 'Update Course' : 'Create Course'}
+              {saving ? t('courses_screen.actions.saving') : selectedCourse ? t('courses_screen.header.update') : t('courses_screen.header.create')}
             </button>
           </div>
         </form>
@@ -862,7 +865,7 @@ const CoursesScreen = () => {
           setDetailModalOpen(false);
           setSelectedCourse(null);
         }}
-        title="Course Details"
+        title={t('courses_screen.details.modal_title')}
         size="lg"
       >
         {selectedCourse && (
@@ -871,22 +874,22 @@ const CoursesScreen = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <GraduationCap className="mr-2" size={20} />
-                Course Information
+                {t('courses_screen.details.course_information')}
               </h3>
               <DetailForm
                 data={selectedCourse}
                 fields={[
-                  { key: 'id', label: 'Course ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                  { key: 'name', label: 'Course Name (English)', icon: BookOpen },
-                  { key: 'name_ar', label: 'Course Name (Arabic)', showEmpty: false },
-                  { key: 'code', label: 'Course Code', icon: Hash },
-                  { key: 'level', label: 'Level', render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A' },
-                  { key: 'duration_hours', label: 'Duration', icon: Clock, render: (value) => value ? `${value} hours` : 'N/A' },
-                  { key: 'max_capacity', label: 'Max Capacity', render: (value) => value ? `${value} trainees` : 'N/A' },
-                  { key: 'status', label: 'Status', type: 'status' },
-                  { key: 'assessor_required', label: 'Assessor Required', render: (value) => value ? 'Required' : 'Not Required' },
-                  { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'id', label: t('courses_screen.details.course_id'), icon: Hash, render: (value) => value ? `#${value}` : t('courses_screen.common.na'), showEmpty: false },
+                  { key: 'name', label: t('courses_screen.details.course_name'), icon: BookOpen },
+                  { key: 'name_ar', label: t('courses_screen.form.course_name_ar'), showEmpty: false },
+                  { key: 'code', label: t('courses_screen.details.course_code'), icon: Hash },
+                  { key: 'level', label: t('courses_screen.form.level'), render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : t('courses_screen.common.na') },
+                  { key: 'duration_hours', label: t('courses_screen.details.duration'), icon: Clock, render: (value) => value ? `${value} ${t('courses_screen.common.hours')}` : t('courses_screen.common.na') },
+                  { key: 'max_capacity', label: t('courses_screen.details.max_capacity'), render: (value) => value ? `${value} ${t('courses_screen.common.trainees')}` : t('courses_screen.common.na') },
+                  { key: 'status', label: t('courses_screen.form.status'), type: 'status' },
+                  { key: 'assessor_required', label: t('courses_screen.form.assessor_required'), render: (value) => value ? t('courses_screen.assessor.required') : t('courses_screen.assessor.not_required') },
+                  { key: 'created_at', label: t('courses_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'updated_at', label: t('courses_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                 ]}
               />
             </div>
@@ -896,21 +899,21 @@ const CoursesScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <BookOpen className="mr-2" size={20} />
-                  Category Information
+                  {t('courses_screen.details.category_information')}
                 </h3>
                 <DetailForm
                   data={selectedCourse.sub_category}
                   fields={[
-                    { key: 'id', label: 'Sub Category ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                    { key: 'name', label: 'Sub Category', icon: BookOpen },
+                    { key: 'id', label: 'Sub Category ID', icon: Hash, render: (value) => value ? `#${value}` : t('courses_screen.common.na'), showEmpty: false },
+                    { key: 'name', label: t('courses_screen.details.sub_category'), icon: BookOpen },
                     { key: 'description', label: 'Sub Category Description', fullWidth: true, showEmpty: false },
                   ]}
                 />
                 {selectedCourse.sub_category.category && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Category</p>
+                    <p className="text-sm text-gray-500 mb-1">{t('courses_screen.details.category')}</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {selectedCourse.sub_category.category.name || 'N/A'}
+                      {selectedCourse.sub_category.category.name || t('courses_screen.common.na')}
                     </p>
                   </div>
                 )}
@@ -920,7 +923,7 @@ const CoursesScreen = () => {
             {/* Description */}
             {selectedCourse.description && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('courses_screen.form.description')}</h3>
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedCourse.description}</p>
                 </div>
@@ -939,7 +942,7 @@ const CoursesScreen = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <DollarSign size={20} className="mr-2" />
-                    Pricing Information
+                    {t('courses_screen.details.pricing_information')}
                   </h3>
                   <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -955,7 +958,7 @@ const CoursesScreen = () => {
                         </div>
                       )}
                       <div className="p-4 bg-white rounded-lg">
-                        <p className="text-sm text-gray-500 mb-1">Base Price</p>
+                        <p className="text-sm text-gray-500 mb-1">{t('courses_screen.pricing.base_price')}</p>
                         <p className="text-lg font-bold text-gray-900">
                           {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
                         </p>
@@ -1050,7 +1053,7 @@ const CoursesScreen = () => {
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-3">
-                      Note: Commission percentages are managed by Group Admins. Pricing is effective immediately when set.
+                      {t('courses_screen.pricing.note')}
                     </p>
                   </div>
                 </div>
@@ -1058,14 +1061,14 @@ const CoursesScreen = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                     <DollarSign size={20} className="mr-2" />
-                    Pricing Information
+                    {t('courses_screen.details.pricing_information')}
                   </h3>
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center gap-3">
                       <DollarSign className="text-gray-400" size={20} />
                       <div>
-                        <p className="text-sm font-medium text-gray-700">No pricing set</p>
-                        <p className="text-xs text-gray-500 mt-1">You can add pricing when editing the course</p>
+                        <p className="text-sm font-medium text-gray-700">{t('courses_screen.details.no_pricing')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t('courses_screen.details.no_pricing_hint')}</p>
                       </div>
                     </div>
                   </div>
@@ -1084,9 +1087,9 @@ const CoursesScreen = () => {
           setSelectedCourse(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Course"
-        message={`Are you sure you want to delete "${selectedCourse?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('courses_screen.actions.delete_confirm_title')}
+        message={t('courses_screen.actions.delete_confirm_message')}
+        confirmText={t('courses_screen.actions.delete')}
         variant="danger"
       />
     </div>

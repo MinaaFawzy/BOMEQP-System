@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText, Calendar } from 'lucide-react';
@@ -10,6 +11,7 @@ import DetailForm from '../../../components/DetailForm/DetailForm';
 import './PendingPaymentsScreen.css';
 
 const PendingPaymentsScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +26,8 @@ const PendingPaymentsScreen = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    setHeaderTitle('Pending Manual Payments');
-    setHeaderSubtitle('Review and approve manual payment requests');
+    setHeaderTitle(t('pending_payments_screen.header.title'));
+    setHeaderSubtitle(t('pending_payments_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -41,7 +43,7 @@ const PendingPaymentsScreen = () => {
     try {
       const response = await accAPI.getPendingPayments();
       const batchesList = response?.batches || response?.data || [];
-      
+
       const enrichedBatches = batchesList.map(batch => ({
         ...batch,
         _searchText: [
@@ -54,7 +56,7 @@ const PendingPaymentsScreen = () => {
           batch.payment_status,
         ].filter(Boolean).join(' ').toLowerCase()
       }));
-      
+
       setBatches(enrichedBatches);
     } catch (error) {
       console.error('Failed to load pending payments:', error);
@@ -87,7 +89,7 @@ const PendingPaymentsScreen = () => {
     if (!selectedBatch) return;
 
     if (!approveForm.payment_amount || parseFloat(approveForm.payment_amount) <= 0) {
-      setErrors({ payment_amount: 'Please enter a valid payment amount' });
+      setErrors({ payment_amount: t('pending_payments_screen.validation.payment_amount_required') });
       return;
     }
 
@@ -96,7 +98,7 @@ const PendingPaymentsScreen = () => {
 
     // Check if payment amount matches (allow small difference for rounding)
     if (Math.abs(paymentAmount - finalAmount) > 0.01) {
-      setErrors({ payment_amount: `Payment amount must match the calculated total amount: $${finalAmount.toFixed(2)}` });
+      setErrors({ payment_amount: t('pending_payments_screen.validation.payment_amount_mismatch', { amount: `$${finalAmount.toFixed(2)}` }) });
       return;
     }
 
@@ -109,7 +111,7 @@ const PendingPaymentsScreen = () => {
       setApproveModalOpen(false);
       setDetailModalOpen(false);
       setSelectedBatch(null);
-      alert('Payment approved successfully. Codes have been generated.');
+      alert(t('pending_payments_screen.messages.approve_success'));
     } catch (error) {
       console.error('Failed to approve payment:', error);
       if (error.response?.status === 422) {
@@ -117,8 +119,8 @@ const PendingPaymentsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -128,7 +130,7 @@ const PendingPaymentsScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Failed to approve payment. Please try again.' });
+        setErrors({ general: t('pending_payments_screen.messages.approve_failed') });
       }
     } finally {
       setApproving(false);
@@ -139,12 +141,12 @@ const PendingPaymentsScreen = () => {
     if (!selectedBatch) return;
 
     if (!rejectForm.rejection_reason || rejectForm.rejection_reason.trim().length === 0) {
-      setErrors({ rejection_reason: 'Please enter a rejection reason' });
+      setErrors({ rejection_reason: t('pending_payments_screen.validation.rejection_reason_required') });
       return;
     }
 
     if (rejectForm.rejection_reason.trim().length > 1000) {
-      setErrors({ rejection_reason: 'Rejection reason must be less than 1000 characters' });
+      setErrors({ rejection_reason: t('pending_payments_screen.validation.rejection_reason_max') });
       return;
     }
 
@@ -157,7 +159,7 @@ const PendingPaymentsScreen = () => {
       setRejectModalOpen(false);
       setDetailModalOpen(false);
       setSelectedBatch(null);
-      alert('Payment rejected successfully.');
+      alert(t('pending_payments_screen.messages.reject_success'));
     } catch (error) {
       console.error('Failed to reject payment:', error);
       if (error.response?.status === 422) {
@@ -165,8 +167,8 @@ const PendingPaymentsScreen = () => {
         if (errorData.errors) {
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = Array.isArray(errorData.errors[field]) 
-              ? errorData.errors[field][0] 
+            validationErrors[field] = Array.isArray(errorData.errors[field])
+              ? errorData.errors[field][0]
               : errorData.errors[field];
           });
           setErrors(validationErrors);
@@ -176,7 +178,7 @@ const PendingPaymentsScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Failed to reject payment. Please try again.' });
+        setErrors({ general: t('pending_payments_screen.messages.reject_failed') });
       }
     } finally {
       setRejecting(false);
@@ -188,7 +190,7 @@ const PendingPaymentsScreen = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('pending_payments_screen.common.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -201,35 +203,35 @@ const PendingPaymentsScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Training Center',
+      header: t('pending_payments_screen.table.training_center'),
       accessor: 'training_center',
       sortable: true,
       render: (value, row) => (
         <div className="batch-tc-container">
           <Building2 className="batch-tc-icon" size={16} />
-          <span>{row.training_center?.name || 'N/A'}</span>
+          <span>{row.training_center?.name || t('pending_payments_screen.common.na')}</span>
         </div>
       ),
     },
     {
-      header: 'Course',
+      header: t('pending_payments_screen.table.course'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => (
         <div className="batch-course-container">
           <BookOpen className="batch-course-icon" size={16} />
-          <span>{row.course?.name || 'N/A'}</span>
+          <span>{row.course?.name || t('pending_payments_screen.common.na')}</span>
         </div>
       ),
     },
     {
-      header: 'Quantity',
+      header: t('pending_payments_screen.table.quantity'),
       accessor: 'quantity',
       sortable: true,
       render: (value) => <span>{value || 0}</span>,
     },
     {
-      header: 'Total Amount',
+      header: t('pending_payments_screen.table.total_amount'),
       accessor: 'total_amount',
       sortable: true,
       render: (value) => (
@@ -240,7 +242,7 @@ const PendingPaymentsScreen = () => {
       ),
     },
     {
-      header: 'Payment Amount',
+      header: t('pending_payments_screen.table.payment_amount'),
       accessor: 'payment_amount',
       sortable: true,
       render: (value) => (
@@ -251,7 +253,7 @@ const PendingPaymentsScreen = () => {
       ),
     },
     {
-      header: 'Submitted Date',
+      header: t('pending_payments_screen.table.submitted_date'),
       accessor: 'created_at',
       sortable: true,
       render: (value) => (
@@ -262,7 +264,7 @@ const PendingPaymentsScreen = () => {
       ),
     },
     {
-      header: 'Actions',
+      header: t('pending_payments_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -270,7 +272,7 @@ const PendingPaymentsScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="action-btn action-btn-view"
-            title="View Details"
+            title={t('pending_payments_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
@@ -291,14 +293,14 @@ const PendingPaymentsScreen = () => {
               <div className="empty-state-icon-container">
                 <Clock className="empty-state-icon" size={32} />
               </div>
-              <p className="empty-state-title">No pending payments</p>
-              <p className="empty-state-subtitle">All payment requests have been reviewed</p>
+              <p className="empty-state-title">{t('pending_payments_screen.table.empty_title')}</p>
+              <p className="empty-state-subtitle">{t('pending_payments_screen.table.empty_subtitle')}</p>
             </div>
-          ) : 'No pending payments found'
+          ) : t('pending_payments_screen.table.empty')
         }
         searchable={true}
         filterable={false}
-        searchPlaceholder="Search by training center, course, amount, or date..."
+        searchPlaceholder={t('pending_payments_screen.search.placeholder')}
         sortable={true}
       />
 
@@ -309,7 +311,7 @@ const PendingPaymentsScreen = () => {
           setDetailModalOpen(false);
           setSelectedBatch(null);
         }}
-        title="Payment Request Details"
+        title={t('pending_payments_screen.details.modal_title')}
         size="lg"
       >
         {selectedBatch && (
@@ -317,49 +319,49 @@ const PendingPaymentsScreen = () => {
             <DetailForm
               data={selectedBatch}
               fields={[
-                { 
-                  key: 'training_center', 
-                  label: 'Training Center', 
+                {
+                  key: 'training_center',
+                  label: t('pending_payments_screen.details.training_center'),
                   icon: Building2,
-                  render: (value) => value?.name || 'N/A'
+                  render: (value) => value?.name || t('pending_payments_screen.common.na')
                 },
-                { 
-                  key: 'course', 
-                  label: 'Course', 
+                {
+                  key: 'course',
+                  label: t('pending_payments_screen.details.course'),
                   icon: BookOpen,
-                  render: (value) => value?.name || 'N/A'
+                  render: (value) => value?.name || t('pending_payments_screen.common.na')
                 },
-                { key: 'quantity', label: 'Quantity', render: (value) => `${value || 0} codes` },
-                { 
-                  key: 'total_amount', 
-                  label: 'Total Amount', 
+                { key: 'quantity', label: t('pending_payments_screen.details.quantity'), render: (value) => `${value || 0} codes` },
+                {
+                  key: 'total_amount',
+                  label: t('pending_payments_screen.details.total_amount'),
                   icon: DollarSign,
                   render: (value) => formatCurrency(value)
                 },
-                { 
-                  key: 'payment_amount', 
-                  label: 'Payment Amount', 
+                {
+                  key: 'payment_amount',
+                  label: t('pending_payments_screen.details.payment_amount'),
                   icon: DollarSign,
                   render: (value) => formatCurrency(value),
                   showEmpty: false
                 },
-                { 
-                  key: 'final_amount', 
-                  label: 'Final Amount', 
+                {
+                  key: 'final_amount',
+                  label: t('pending_payments_screen.details.final_amount'),
                   icon: DollarSign,
                   render: (value) => formatCurrency(value),
                   showEmpty: false
                 },
-                { key: 'created_at', label: 'Submitted Date', type: 'datetime', icon: Calendar },
-                { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
+                { key: 'created_at', label: t('pending_payments_screen.details.submitted_date'), type: 'datetime', icon: Calendar },
+                { key: 'updated_at', label: t('pending_payments_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
               ]}
             />
-            
+
             {selectedBatch.payment_receipt_url && (
               <div className="receipt-section">
                 <h3 className="receipt-title">
                   <FileText size={20} className="receipt-icon" />
-                  Payment Receipt
+                  {t('pending_payments_screen.details.receipt')}
                 </h3>
                 <div className="receipt-container">
                   <a
@@ -368,7 +370,7 @@ const PendingPaymentsScreen = () => {
                     rel="noopener noreferrer"
                     className="receipt-link"
                   >
-                    View Receipt
+                    {t('pending_payments_screen.details.view_receipt')}
                   </a>
                 </div>
               </div>
@@ -384,7 +386,7 @@ const PendingPaymentsScreen = () => {
                   handleApproveClick(selectedBatch);
                 }}
               >
-                Approve Payment
+                {t('pending_payments_screen.actions.approve_payment')}
               </Button>
               <Button
                 variant="danger"
@@ -395,7 +397,7 @@ const PendingPaymentsScreen = () => {
                   handleRejectClick(selectedBatch);
                 }}
               >
-                Reject Payment
+                {t('pending_payments_screen.actions.reject_payment')}
               </Button>
             </div>
           </div>
@@ -410,7 +412,7 @@ const PendingPaymentsScreen = () => {
           setApproveForm({ payment_amount: '' });
           setErrors({});
         }}
-        title="Approve Payment"
+        title={t('pending_payments_screen.approve.modal_title')}
         size="md"
       >
         {selectedBatch && (
@@ -423,21 +425,21 @@ const PendingPaymentsScreen = () => {
 
             <div className="approve-info">
               <p className="approve-info-text">
-                <strong>Training Center:</strong> {selectedBatch.training_center?.name || 'N/A'}
+                <strong>{t('pending_payments_screen.approve.training_center')}:</strong> {selectedBatch.training_center?.name || t('pending_payments_screen.common.na')}
               </p>
               <p className="approve-info-text">
-                <strong>Course:</strong> {selectedBatch.course?.name || 'N/A'}
+                <strong>{t('pending_payments_screen.approve.course')}:</strong> {selectedBatch.course?.name || t('pending_payments_screen.common.na')}
               </p>
               <p className="approve-info-text">
-                <strong>Quantity:</strong> {selectedBatch.quantity || 0} codes
+                <strong>{t('pending_payments_screen.approve.quantity')}:</strong> {selectedBatch.quantity || 0} codes
               </p>
               <p className="approve-info-text">
-                <strong>Calculated Total:</strong> {formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount)}
+                <strong>{t('pending_payments_screen.approve.calculated_total')}:</strong> {formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount)}
               </p>
             </div>
 
             <FormInput
-              label="Payment Amount"
+              label={t('pending_payments_screen.approve.payment_amount')}
               name="payment_amount"
               type="number"
               value={approveForm.payment_amount}
@@ -446,7 +448,7 @@ const PendingPaymentsScreen = () => {
               min="0"
               step="0.01"
               error={errors.payment_amount}
-              helpText={`Enter the payment amount (should match: ${formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount)})`}
+              helpText={t('pending_payments_screen.approve.payment_amount_help', { amount: formatCurrency(selectedBatch.final_amount || selectedBatch.total_amount) })}
             />
 
             <div className="form-actions">
@@ -459,7 +461,7 @@ const PendingPaymentsScreen = () => {
                 }}
                 className="form-btn form-btn-cancel"
               >
-                Cancel
+                {t('pending_payments_screen.common.cancel')}
               </button>
               <button
                 type="button"
@@ -467,7 +469,7 @@ const PendingPaymentsScreen = () => {
                 disabled={approving}
                 className="form-btn form-btn-submit"
               >
-                {approving ? 'Approving...' : 'Approve Payment'}
+                {approving ? t('pending_payments_screen.approve.submitting') : t('pending_payments_screen.approve.submit')}
               </button>
             </div>
           </div>
@@ -482,7 +484,7 @@ const PendingPaymentsScreen = () => {
           setRejectForm({ rejection_reason: '' });
           setErrors({});
         }}
-        title="Reject Payment"
+        title={t('pending_payments_screen.reject.modal_title')}
         size="md"
       >
         {selectedBatch && (
@@ -495,21 +497,21 @@ const PendingPaymentsScreen = () => {
 
             <div className="reject-info">
               <p className="reject-info-text">
-                <strong>Training Center:</strong> {selectedBatch.training_center?.name || 'N/A'}
+                <strong>{t('pending_payments_screen.reject.training_center')}:</strong> {selectedBatch.training_center?.name || t('pending_payments_screen.common.na')}
               </p>
               <p className="reject-info-text">
-                <strong>Course:</strong> {selectedBatch.course?.name || 'N/A'}
+                <strong>{t('pending_payments_screen.reject.course')}:</strong> {selectedBatch.course?.name || t('pending_payments_screen.common.na')}
               </p>
               <p className="reject-info-text">
-                <strong>Quantity:</strong> {selectedBatch.quantity || 0} codes
+                <strong>{t('pending_payments_screen.reject.quantity')}:</strong> {selectedBatch.quantity || 0} codes
               </p>
               <p className="reject-info-text">
-                <strong>Amount:</strong> {formatCurrency(selectedBatch.payment_amount || selectedBatch.total_amount)}
+                <strong>{t('pending_payments_screen.reject.amount')}:</strong> {formatCurrency(selectedBatch.payment_amount || selectedBatch.total_amount)}
               </p>
             </div>
 
             <FormInput
-              label="Rejection Reason"
+              label={t('pending_payments_screen.reject.rejection_reason')}
               name="rejection_reason"
               type="textarea"
               textarea={true}
@@ -518,8 +520,8 @@ const PendingPaymentsScreen = () => {
               onChange={(e) => setRejectForm({ ...rejectForm, rejection_reason: e.target.value })}
               required
               error={errors.rejection_reason}
-              helpText="Please provide a clear reason for rejecting this payment request (max 1000 characters)"
-              placeholder="Enter rejection reason..."
+              helpText={t('pending_payments_screen.reject.rejection_help')}
+              placeholder={t('pending_payments_screen.reject.rejection_placeholder')}
             />
 
             <div className="form-actions">
@@ -532,7 +534,7 @@ const PendingPaymentsScreen = () => {
                 }}
                 className="form-btn form-btn-cancel"
               >
-                Cancel
+                {t('pending_payments_screen.common.cancel')}
               </button>
               <button
                 type="button"
@@ -540,7 +542,7 @@ const PendingPaymentsScreen = () => {
                 disabled={rejecting}
                 className="form-btn form-btn-danger"
               >
-                {rejecting ? 'Rejecting...' : 'Reject Payment'}
+                {rejecting ? t('pending_payments_screen.reject.submitting') : t('pending_payments_screen.reject.submit')}
               </button>
             </div>
           </div>

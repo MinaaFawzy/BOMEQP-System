@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { instructorAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { 
-  Users, 
-  BookOpen, 
-  Building2, 
+import {
+  Users,
+  BookOpen,
+  Building2,
   Award,
   CheckCircle,
   ArrowRight,
@@ -19,6 +20,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import './DashboardScreen.css';
 
 const InstructorDashboardScreen = () => {
+  const { t } = useTranslation('instructor');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
@@ -37,7 +39,7 @@ const InstructorDashboardScreen = () => {
     try {
       // API interceptor returns response.data directly
       const data = await instructorAPI.getDashboard();
-      
+
       // Set dashboard data according to API documentation structure
       // Response includes: profile, statistics, recent_classes, training_centers, accs, unread_notifications_count
       setDashboardData(data || {});
@@ -68,7 +70,7 @@ const InstructorDashboardScreen = () => {
   }, [setHeaderTitle, setHeaderSubtitle]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('dashboard_screen.common.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -107,7 +109,7 @@ const InstructorDashboardScreen = () => {
     return (
       <div className="error-container">
         <div className="error-text">
-          <p>Failed to load dashboard data</p>
+          <p>{t('dashboard_screen.errors.load_failed')}</p>
         </div>
       </div>
     );
@@ -127,7 +129,7 @@ const InstructorDashboardScreen = () => {
   // Use upcoming_classes for scheduled count (as per API response)
   const scheduledClasses = Number(statistics?.upcoming_classes || statistics?.scheduled || 0);
   const completedClasses = Number(statistics?.completed || 0);
-  
+
   // Count arrays
   const trainingCentersCount = Array.isArray(training_centers) ? training_centers.length : 0;
   const accsCount = Array.isArray(accs) ? accs.length : 0;
@@ -137,17 +139,17 @@ const InstructorDashboardScreen = () => {
       {/* Statistics Cards */}
       <div className="stats-grid">
         {/* Total Classes */}
-        <div 
+        <div
           onClick={() => navigate('/instructor/classes')}
           className="stat-card stat-card-blue"
         >
           <div className="stat-card-header">
             <div className="stat-card-content">
-              <p className="stat-label">Total Classes</p>
+              <p className="stat-label">{t('dashboard_screen.stats.total_classes')}</p>
               <p className="stat-value">
                 {totalClasses}
               </p>
-              <p className="stat-description">Click to view all</p>
+              <p className="stat-description">{t('dashboard_screen.stats.click_to_view_all')}</p>
             </div>
             <div className="stat-icon-container">
               <BookOpen className="stat-icon" />
@@ -156,17 +158,17 @@ const InstructorDashboardScreen = () => {
         </div>
 
         {/* Scheduled Classes */}
-        <div 
+        <div
           onClick={() => navigate('/instructor/classes?status=scheduled')}
           className="stat-card stat-card-purple"
         >
           <div className="stat-card-header">
             <div className="stat-card-content">
-              <p className="stat-label">Scheduled</p>
+              <p className="stat-label">{t('dashboard_screen.stats.scheduled')}</p>
               <p className="stat-value">
                 {scheduledClasses}
               </p>
-              <p className="stat-description">Scheduled classes</p>
+              <p className="stat-description">{t('dashboard_screen.stats.scheduled_classes')}</p>
             </div>
             <div className="stat-icon-container">
               <Calendar className="stat-icon" />
@@ -175,17 +177,17 @@ const InstructorDashboardScreen = () => {
         </div>
 
         {/* Completed Classes */}
-        <div 
+        <div
           onClick={() => navigate('/instructor/classes?status=completed')}
           className="stat-card stat-card-green"
         >
           <div className="stat-card-header">
             <div className="stat-card-content">
-              <p className="stat-label">Completed</p>
+              <p className="stat-label">{t('dashboard_screen.stats.completed')}</p>
               <p className="stat-value">
                 {completedClasses}
               </p>
-              <p className="stat-description">Finished classes</p>
+              <p className="stat-description">{t('dashboard_screen.stats.finished_classes')}</p>
             </div>
             <div className="stat-icon-container">
               <CheckCircle className="stat-icon" />
@@ -203,29 +205,29 @@ const InstructorDashboardScreen = () => {
               <div className="card-header">
                 <h2 className="card-title">
                   <BookOpen className="card-title-icon" size={24} />
-                  Earnings Over Time
+                  {t('dashboard_screen.charts.earnings_over_time')}
                 </h2>
               </div>
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={dashboardData.charts.earnings_over_time} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                    <XAxis 
-                      dataKey="month_name" 
+                    <XAxis
+                      dataKey="month_name"
                       stroke="#374151"
                       style={{ fontSize: '13px', fontWeight: '500' }}
                       tick={{ fill: '#374151' }}
                     />
-                    <YAxis 
+                    <YAxis
                       stroke="#374151"
                       style={{ fontSize: '13px', fontWeight: '500' }}
                       tick={{ fill: '#374151' }}
                       tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
-                    <Tooltip 
-                      formatter={(value) => [`$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Earnings']}
-                      contentStyle={{ 
-                        backgroundColor: '#fff', 
+                    <Tooltip
+                      formatter={(value) => [`$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, t('dashboard_screen.charts.earnings')]}
+                      contentStyle={{
+                        backgroundColor: '#fff',
                         border: '2px solid #EC4899',
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
@@ -234,14 +236,14 @@ const InstructorDashboardScreen = () => {
                       labelStyle={{ fontWeight: '600', color: '#111827', marginBottom: '5px' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="earnings" 
-                      stroke="#EC4899" 
+                    <Line
+                      type="monotone"
+                      dataKey="earnings"
+                      stroke="#EC4899"
                       strokeWidth={3}
                       dot={{ fill: '#EC4899', r: 5, strokeWidth: 2, stroke: '#fff' }}
                       activeDot={{ r: 7, fill: '#EC4899', stroke: '#fff', strokeWidth: 2 }}
-                      name="Earnings"
+                      name={t('dashboard_screen.charts.earnings')}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -255,7 +257,7 @@ const InstructorDashboardScreen = () => {
               <div className="card-header">
                 <h2 className="card-title">
                   <BookOpen className="card-title-icon" size={24} />
-                  Classes Status Distribution
+                  {t('dashboard_screen.charts.classes_status_distribution')}
                 </h2>
               </div>
               <div className="chart-container">
@@ -278,7 +280,7 @@ const InstructorDashboardScreen = () => {
                         return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
                       })}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
@@ -294,7 +296,7 @@ const InstructorDashboardScreen = () => {
                                 {data.label || data.name}
                               </p>
                               <p style={{ color: '#374151' }}>
-                                Count: <span style={{ fontWeight: '600' }}>{data.value}</span>
+                                {t('dashboard_screen.charts.count')}: <span style={{ fontWeight: '600' }}>{data.value}</span>
                               </p>
                             </div>
                           );
@@ -302,7 +304,7 @@ const InstructorDashboardScreen = () => {
                         return null;
                       }}
                     />
-                    <Legend 
+                    <Legend
                       wrapperStyle={{ paddingTop: '20px' }}
                       iconType="circle"
                       formatter={(value, entry) => {
@@ -324,13 +326,13 @@ const InstructorDashboardScreen = () => {
             <div className="card-header-content">
               <h2 className="card-title">
                 <BookOpen className="card-title-icon" size={24} />
-                Recent Classes
+                {t('dashboard_screen.recent_classes.title')}
               </h2>
               <button
                 onClick={() => navigate('/instructor/classes')}
                 className="card-button"
               >
-                View All
+                {t('dashboard_screen.recent_classes.view_all')}
                 <ArrowRight size={16} className="card-button-icon" />
               </button>
             </div>
@@ -340,19 +342,19 @@ const InstructorDashboardScreen = () => {
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Course</th>
-                    <th>Training Center</th>
-                    <th>Dates</th>
-                    <th>Status</th>
-                    <th>Students</th>
+                    <th>{t('dashboard_screen.recent_classes.table.course')}</th>
+                    <th>{t('dashboard_screen.recent_classes.table.training_center')}</th>
+                    <th>{t('dashboard_screen.recent_classes.table.dates')}</th>
+                    <th>{t('dashboard_screen.recent_classes.table.status')}</th>
+                    <th>{t('dashboard_screen.recent_classes.table.students')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recent_classes.slice(0, 3).map((classItem, index) => {
                     const maxCapacity = classItem.max_capacity ?? classItem.course?.max_capacity;
                     const enrolledCount = classItem.enrolled_count || 0;
-                    const progressPercentage = maxCapacity !== undefined 
-                      ? Math.min(100, (enrolledCount / maxCapacity) * 100) 
+                    const progressPercentage = maxCapacity !== undefined
+                      ? Math.min(100, (enrolledCount / maxCapacity) * 100)
                       : 0;
 
                     return (
@@ -360,11 +362,11 @@ const InstructorDashboardScreen = () => {
                         <td>
                           <div className="table-cell-content">
                             <div className="table-cell-main">
-                              {classItem.course?.name || 'N/A'}
+                              {classItem.course?.name || t('dashboard_screen.common.na')}
                             </div>
                             {classItem.course?.code && (
                               <div className="table-cell-secondary">
-                                Code: {classItem.course.code}
+                                {t('dashboard_screen.recent_classes.table.code_prefix')} {classItem.course.code}
                               </div>
                             )}
                           </div>
@@ -372,12 +374,12 @@ const InstructorDashboardScreen = () => {
                         <td>
                           <div className="table-cell-content">
                             <div className="table-cell-main">
-                              {classItem.training_center?.name || 'N/A'}
+                              {classItem.training_center?.name || t('dashboard_screen.common.na')}
                             </div>
                             {classItem.location_details && (
                               <div className="table-cell-secondary">
                                 <MapPin size={12} className="table-cell-icon" />
-                                {classItem.location === 'physical' ? classItem.location_details : 'Online'}
+                                {classItem.location === 'physical' ? classItem.location_details : t('dashboard_screen.location.online')}
                               </div>
                             )}
                           </div>
@@ -390,27 +392,27 @@ const InstructorDashboardScreen = () => {
                               </div>
                               {classItem.end_date && (
                                 <div className="table-cell-date-sub">
-                                  to {formatDate(classItem.end_date)}
+                                  {t('dashboard_screen.common.to')} {formatDate(classItem.end_date)}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="table-cell-na">N/A</span>
+                            <span className="table-cell-na">{t('dashboard_screen.common.na')}</span>
                           )}
                         </td>
                         <td>
                           <span className={`status-badge ${getStatusClass(classItem.status)}`}>
-                            {classItem.status ? classItem.status.replace('_', ' ') : 'N/A'}
+                            {classItem.status ? t(`dashboard_screen.status.${classItem.status}`) : t('dashboard_screen.common.na')}
                           </span>
                         </td>
                         <td>
                           <div className="students-cell">
                             <div className="students-count">
-                              {enrolledCount} / {maxCapacity ?? 'N/A'}
+                              {enrolledCount} / {maxCapacity ?? t('dashboard_screen.common.na')}
                             </div>
                             {maxCapacity !== undefined && (
                               <div className="progress-container">
-                                <div 
+                                <div
                                   className="progress-bar"
                                   style={{ width: `${progressPercentage}%` }}
                                 />
@@ -426,8 +428,9 @@ const InstructorDashboardScreen = () => {
             ) : (
               <div className="empty-state">
                 <BookOpen className="empty-state-icon" size={48} />
-                <p className="empty-state-text">No classes found</p>
-                <p className="empty-state-subtext">You don't have any classes yet</p>
+                <BookOpen className="empty-state-icon" size={48} />
+                <p className="empty-state-text">{t('dashboard_screen.recent_classes.empty.title')}</p>
+                <p className="empty-state-subtext">{t('dashboard_screen.recent_classes.empty.subtitle')}</p>
               </div>
             )}
           </div>
@@ -438,26 +441,26 @@ const InstructorDashboardScreen = () => {
           <div className="card-header">
             <h2 className="card-title">
               <User className="card-title-icon" size={24} />
-              Profile Summary
+              {t('dashboard_screen.profile_summary.title')}
             </h2>
           </div>
           <div className="profile-content">
             <div className="profile-field">
-              <p className="profile-label">Name</p>
-              <p className="profile-value">{profile?.name || 'N/A'}</p>
+              <p className="profile-label">{t('dashboard_screen.profile_summary.name')}</p>
+              <p className="profile-value">{profile?.name || t('dashboard_screen.common.na')}</p>
             </div>
             <div className="profile-field">
               <p className="profile-label">
                 <Mail size={14} className="profile-label-icon" />
-                Email
+                {t('dashboard_screen.profile_summary.email')}
               </p>
-              <p className="profile-value">{profile?.email || 'N/A'}</p>
+              <p className="profile-value">{profile?.email || t('dashboard_screen.common.na')}</p>
             </div>
             <button
               onClick={() => navigate('/profile')}
               className="profile-button"
             >
-              View Full Profile
+              {t('dashboard_screen.profile_summary.view_full_profile')}
             </button>
           </div>
         </div>
@@ -471,7 +474,7 @@ const InstructorDashboardScreen = () => {
             <div className="card-header-content">
               <h2 className="card-title">
                 <Building2 className="card-title-icon" size={24} />
-                Training Centers
+                {t('dashboard_screen.training_centers.title')}
               </h2>
               {trainingCentersCount > 0 && (
                 <span className="badge">
@@ -496,13 +499,13 @@ const InstructorDashboardScreen = () => {
                         )}
                         {tc.classes_count !== undefined && (
                           <p className="training-item-count">
-                            {tc.classes_count} {tc.classes_count === 1 ? 'class' : 'classes'}
+                            {tc.classes_count} {tc.classes_count === 1 ? t('dashboard_screen.common.class_one') : t('dashboard_screen.common.class_other')}
                           </p>
                         )}
                       </div>
                       {tc.status && (
                         <span className={`training-item-status ${getTrainingStatusClass(tc.status)}`}>
-                          {tc.status}
+                          {t(`dashboard_screen.status.${tc.status}`)}
                         </span>
                       )}
                     </div>
@@ -513,14 +516,14 @@ const InstructorDashboardScreen = () => {
                     onClick={() => navigate('/instructor/training-centers')}
                     className="training-view-all"
                   >
-                    View All ({trainingCentersCount})
+                    {t('dashboard_screen.training_centers.view_all_with_count', { count: trainingCentersCount })}
                   </button>
                 )}
               </div>
             ) : (
               <div className="empty-training">
                 <Building2 className="empty-training-icon" size={48} />
-                <p className="empty-training-text">No training centers found</p>
+                <p className="empty-training-text">{t('dashboard_screen.training_centers.empty')}</p>
               </div>
             )}
           </div>
@@ -532,7 +535,7 @@ const InstructorDashboardScreen = () => {
             <div className="card-header-content">
               <h2 className="card-title">
                 <Award className="card-title-icon" size={24} />
-                Accreditation Bodies
+                {t('dashboard_screen.accs.title')}
               </h2>
               {accsCount > 0 && (
                 <span className="badge">
@@ -558,7 +561,7 @@ const InstructorDashboardScreen = () => {
                         {acc.is_authorized && (
                           <div className="authorized-badge">
                             <CheckCircle size={14} className="authorized-icon" />
-                            <span className="authorized-text">Authorized</span>
+                            <span className="authorized-text">{t('dashboard_screen.accs.authorized')}</span>
                             {acc.authorization_date && (
                               <span className="authorized-date">
                                 {formatDate(acc.authorization_date)}
@@ -568,13 +571,13 @@ const InstructorDashboardScreen = () => {
                         )}
                         {acc.classes_count !== undefined && (
                           <p className="training-item-count">
-                            {acc.classes_count} {acc.classes_count === 1 ? 'class' : 'classes'}
+                            {acc.classes_count} {acc.classes_count === 1 ? t('dashboard_screen.common.class_one') : t('dashboard_screen.common.class_other')}
                           </p>
                         )}
                       </div>
                       {acc.status && (
                         <span className={`training-item-status ${getTrainingStatusClass(acc.status)}`}>
-                          {acc.status}
+                          {t(`dashboard_screen.status.${acc.status}`)}
                         </span>
                       )}
                     </div>
@@ -585,14 +588,14 @@ const InstructorDashboardScreen = () => {
                     onClick={() => navigate('/instructor/accs')}
                     className="training-view-all"
                   >
-                    View All ({accsCount})
+                    {t('dashboard_screen.accs.view_all_with_count', { count: accsCount })}
                   </button>
                 )}
               </div>
             ) : (
               <div className="empty-training">
                 <Award className="empty-training-icon" size={48} />
-                <p className="empty-training-text">No ACCs found</p>
+                <p className="empty-training-text">{t('dashboard_screen.accs.empty')}</p>
               </div>
             )}
           </div>

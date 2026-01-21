@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from '../../../hooks/useTranslation';
+import { useHeader } from '../../../context/HeaderContext';
 import { instructorAPI } from '../../../services/api';
 import { GraduationCap, CheckCircle, Eye, MapPin, Calendar, Users } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
@@ -9,9 +11,11 @@ import './ClassesScreen.css';
 import DataTable from '../../../components/DataTable/DataTable';
 
 const InstructorClassesScreen = () => {
+  const { t } = useTranslation('instructor');
+  const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams] = useSearchParams();
   const statusParam = searchParams.get('status');
-  
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -27,7 +31,7 @@ const InstructorClassesScreen = () => {
     completion_rate_percentage: '',
     notes: '',
   });
-  
+
   // Determine initial filter based on URL parameter
   const getInitialFilter = () => {
     if (!statusParam) return 'all';
@@ -35,8 +39,17 @@ const InstructorClassesScreen = () => {
     if (statusParam === 'completed') return 'completed';
     return 'all';
   };
-  
+
   const [selectedFilter, setSelectedFilter] = useState(() => getInitialFilter());
+
+  useEffect(() => {
+    setHeaderTitle(t('classes_screen.header.title'));
+    setHeaderSubtitle(t('classes_screen.header.subtitle'));
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     loadClasses();
@@ -55,9 +68,9 @@ const InstructorClassesScreen = () => {
         page: pagination.currentPage,
         per_page: pagination.perPage,
       };
-      
+
       const data = await instructorAPI.listClasses(params);
-      
+
       let classesArray = [];
       if (data.data) {
         classesArray = data.data || [];
@@ -81,7 +94,7 @@ const InstructorClassesScreen = () => {
           totalItems: classesArray.length,
         }));
       }
-      
+
       setClasses(classesArray);
     } catch (error) {
       console.error('Failed to load classes:', error);
@@ -90,11 +103,11 @@ const InstructorClassesScreen = () => {
       setLoading(false);
     }
   };
-  
+
   const handlePageChange = (page) => {
     setPagination(prev => ({ ...prev, currentPage: page }));
   };
-  
+
   const handlePerPageChange = (perPage) => {
     setPagination(prev => ({ ...prev, perPage, currentPage: 1 }));
   };
@@ -122,7 +135,7 @@ const InstructorClassesScreen = () => {
 
   const confirmComplete = async () => {
     if (!completionData.completion_rate_percentage) {
-      alert('Please enter completion rate percentage');
+      alert(t('classes_screen.validation.completion_rate_required'));
       return;
     }
     try {
@@ -132,9 +145,9 @@ const InstructorClassesScreen = () => {
       setSelectedClass(null);
       setCompletionData({ completion_rate_percentage: '', notes: '' });
       setPagination(prev => ({ ...prev, currentPage: 1 }));
-      alert('Class marked as complete!');
+      alert(t('classes_screen.messages.marked_complete_success'));
     } catch (error) {
-      alert('Failed to mark complete: ' + (error.message || 'Unknown error'));
+      alert(t('classes_screen.messages.mark_complete_failed') + ': ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -152,10 +165,10 @@ const InstructorClassesScreen = () => {
 
   const columns = [
     {
-      header: 'Course',
+      header: t('classes_screen.table.course'),
       accessor: 'course',
       render: (value, row) => {
-        const courseName = typeof value === 'string' ? value : (value?.name || row.course?.name || 'N/A');
+        const courseName = typeof value === 'string' ? value : (value?.name || row.course?.name || t('classes_screen.common.na'));
         return (
           <div className="course-cell">
             <GraduationCap className="course-icon" />
@@ -165,53 +178,53 @@ const InstructorClassesScreen = () => {
       },
     },
     {
-      header: 'Training Center',
+      header: t('classes_screen.table.training_center'),
       accessor: 'training_center',
       render: (value) => {
-        return typeof value === 'string' ? value : (value?.name || 'N/A');
+        return typeof value === 'string' ? value : (value?.name || t('classes_screen.common.na'));
       },
     },
     {
-      header: 'Start Date',
+      header: t('classes_screen.table.start_date'),
       accessor: 'start_date',
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
+      render: (value) => value ? new Date(value).toLocaleDateString() : t('classes_screen.common.na'),
     },
     {
-      header: 'End Date',
+      header: t('classes_screen.table.end_date'),
       accessor: 'end_date',
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
+      render: (value) => value ? new Date(value).toLocaleDateString() : t('classes_screen.common.na'),
     },
     {
-      header: 'Exam Date',
+      header: t('classes_screen.table.exam_date'),
       accessor: 'exam_date',
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'Not set',
+      render: (value) => value ? new Date(value).toLocaleDateString() : t('classes_screen.status.not_set'),
     },
     {
-      header: 'Exam Score',
+      header: t('classes_screen.table.exam_score'),
       accessor: 'exam_score',
-      render: (value) => value !== null && value !== undefined ? `${parseFloat(value).toFixed(2)}%` : 'N/A',
+      render: (value) => value !== null && value !== undefined ? `${parseFloat(value).toFixed(2)}%` : t('classes_screen.common.na'),
     },
     {
-      header: 'Status',
+      header: t('classes_screen.table.status'),
       accessor: 'status',
       render: (value) => (
         <span className={`status-badge ${getStatusClass(value)}`}>
-          {value}
+          {t(`classes_screen.status.${value}`) || value}
         </span>
       ),
     },
     {
-      header: 'Enrolled',
+      header: t('classes_screen.table.enrolled'),
       accessor: 'enrolled_count',
-      render: (value, row) => `${value || 0}/${row.course?.max_capacity || 'N/A'}`,
+      render: (value, row) => `${value || 0}/${row.course?.max_capacity || t('classes_screen.common.na')}`,
     },
   ];
 
   // Filter options for status
   const filterOptions = [
-    { value: 'all', label: 'All Classes' },
-    { value: 'scheduled', label: 'Scheduled', filterFn: (row) => row.status === 'scheduled' },
-    { value: 'completed', label: 'Completed', filterFn: (row) => row.status === 'completed' },
+    { value: 'all', label: t('classes_screen.filters.all') },
+    { value: 'scheduled', label: t('classes_screen.filters.scheduled'), filterFn: (row) => row.status === 'scheduled' },
+    { value: 'completed', label: t('classes_screen.filters.completed'), filterFn: (row) => row.status === 'completed' },
   ];
 
   return (
@@ -222,15 +235,15 @@ const InstructorClassesScreen = () => {
         onView={handleViewDetails}
         onRowClick={handleViewDetails}
         isLoading={loading}
-        emptyMessage="No classes assigned yet."
+        emptyMessage={t('classes_screen.table.empty')}
         searchable={true}
         filterable={true}
         filterOptions={filterOptions}
         sortable={true}
-        searchPlaceholder="Search classes..."
+        searchPlaceholder={t('classes_screen.search.placeholder')}
         defaultFilter={selectedFilter}
       />
-      
+
       {/* Pagination */}
       {!loading && pagination.totalItems > 0 && (
         <div className="pagination-container">
@@ -252,7 +265,7 @@ const InstructorClassesScreen = () => {
           setDetailModalOpen(false);
           setSelectedClass(null);
         }}
-        title="Class Details"
+        title={t('classes_screen.details.modal_title')}
         size="lg"
       >
         {selectedClass && (
@@ -261,41 +274,41 @@ const InstructorClassesScreen = () => {
               <div className="modal-field">
                 <p className="modal-field-label">
                   <GraduationCap size={16} className="modal-field-label-icon" />
-                  Course
+                  {t('classes_screen.details.course')}
                 </p>
                 <p className="modal-field-value">
-                  {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || 'N/A')}
+                  {typeof selectedClass.course === 'string' ? selectedClass.course : (selectedClass.course?.name || t('classes_screen.common.na'))}
                 </p>
               </div>
               <div className="modal-field">
-                <p className="modal-field-label">Training Center</p>
+                <p className="modal-field-label">{t('classes_screen.details.training_center')}</p>
                 <p className="modal-field-value">
-                  {typeof selectedClass.training_center === 'string' ? selectedClass.training_center : (selectedClass.training_center?.name || 'N/A')}
-                </p>
-              </div>
-              <div className="modal-field">
-                <p className="modal-field-label">
-                  <Calendar size={16} className="modal-field-label-icon" />
-                  Start Date
-                </p>
-                <p className="modal-field-value">
-                  {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString() : 'N/A'}
+                  {typeof selectedClass.training_center === 'string' ? selectedClass.training_center : (selectedClass.training_center?.name || t('classes_screen.common.na'))}
                 </p>
               </div>
               <div className="modal-field">
                 <p className="modal-field-label">
                   <Calendar size={16} className="modal-field-label-icon" />
-                  End Date
+                  {t('classes_screen.details.start_date')}
                 </p>
                 <p className="modal-field-value">
-                  {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString() : 'N/A'}
+                  {selectedClass.start_date ? new Date(selectedClass.start_date).toLocaleDateString() : t('classes_screen.common.na')}
+                </p>
+              </div>
+              <div className="modal-field">
+                <p className="modal-field-label">
+                  <Calendar size={16} className="modal-field-label-icon" />
+                  {t('classes_screen.details.end_date')}
+                </p>
+                <p className="modal-field-value">
+                  {selectedClass.end_date ? new Date(selectedClass.end_date).toLocaleDateString() : t('classes_screen.common.na')}
                 </p>
               </div>
               {selectedClass.exam_date && (
                 <div className="modal-field" style={{ backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }}>
                   <p className="modal-field-label" style={{ color: '#9333ea' }}>
                     <Calendar size={16} className="modal-field-label-icon" />
-                    Exam Date
+                    {t('classes_screen.details.exam_date')}
                   </p>
                   <p className="modal-field-value" style={{ color: '#7e22ce' }}>
                     {new Date(selectedClass.exam_date).toLocaleDateString()}
@@ -305,7 +318,7 @@ const InstructorClassesScreen = () => {
               {selectedClass.exam_score !== null && selectedClass.exam_score !== undefined && (
                 <div className="modal-field" style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe' }}>
                   <p className="modal-field-label" style={{ color: '#4f46e5' }}>
-                    Exam Score
+                    {t('classes_screen.details.exam_score')}
                   </p>
                   <p className="modal-field-value" style={{ color: '#4338ca', fontWeight: 'bold' }}>
                     {parseFloat(selectedClass.exam_score).toFixed(2)}%
@@ -315,16 +328,16 @@ const InstructorClassesScreen = () => {
               <div className="modal-field">
                 <p className="modal-field-label">
                   <Users size={16} className="modal-field-label-icon" />
-                  Enrollment
+                  {t('classes_screen.details.enrollment')}
                 </p>
                 <p className="modal-field-value">
-                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || 'N/A'}
+                  {selectedClass.enrolled_count || 0} / {selectedClass.course?.max_capacity || t('classes_screen.common.na')}
                 </p>
               </div>
               <div className="modal-field">
-                <p className="modal-field-label">Status</p>
+                <p className="modal-field-label">{t('classes_screen.details.status')}</p>
                 <span className={`modal-status-badge ${getModalStatusClass(selectedClass.status)}`}>
-                  {selectedClass.status}
+                  {t(`classes_screen.status.${selectedClass.status}`) || selectedClass.status}
                 </span>
               </div>
             </div>
@@ -332,14 +345,14 @@ const InstructorClassesScreen = () => {
               <div className="location-field">
                 <p className="modal-field-label">
                   <MapPin size={16} className="modal-field-label-icon" />
-                  Location
+                  {t('classes_screen.details.location')}
                 </p>
                 <p className="modal-field-value">{selectedClass.location_details}</p>
               </div>
             )}
             {selectedClass.materials && selectedClass.materials.length > 0 && (
               <div className="materials-section">
-                <h3 className="materials-title">Course Materials</h3>
+                <h3 className="materials-title">{t('classes_screen.details.materials_title')}</h3>
                 <div className="materials-list">
                   {selectedClass.materials.map((material, index) => (
                     <div key={index} className="material-item">
@@ -351,7 +364,7 @@ const InstructorClassesScreen = () => {
                           rel="noopener noreferrer"
                           className="material-link"
                         >
-                          Download
+                          {t('classes_screen.details.download')}
                         </a>
                       )}
                     </div>
@@ -369,7 +382,7 @@ const InstructorClassesScreen = () => {
                   className="complete-button"
                 >
                   <CheckCircle size={20} className="complete-button-icon" />
-                  Mark as Complete
+                  {t('classes_screen.actions.mark_complete')}
                 </button>
               </div>
             )}
@@ -385,12 +398,12 @@ const InstructorClassesScreen = () => {
           setSelectedClass(null);
           setCompletionData({ completion_rate_percentage: '', notes: '' });
         }}
-        title="Mark Class as Complete"
+        title={t('classes_screen.complete.modal_title')}
         size="md"
       >
         <div className="complete-modal-content">
           <FormInput
-            label="Completion Rate (%)"
+            label={t('classes_screen.complete.completion_rate')}
             name="completion_rate_percentage"
             type="number"
             value={completionData.completion_rate_percentage}
@@ -398,16 +411,16 @@ const InstructorClassesScreen = () => {
             required
             min="0"
             max="100"
-            placeholder="e.g., 95"
+            placeholder={t('classes_screen.complete.completion_rate_placeholder')}
           />
           <FormInput
-            label="Notes (Optional)"
+            label={t('classes_screen.complete.notes')}
             name="notes"
             value={completionData.notes}
             onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })}
             textarea
             rows={4}
-            placeholder="Add any notes about the class completion..."
+            placeholder={t('classes_screen.complete.notes_placeholder')}
           />
           <div className="complete-modal-actions">
             <button
@@ -418,13 +431,13 @@ const InstructorClassesScreen = () => {
               }}
               className="cancel-button"
             >
-              Cancel
+              {t('classes_screen.complete.cancel')}
             </button>
             <button
               onClick={confirmComplete}
               className="confirm-button"
             >
-              Mark Complete
+              {t('classes_screen.complete.confirm')}
             </button>
           </div>
         </div>

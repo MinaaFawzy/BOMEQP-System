@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { trainingCenterAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
@@ -14,7 +14,7 @@ import './TCProfileScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const TCProfileScreen = () => {
-  const { t } = useTranslation('training_center');
+  const { t, currentLanguage, changeLanguage, languages } = useTranslation('training_center');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1183,16 +1183,17 @@ const TCProfileScreen = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                {t('tc_profile_screen.language.application_language')}
-              </label>
-              <p className="text-sm text-gray-500 mb-4">
-                {t('tc_profile_screen.language.description')}
-              </p>
-              <LanguageSwitcher />
-            </div>
+          <div className="profile-form-grid">
+            <FormInput
+              label={t('tc_profile_screen.language.application_language')}
+              type="select"
+              value={currentLanguage}
+              onChange={(e) => changeLanguage(e.target.value)}
+              options={Object.keys(languages).map((code) => ({
+                value: code,
+                label: languages[code],
+              }))}
+            />
           </div>
         </div>
       </div>

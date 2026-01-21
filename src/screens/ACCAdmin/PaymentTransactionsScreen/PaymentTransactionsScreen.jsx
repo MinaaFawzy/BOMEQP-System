@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Receipt, Eye, Building2, User, ArrowDownCircle, ArrowUpCircle, Filter } from 'lucide-react';
@@ -10,6 +11,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './PaymentTransactionsScreen.css';
 
 const PaymentTransactionsScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -32,8 +34,8 @@ const PaymentTransactionsScreen = () => {
   const statusFilterRef = useRef(null);
 
   useEffect(() => {
-    setHeaderTitle('Payment Transactions');
-    setHeaderSubtitle('View all payment transactions');
+    setHeaderTitle(t('payment_transactions_screen.header.title'));
+    setHeaderSubtitle(t('payment_transactions_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -161,7 +163,12 @@ const PaymentTransactionsScreen = () => {
   };
 
   const getTransactionTypeLabel = (type) => {
-    return type?.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'N/A';
+    // Only localize specific mapped types, otherwise try to display as before or fallback
+    // Since we don't have a direct "types" object in the JSON provided above (only in filters), we can try to use filter labels or leave as is if no direct translation
+    // The instructions say "Use existing keys only". The filters.type keys match the transaction types.
+    // So we can use t(`payment_transactions_screen.filters.type.${type}`)
+    if (!type) return t('payment_transactions_screen.common.na');
+    return t(`payment_transactions_screen.filters.type.${type}`, { defaultValue: type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') });
   };
 
   const isReceived = (transaction) => {
@@ -171,7 +178,7 @@ const PaymentTransactionsScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Type',
+      header: t('payment_transactions_screen.table.type'),
       accessor: 'transaction_type',
       sortable: true,
       render: (value, row) => (
@@ -195,11 +202,11 @@ const PaymentTransactionsScreen = () => {
       )
     },
     {
-      header: 'Payer',
+      header: t('payment_transactions_screen.table.payer'),
       accessor: 'payer',
       sortable: true,
       render: (value) => {
-        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        if (!value) return <span className="text-sm text-gray-400">{t('payment_transactions_screen.common.na')}</span>;
         return (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
@@ -218,11 +225,11 @@ const PaymentTransactionsScreen = () => {
       }
     },
     {
-      header: 'Payee',
+      header: t('payment_transactions_screen.table.payee'),
       accessor: 'payee',
       sortable: true,
       render: (value) => {
-        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        if (!value) return <span className="text-sm text-gray-400">{t('payment_transactions_screen.common.na')}</span>;
         return (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
@@ -241,7 +248,7 @@ const PaymentTransactionsScreen = () => {
       }
     },
     {
-      header: 'Total Amount',
+      header: t('payment_transactions_screen.table.total_amount'),
       accessor: 'amount',
       sortable: true,
       render: (value, row) => (
@@ -251,12 +258,12 @@ const PaymentTransactionsScreen = () => {
       )
     },
     {
-      header: 'Received',
+      header: t('payment_transactions_screen.table.received'),
       accessor: 'provider_amount',
       sortable: true,
       render: (value, row) => {
         const receivedAmount = value || row.received_amount;
-        if (!receivedAmount) return <span className="text-sm text-gray-400">N/A</span>;
+        if (!receivedAmount) return <span className="text-sm text-gray-400">{t('payment_transactions_screen.common.na')}</span>;
         return (
           <div className="text-sm font-semibold text-green-700">
             + {formatCurrency(receivedAmount, row.currency)}
@@ -265,11 +272,11 @@ const PaymentTransactionsScreen = () => {
       }
     },
     {
-      header: 'Commission',
+      header: t('payment_transactions_screen.table.commission'),
       accessor: 'commission_amount',
       sortable: true,
       render: (value, row) => {
-        if (!value) return <span className="text-sm text-gray-400">N/A</span>;
+        if (!value) return <span className="text-sm text-gray-400">{t('payment_transactions_screen.common.na')}</span>;
         return (
           <div className="text-sm font-semibold text-amber-700">
             - {formatCurrency(value, row.currency)}
@@ -278,17 +285,17 @@ const PaymentTransactionsScreen = () => {
       }
     },
     {
-      header: 'Status',
+      header: t('payment_transactions_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${getStatusBadgeClass(value)}`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`payment_transactions_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('payment_transactions_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Date',
+      header: t('payment_transactions_screen.table.date'),
       accessor: 'created_at',
       sortable: true,
       render: (value) => (
@@ -298,7 +305,7 @@ const PaymentTransactionsScreen = () => {
       )
     },
     {
-      header: 'Actions',
+      header: t('payment_transactions_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -321,36 +328,36 @@ const PaymentTransactionsScreen = () => {
 
   // Type filter options
   const typeFilterOptions = useMemo(() => [
-    { value: 'all', label: 'All Types' },
-    { value: 'subscription', label: 'Subscription' },
-    { value: 'code_purchase', label: 'Code Purchase' },
-    { value: 'material_purchase', label: 'Material Purchase' },
-    { value: 'course_purchase', label: 'Course Purchase' },
-    { value: 'commission', label: 'Commission' },
-    { value: 'settlement', label: 'Settlement' }
+    { value: 'all', label: t('payment_transactions_screen.filters.type.all') },
+    { value: 'subscription', label: t('payment_transactions_screen.filters.type.subscription') },
+    { value: 'code_purchase', label: t('payment_transactions_screen.filters.type.code_purchase') },
+    { value: 'material_purchase', label: t('payment_transactions_screen.filters.type.material_purchase') },
+    { value: 'course_purchase', label: t('payment_transactions_screen.filters.type.course_purchase') },
+    { value: 'commission', label: t('payment_transactions_screen.filters.type.commission') },
+    { value: 'settlement', label: t('payment_transactions_screen.filters.type.settlement') }
   ], []);
 
   // Filter options for status
   const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'all', label: t('payment_transactions_screen.filters.status.all'), filterFn: () => true },
     {
       value: 'completed',
-      label: 'Completed',
+      label: t('payment_transactions_screen.filters.status.completed'),
       filterFn: (transaction) => transaction.status === 'completed'
     },
     {
       value: 'pending',
-      label: 'Pending',
+      label: t('payment_transactions_screen.filters.status.pending'),
       filterFn: (transaction) => transaction.status === 'pending'
     },
     {
       value: 'failed',
-      label: 'Failed',
+      label: t('payment_transactions_screen.filters.status.failed'),
       filterFn: (transaction) => transaction.status === 'failed'
     },
     {
       value: 'refunded',
-      label: 'Refunded',
+      label: t('payment_transactions_screen.filters.status.refunded'),
       filterFn: (transaction) => transaction.status === 'refunded'
     }
   ], []);
@@ -361,19 +368,19 @@ const PaymentTransactionsScreen = () => {
       {summary && (
         <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }} className="mb-6">
           <TabCard
-            name="Total Transactions"
+            name={t('payment_transactions_screen.summary.total_transactions')}
             value={summary.total_transactions || 0}
             icon={Receipt}
             colorType="indigo"
           />
           <TabCard
-            name="Total Received"
+            name={t('payment_transactions_screen.summary.total_received')}
             value={formatCurrency(summary.total_received || 0)}
             icon={ArrowDownCircle}
             colorType="green"
           />
           <TabCard
-            name="Total Paid"
+            name={t('payment_transactions_screen.summary.total_paid')}
             value={formatCurrency(summary.total_paid || 0)}
             icon={ArrowUpCircle}
             colorType="red"
@@ -412,7 +419,7 @@ const PaymentTransactionsScreen = () => {
             data={filteredTransactions} // Use raw transactions, filtered by server
             isLoading={loading}
             searchable={true}
-            searchPlaceholder="Search transactions..."
+            searchPlaceholder={t('payment_transactions_screen.search.placeholder')}
             searchValue={searchTerm}
             onSearch={(term) => {
               setSearchTerm(term);
@@ -420,7 +427,7 @@ const PaymentTransactionsScreen = () => {
             }}
             filterable={false} // Disable built-in filter, we use custom filters
             sortable={true}
-            emptyMessage="No transactions found"
+            emptyMessage={t('payment_transactions_screen.table.empty')}
             customFilters={
               <div className="flex gap-3 flex-wrap">
                 {/* Type Filter */}
@@ -432,7 +439,7 @@ const PaymentTransactionsScreen = () => {
                   >
                     <Filter size={18} />
                     <span className="data-table-filter-text">
-                      {typeFilterOptions.find(opt => opt.value === typeFilter)?.label || 'All Types'}
+                      {typeFilterOptions.find(opt => opt.value === typeFilter)?.label || t('payment_transactions_screen.filters.type.all')}
                     </span>
                   </button>
                   {showTypeFilters && (
@@ -464,7 +471,7 @@ const PaymentTransactionsScreen = () => {
                   >
                     <Filter size={18} />
                     <span className="data-table-filter-text">
-                      {filterOptions.find(opt => opt.value === statusFilter)?.label || 'All Status'}
+                      {filterOptions.find(opt => opt.value === statusFilter)?.label || t('payment_transactions_screen.filters.status.all')}
                     </span>
                   </button>
                   {showStatusFilters && (
@@ -510,7 +517,7 @@ const PaymentTransactionsScreen = () => {
           setDetailModalOpen(false);
           setSelectedTransaction(null);
         }}
-        title="Transaction Details"
+        title={t('payment_transactions_screen.details.modal_title')}
         size="lg"
       >
         {selectedTransaction && (
@@ -518,46 +525,46 @@ const PaymentTransactionsScreen = () => {
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Transaction Type</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.transaction_type')}</p>
                 <p className="text-base font-semibold text-gray-900">{getTransactionTypeLabel(selectedTransaction.transaction_type)}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Status</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.table.status')}</p>
                 <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusBadgeClass(selectedTransaction.status)}`}>
-                  {selectedTransaction.status?.charAt(0).toUpperCase() + selectedTransaction.status?.slice(1) || 'N/A'}
+                  {selectedTransaction.status ? t(`payment_transactions_screen.status.${selectedTransaction.status}`, { defaultValue: selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1) }) : t('payment_transactions_screen.common.na')}
                 </span>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Total Amount</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.total_amount')}</p>
                 <p className={`text-2xl font-bold ${isReceived(selectedTransaction) ? 'text-green-700' : 'text-red-700'}`}>
                   {isReceived(selectedTransaction) ? '+' : '-'} {formatCurrency(selectedTransaction.amount, selectedTransaction.currency)}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Payment Method</p>
-                <p className="text-base font-semibold text-gray-900 capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || 'N/A'}</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.payment_method')}</p>
+                <p className="text-base font-semibold text-gray-900 capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || t('payment_transactions_screen.common.na')}</p>
               </div>
               {selectedTransaction.provider_amount || selectedTransaction.received_amount ? (
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-500 mb-1">Amount Received</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.amount_received')}</p>
                   <p className="text-2xl font-bold text-green-700">
                     + {formatCurrency(selectedTransaction.provider_amount || selectedTransaction.received_amount, selectedTransaction.currency)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Amount you received after commission</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('payment_transactions_screen.messages.amount_after_commission')}</p>
                 </div>
               ) : null}
               {selectedTransaction.commission_amount ? (
                 <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                  <p className="text-sm text-gray-500 mb-1">Platform Commission</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.platform_commission')}</p>
                   <p className="text-2xl font-bold text-amber-700">
                     - {formatCurrency(selectedTransaction.commission_amount, selectedTransaction.currency)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Commission deducted from total amount</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('payment_transactions_screen.messages.commission_deducted')}</p>
                 </div>
               ) : null}
               {selectedTransaction.payment_type && (
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-gray-500 mb-1">Payment Type</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.payment_type')}</p>
                   <p className="text-base font-semibold text-gray-900 capitalize">
                     {selectedTransaction.payment_type === 'destination_charge' ? 'Destination Charge' : 'Standard Payment'}
                   </p>
@@ -568,21 +575,21 @@ const PaymentTransactionsScreen = () => {
             {/* Payer Info */}
             {selectedTransaction.payer && (
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-700 mb-3">Payer Information</p>
+                <p className="text-sm font-medium text-blue-700 mb-3">{t('payment_transactions_screen.details.payer_info')}</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm text-gray-600">Name:</span>
+                    <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.name')}:</span>
                     <span className="text-sm font-semibold text-gray-900">{selectedTransaction.payer.name}</span>
                   </div>
                   {selectedTransaction.payer.email && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.email')}:</span>
                       <span className="text-sm font-semibold text-gray-900">{selectedTransaction.payer.email}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Type:</span>
+                    <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.type')}:</span>
                     <span className="text-sm font-semibold text-gray-900 capitalize">{selectedTransaction.payer.type}</span>
                   </div>
                 </div>
@@ -592,21 +599,21 @@ const PaymentTransactionsScreen = () => {
             {/* Payee Info */}
             {selectedTransaction.payee && (
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm font-medium text-green-700 mb-3">Payee Information</p>
+                <p className="text-sm font-medium text-green-700 mb-3">{t('payment_transactions_screen.details.payee_info')}</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-gray-600">Name:</span>
+                    <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.name')}:</span>
                     <span className="text-sm font-semibold text-gray-900">{selectedTransaction.payee.name}</span>
                   </div>
                   {selectedTransaction.payee.email && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.email')}:</span>
                       <span className="text-sm font-semibold text-gray-900">{selectedTransaction.payee.email}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Type:</span>
+                    <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.type')}:</span>
                     <span className="text-sm font-semibold text-gray-900 capitalize">{selectedTransaction.payee.type}</span>
                   </div>
                 </div>
@@ -616,7 +623,7 @@ const PaymentTransactionsScreen = () => {
             {/* Description */}
             {selectedTransaction.description && (
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Description</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.description')}</p>
                 <p className="text-base text-gray-900">{selectedTransaction.description}</p>
               </div>
             )}
@@ -624,10 +631,10 @@ const PaymentTransactionsScreen = () => {
             {/* Reference */}
             {selectedTransaction.reference && (
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <p className="text-sm font-medium text-purple-700 mb-3">Reference Information</p>
+                <p className="text-sm font-medium text-purple-700 mb-3">{t('payment_transactions_screen.details.reference_info')}</p>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-sm text-gray-600">Type:</span>
+                    <span className="text-sm text-gray-600">{t('payment_transactions_screen.details.reference_type')}:</span>
                     <span className="text-sm font-semibold text-gray-900 ml-2">{selectedTransaction.reference.type}</span>
                   </div>
                   {selectedTransaction.reference.details && (
@@ -642,7 +649,7 @@ const PaymentTransactionsScreen = () => {
             {/* Commission Ledgers */}
             {selectedTransaction.commission_ledgers && selectedTransaction.commission_ledgers.length > 0 && (
               <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-sm font-medium text-yellow-700 mb-3">Commission Ledgers</p>
+                <p className="text-sm font-medium text-yellow-700 mb-3">{t('payment_transactions_screen.details.commission_ledgers')}</p>
                 <div className="space-y-3">
                   {selectedTransaction.commission_ledgers.map((ledger, index) => (
                     <div key={ledger.id || index} className="p-3 bg-white rounded border border-yellow-100">
@@ -661,13 +668,13 @@ const PaymentTransactionsScreen = () => {
                         )}
                         {ledger.group_commission_amount && (
                           <div>
-                            <span className="text-gray-600">Group Commission:</span>
+                            <span className="text-gray-600">{t('payment_transactions_screen.details.group_commission')}:</span>
                             <span className="font-semibold text-gray-900 ml-2">{formatCurrency(ledger.group_commission_amount)} ({ledger.group_commission_percentage}%)</span>
                           </div>
                         )}
                         {ledger.acc_commission_amount && (
                           <div>
-                            <span className="text-gray-600">ACC Commission:</span>
+                            <span className="text-gray-600">{t('payment_transactions_screen.details.acc_commission')}:</span>
                             <span className="font-semibold text-gray-900 ml-2">{formatCurrency(ledger.acc_commission_amount)} ({ledger.acc_commission_percentage}%)</span>
                           </div>
                         )}
@@ -681,12 +688,12 @@ const PaymentTransactionsScreen = () => {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Created At</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.created_at')}</p>
                 <p className="text-base font-semibold text-gray-900">{formatDateTime(selectedTransaction.created_at)}</p>
               </div>
               {selectedTransaction.completed_at && (
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Completed At</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.completed_at')}</p>
                   <p className="text-base font-semibold text-gray-900">{formatDateTime(selectedTransaction.completed_at)}</p>
                 </div>
               )}
@@ -695,7 +702,7 @@ const PaymentTransactionsScreen = () => {
             {/* Payment Gateway Transaction ID */}
             {selectedTransaction.payment_gateway_transaction_id && (
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Payment Gateway Transaction ID</p>
+                <p className="text-sm text-gray-500 mb-1">{t('payment_transactions_screen.details.payment_gateway_transaction_id')}</p>
                 <p className="text-base font-semibold text-gray-900 font-mono">{selectedTransaction.payment_gateway_transaction_id}</p>
               </div>
             )}

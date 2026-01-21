@@ -1,0 +1,1244 @@
+{
+  "dashboard": {
+    "cards": {
+      "total_revenue": "Total Revenue",
+      "pending_requests": "Pending Requests",
+      "active_training_centers": "Active Training Centers",
+      "active_instructors": "Active Instructors",
+      "click_to_view_details": "Click to view details"
+    },
+    "sections": {
+      "revenue_overview": "Revenue Overview",
+      "monthly_revenue": "Monthly Revenue",
+      "revenue_over_time": "Revenue Over Time",
+      "certificates_over_time": "Certificates Over Time"
+    },
+    "charts": {
+      "revenue": "Revenue",
+      "certificates": "Certificates"
+    }
+  },
+  "subscription_screen": {
+    "header": {
+      "title": "Subscription Management",
+      "subtitle": "Manage your ACC subscription and payment details"
+    },
+
+    "no_subscription": {
+      "title": "No Active Subscription",
+      "description": "You need to subscribe to access all ACC features. Please complete your subscription payment to continue.",
+      "subscribe_now": "Subscribe Now"
+    },
+
+    "current_subscription": {
+      "title": "Current Subscription",
+      "subtitle": "Manage your subscription details",
+
+      "status": {
+        "paid": "PAID",
+        "pending": "PENDING"
+      },
+
+      "fields": {
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "amount": "Amount",
+        "auto_renew": "Auto Renew",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+
+      "actions": {
+        "pay_subscription": "Pay Subscription",
+        "manage_renewal": "Manage Renewal"
+      }
+    },
+
+    "payment_modal": {
+      "title": "Subscribe / Pay Subscription",
+
+      "amount": "Amount",
+      "amount_placeholder": "5000.00",
+
+      "payment_method_title": "Payment Method: Credit Card",
+      "payment_method_description": "Payment will be processed securely through Stripe. Click \"Pay Now\" below to enter your card details.",
+
+      "cancel": "Cancel",
+      "pay_now": "Pay Now",
+      "processing": "Processing..."
+    },
+
+    "renewal_modal": {
+      "title": "Manage Subscription Renewal",
+
+      "amount": "Amount",
+      "amount_placeholder": "10000.00",
+
+      "payment_method_title": "Payment Method: Credit Card",
+      "payment_method_description": "Payment will be processed securely through Stripe. Click \"Renew Subscription\" below to enter your card details.",
+
+      "auto_renew": "Enable Auto-Renewal",
+      "auto_renew_hint": "When enabled, your subscription will automatically renew at the end of the current period.",
+
+      "cancel": "Cancel",
+      "renew": "Renew Subscription",
+      "processing": "Processing..."
+    },
+
+    "messages": {
+      "payment_success": "Subscription payment processed successfully!",
+      "renew_success": "Subscription renewed successfully!"
+    },
+
+    "errors": {
+      "invalid_amount": "Please enter a valid amount greater than 0",
+      "min_amount": "Amount must be at least $1.00",
+
+      "create_payment_intent_failed": "Failed to create payment intent. Please try again.",
+      "payment_not_completed": "Payment not completed. Status: {{status}}",
+      "payment_verification_failed": "Payment verification failed. Please contact support.",
+      "payment_process_failed": "Payment succeeded but failed to process subscription. Please contact support.",
+
+      "renew_failed": "Payment succeeded but failed to renew subscription. Please contact support."
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "training_centers_screen": {
+    "header": {
+      "title": "Training Centers",
+      "subtitle": "Manage training center authorizations and requests"
+    },
+
+    "tabs": {
+      "total": "Total",
+      "pending": "Pending",
+      "active": "Active",
+      "returned": "Returned"
+    },
+
+    "search": {
+      "placeholder": "Search training centers..."
+    },
+
+    "table": {
+      "training_center": "Training Center",
+      "email": "Email",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No training centers found"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "approve": "Approve",
+      "reject": "Reject",
+      "return": "Return"
+    },
+
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "approved": "Approved",
+      "returned": "Returned",
+      "rejected": "Rejected",
+      "na": "N/A"
+    },
+
+    "details": {
+      "request_title": "Training Center Request Details",
+      "details_title": "Training Center Details",
+
+      "request_info": "Request Information",
+      "training_center_info": "Training Center Information",
+      "documents": "Documents",
+
+      "request_id": "Request ID",
+      "training_center_id": "Training Center ID",
+      "request_date": "Request Date",
+      "created_at": "Created At",
+      "updated_at": "Updated At",
+      "reviewed_at": "Reviewed At"
+    },
+
+    "company": {
+      "company_name": "Company Name",
+      "website": "Website",
+      "email": "Company Email",
+      "phone": "Telephone Number",
+      "fax": "Fax",
+      "training_provider_type": "Training Provider Type",
+
+      "physical_address": "Physical Address",
+      "mailing_same_as_physical": "Mailing Same as Physical",
+      "mailing_address": "Mailing Address",
+
+      "primary_contact": "Primary Contact",
+      "primary_contact_email": "Primary Contact Email",
+      "primary_contact_country": "Primary Contact Country",
+      "primary_contact_mobile": "Primary Contact Mobile",
+
+      "secondary_contact": "Secondary Contact",
+      "secondary_contact_email": "Secondary Contact Email",
+      "secondary_contact_country": "Secondary Contact Country",
+      "secondary_contact_mobile": "Secondary Contact Mobile",
+
+      "gov_registry_number": "GOV Registry Number",
+      "registration_certificate": "Registration Certificate",
+      "facility_floorplan": "Facility Floorplan",
+      "interested_fields": "Interested Fields",
+      "how_did_you_hear": "How Did You Hear About Us",
+      "description": "Description"
+    },
+
+    "documents": {
+      "view_certificate": "View Certificate",
+      "view_floorplan": "View Floorplan",
+      "view_document": "View Document"
+    },
+
+    "rejection": {
+      "title": "Reject Training Center Request",
+      "reason_label": "Rejection Reason",
+      "reason_placeholder": "Enter the reason for rejection...",
+      "confirm": "Reject Request",
+      "missing_reason": "Please provide a rejection reason",
+      "success": "Training center request rejected"
+    },
+
+    "return": {
+      "title": "Return Training Center Request",
+      "comment_label": "Return Comment",
+      "comment_placeholder": "Enter comments for returning the request...",
+      "confirm": "Return Request",
+      "missing_comment": "Please provide a return comment",
+      "success": "Request returned for revision"
+    },
+
+    "messages": {
+      "approve_confirm": "Approve this training center request?",
+      "approve_success": "Training center request approved successfully!",
+      "approve_failed": "Failed to approve request",
+      "load_failed": "Failed to load data"
+    },
+
+    "common": {
+      "yes": "Yes",
+      "no": "No",
+      "cancel": "Cancel",
+      "na": "N/A"
+    }
+  },
+  "instructors_screen": {
+    "header": {
+      "title": "Instructors",
+      "subtitle": "Manage instructor authorizations and requests"
+    },
+
+    "tabs": {
+      "total": "Total",
+      "pending": "Pending",
+      "active": "Active",
+      "returned": "Returned"
+    },
+
+    "search": {
+      "placeholder": "Search instructors..."
+    },
+
+    "table": {
+      "instructor": "Instructor",
+      "email": "Email",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No instructors found"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "approve": "Approve",
+      "reject": "Reject",
+      "return": "Return"
+    },
+
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "active": "Active",
+      "returned": "Returned",
+      "rejected": "Rejected",
+      "paid": "Paid",
+      "unpaid": "Unpaid",
+      "na": "N/A"
+    },
+
+    "details": {
+      "request_title": "Instructor Request Details",
+      "details_title": "Instructor Details",
+
+      "request_info": "Request Information",
+      "instructor_info": "Instructor Information",
+      "documents": "Documents",
+      "authorization_details": "Authorization Details",
+
+      "request_id": "Request ID",
+      "training_center_id": "Training Center ID",
+      "request_date": "Request Date",
+      "created_at": "Created At",
+      "updated_at": "Updated At",
+      "reviewed_at": "Reviewed At",
+      "payment_status": "Payment Status",
+      "authorization_price": "Authorization Price"
+    },
+
+    "fields": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "date_of_birth": "Date of Birth",
+      "nationality": "Nationality",
+      "specialization": "Specialization",
+      "training_center": "Training Center"
+    },
+
+    "documents": {
+      "view_document": "View Document",
+      "document": "Document"
+    },
+
+    "approval": {
+      "modal_title": "Approve Instructor Request",
+      "price_label": "Authorization Price",
+      "price_placeholder": "500.00",
+      "description": "Please set the authorization price for this instructor.",
+      "note": "After approval, Group Admin will need to set the commission percentage before Training Center can pay.",
+      "success": "Instructor approved successfully. Waiting for Group Admin to set commission percentage."
+    },
+
+    "rejection": {
+      "modal_title": "Reject Instructor Request",
+      "reason_label": "Rejection Reason",
+      "reason_placeholder": "Enter the reason for rejection...",
+      "success": "Instructor request rejected",
+      "missing_reason": "Please provide a rejection reason"
+    },
+
+    "return": {
+      "modal_title": "Return Instructor Request",
+      "comment_label": "Return Comment",
+      "comment_placeholder": "Enter comments for returning the request...",
+      "success": "Request returned for revision",
+      "missing_comment": "Please provide a return comment"
+    },
+
+    "messages": {
+      "approve_confirm": "Approve this instructor request?",
+      "approve_failed": "Failed to approve request",
+      "load_failed": "Failed to load data"
+    },
+
+    "common": {
+      "cancel": "Cancel",
+      "approve": "Approve",
+      "reject": "Reject",
+      "return": "Return",
+      "yes": "Yes",
+      "no": "No",
+      "na": "N/A"
+    }
+  },
+  "courses_screen": {
+    "header": {
+      "title": "Courses",
+      "subtitle": "Manage and organize your course catalog",
+      "add": "Add Course",
+      "edit": "Edit Course",
+      "create": "Create Course",
+      "update": "Update Course"
+    },
+
+    "search": {
+      "placeholder": "Search courses..."
+    },
+
+    "filters": {
+      "all_status": "All Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived",
+
+      "all_levels": "All Levels",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+
+    "table": {
+      "course": "Course",
+      "level": "Level",
+      "duration": "Duration",
+      "status": "Status",
+      "pricing": "Pricing",
+      "assessor": "Assessor",
+      "actions": "Actions",
+      "no_courses": "No courses found"
+    },
+
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived"
+    },
+
+    "assessor": {
+      "required": "Required",
+      "not_required": "Not Required"
+    },
+
+    "pricing": {
+      "not_set": "Not set",
+      "information_title": "Pricing Information",
+      "optional_note": "Optional: Set pricing at creation time. You can add pricing later if needed.",
+      "base_price": "Base Price",
+      "currency": "Currency",
+      "note": "Note: Commission percentages are managed by Group Admins. Pricing is effective immediately when set."
+    },
+
+    "form": {
+      "course_name_en": "Course Name (English)",
+      "course_name_ar": "Course Name (Arabic)",
+      "course_code": "Course Code",
+      "sub_category": "Sub Category",
+      "description": "Description",
+
+      "duration_hours": "Duration (Hours)",
+      "max_capacity": "Max Capacity",
+      "level": "Level",
+      "status": "Status",
+
+      "assessor_required": "Assessor Required",
+      "assessor_required_hint": "This course requires an assessor"
+    },
+
+    "validation": {
+      "course_name_required": "Course name is required",
+      "course_name_max": "Course name must be at most 255 characters",
+      "course_code_required": "Course code is required",
+      "course_code_max": "Course code must be at most 255 characters",
+      "sub_category_required": "Sub category is required",
+      "duration_min": "Duration must be at least 1 hour",
+      "capacity_required": "Max capacity is required",
+      "capacity_min": "Max capacity must be at least 1",
+      "invalid_level": "Invalid level selected",
+      "invalid_status": "Invalid status selected",
+      "currency_required": "Currency is required when pricing is set"
+    },
+
+    "messages": {
+      "created_success": "Course created successfully!",
+      "updated_success": "Course updated successfully!",
+      "deleted_success": "Course deleted successfully!",
+      "load_failed": "Failed to load courses",
+      "save_failed": "Failed to save course"
+    },
+
+    "details": {
+      "modal_title": "Course Details",
+
+      "course_information": "Course Information",
+      "category_information": "Category Information",
+      "pricing_information": "Pricing Information",
+
+      "course_id": "Course ID",
+      "course_name": "Course Name",
+      "course_code": "Course Code",
+      "duration": "Duration",
+      "max_capacity": "Max Capacity",
+      "trainees": "Trainees",
+      "created_at": "Created At",
+      "updated_at": "Updated At",
+
+      "sub_category": "Sub Category",
+      "category": "Category",
+
+      "no_pricing": "No pricing set",
+      "no_pricing_hint": "You can add pricing when editing the course"
+    },
+
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "view_details": "View Details",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "delete_confirm_title": "Delete Course",
+      "delete_confirm_message": "Are you sure you want to delete this course? This action cannot be undone."
+    },
+
+    "common": {
+      "na": "N/A",
+      "hours": "hours",
+      "trainees": "trainees"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "Classes",
+      "subtitle": "View all classes from authorized training centers"
+    },
+
+    "search": {
+      "placeholder": "Search classes..."
+    },
+
+    "filters": {
+      "all": "All Status",
+      "scheduled": "Scheduled",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+
+    "table": {
+      "class_name": "Class Name",
+      "course": "Course",
+      "training_center": "Training Center",
+      "instructor": "Instructor",
+      "schedule": "Schedule",
+      "exam_date": "Exam Date",
+      "exam_score": "Exam Score",
+      "location": "Location",
+      "capacity": "Capacity",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No classes found"
+    },
+
+    "actions": {
+      "view_details": "View Details"
+    },
+
+    "status": {
+      "scheduled": "Scheduled",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "na": "N/A"
+    },
+
+    "details": {
+      "modal_title": "Class Details",
+
+      "class_info": "Class Information",
+      "course_info": "Course Information",
+      "training_center_info": "Training Center Information",
+      "instructor_info": "Instructor Information",
+      "schedule_info": "Schedule Information",
+      "location_capacity": "Location & Capacity",
+      "trainees": "Trainees",
+
+      "weekly_schedule": "Weekly Schedule",
+      "no_trainees": "No trainees enrolled in this class"
+    },
+
+    "fields": {
+      "status": "Status",
+      "created_at": "Created At",
+      "updated_at": "Updated At",
+
+      "course_name": "Course Name",
+      "course_code": "Course Code",
+      "course_name_ar": "Course Name (Arabic)",
+      "duration": "Duration",
+      "duration_hours": "{{count}} hours",
+      "level": "Level",
+      "max_capacity": "Max Capacity",
+      "course_status": "Course Status",
+      "description": "Description",
+      "sub_category": "Sub Category",
+      "category": "Category",
+
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "website": "Website",
+      "address": "Address",
+      "city": "City",
+      "country": "Country",
+
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "exam_date": "Exam Date",
+      "exam_score": "Exam Score",
+      "start_time": "Start Time",
+      "end_time": "End Time",
+
+      "location_type": "Location Type",
+      "location_details": "Location Details",
+      "capacity": "Capacity",
+      "full_percentage": "{{percent}}% full",
+
+      "trainee_id": "ID"
+    },
+
+    "common": {
+      "na": "N/A",
+      "to": "to",
+      "hours": "hours",
+      "trainees": "trainees"
+    }
+  },
+  "certificates_screen": {
+    "header": {
+      "title": "Certificates",
+      "subtitle": "View all certificates issued using your templates"
+    },
+
+    "search": {
+      "placeholder": "Search certificates..."
+    },
+
+    "filters": {
+      "all": "All Status",
+      "valid": "Valid",
+      "invalid": "Invalid"
+    },
+
+    "table": {
+      "certificate_number": "Certificate Number",
+      "trainee": "Trainee",
+      "course": "Course",
+      "issue_date": "Issue Date",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No certificates found"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "verify": "Verify Certificate"
+    },
+
+    "status": {
+      "valid": "Valid",
+      "invalid": "Invalid",
+      "na": "N/A"
+    },
+
+    "details": {
+      "modal_title": "Certificate Details",
+
+      "certificate_number": "Certificate Number",
+      "trainee_name": "Trainee Name",
+      "course": "Course",
+      "template": "Template",
+      "issue_date": "Issue Date",
+      "expiry_date": "Expiry Date",
+      "verification_code": "Verification Code",
+      "certificate_pdf": "Certificate PDF",
+      "download_pdf": "Download PDF",
+      "status": "Status"
+    },
+
+    "pagination": {
+      "per_page": "Items per page"
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "certificate_templates_screen": {
+    "header": {
+      "title": "Certificate Templates",
+      "subtitle": "Create and manage certificate templates",
+      "create": "Create Template"
+    },
+
+    "search": {
+      "placeholder": "Search templates..."
+    },
+
+    "filters": {
+      "all": "All Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+
+    "table": {
+      "name": "Name",
+      "category": "Category",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No templates found"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "edit": "Edit",
+      "design": "Design Template",
+      "delete": "Delete"
+    },
+
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "na": "N/A"
+    },
+
+    "modal": {
+      "create_title": "Create Template",
+      "edit_title": "Edit Template",
+      "details_title": "Template Details"
+    },
+
+    "form": {
+      "template_name": "Template Name",
+      "category": "Category",
+      "select_category": "Select Category",
+      "status": "Status"
+    },
+
+    "buttons": {
+      "cancel": "Cancel",
+      "create": "Create",
+      "update": "Update",
+      "saving": "Saving..."
+    },
+
+    "details": {
+      "template_name": "Template Name",
+      "category": "Category",
+      "status": "Status",
+      "configuration": "Configuration",
+      "background_image": "Background Image",
+      "no_configuration": "No configuration",
+      "no_background": "No background image"
+    },
+
+    "errors": {
+      "save_failed": "Failed to save template. Please try again.",
+      "delete_failed": "Failed to delete template. Please try again.",
+      "delete_in_use": "This template is being used by {{count}} certificate(s). Deleting it will also delete all associated certificates."
+    },
+
+    "confirmations": {
+      "delete": "Are you sure you want to delete \"{{name}}\"?"
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "discount_codes_screen": {
+    "header": {
+      "title": "Discount Codes",
+      "subtitle": "Manage and track all discount codes",
+      "add_code": "Add Code"
+    },
+
+    "search": {
+      "placeholder": "Search by code or type..."
+    },
+
+    "filters": {
+      "status": {
+        "all": "All Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "expired": "Expired",
+        "depleted": "Depleted"
+      }
+    },
+
+    "table": {
+      "code": "Code",
+      "discount": "Discount",
+      "type": "Type",
+      "courses": "Courses",
+      "status": "Status",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "quantity": "Quantity",
+      "empty": "No discount codes found. Create your first discount code!",
+      "no_courses_assigned": "No courses assigned",
+      "unknown_course": "Unknown Course",
+      "not_set": "Not Set"
+    },
+
+    "types": {
+      "time_limited": "Time Limited",
+      "quantity_based": "Quantity Based"
+    },
+
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "na": "N/A"
+    },
+
+    "modal": {
+      "add_title": "Add New Discount Code",
+      "edit_title": "Edit Discount Code"
+    },
+
+    "form": {
+      "discount_code": "Discount Code",
+      "discount_percentage": "Discount Percentage",
+      "course": "Course",
+      "select_course": "Select a course...",
+      "discount_type": "Discount Type",
+      "status": "Status",
+      "valid_from": "Valid From",
+      "valid_until": "Valid Until",
+      "total_quantity": "Total Quantity",
+
+      "code_placeholder": "e.g., SAVE20",
+      "percentage_placeholder": "e.g., 20",
+      "quantity_placeholder": "e.g., 100"
+    },
+
+    "buttons": {
+      "cancel": "Cancel",
+      "create": "Create Discount Code",
+      "update": "Update Discount Code",
+      "creating": "Creating...",
+      "updating": "Updating..."
+    },
+
+    "validation": {
+      "code_required": "Discount code is required",
+      "discount_percentage_required": "Valid discount percentage is required",
+      "discount_type_required": "Discount type is required",
+      "course_required": "Course is required",
+
+      "valid_from_required": "Valid from date is required",
+      "valid_until_required": "Valid until date is required",
+      "valid_until_after_valid_from": "Valid until date must be after valid from date",
+
+      "total_quantity_required": "Total quantity is required and must be greater than 0"
+    },
+
+    "messages": {
+      "created_success": "Discount code created successfully!",
+      "updated_success": "Discount code updated successfully!",
+      "deleted_success": "Discount code deleted successfully!"
+    },
+
+    "errors": {
+      "create_failed": "Failed to create discount code. Please try again.",
+      "delete_id_not_found": "Cannot delete: Discount code ID not found",
+      "delete_failed": "Failed to delete discount code: {{message}}"
+    },
+
+    "confirmations": {
+      "delete_title": "Delete Discount Code",
+      "delete_message": "Are you sure you want to delete discount code \"{{code}}\"? This action cannot be undone.",
+      "delete_confirm": "Delete"
+    }
+  },
+  "categories_screen": {
+    "header": {
+      "title": "Categories",
+      "subtitle": "View assigned categories and manage your own categories"
+    },
+
+    "stats": {
+      "total_categories": "Total Categories",
+      "active_categories": "Active Categories",
+      "sub_categories": "Sub Categories",
+      "active_sub_categories": "Active Sub Categories"
+    },
+
+    "table": {
+      "category": "Category",
+      "description": "Description",
+      "status": "Status",
+      "type": "Type",
+      "actions": "Actions",
+      "no_data": "No categories found",
+      "no_sub_categories": "No sub categories found for this category"
+    },
+
+    "filters": {
+      "all": "All Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+
+    "search": {
+      "placeholder": "Search by name..."
+    },
+
+    "actions": {
+      "refresh": "Refresh",
+      "add_category": "Add Category",
+      "edit_category": "Edit Category",
+      "delete_category": "Delete Category",
+      "add_sub_category": "Add Sub Category",
+      "edit_sub_category": "Edit Sub Category",
+      "delete_sub_category": "Delete Sub Category"
+    },
+
+    "badges": {
+      "created_by_me": "Created by Me",
+      "assigned_by_admin": "Assigned by Admin"
+    },
+
+    "modal": {
+      "add_category": "Add New Category",
+      "edit_category": "Edit Category",
+      "add_sub_category": "Add Sub Category",
+      "edit_sub_category": "Edit Sub Category"
+    },
+
+    "form": {
+      "category_name_en": "Category Name (English)",
+      "category_name_ar": "Category Name (Arabic)",
+      "description": "Description",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+
+    "messages": {
+      "save_failed": "Failed to save category",
+      "delete_failed": "Failed to delete category"
+    },
+
+    "common": {
+      "na": "N/A",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    }
+  },
+  "payment_transactions_screen": {
+    "header": {
+      "title": "Payment Transactions",
+      "subtitle": "View all payment transactions"
+    },
+
+    "summary": {
+      "total_transactions": "Total Transactions",
+      "total_received": "Total Received",
+      "total_paid": "Total Paid"
+    },
+
+    "search": {
+      "placeholder": "Search transactions..."
+    },
+
+    "filters": {
+      "type": {
+        "all": "All Types",
+        "subscription": "Subscription",
+        "code_purchase": "Code Purchase",
+        "material_purchase": "Material Purchase",
+        "course_purchase": "Course Purchase",
+        "commission": "Commission",
+        "settlement": "Settlement"
+      },
+      "status": {
+        "all": "All Status",
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      }
+    },
+
+    "table": {
+      "type": "Type",
+      "payer": "Payer",
+      "payee": "Payee",
+      "total_amount": "Total Amount",
+      "received": "Received",
+      "commission": "Commission",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions",
+      "empty": "No transactions found"
+    },
+
+    "actions": {
+      "view_details": "View Details"
+    },
+
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded",
+      "na": "N/A"
+    },
+
+    "details": {
+      "modal_title": "Transaction Details",
+
+      "transaction_type": "Transaction Type",
+      "payment_method": "Payment Method",
+      "payment_type": "Payment Type",
+      "total_amount": "Total Amount",
+      "amount_received": "Amount Received",
+      "platform_commission": "Platform Commission",
+
+      "payer_info": "Payer Information",
+      "payee_info": "Payee Information",
+
+      "name": "Name",
+      "email": "Email",
+      "type": "Type",
+
+      "description": "Description",
+
+      "reference_info": "Reference Information",
+      "reference_type": "Type",
+
+      "commission_ledgers": "Commission Ledgers",
+      "group_commission": "Group Commission",
+      "acc_commission": "ACC Commission",
+
+      "created_at": "Created At",
+      "completed_at": "Completed At",
+
+      "payment_gateway_transaction_id": "Payment Gateway Transaction ID"
+    },
+
+    "messages": {
+      "amount_after_commission": "Amount you received after commission",
+      "commission_deducted": "Commission deducted from total amount"
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "pending_payments_screen": {
+    "header": {
+      "title": "Pending Manual Payments",
+      "subtitle": "Review and approve manual payment requests"
+    },
+
+    "search": {
+      "placeholder": "Search by training center, course, amount, or date..."
+    },
+
+    "table": {
+      "training_center": "Training Center",
+      "course": "Course",
+      "quantity": "Quantity",
+      "total_amount": "Total Amount",
+      "payment_amount": "Payment Amount",
+      "submitted_date": "Submitted Date",
+      "actions": "Actions",
+      "empty": "No pending payments found",
+      "empty_title": "No pending payments",
+      "empty_subtitle": "All payment requests have been reviewed"
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "approve_payment": "Approve Payment",
+      "reject_payment": "Reject Payment"
+    },
+
+    "details": {
+      "modal_title": "Payment Request Details",
+
+      "training_center": "Training Center",
+      "course": "Course",
+      "quantity": "Quantity",
+      "total_amount": "Total Amount",
+      "payment_amount": "Payment Amount",
+      "final_amount": "Final Amount",
+      "submitted_date": "Submitted Date",
+      "updated_at": "Updated At",
+
+      "receipt": "Payment Receipt",
+      "view_receipt": "View Receipt"
+    },
+
+    "approve": {
+      "modal_title": "Approve Payment",
+
+      "training_center": "Training Center",
+      "course": "Course",
+      "quantity": "Quantity",
+      "calculated_total": "Calculated Total",
+
+      "payment_amount": "Payment Amount",
+      "payment_amount_help": "Enter the payment amount (should match: {{amount}})",
+
+      "submit": "Approve Payment",
+      "submitting": "Approving..."
+    },
+
+    "reject": {
+      "modal_title": "Reject Payment",
+
+      "training_center": "Training Center",
+      "course": "Course",
+      "quantity": "Quantity",
+      "amount": "Amount",
+
+      "rejection_reason": "Rejection Reason",
+      "rejection_placeholder": "Enter rejection reason...",
+      "rejection_help": "Please provide a clear reason for rejecting this payment request (max 1000 characters)",
+
+      "submit": "Reject Payment",
+      "submitting": "Rejecting..."
+    },
+
+    "validation": {
+      "payment_amount_required": "Please enter a valid payment amount",
+      "payment_amount_mismatch": "Payment amount must match the calculated total amount: {{amount}}",
+      "rejection_reason_required": "Please enter a rejection reason",
+      "rejection_reason_max": "Rejection reason must be less than 1000 characters"
+    },
+
+    "messages": {
+      "approve_success": "Payment approved successfully. Codes have been generated.",
+      "reject_success": "Payment rejected successfully.",
+      "approve_failed": "Failed to approve payment. Please try again.",
+      "reject_failed": "Failed to reject payment. Please try again."
+    },
+
+    "common": {
+      "cancel": "Cancel",
+      "na": "N/A"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "Profile",
+      "subtitle": "Manage your account information",
+      "edit": "Edit Profile"
+    },
+
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+
+    "sections": {
+      "accreditation_info": {
+        "title": "Accreditation Body Information",
+        "subtitle": "Basic organization details"
+      },
+      "physical_address": {
+        "title": "Physical Address",
+        "subtitle": "Main office location"
+      },
+      "mailing_address": {
+        "title": "Mailing Address",
+        "same_as_physical": "Same as Physical Address"
+      },
+      "primary_contact": {
+        "title": "Primary Contact",
+        "subtitle": "Main point of contact"
+      },
+      "secondary_contact": {
+        "title": "Secondary Contact",
+        "subtitle": "Secondary point of contact"
+      },
+      "additional_info": {
+        "title": "Additional Information",
+        "subtitle": "Official Documents & Details"
+      },
+      "agreements": {
+        "title": "Agreements",
+        "subtitle": "Terms & Conditions"
+      },
+      "language": {
+        "title": "Language Settings",
+        "subtitle": "Choose your preferred system language"
+      },
+      "password": {
+        "title": "Change Password",
+        "subtitle": "Update your account password"
+      }
+    },
+
+    "form": {
+      "legal_name": "Legal Name",
+      "email": "Email",
+      "phone": "Phone",
+      "fax": "Fax",
+      "website": "Website",
+
+      "street_address": "Street Address",
+      "postal_code": "Postal Code",
+      "country": "Country",
+      "city": "City",
+
+      "title": "Title",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "mobile": "Mobile",
+
+      "passport_copy": "Passport Copy",
+      "view_passport": "View Current Passport",
+
+      "gov_registry_number": "Gov Registry Number",
+      "hear_about_us": "How did you hear about us?",
+      "company_certificate": "Company Registration Certificate",
+      "view_certificate": "View Current Certificate",
+
+      "language": "Language"
+    },
+
+    "placeholders": {
+      "select_country": "Select Country",
+      "select_city": "Select City",
+      "hear_about_us": "How did you hear about us?"
+    },
+
+    "agreements": {
+      "receive_comms": "I agree to receive other communications from BOMEQP",
+      "terms": "I confirm that I have read, understood, and accepted the terms and conditions"
+    },
+
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "upload_logo": "Click to upload logo"
+    },
+
+    "messages": {
+      "profile_updated": "Profile updated successfully!",
+      "password_changed": "Password changed successfully!"
+    },
+
+    "validation": {
+      "required": "This field is required",
+      "invalid_email": "Invalid email",
+      "logo_type": "Logo must be an image file (JPG, JPEG, or PNG only)",
+      "logo_size": "Logo size must not exceed 5MB",
+      "file_type": "File must be PDF, JPG, JPEG, or PNG",
+      "file_size": "File size must not exceed 10MB"
+    },
+
+    "password": {
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "current_placeholder": "Enter your current password",
+      "new_placeholder": "Must include uppercase, numbers & special characters",
+      "confirm_placeholder": "Confirm your new password",
+      "submit": "Change Password",
+      "submitting": "Changing..."
+    },
+
+    "common": {
+      "na": "N/A"
+    }
+  }
+}

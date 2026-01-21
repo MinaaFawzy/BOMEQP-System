@@ -6,12 +6,16 @@ import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
 import enNavigation from './locales/en/navigation.json';
 import enTrainingCenter from './locales/en/training_center.json';
+import enAccreditation from './locales/en/accreditation.json';
+import enInstructor from './locales/en/instructor.json';
 
 // Import Arabic translations
 import arCommon from './locales/ar/common.json';
 import arAuth from './locales/ar/auth.json';
 import arNavigation from './locales/ar/navigation.json';
 import arTrainingCenter from './locales/ar/training_center.json';
+import arAccreditation from './locales/ar/accreditation.json';
+import arInstructor from './locales/ar/instructor.json';
 
 // Get saved language from localStorage or default to 'en'
 const savedLanguage = localStorage.getItem('language') || 'en';
@@ -26,17 +30,21 @@ i18n
                 auth: enAuth,
                 navigation: enNavigation,
                 training_center: enTrainingCenter,
+                accreditation: enAccreditation,
+                instructor: enInstructor,
             },
             ar: {
                 common: arCommon,
                 auth: arAuth,
                 navigation: arNavigation,
                 training_center: arTrainingCenter,
+                accreditation: arAccreditation,
+                instructor: arInstructor,
             },
         },
         lng: savedLanguage, // default language
         fallbackLng: 'en', // fallback language if translation is missing
-        ns: ['common', 'auth', 'navigation', 'training_center'], // namespaces
+        ns: ['common', 'auth', 'navigation', 'training_center', 'accreditation', 'instructor'], // namespaces
         defaultNS: 'common', // default namespace
         interpolation: {
             escapeValue: false, // react already safes from xss

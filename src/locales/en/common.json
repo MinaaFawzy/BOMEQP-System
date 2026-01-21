@@ -51,5 +51,24 @@
   "language": "Language",
   "theme": "Theme",
   "dark_mode": "Dark Mode",
-  "light_mode": "Light Mode"
+  "light_mode": "Light Mode",
+  "pagination": {
+    "info": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "results": "results"
+    },
+
+    "per_page": {
+      "label": "Show:"
+    },
+
+    "controls": {
+      "first_page": "First page",
+      "previous_page": "Previous page",
+      "next_page": "Next page",
+      "last_page": "Last page"
+    }
+  }
 }

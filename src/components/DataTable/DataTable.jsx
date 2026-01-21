@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Edit, Trash2, Eye, ChevronLeft, ChevronRight, Search, Filter, X, ArrowUpDown, ArrowUp, ArrowDown, Loader } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 import './DataTable.css';
 
 const DataTable = ({
@@ -26,6 +27,7 @@ const DataTable = ({
   onSearch = null, // Optional search callback
   isSearchLoading = false // Optional search loading state
 }) => {
+  const { t } = useTranslation('common');
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   // Use controlled value if provided, otherwise internal state
   const searchTerm = searchValue !== undefined ? searchValue : internalSearchTerm;
@@ -297,7 +299,7 @@ const DataTable = ({
                   >
                     <Filter size={18} />
                     <span className="data-table-filter-text">
-                      {filterOptions.find(opt => opt.value === selectedFilter)?.label || 'All'}
+                      {filterOptions.find(opt => opt.value === selectedFilter)?.label || t('all')}
                     </span>
                   </button>
                   {showFilters && (
@@ -364,7 +366,7 @@ const DataTable = ({
                 })}
                 {(onEdit || onDelete || onView) && (
                   <th className="data-table-th">
-                    Actions
+                    {t('actions')}
                   </th>
                 )}
               </tr>
@@ -427,7 +429,7 @@ const DataTable = ({
                                         key="edit"
                                         onClick={() => onEdit(row)}
                                         className="data-table-action-btn data-table-action-edit"
-                                        title="Edit"
+                                        title={t('edit')}
                                       >
                                         <Edit size={18} />
                                       </button>
@@ -437,7 +439,7 @@ const DataTable = ({
                                         key="delete"
                                         onClick={() => onDelete(row)}
                                         className="data-table-action-btn data-table-action-delete"
-                                        title="Delete"
+                                        title={t('delete')}
                                       >
                                         <Trash2 size={18} />
                                       </button>
@@ -449,7 +451,7 @@ const DataTable = ({
                                         key="view"
                                         onClick={() => onView(row)}
                                         className="data-table-action-btn data-table-action-view"
-                                        title="View"
+                                        title={t('view')}
                                       >
                                         <Eye size={18} />
                                       </button>
@@ -459,7 +461,7 @@ const DataTable = ({
                                         key="edit"
                                         onClick={() => onEdit(row)}
                                         className="data-table-action-btn data-table-action-edit"
-                                        title="Edit"
+                                        title={t('edit')}
                                       >
                                         <Edit size={18} />
                                       </button>
@@ -471,7 +473,7 @@ const DataTable = ({
                                         key="view"
                                         onClick={() => onView(row)}
                                         className="data-table-action-btn data-table-action-view"
-                                        title="View"
+                                        title={t('view')}
                                       >
                                         <Eye size={18} />
                                       </button>
@@ -481,7 +483,7 @@ const DataTable = ({
                                         key="delete"
                                         onClick={() => onDelete(row)}
                                         className="data-table-action-btn data-table-action-delete"
-                                        title="Delete"
+                                        title={t('delete')}
                                       >
                                         <Trash2 size={18} />
                                       </button>
@@ -493,7 +495,7 @@ const DataTable = ({
                                         key="edit"
                                         onClick={() => onEdit(row)}
                                         className="data-table-action-btn data-table-action-edit"
-                                        title="Edit"
+                                        title={t('edit')}
                                       >
                                         <Edit size={18} />
                                       </button>
@@ -505,7 +507,7 @@ const DataTable = ({
                                         key="delete"
                                         onClick={() => onDelete(row)}
                                         className="data-table-action-btn data-table-action-delete"
-                                        title="Delete"
+                                        title={t('delete')}
                                       >
                                         <Trash2 size={18} />
                                       </button>
@@ -517,7 +519,7 @@ const DataTable = ({
                                         key="view"
                                         onClick={() => onView(row)}
                                         className="data-table-action-btn data-table-action-view"
-                                        title="View"
+                                        title={t('view')}
                                       >
                                         <Eye size={18} />
                                       </button>

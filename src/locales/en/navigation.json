@@ -15,7 +15,7 @@
   "courses_classes": "Courses & Classes",
   "financial": "Financial",
   "welcome_back_here_is_your_overview": "Welcome back! Here is your overview",
-  
+
   "group_admin": {
     "title": "Group Admin",
     "acc_applications": "ACC Applications",
@@ -31,11 +31,11 @@
     "instructor_authorizations": "Instructor Authorizations",
     "stripe_settings": "Stripe Settings",
     "classes": "Classes",
-    "pending_payments": "Pending Payments", 
+    "pending_payments": "Pending Payments",
     "people_management": "People Management",
     "courses_classes": "Courses & Classes"
   },
-  
+
   "acc_admin": {
     "title": "ACC Admin",
     "dashboard": "Dashboard",
@@ -53,13 +53,31 @@
     "payment_transactions": "Payment Transactions",
     "pending_payments": "Pending Payments"
   },
-  
-  "instructor": {
-    "title": "Instructor",
+  "acc_drawer": {
+    "dashboard": "Dashboard",
+    "subscription": "Subscription",
+    "management": "Management",
+    "training_centers": "Training Centers",
+    "instructors": "Instructors",
+    "courses_and_content": "Courses and Content",
+    "courses": "Courses",
+    "classes": "Classes",
+    "certificate_templates": "Certificate Templates",
+    "discount_codes": "Discount Codes",
+    "course_categories": "Course Categories",
+    "financial": "Financial",
+    "payment_transactions": "Payment Transactions",
+    "pending_payments": "Pending Payments",
+    "students": "Students",
+    "certificates": "Certificates",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+
+  "instructor_drawer": {
     "dashboard": "Dashboard",
     "classes": "Classes",
-    "materials": "Materials",
-    "earnings": "Earnings",
-    "profile": "Profile"
+    "settings": "Settings",
+    "logout": "Logout"
   }
 }

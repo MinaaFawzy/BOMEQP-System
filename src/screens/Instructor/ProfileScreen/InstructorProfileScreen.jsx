@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
 import { instructorAPI, publicAPI } from '../../../services/api';
@@ -7,12 +8,13 @@ import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import {
-  User, Mail, Lock, Save, KeyRound,
+  User, Mail, Lock, Save, KeyRound, Globe,
   Phone, MapPin, FileText, Upload, X, CheckCircle, Award, Calendar, Eye, Trash2, Edit, Clock, Building2
 } from 'lucide-react';
 import './InstructorProfileScreen.css';
 
 const InstructorProfileScreen = () => {
+  const { t, currentLanguage, changeLanguage, languages } = useTranslation('instructor');
   const { user } = useAuth();
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [loading, setLoading] = useState(false);
@@ -59,8 +61,8 @@ const InstructorProfileScreen = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    setHeaderTitle('Profile');
-    setHeaderSubtitle('Manage your account settings and preferences');
+    setHeaderTitle(t('profile_screen.header.title'));
+    setHeaderSubtitle(t('profile_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -224,16 +226,16 @@ const InstructorProfileScreen = () => {
 
     // Validation
     const validationErrors = {};
-    const firstNameError = validateRequired(formData.first_name, 'First name');
+    const firstNameError = validateRequired(formData.first_name, t('profile_screen.form.first_name'));
     if (firstNameError) validationErrors.first_name = firstNameError;
-    const lastNameError = validateRequired(formData.last_name, 'Last name');
+    const lastNameError = validateRequired(formData.last_name, t('profile_screen.form.last_name'));
     if (lastNameError) validationErrors.last_name = lastNameError;
     if (formData.phone) {
       const phoneError = validatePhone(formData.phone, 10);
       if (phoneError) validationErrors.phone = phoneError;
     }
     if (formData.id_number) {
-      const idError = validateUKID(formData.id_number, 'ID number');
+      const idError = validateUKID(formData.id_number, t('profile_screen.form.id_number'));
       if (idError) validationErrors.id_number = idError;
     }
 
@@ -313,7 +315,7 @@ const InstructorProfileScreen = () => {
           setPassportUrl(updatedInstructor.passport_image_url || updatedInstructor.passport);
           setPassportFile(null);
         }
-        setSuccess('Profile updated successfully!');
+        setSuccess(t('profile_screen.messages.profile_updated'));
       } else {
         // Regular JSON update
         const updatePayload = {
@@ -335,7 +337,7 @@ const InstructorProfileScreen = () => {
         const response = await instructorAPI.updateProfile(updatePayload);
         updatedInstructor = response.profile || response.instructor || response;
         setInstructorData(updatedInstructor);
-        setSuccess('Profile updated successfully!');
+        setSuccess(t('profile_screen.messages.profile_updated'));
       }
 
       // Update form data
@@ -371,7 +373,7 @@ const InstructorProfileScreen = () => {
       } else if (error.errors) {
         setErrors(error.errors);
       } else {
-        setErrors({ general: error.response?.data?.message || error.message || 'Failed to update profile' });
+        setErrors({ general: error.response?.data?.message || error.message || t('profile_screen.validation.password_failed') });
       }
     } finally {
       setSaving(false);
@@ -387,7 +389,7 @@ const InstructorProfileScreen = () => {
     // Validation
     const passwordErrors = {};
     if (!passwordData.current_password) {
-      passwordErrors.current_password = 'Current password is required';
+      passwordErrors.current_password = t('profile_screen.validation.password_required');
     }
     const newPasswordError = validatePassword(passwordData.password, 8, true);
     if (newPasswordError) passwordErrors.password = newPasswordError;
@@ -403,7 +405,7 @@ const InstructorProfileScreen = () => {
     try {
       const { authAPI } = await import('../../../services/api');
       await authAPI.changePassword(passwordData);
-      setSuccess('Password changed successfully!');
+      setSuccess(t('profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
@@ -413,7 +415,7 @@ const InstructorProfileScreen = () => {
       if (error.errors) {
         setErrors(error.errors);
       } else {
-        setErrors({ password: error.message || 'Failed to change password' });
+        setErrors({ password: error.message || t('profile_screen.validation.password_failed') });
       }
     } finally {
       setSaving(false);
@@ -425,13 +427,13 @@ const InstructorProfileScreen = () => {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      setErrors({ cv: 'Only PDF files are allowed' });
+      setErrors({ cv: t('profile_screen.validation.file_type') });
       e.target.value = '';
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setErrors({ cv: 'File size must be less than 10MB' });
+      setErrors({ cv: t('profile_screen.validation.file_size') });
       e.target.value = '';
       return;
     }
@@ -450,7 +452,7 @@ const InstructorProfileScreen = () => {
       if (updatedProfile.cv_url || updatedProfile.cv) {
         setCvUrl(updatedProfile.cv_url || updatedProfile.cv);
         setInstructorData(updatedProfile);
-        setSuccess('CV uploaded successfully!');
+        setSuccess(t('profile_screen.messages.profile_updated')); // Reusing general success message or generic upload success
       } else {
         throw new Error('CV upload failed - no CV URL returned');
       }
@@ -463,7 +465,7 @@ const InstructorProfileScreen = () => {
       } else if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
       } else {
-        setErrors({ cv: error.message || 'Failed to upload CV' });
+        setErrors({ cv: error.message || t('profile_screen.validation.password_failed') }); // Fallback or new key? Did not see generic fail
       }
     } finally {
       setUploadingCv(false);
@@ -471,7 +473,7 @@ const InstructorProfileScreen = () => {
   };
 
   const handleRemoveCv = async () => {
-    if (!confirm('Are you sure you want to remove your CV? This action cannot be undone.')) {
+    if (!confirm(t('profile_screen.cv.remove_confirm'))) {
       return;
     }
 
@@ -488,13 +490,13 @@ const InstructorProfileScreen = () => {
 
       setInstructorData(updatedProfile);
       setCvUrl(null);
-      setSuccess('CV removed successfully!');
+      setSuccess(t('profile_screen.messages.profile_updated'));
     } catch (error) {
       console.error('Failed to remove CV:', error);
       if (error.response?.data?.message) {
         setErrors({ cv: error.response.data.message });
       } else {
-        setErrors({ cv: error.message || 'Failed to remove CV' });
+        setErrors({ cv: error.message || t('profile_screen.validation.password_failed') }); // Reusing generic fail
       }
     } finally {
       setUploadingCv(false);
@@ -565,7 +567,7 @@ const InstructorProfileScreen = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     const fileType = file.type.toLowerCase();
     if (!allowedTypes.includes(fileType)) {
-      setErrors({ ...errors, photo: 'Please select a valid image file (JPG, JPEG, or PNG only)' });
+      setErrors({ ...errors, photo: t('profile_screen.validation.photo_type') });
       e.target.value = '';
       return;
     }
@@ -587,7 +589,7 @@ const InstructorProfileScreen = () => {
       reader.readAsDataURL(resizedFile);
     } catch (error) {
       console.error('Failed to resize image:', error);
-      setErrors({ ...errors, photo: 'Failed to process image' });
+      setErrors({ ...errors, photo: t('profile_screen.validation.photo_type') }); // Generic photo error
       e.target.value = '';
     }
 
@@ -605,14 +607,14 @@ const InstructorProfileScreen = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     const fileType = file.type.toLowerCase();
     if (!allowedTypes.includes(fileType)) {
-      setErrors({ ...errors, passport: 'Please select a valid file (JPG, JPEG, PNG, or PDF only)' });
+      setErrors({ ...errors, passport: t('profile_screen.validation.photo_type') }); // Closest match
       e.target.value = '';
       return;
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setErrors({ ...errors, passport: 'File size must be less than 10MB' });
+      setErrors({ ...errors, passport: t('profile_screen.validation.file_size') });
       e.target.value = '';
       return;
     }
@@ -641,7 +643,7 @@ const InstructorProfileScreen = () => {
       }
     } catch (error) {
       console.error('Failed to process passport file:', error);
-      setErrors({ ...errors, passport: 'Failed to process file' });
+      setErrors({ ...errors, passport: t('profile_screen.validation.photo_type') });
       e.target.value = '';
     } finally {
       setUploadingPassport(false);
@@ -668,7 +670,7 @@ const InstructorProfileScreen = () => {
 
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('profile_screen.common.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -702,8 +704,8 @@ const InstructorProfileScreen = () => {
                 <User className="text-primary-600" size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
-                <p className="text-sm text-gray-500">Update your personal details</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('profile_screen.sections.profile_info.title')}</h2>
+                <p className="text-sm text-gray-500">{t('profile_screen.sections.profile_info.subtitle')}</p>
               </div>
             </div>
             {!isEditingProfile && (
@@ -713,7 +715,7 @@ const InstructorProfileScreen = () => {
                 onClick={() => setIsEditingProfile(true)}
                 icon={<Edit size={18} />}
               >
-                Edit Profile
+                {t('profile_screen.header.edit')}
               </Button>
             )}
           </div>
@@ -722,7 +724,7 @@ const InstructorProfileScreen = () => {
             {/* Profile Photo Section */}
             <div className="pb-4 border-b border-gray-200">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Profile Photo
+                {t('profile_screen.profile_photo.label')}
               </label>
               <div className="flex items-center gap-6">
                 <div className="relative">
@@ -751,7 +753,7 @@ const InstructorProfileScreen = () => {
                       />
                       <Upload className="h-4 w-4 text-gray-600 mr-2" />
                       <span className="text-sm text-gray-700">
-                        {photoFile ? 'Change Photo' : 'Select Photo'}
+                        {photoFile ? t('profile_screen.profile_photo.change') : t('profile_screen.profile_photo.select')}
                       </span>
                     </label>
                   </div>
@@ -759,7 +761,7 @@ const InstructorProfileScreen = () => {
               </div>
               {isEditingProfile && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-500">JPG, JPEG, PNG only, max 5MB</p>
+                  <p className="text-xs text-gray-500">{t('profile_screen.profile_photo.hint')}</p>
                   {errors.photo && (
                     <p className="text-sm text-red-600 mt-1">{errors.photo}</p>
                   )}
@@ -769,7 +771,7 @@ const InstructorProfileScreen = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="First Name"
+                label={t('profile_screen.form.first_name')}
                 name="first_name"
                 value={formData.first_name}
                 onChange={handleProfileChange}
@@ -779,7 +781,7 @@ const InstructorProfileScreen = () => {
               />
 
               <FormInput
-                label="Last Name"
+                label={t('profile_screen.form.last_name')}
                 name="last_name"
                 value={formData.last_name}
                 onChange={handleProfileChange}
@@ -791,7 +793,7 @@ const InstructorProfileScreen = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="Email Address"
+                label={t('profile_screen.form.email')}
                 type="email"
                 name="email"
                 value={formData.email}
@@ -799,11 +801,11 @@ const InstructorProfileScreen = () => {
                 required
                 disabled
                 error={errors.email}
-                helpText="Email cannot be changed"
+                helpText={t('profile_screen.form.email_help')}
               />
 
               <FormInput
-                label="Phone Number"
+                label={t('profile_screen.form.phone')}
                 name="phone"
                 type="tel"
                 value={formData.phone}
@@ -815,7 +817,7 @@ const InstructorProfileScreen = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="Date of Birth"
+                label={t('profile_screen.form.date_of_birth')}
                 name="date_of_birth"
                 type="date"
                 value={formData.date_of_birth}
@@ -832,14 +834,14 @@ const InstructorProfileScreen = () => {
                 onChange={handleProfileChange}
                 disabled={!isEditingProfile}
                 error={errors.id_number}
-                placeholder="Enter ID number (minimum 8 characters)"
+                placeholder={t('profile_screen.form.id_placeholder')}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country
+                  {t('profile_screen.form.country')}
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -850,7 +852,7 @@ const InstructorProfileScreen = () => {
                     className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${!isEditingProfile ? 'no-dropdown-arrow' : ''}`}
                     disabled={!isEditingProfile || loadingCountries}
                   >
-                    <option value="">Select Country</option>
+                    <option value="">{t('profile_screen.form.select_country')}</option>
                     {countries.map((country) => (
                       <option key={country.code} value={country.code}>
                         {country.name}
@@ -865,7 +867,7 @@ const InstructorProfileScreen = () => {
 
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City
+                  {t('profile_screen.form.city')}
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -876,7 +878,7 @@ const InstructorProfileScreen = () => {
                     className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${!isEditingProfile ? 'no-dropdown-arrow' : ''}`}
                     disabled={!isEditingProfile || !formData.country || loadingCities}
                   >
-                    <option value="">Select City</option>
+                    <option value="">{t('profile_screen.form.select_city')}</option>
                     {cities.map((city, index) => (
                       <option key={index} value={city.name}>
                         {city.name}
@@ -892,28 +894,29 @@ const InstructorProfileScreen = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="ID Number"
+                label={t('profile_screen.form.id_number')}
                 name="id_number"
                 value={formData.id_number}
                 onChange={handleProfileChange}
                 disabled={!isEditingProfile}
                 error={errors.id_number}
-                placeholder="Enter ID number (minimum 8 characters)"
+                placeholder={t('profile_screen.form.id_placeholder')}
               />
 
               {/* Assessor Status (Read-only) */}
+              {/* Assessor Status (Read-only) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
+                  {t('profile_screen.form.type')}
                 </label>
                 <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
                   {instructorData?.is_assessor ? (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                      Assessor
+                      {t('profile_screen.status.assessor')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                      Instructor
+                      {t('profile_screen.status.instructor')}
                     </span>
                   )}
                 </div>
@@ -923,34 +926,34 @@ const InstructorProfileScreen = () => {
               {/* Account Status (Read-only) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Account Status
+                  {t('profile_screen.form.account_status')}
                 </label>
                 <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
                   {instructorData?.status === 'active' && (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-100 text-green-800 border border-green-200">
                       <CheckCircle size={16} className="mr-2" />
-                      Active
+                      {t('profile_screen.status.active')}
                     </span>
                   )}
                   {instructorData?.status === 'pending' && (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
                       <Clock size={16} className="mr-2" />
-                      Pending
+                      {t('profile_screen.status.pending')}
                     </span>
                   )}
                   {instructorData?.status === 'suspended' && (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-800 border border-red-200">
                       <X size={16} className="mr-2" />
-                      Suspended
+                      {t('profile_screen.status.suspended')}
                     </span>
                   )}
                   {instructorData?.status === 'inactive' && (
                     <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                      Inactive
+                      {t('profile_screen.status.inactive')}
                     </span>
                   )}
                   {!instructorData?.status && (
-                    <span className="text-sm text-gray-500">N/A</span>
+                    <span className="text-sm text-gray-500">{t('profile_screen.common.na')}</span>
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Your account status is managed by your Training Center</p>
@@ -961,7 +964,7 @@ const InstructorProfileScreen = () => {
             {instructorData?.training_center && (
               <div className="pt-4 border-t border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Training Center
+                  {t('profile_screen.form.training_center')}
                 </label>
                 <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3">
@@ -970,7 +973,7 @@ const InstructorProfileScreen = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
-                        {instructorData.training_center.name || 'N/A'}
+                        {instructorData.training_center.name || t('profile_screen.common.na')}
                       </p>
                       {instructorData.training_center.email && (
                         <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
@@ -993,7 +996,7 @@ const InstructorProfileScreen = () => {
 
             {/* Specializations */}
             <LanguageSelector
-              label="Specializations"
+              label={t('profile_screen.form.specializations')}
               value={formData.specializations}
               onChange={(specializations) => {
                 setFormData({ ...formData, specializations });
@@ -1011,8 +1014,8 @@ const InstructorProfileScreen = () => {
                     <FileText className="text-indigo-600" size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">CV / Resume</h3>
-                    <p className="text-sm text-gray-500">Upload or update your curriculum vitae</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('profile_screen.sections.cv.title')}</h3>
+                    <p className="text-sm text-gray-500">{t('profile_screen.sections.cv.subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -1025,7 +1028,7 @@ const InstructorProfileScreen = () => {
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <FileText className="text-green-600 flex-shrink-0 mt-1" size={24} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 mb-2">Current CV</p>
+                          <p className="text-sm font-semibold text-gray-900 mb-2">{t('profile_screen.cv.current')}</p>
                           <a
                             href={cvUrl}
                             target="_blank"
@@ -1033,7 +1036,7 @@ const InstructorProfileScreen = () => {
                             className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                           >
                             <FileText size={16} />
-                            {cvUrl.split('/').pop().split('?')[0] || 'View CV'}
+                            {cvUrl.split('/').pop().split('?')[0] || t('profile_screen.cv.view')}
                           </a>
                           <p className="text-xs text-gray-500">
                             Click the link above to view your current CV in a new tab
@@ -1050,8 +1053,8 @@ const InstructorProfileScreen = () => {
                     <div className="flex items-center gap-3">
                       <FileText className="text-gray-400" size={20} />
                       <div>
-                        <p className="text-sm font-medium text-gray-700">No CV uploaded</p>
-                        <p className="text-xs text-gray-500 mt-1">Click Edit Profile to upload your CV</p>
+                        <p className="text-sm font-medium text-gray-700">{t('profile_screen.cv.none')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t('profile_screen.cv.none_hint')}</p>
                       </div>
                     </div>
                   </div>
@@ -1066,7 +1069,7 @@ const InstructorProfileScreen = () => {
                           <div className="flex items-start gap-3 flex-1 min-w-0">
                             <FileText className="text-green-600 flex-shrink-0 mt-1" size={24} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 mb-2">Current CV</p>
+                              <p className="text-sm font-semibold text-gray-900 mb-2">{t('profile_screen.cv.current')}</p>
                               <a
                                 href={cvUrl}
                                 target="_blank"
@@ -1074,7 +1077,7 @@ const InstructorProfileScreen = () => {
                                 className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                               >
                                 <FileText size={16} />
-                                {cvUrl.split('/').pop().split('?')[0] || 'View CV'}
+                                {cvUrl.split('/').pop().split('?')[0] || t('profile_screen.cv.view')}
                               </a>
                             </div>
                           </div>
@@ -1092,7 +1095,7 @@ const InstructorProfileScreen = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {cvUrl ? 'Update CV' : 'Upload CV'}
+                        {cvUrl ? t('profile_screen.cv.update') : t('profile_screen.cv.upload')}
                       </label>
                       <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer">
                         <input
@@ -1106,15 +1109,15 @@ const InstructorProfileScreen = () => {
                           {uploadingCv ? (
                             <>
                               <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent mx-auto mb-2"></div>
-                              <p className="text-sm text-gray-600">Uploading CV...</p>
+                              <p className="text-sm text-gray-600">{t('profile_screen.cv.uploading')}</p>
                             </>
                           ) : (
                             <>
                               <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                               <p className="text-sm text-gray-600">
-                                {cvUrl ? 'Click to update CV' : 'Click to upload CV'}
+                                {cvUrl ? t('profile_screen.cv.update') : t('profile_screen.cv.upload')}
                               </p>
-                              <p className="text-xs text-gray-400 mt-1">PDF only, maximum 10MB</p>
+                              <p className="text-xs text-gray-400 mt-1">{t('profile_screen.cv.hint')}</p>
                             </>
                           )}
                         </div>
@@ -1137,8 +1140,8 @@ const InstructorProfileScreen = () => {
                     <FileText className="text-blue-600" size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Passport Copy</h3>
-                    <p className="text-sm text-gray-500">Upload or update your passport document</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('profile_screen.sections.passport.title')}</h3>
+                    <p className="text-sm text-gray-500">{t('profile_screen.sections.passport.subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -1151,7 +1154,7 @@ const InstructorProfileScreen = () => {
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <FileText className="text-blue-600 flex-shrink-0 mt-1" size={24} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 mb-2">Current Passport</p>
+                          <p className="text-sm font-semibold text-gray-900 mb-2">{t('profile_screen.passport.current')}</p>
                           <a
                             href={passportUrl}
                             target="_blank"
@@ -1159,7 +1162,7 @@ const InstructorProfileScreen = () => {
                             className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                           >
                             <FileText size={16} />
-                            {passportUrl.split('/').pop().split('?')[0] || 'View Passport'}
+                            {passportUrl.split('/').pop().split('?')[0] || t('profile_screen.passport.view')}
                           </a>
                           <p className="text-xs text-gray-500">
                             Click the link above to view your current passport in a new tab
@@ -1176,8 +1179,8 @@ const InstructorProfileScreen = () => {
                     <div className="flex items-center gap-3">
                       <FileText className="text-gray-400" size={20} />
                       <div>
-                        <p className="text-sm font-medium text-gray-700">No passport uploaded</p>
-                        <p className="text-xs text-gray-500 mt-1">Click Edit Profile to upload your passport</p>
+                        <p className="text-sm font-medium text-gray-700">{t('profile_screen.passport.none')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t('profile_screen.passport.none_hint')}</p>
                       </div>
                     </div>
                   </div>
@@ -1192,7 +1195,7 @@ const InstructorProfileScreen = () => {
                           <div className="flex items-start gap-3 flex-1 min-w-0">
                             <FileText className="text-blue-600 flex-shrink-0 mt-1" size={24} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 mb-2">Current Passport</p>
+                              <p className="text-sm font-semibold text-gray-900 mb-2">{t('profile_screen.passport.current')}</p>
                               <a
                                 href={passportUrl}
                                 target="_blank"
@@ -1200,7 +1203,7 @@ const InstructorProfileScreen = () => {
                                 className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 underline font-medium mb-2 break-all"
                               >
                                 <FileText size={16} />
-                                {passportUrl.split('/').pop().split('?')[0] || 'View Passport'}
+                                {passportUrl.split('/').pop().split('?')[0] || t('profile_screen.passport.view')}
                               </a>
                             </div>
                           </div>
@@ -1210,7 +1213,7 @@ const InstructorProfileScreen = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {passportUrl ? 'Update Passport' : 'Upload Passport'}
+                        {passportUrl ? t('profile_screen.passport.update') : t('profile_screen.passport.upload')}
                       </label>
                       <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer">
                         <input
@@ -1224,15 +1227,15 @@ const InstructorProfileScreen = () => {
                           {uploadingPassport ? (
                             <>
                               <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent mx-auto mb-2"></div>
-                              <p className="text-sm text-gray-600">Processing passport...</p>
+                              <p className="text-sm text-gray-600">{t('profile_screen.passport.processing')}</p>
                             </>
                           ) : (
                             <>
                               <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                               <p className="text-sm text-gray-600">
-                                {passportUrl ? 'Click to update passport' : 'Click to upload passport'}
+                                {passportUrl ? t('profile_screen.passport.update') : t('profile_screen.passport.upload')}
                               </p>
-                              <p className="text-xs text-gray-400 mt-1">JPG, PNG, or PDF, maximum 10MB</p>
+                              <p className="text-xs text-gray-400 mt-1">{t('profile_screen.passport.hint')}</p>
                             </>
                           )}
                         </div>
@@ -1267,8 +1270,8 @@ const InstructorProfileScreen = () => {
               <Award className="text-purple-600" size={24} />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900">Certificates</h2>
-              <p className="text-sm text-gray-500">Manage your professional certificates</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('profile_screen.sections.certificates.title')}</h2>
+              <p className="text-sm text-gray-500">{t('profile_screen.sections.certificates.subtitle')}</p>
             </div>
             {isEditingProfile && (
               <Button
@@ -1277,7 +1280,7 @@ const InstructorProfileScreen = () => {
                 onClick={handleAddNewCertificate}
                 icon={<Award size={18} />}
               >
-                Add Certificate
+                {t('profile_screen.certificates.add')}
               </Button>
             )}
           </div>
@@ -1292,11 +1295,11 @@ const InstructorProfileScreen = () => {
                       <div className="flex-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Certificate Name</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile_screen.certificates.name')}</label>
                             <p className="text-sm text-gray-900">{cert.name}</p>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile_screen.certificates.issue_date')}</label>
                             <p className="text-sm text-gray-900">{formatDate(cert.issue_date)}</p>
                           </div>
                         </div>
@@ -1309,7 +1312,7 @@ const InstructorProfileScreen = () => {
                               className="text-sm text-primary-600 hover:text-primary-700 underline flex items-center gap-1"
                             >
                               <Eye size={16} />
-                              View Certificate
+                              {t('profile_screen.certificates.view')}
                             </a>
                           </div>
                         )}
@@ -1323,21 +1326,21 @@ const InstructorProfileScreen = () => {
             {/* New Certificates */}
             {newCertificates.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">New Certificates to Add</h3>
+                <h3 className="text-sm font-semibold text-gray-700">{t('profile_screen.certificates.new_title')}</h3>
                 {newCertificates.map((cert, index) => (
                   <div key={index} className="p-4 border-2 border-dashed border-primary-300 rounded-lg bg-primary-50">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-3">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <FormInput
-                            label="Certificate Name"
+                            label={t('profile_screen.certificates.name')}
                             value={cert.name}
                             onChange={(e) => handleUpdateNewCertificate(index, 'name', e.target.value)}
                             required
                             error={errors[`new_certificates.${index}.name`]}
                           />
                           <FormInput
-                            label="Issue Date"
+                            label={t('profile_screen.certificates.issue_date')}
                             type="date"
                             value={cert.issue_date}
                             onChange={(e) => handleUpdateNewCertificate(index, 'issue_date', e.target.value)}
@@ -1347,7 +1350,7 @@ const InstructorProfileScreen = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Certificate File (PDF) *
+                            {t('profile_screen.certificates.file')} *
                           </label>
                           <input
                             type="file"
@@ -1356,11 +1359,11 @@ const InstructorProfileScreen = () => {
                               const file = e.target.files[0];
                               if (file) {
                                 if (file.type !== 'application/pdf') {
-                                  setErrors({ [`new_certificates.${index}.file`]: 'Only PDF files are allowed' });
+                                  setErrors({ [`new_certificates.${index}.file`]: t('profile_screen.validation.file_type') });
                                   return;
                                 }
                                 if (file.size > 10 * 1024 * 1024) {
-                                  setErrors({ [`new_certificates.${index}.file`]: 'File size must be less than 10MB' });
+                                  setErrors({ [`new_certificates.${index}.file`]: t('profile_screen.validation.file_size') });
                                   return;
                                 }
                                 handleUpdateNewCertificate(index, 'file', file);
@@ -1370,7 +1373,7 @@ const InstructorProfileScreen = () => {
                             required
                           />
                           {cert.file && (
-                            <p className="mt-1 text-xs text-gray-500">Selected: {cert.file.name}</p>
+                            <p className="mt-1 text-xs text-gray-500">{t('profile_screen.certificates.selected')} {cert.file.name}</p>
                           )}
                         </div>
                       </div>
@@ -1391,7 +1394,7 @@ const InstructorProfileScreen = () => {
             {certificates.length === 0 && newCertificates.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Award size={48} className="mx-auto mb-3 text-gray-300" />
-                <p>No certificates added yet</p>
+                <p>{t('profile_screen.certificates.none')}</p>
               </div>
             )}
 
@@ -1410,7 +1413,7 @@ const InstructorProfileScreen = () => {
                   disabled={saving}
                   fullWidth
                 >
-                  Cancel
+                  {t('profile_screen.buttons.cancel')}
                 </Button>
                 <Button
                   type="button"
@@ -1421,7 +1424,7 @@ const InstructorProfileScreen = () => {
                   loading={saving}
                   icon={<Save size={20} />}
                 >
-                  Save Changes
+                  {t('profile_screen.buttons.save')}
                 </Button>
               </div>
             )}
@@ -1435,44 +1438,44 @@ const InstructorProfileScreen = () => {
               <KeyRound className="text-red-600" size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-              <p className="text-sm text-gray-500">Update your account password</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('profile_screen.sections.password.title')}</h2>
+              <p className="text-sm text-gray-500">{t('profile_screen.sections.password.subtitle')}</p>
             </div>
           </div>
 
           <form onSubmit={handleChangePassword} className="space-y-5">
             <FormInput
-              label="Current Password"
+              label={t('profile_screen.password.current')}
               type="password"
               name="current_password"
               value={passwordData.current_password}
               onChange={handlePasswordChange}
               required
               error={errors.current_password}
-              placeholder="Enter your current password"
+              placeholder={t('profile_screen.password.current_placeholder')}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput
-                label="New Password"
+                label={t('profile_screen.password.new')}
                 type="password"
                 name="password"
                 value={passwordData.password}
                 onChange={handlePasswordChange}
                 required
                 error={errors.password}
-                placeholder="Must include uppercase, numbers & special characters"
+                placeholder={t('profile_screen.password.new_placeholder')}
               />
 
               <FormInput
-                label="Confirm New Password"
+                label={t('profile_screen.password.confirm')}
                 type="password"
                 name="password_confirmation"
                 value={passwordData.password_confirmation}
                 onChange={handlePasswordChange}
                 required
                 error={errors.password_confirmation}
-                placeholder="Confirm your new password"
+                placeholder={t('profile_screen.password.confirm_placeholder')}
               />
             </div>
 
@@ -1485,10 +1488,36 @@ const InstructorProfileScreen = () => {
                 icon={<Lock size={20} />}
                 fullWidth
               >
-                Change Password
+                {t('profile_screen.password.submit')}
               </Button>
             </div>
           </form>
+        </div>
+
+        {/* Language Settings Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
+              <Globe className="text-blue-600" size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">{t('profile_screen.sections.language.title')}</h2>
+              <p className="text-sm text-gray-500">{t('profile_screen.sections.language.subtitle')}</p>
+            </div>
+          </div>
+
+          <div className="profile-form-grid">
+            <FormInput
+              label={t('profile_screen.sections.language.application_language')}
+              type="select"
+              value={currentLanguage}
+              onChange={(e) => changeLanguage(e.target.value)}
+              options={Object.keys(languages).map((code) => ({
+                value: code,
+                label: languages[code],
+              }))}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -223,45 +223,45 @@ const Layout = ({ children }) => {
         // If not subscribed, only show Subscription tab
         if (isSubscribed === false) {
           return [
-            { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
+            { type: 'single', path: '/acc/subscription', icon: CreditCard, label: t('acc_drawer.subscription') },
           ];
         }
-        // If subscribed or still loading, show all items
+        // If subscribed or still loading, show all items 
         return [
           ...baseItems,
-          { type: 'single', path: '/acc/subscription', icon: CreditCard, label: 'Subscription' },
+          { type: 'single', path: '/acc/subscription', icon: CreditCard, label: t('acc_drawer.subscription') },
           {
             type: 'group',
             key: 'management',
             icon: Users,
-            label: 'Management',
+            label: t('acc_drawer.management'),
             items: [
-              { path: '/acc/training-centers', icon: Building2, label: 'Training Centers' },
-              { path: '/acc/instructors', icon: Users, label: 'Instructors' },
+              { path: '/acc/training-centers', icon: Building2, label: t('acc_drawer.training_centers') },
+              { path: '/acc/instructors', icon: Users, label: t('acc_drawer.instructors') },
             ]
           },
           {
             type: 'group',
             key: 'courses-content',
             icon: GraduationCap,
-            label: 'Courses & Content',
+            label: t('acc_drawer.courses_and_content'),
             items: [
-              { path: '/acc/courses', icon: GraduationCap, label: 'Courses' },
-              { path: '/acc/classes', icon: School, label: 'Classes' },
-              { path: '/acc/certificates', icon: Award, label: 'Certificates' },
-              { path: '/acc/certificate-templates', icon: FileText, label: 'Certificate Templates' },
-              { path: '/acc/discount-codes', icon: Tag, label: 'Discount Codes' },
-              { path: '/acc/categories', icon: FolderTree, label: 'Course Categories' },
+              { path: '/acc/courses', icon: GraduationCap, label: t('acc_drawer.courses') },
+              { path: '/acc/classes', icon: School, label: t('acc_drawer.classes') },
+              { path: '/acc/certificates', icon: Award, label: t('acc_drawer.certificates') },
+              { path: '/acc/certificate-templates', icon: FileText, label: t('acc_drawer.certificate_templates') },
+              { path: '/acc/discount-codes', icon: Tag, label: t('acc_drawer.discount_codes') },
+              { path: '/acc/categories', icon: FolderTree, label: t('acc_drawer.course_categories') },
             ]
           },
           {
             type: 'group',
             key: 'financial',
             icon: CreditCard,
-            label: 'Financial',
+            label: t('acc_drawer.financial'),
             items: [
-              { path: '/acc/payment-transactions', icon: Receipt, label: 'Payment Transactions' },
-              { path: '/acc/pending-payments', icon: Clock, label: 'Pending Payments' },
+              { path: '/acc/payment-transactions', icon: Receipt, label: t('acc_drawer.payment_transactions') },
+              { path: '/acc/pending-payments', icon: Clock, label: t('acc_drawer.pending_payments') },
             ]
           },
         ];
@@ -305,7 +305,7 @@ const Layout = ({ children }) => {
       case 'instructor':
         return [
           ...baseItems,
-          { type: 'single', path: '/instructor/classes', icon: GraduationCap, label: 'Classes' },
+          { type: 'single', path: '/instructor/classes', icon: GraduationCap, label: t('instructor_drawer.classes') },
           // {
           //   type: 'group',
           //   key: 'work',

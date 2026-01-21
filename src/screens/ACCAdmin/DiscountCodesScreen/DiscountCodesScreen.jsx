@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Tag, Plus, BookOpen, Search } from 'lucide-react';
@@ -11,6 +12,7 @@ import './DiscountCodesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 
 const DiscountCodesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [codes, setCodes] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -63,15 +65,15 @@ const DiscountCodesScreen = () => {
   }, [statusFilter, typeFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle('Discount Codes');
-    setHeaderSubtitle('Manage and track all discount codes');
+    setHeaderTitle(t('discount_codes_screen.header.title'));
+    setHeaderSubtitle(t('discount_codes_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={handleOpenModal}
         className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center gap-2 transition-colors shadow-lg hover:shadow-xl"
       >
         <Plus size={20} />
-        Add Code
+        {t('discount_codes_screen.header.add_code')}
       </button>
     );
     return () => {
@@ -174,7 +176,7 @@ const DiscountCodesScreen = () => {
   const getCourseNames = (code) => {
     // Check if code has courses array (nested objects)
     if (code.courses && Array.isArray(code.courses) && code.courses.length > 0) {
-      return code.courses.map(course => course.name || course.title || 'Unknown Course');
+      return code.courses.map(course => course.name || course.title || t('discount_codes_screen.table.unknown_course'));
     }
 
     // Otherwise, try to get IDs and look them up
@@ -288,32 +290,32 @@ const DiscountCodesScreen = () => {
     // Client-side validation
     const validationErrors = {};
     if (!formData.code || !formData.code.trim()) {
-      validationErrors.code = 'Discount code is required';
+      validationErrors.code = t('discount_codes_screen.validation.code_required');
     }
     if (!formData.discount_percentage || isNaN(formData.discount_percentage) || parseFloat(formData.discount_percentage) <= 0) {
-      validationErrors.discount_percentage = 'Valid discount percentage is required';
+      validationErrors.discount_percentage = t('discount_codes_screen.validation.discount_percentage_required');
     }
     if (!formData.discount_type) {
-      validationErrors.discount_type = 'Discount type is required';
+      validationErrors.discount_type = t('discount_codes_screen.validation.discount_type_required');
     }
     if (!formData.course_id) {
-      validationErrors.course_id = 'Course is required';
+      validationErrors.course_id = t('discount_codes_screen.validation.course_required');
     }
 
     // Validation based on discount type
     if (formData.discount_type === 'time_limited') {
       if (!formData.valid_from) {
-        validationErrors.valid_from = 'Valid from date is required';
+        validationErrors.valid_from = t('discount_codes_screen.validation.valid_from_required');
       }
       if (!formData.valid_until) {
-        validationErrors.valid_until = 'Valid until date is required';
+        validationErrors.valid_until = t('discount_codes_screen.validation.valid_until_required');
       }
       if (formData.valid_from && formData.valid_until && new Date(formData.valid_from) >= new Date(formData.valid_until)) {
-        validationErrors.valid_until = 'Valid until date must be after valid from date';
+        validationErrors.valid_until = t('discount_codes_screen.validation.valid_until_after_valid_from');
       }
     } else if (formData.discount_type === 'quantity_based') {
       if (!formData.total_quantity || isNaN(formData.total_quantity) || parseInt(formData.total_quantity) <= 0) {
-        validationErrors.total_quantity = 'Total quantity is required and must be greater than 0';
+        validationErrors.total_quantity = t('discount_codes_screen.validation.total_quantity_required');
       }
     }
 
@@ -358,7 +360,7 @@ const DiscountCodesScreen = () => {
         console.log('Updating discount code with ID:', codeId);
         response = await accAPI.updateDiscountCode(codeId, submitData);
         console.log('Discount code updated:', response);
-        alert('Discount code updated successfully!');
+        alert(t('discount_codes_screen.messages.updated_success'));
       } else {
         // Create new code - POST /api/acc/discount-codes
         // Ensure selectedCode is null/undefined for create
@@ -369,7 +371,7 @@ const DiscountCodesScreen = () => {
         console.log('Creating new discount code via POST...');
         response = await accAPI.createDiscountCode(submitData);
         console.log('Discount code created:', response);
-        alert('Discount code created successfully!');
+        alert(t('discount_codes_screen.messages.created_success'));
       }
 
       await loadCodes();
@@ -407,7 +409,7 @@ const DiscountCodesScreen = () => {
         setErrors({ general: error.message });
       }
       else {
-        setErrors({ general: 'Failed to create discount code. Please try again.' });
+        setErrors({ general: t('discount_codes_screen.errors.create_failed') });
       }
     } finally {
       setSaving(false);
@@ -424,16 +426,16 @@ const DiscountCodesScreen = () => {
       // Check for id in different possible fields
       const codeId = selectedCode?.id || selectedCode?.discount_code_id || selectedCode?.discount_code?.id;
       if (!codeId) {
-        throw new Error('Cannot delete: Discount code ID not found');
+        throw new Error(t('discount_codes_screen.errors.delete_id_not_found'));
       }
       console.log('Deleting discount code with ID:', codeId);
       await accAPI.deleteDiscountCode(codeId);
       await loadCodes();
-      alert('Discount code deleted successfully!');
+      alert(t('discount_codes_screen.messages.deleted_success'));
     } catch (error) {
       console.error('Failed to delete discount code:', error);
       console.error('Selected code:', selectedCode);
-      alert('Failed to delete discount code: ' + (error.response?.data?.message || error.message || 'Unknown error'));
+      alert(t('discount_codes_screen.errors.delete_failed', { message: (error.response?.data?.message || error.message || 'Unknown error') }));
     }
     setIsDeleteDialogOpen(false);
     setSelectedCode(null);
@@ -448,7 +450,7 @@ const DiscountCodesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Code',
+      header: t('discount_codes_screen.table.code'),
       accessor: 'code',
       sortable: true,
       render: (value, row) => (
@@ -458,14 +460,14 @@ const DiscountCodesScreen = () => {
           </div>
           <div>
             <div className="text-sm font-semibold text-gray-900">
-              {value || 'N/A'}
+              {value || t('discount_codes_screen.status.na')}
             </div>
           </div>
         </div>
       )
     },
     {
-      header: 'Discount',
+      header: t('discount_codes_screen.table.discount'),
       accessor: 'discount_percentage',
       sortable: true,
       render: (value) => (
@@ -475,17 +477,17 @@ const DiscountCodesScreen = () => {
       )
     },
     {
-      header: 'Type',
+      header: t('discount_codes_screen.table.type'),
       accessor: 'discount_type',
       sortable: true,
       render: (value) => (
         <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium capitalize">
-          {value ? value.replace(/_/g, ' ') : 'N/A'}
+          {value ? t(`discount_codes_screen.types.${value}`, { defaultValue: value.replace(/_/g, ' ') }) : t('discount_codes_screen.status.na')}
         </span>
       )
     },
     {
-      header: 'Courses',
+      header: t('discount_codes_screen.table.courses'),
       accessor: 'courses',
       sortable: false,
       render: (value, row) => {
@@ -493,7 +495,7 @@ const DiscountCodesScreen = () => {
 
         if (courseNames.length === 0) {
           return (
-            <span className="text-sm text-gray-400 italic">No courses assigned</span>
+            <span className="text-sm text-gray-400 italic">{t('discount_codes_screen.table.no_courses_assigned')}</span>
           );
         }
 
@@ -514,19 +516,19 @@ const DiscountCodesScreen = () => {
       }
     },
     {
-      header: 'Status',
+      header: t('discount_codes_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
           }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`discount_codes_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('discount_codes_screen.status.na')}
         </span>
       )
     },
     {
-      header: 'Start Date',
+      header: t('discount_codes_screen.table.start_date'),
       accessor: 'start_date',
       sortable: true,
       render: (value) => (
@@ -536,13 +538,13 @@ const DiscountCodesScreen = () => {
           </span>
         ) : (
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-            Not Set
+            {t('discount_codes_screen.table.not_set')}
           </span>
         )
       )
     },
     {
-      header: 'End Date',
+      header: t('discount_codes_screen.table.end_date'),
       accessor: 'end_date',
       sortable: true,
       render: (value) => (
@@ -552,13 +554,13 @@ const DiscountCodesScreen = () => {
           </span>
         ) : (
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-            Not Set
+            {t('discount_codes_screen.table.not_set')}
           </span>
         )
       )
     },
     {
-      header: 'Quantity',
+      header: t('discount_codes_screen.table.quantity'),
       accessor: 'total_quantity',
       sortable: true,
       render: (value, row) => {
@@ -594,7 +596,7 @@ const DiscountCodesScreen = () => {
         } else {
           return (
             <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
-              N/A
+              {t('discount_codes_screen.status.na')}
             </span>
           );
         }
@@ -613,7 +615,7 @@ const DiscountCodesScreen = () => {
         <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Search by code or type..."
+            placeholder={t('discount_codes_screen.search.placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -633,11 +635,11 @@ const DiscountCodesScreen = () => {
             }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="expired">Expired</option>
-            <option value="depleted">Depleted</option>
+            <option value="all">{t('discount_codes_screen.filters.status.all')}</option>
+            <option value="active">{t('discount_codes_screen.filters.status.active')}</option>
+            <option value="inactive">{t('discount_codes_screen.filters.status.inactive')}</option>
+            <option value="expired">{t('discount_codes_screen.filters.status.expired')}</option>
+            <option value="depleted">{t('discount_codes_screen.filters.status.depleted')}</option>
           </select>
         </div>
       </div>
@@ -651,7 +653,7 @@ const DiscountCodesScreen = () => {
           filterable={false}
           defaultFilter="all"
           sortable={true}
-          emptyMessage="No discount codes found. Create your first discount code!"
+          emptyMessage={t('discount_codes_screen.table.empty')}
           onEdit={handleOpenModal}
           onDelete={handleDelete}
         />
@@ -675,7 +677,7 @@ const DiscountCodesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? 'Edit Discount Code' : 'Add New Discount Code'}
+        title={selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? t('discount_codes_screen.modal.edit_title') : t('discount_codes_screen.modal.add_title')}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -687,17 +689,17 @@ const DiscountCodesScreen = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Discount Code"
+              label={t('discount_codes_screen.form.discount_code')}
               name="code"
               value={formData.code}
               onChange={handleChange}
               required
-              placeholder="e.g., SAVE20"
+              placeholder={t('discount_codes_screen.form.code_placeholder')}
               error={errors.code}
             />
 
             <FormInput
-              label="Discount Percentage"
+              label={t('discount_codes_screen.form.discount_percentage')}
               name="discount_percentage"
               type="number"
               value={formData.discount_percentage}
@@ -705,14 +707,14 @@ const DiscountCodesScreen = () => {
               required
               min="0"
               max="100"
-              placeholder="e.g., 20"
+              placeholder={t('discount_codes_screen.form.percentage_placeholder')}
               error={errors.discount_percentage}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course <span className="text-red-500 ml-1">*</span>
+              {t('discount_codes_screen.form.course')} <span className="text-red-500 ml-1">*</span>
             </label>
             <select
               name="course_id"
@@ -722,7 +724,7 @@ const DiscountCodesScreen = () => {
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${errors.course_id ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
                 }`}
             >
-              <option value="">Select a course...</option>
+              <option value="">{t('discount_codes_screen.form.select_course')}</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name} {course.code ? `(${course.code})` : ''}
@@ -735,7 +737,7 @@ const DiscountCodesScreen = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Discount Type <span className="text-red-500 ml-1">*</span>
+                {t('discount_codes_screen.form.discount_type')} <span className="text-red-500 ml-1">*</span>
               </label>
               <select
                 name="discount_type"
@@ -745,22 +747,22 @@ const DiscountCodesScreen = () => {
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 cursor-pointer appearance-none bg-white form-input-select ${errors.discount_type ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
                   }`}
               >
-                <option value="time_limited">Time Limited</option>
-                <option value="quantity_based">Quantity Based</option>
+                <option value="time_limited">{t('discount_codes_screen.types.time_limited')}</option>
+                <option value="quantity_based">{t('discount_codes_screen.types.quantity_based')}</option>
               </select>
               {errors.discount_type && <p className="mt-1 text-sm text-red-600">{errors.discount_type}</p>}
             </div>
 
             <FormInput
-              label="Status"
+              label={t('discount_codes_screen.form.status')}
               name="status"
               type="select"
               value={formData.status}
               onChange={handleChange}
               required
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
+                { value: 'active', label: t('discount_codes_screen.status.active') },
+                { value: 'inactive', label: t('discount_codes_screen.status.inactive') },
               ]}
               error={errors.status}
             />
@@ -770,7 +772,7 @@ const DiscountCodesScreen = () => {
           {formData.discount_type === 'time_limited' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
-                label="Valid From"
+                label={t('discount_codes_screen.form.valid_from')}
                 name="valid_from"
                 type="date"
                 value={formData.valid_from}
@@ -780,7 +782,7 @@ const DiscountCodesScreen = () => {
               />
 
               <FormInput
-                label="Valid Until"
+                label={t('discount_codes_screen.form.valid_until')}
                 name="valid_until"
                 type="date"
                 value={formData.valid_until}
@@ -793,14 +795,14 @@ const DiscountCodesScreen = () => {
 
           {formData.discount_type === 'quantity_based' && (
             <FormInput
-              label="Total Quantity"
+              label={t('discount_codes_screen.form.total_quantity')}
               name="total_quantity"
               type="number"
               value={formData.total_quantity}
               onChange={handleChange}
               required
               min="1"
-              placeholder="e.g., 100"
+              placeholder={t('discount_codes_screen.form.quantity_placeholder')}
               error={errors.total_quantity}
             />
           )}
@@ -811,14 +813,14 @@ const DiscountCodesScreen = () => {
               onClick={handleCloseModal}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Cancel
+              {t('discount_codes_screen.buttons.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? (selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? 'Updating...' : 'Creating...') : (selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? 'Update Discount Code' : 'Create Discount Code')}
+              {saving ? (selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? t('discount_codes_screen.buttons.updating') : t('discount_codes_screen.buttons.creating')) : (selectedCode && (selectedCode.id || selectedCode.discount_code_id) ? t('discount_codes_screen.buttons.update') : t('discount_codes_screen.buttons.create'))}
             </button>
           </div>
         </form>
@@ -832,9 +834,9 @@ const DiscountCodesScreen = () => {
           setSelectedCode(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Discount Code"
-        message={`Are you sure you want to delete discount code "${selectedCode?.code}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('discount_codes_screen.confirmations.delete_title')}
+        message={t('discount_codes_screen.confirmations.delete_message', { code: selectedCode?.code })}
+        confirmText={t('discount_codes_screen.confirmations.delete_confirm')}
         variant="danger"
       />
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { useAuth } from '../../../context/AuthContext';
 import { useHeader } from '../../../context/HeaderContext';
 import { accAPI, authAPI, publicAPI } from '../../../services/api';
@@ -11,6 +12,7 @@ import '../../../components/FormInput/FormInput.css';
 const ProfileScreen = () => {
   const { user } = useAuth();
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
+  const { t, currentLanguage, changeLanguage, languages } = useTranslation('accreditation');
   const [formData, setFormData] = useState({
     // 1. Accreditation Body Information
     legal_name: '',
@@ -221,13 +223,13 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    setHeaderTitle('Profile');
-    setHeaderSubtitle('Manage your account information');
+    setHeaderTitle(t('profile_screen.header.title'));
+    setHeaderSubtitle(t('profile_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   const loadCountries = async () => {
     setLoadingCountries(true);
@@ -421,14 +423,14 @@ const ProfileScreen = () => {
       // Validate file type - According to API: JPG, JPEG, PNG only
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        setErrors({ logo: 'Logo must be an image file (JPG, JPEG, or PNG only)' });
+        setErrors({ logo: t('profile_screen.validation.logo_type') });
         e.target.value = ''; // Reset input
         return;
       }
 
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setErrors({ logo: 'Logo size must not exceed 5MB' });
+        setErrors({ logo: t('profile_screen.validation.logo_size') });
         e.target.value = ''; // Reset input
         return;
       }
@@ -471,33 +473,33 @@ const ProfileScreen = () => {
     const validationErrors = {};
 
     // 1. Acc Info
-    if (!formData.legal_name) validationErrors.legal_name = 'Legal name is required';
-    if (!formData.email) validationErrors.email = 'Email is required';
-    else if (validateEmail(formData.email)) validationErrors.email = 'Invalid email';
-    if (!formData.phone) validationErrors.phone = 'Phone is required';
+    if (!formData.legal_name) validationErrors.legal_name = t('profile_screen.validation.required');
+    if (!formData.email) validationErrors.email = t('profile_screen.validation.required');
+    else if (validateEmail(formData.email)) validationErrors.email = t('profile_screen.validation.invalid_email');
+    if (!formData.phone) validationErrors.phone = t('profile_screen.validation.required');
 
     // 2. Physical Address
-    if (!formData.physical_street) validationErrors.physical_street = 'Street address is required';
-    if (!formData.physical_city) validationErrors.physical_city = 'City is required';
-    if (!formData.physical_country) validationErrors.physical_country = 'Country is required';
-    if (!formData.physical_postal_code) validationErrors.physical_postal_code = 'Postal code is required';
+    if (!formData.physical_street) validationErrors.physical_street = t('profile_screen.validation.required');
+    if (!formData.physical_city) validationErrors.physical_city = t('profile_screen.validation.required');
+    if (!formData.physical_country) validationErrors.physical_country = t('profile_screen.validation.required');
+    if (!formData.physical_postal_code) validationErrors.physical_postal_code = t('profile_screen.validation.required');
 
     // 3. Mailing Address (if not same)
     if (!formData.mailing_same_as_physical) {
-      if (!formData.mailing_street) validationErrors.mailing_street = 'Street address is required';
-      if (!formData.mailing_city) validationErrors.mailing_city = 'City is required';
-      if (!formData.mailing_country) validationErrors.mailing_country = 'Country is required';
-      if (!formData.mailing_postal_code) validationErrors.mailing_postal_code = 'Postal code is required';
+      if (!formData.mailing_street) validationErrors.mailing_street = t('profile_screen.validation.required');
+      if (!formData.mailing_city) validationErrors.mailing_city = t('profile_screen.validation.required');
+      if (!formData.mailing_country) validationErrors.mailing_country = t('profile_screen.validation.required');
+      if (!formData.mailing_postal_code) validationErrors.mailing_postal_code = t('profile_screen.validation.required');
     }
 
     // 4. Primary Contact
-    if (!formData.primary_contact_title) validationErrors.primary_contact_title = 'Title is required';
-    if (!formData.primary_contact_first_name) validationErrors.primary_contact_first_name = 'First name is required';
-    if (!formData.primary_contact_last_name) validationErrors.primary_contact_last_name = 'Last name is required';
-    if (!formData.primary_contact_email) validationErrors.primary_contact_email = 'Email is required';
-    else if (validateEmail(formData.primary_contact_email)) validationErrors.primary_contact_email = 'Invalid email';
-    if (!formData.primary_contact_country) validationErrors.primary_contact_country = 'Country is required';
-    if (!formData.primary_contact_mobile) validationErrors.primary_contact_mobile = 'Mobile is required';
+    if (!formData.primary_contact_title) validationErrors.primary_contact_title = t('profile_screen.validation.required');
+    if (!formData.primary_contact_first_name) validationErrors.primary_contact_first_name = t('profile_screen.validation.required');
+    if (!formData.primary_contact_last_name) validationErrors.primary_contact_last_name = t('profile_screen.validation.required');
+    if (!formData.primary_contact_email) validationErrors.primary_contact_email = t('profile_screen.validation.required');
+    else if (validateEmail(formData.primary_contact_email)) validationErrors.primary_contact_email = t('profile_screen.validation.invalid_email');
+    if (!formData.primary_contact_country) validationErrors.primary_contact_country = t('profile_screen.validation.required');
+    if (!formData.primary_contact_mobile) validationErrors.primary_contact_mobile = t('profile_screen.validation.required');
     // File validation: Required if not already uploaded (how to check? we can check if URL exists in profileData)
     if (!primaryPassportFile && !profileData?.primary_contact?.passport_url) {
       // Ideally this should be required, but for updates maybe optional if already exists? 
@@ -505,21 +507,21 @@ const ProfileScreen = () => {
       // Let's check profileData structure for existing file.
       // The requirement structure shows passport_url in response.
       if (!profileData?.primary_contact?.passport_url) {
-        validationErrors.primary_contact_passport = 'Passport copy is required';
+        validationErrors.primary_contact_passport = t('profile_screen.validation.required');
       }
     }
 
     // 5. Secondary Contact
-    if (!formData.secondary_contact_title) validationErrors.secondary_contact_title = 'Title is required';
-    if (!formData.secondary_contact_first_name) validationErrors.secondary_contact_first_name = 'First name is required';
-    if (!formData.secondary_contact_last_name) validationErrors.secondary_contact_last_name = 'Last name is required';
-    if (!formData.secondary_contact_email) validationErrors.secondary_contact_email = 'Email is required';
-    else if (validateEmail(formData.secondary_contact_email)) validationErrors.secondary_contact_email = 'Invalid email';
-    if (!formData.secondary_contact_country) validationErrors.secondary_contact_country = 'Country is required';
-    if (!formData.secondary_contact_mobile) validationErrors.secondary_contact_mobile = 'Mobile is required';
+    if (!formData.secondary_contact_title) validationErrors.secondary_contact_title = t('profile_screen.validation.required');
+    if (!formData.secondary_contact_first_name) validationErrors.secondary_contact_first_name = t('profile_screen.validation.required');
+    if (!formData.secondary_contact_last_name) validationErrors.secondary_contact_last_name = t('profile_screen.validation.required');
+    if (!formData.secondary_contact_email) validationErrors.secondary_contact_email = t('profile_screen.validation.required');
+    else if (validateEmail(formData.secondary_contact_email)) validationErrors.secondary_contact_email = t('profile_screen.validation.invalid_email');
+    if (!formData.secondary_contact_country) validationErrors.secondary_contact_country = t('profile_screen.validation.required');
+    if (!formData.secondary_contact_mobile) validationErrors.secondary_contact_mobile = t('profile_screen.validation.required');
     if (!secondaryPassportFile && !profileData?.secondary_contact?.passport_url) {
       if (!profileData?.secondary_contact?.passport_url) {
-        validationErrors.secondary_contact_passport = 'Passport copy is required';
+        validationErrors.secondary_contact_passport = t('profile_screen.validation.required');
       }
     }
 
@@ -528,8 +530,8 @@ const ProfileScreen = () => {
     // company_registration_certificate is optional
 
     // 7. Agreements
-    if (!formData.agreed_to_receive_communications) validationErrors.agreed_to_receive_communications = 'You must agree to receive communications';
-    if (!formData.agreed_to_terms_and_conditions) validationErrors.agreed_to_terms_and_conditions = 'You must agree to terms and conditions';
+    if (!formData.agreed_to_receive_communications) validationErrors.agreed_to_receive_communications = t('profile_screen.validation.required');
+    if (!formData.agreed_to_terms_and_conditions) validationErrors.agreed_to_terms_and_conditions = t('profile_screen.validation.required');
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -598,7 +600,7 @@ const ProfileScreen = () => {
       // Reload profile to ensure everything is synced
       await loadProfile();
 
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage(t('profile_screen.messages.profile_updated'));
       setIsEditing(false);
       setTimeout(() => setSuccessMessage(''), 3000);
 
@@ -636,13 +638,13 @@ const ProfileScreen = () => {
     // Validate file type
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      setErrors({ documents: 'File must be PDF, JPG, JPEG, or PNG' });
+      setErrors({ documents: t('profile_screen.validation.file_type') });
       return;
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setErrors({ documents: 'File size must not exceed 10MB' });
+      setErrors({ documents: t('profile_screen.validation.file_size') });
       return;
     }
 
@@ -667,13 +669,13 @@ const ProfileScreen = () => {
       // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        setErrors({ documents: 'File must be PDF, JPG, JPEG, or PNG' });
+        setErrors({ documents: t('profile_screen.validation.file_type') });
         return;
       }
 
       // Validate file size (10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setErrors({ documents: 'File size must not exceed 10MB' });
+        setErrors({ documents: t('profile_screen.validation.file_size') });
         return;
       }
 
@@ -721,7 +723,7 @@ const ProfileScreen = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('profile_screen.common.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -753,7 +755,7 @@ const ProfileScreen = () => {
     // Validation
     const passwordErrors = {};
     if (!passwordData.current_password) {
-      passwordErrors.current_password = 'Current password is required';
+      passwordErrors.current_password = t('profile_screen.validation.required');
     }
     const newPasswordError = validatePassword(passwordData.password, 8, true);
     if (newPasswordError) passwordErrors.password = newPasswordError;
@@ -771,7 +773,7 @@ const ProfileScreen = () => {
 
     try {
       await authAPI.changePassword(passwordData);
-      setSuccessMessage('Password changed successfully!');
+      setSuccessMessage(t('profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
@@ -919,7 +921,7 @@ const ProfileScreen = () => {
 
               {/* Upload Logo Button - Inside Circle */}
               {isEditing && (
-                <label className="profile-avatar-upload-overlay" title="Click to upload logo">
+                <label className="profile-avatar-upload-overlay" title={t('profile_screen.buttons.upload_logo')}>
                   <Upload size={20} />
                   <input
                     type="file"
@@ -958,7 +960,7 @@ const ProfileScreen = () => {
                 className="profile-edit-btn"
               >
                 <Edit size={18} />
-                Edit Profile
+                {t('profile_screen.header.edit')}
               </button>
             )}
           </div>
@@ -971,21 +973,22 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-50 rounded-lg"><Building2 className="text-blue-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Accreditation Body Information</h2>
-                <p className="text-sm text-gray-500 mt-1">Basic organization details</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.accreditation_info.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.accreditation_info.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
-              <FormInput label="Legal Name" name="legal_name" value={formData.legal_name} onChange={handleChange} disabled={!isEditing} error={errors.legal_name} required />
-              <FormInput label="Email" name="email" type="email" value={formData.email} onChange={handleChange} disabled={!isEditing} error={errors.email} required />
-              <FormInput label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} disabled={!isEditing} error={errors.phone} required />
-              <FormInput label="Fax" name="fax" value={formData.fax} onChange={handleChange} disabled={!isEditing} error={errors.fax} />
-              <FormInput label="Website" name="website" type="url" value={formData.website} onChange={handleChange} disabled={!isEditing} error={errors.website} />
+              <FormInput label={t('profile_screen.form.legal_name')} name="legal_name" value={formData.legal_name} onChange={handleChange} disabled={!isEditing} error={errors.legal_name} required />
+              <FormInput label={t('profile_screen.form.email')} name="email" type="email" value={formData.email} onChange={handleChange} disabled={!isEditing} error={errors.email} required />
+              <FormInput label={t('profile_screen.form.phone')} name="phone" type="tel" value={formData.phone} onChange={handleChange} disabled={!isEditing} error={errors.phone} required />
+              <FormInput label={t('profile_screen.form.fax')} name="fax" value={formData.fax} onChange={handleChange} disabled={!isEditing} error={errors.fax} />
+              <FormInput label={t('profile_screen.form.website')} name="website" type="url" value={formData.website} onChange={handleChange} disabled={!isEditing} error={errors.website} />
 
+              {/* Legacy Display */}
               {/* Legacy Display */}
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <span className={`profile-status-badge ${profileData?.status || 'active'}`}>{profileData?.status || 'Active'}</span>
+                <span className={`profile-status-badge ${profileData?.status || 'active'}`}>{t(`profile_screen.status.${profileData?.status || 'active'}`)}</span>
               </div>
             </div>
           </div>
@@ -995,24 +998,24 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-green-50 rounded-lg"><MapPin className="text-green-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Physical Address</h2>
-                <p className="text-sm text-gray-500 mt-1">Main office location</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.physical_address.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.physical_address.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
-              <FormInput label="Street Address" name="physical_street" value={formData.physical_street} onChange={handleChange} disabled={!isEditing} error={errors.physical_street} required />
-              <FormInput label="Postal Code" name="physical_postal_code" value={formData.physical_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.physical_postal_code} required />
+              <FormInput label={t('profile_screen.form.street_address')} name="physical_street" value={formData.physical_street} onChange={handleChange} disabled={!isEditing} error={errors.physical_street} required />
+              <FormInput label={t('profile_screen.form.postal_code')} name="physical_postal_code" value={formData.physical_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.physical_postal_code} required />
               {isEditing ? (
                 <>
-                  <FormInput label="Country" name="physical_country" type="select" value={formData.physical_country} onChange={handleChange} disabled={loadingCountries} error={errors.physical_country} required
-                    options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
-                  <FormInput label="City" name="physical_city" type="select" value={formData.physical_city} onChange={handleChange} disabled={!formData.physical_country} error={errors.physical_city} required
-                    options={[{ value: '', label: 'Select City' }, ...physicalCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
+                  <FormInput label={t('profile_screen.form.country')} name="physical_country" type="select" value={formData.physical_country} onChange={handleChange} disabled={loadingCountries} error={errors.physical_country} required
+                    options={[{ value: '', label: t('profile_screen.placeholders.select_country') }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                  <FormInput label={t('profile_screen.form.city')} name="physical_city" type="select" value={formData.physical_city} onChange={handleChange} disabled={!formData.physical_country} error={errors.physical_city} required
+                    options={[{ value: '', label: t('profile_screen.placeholders.select_city') }, ...physicalCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
                 </>
               ) : (
                 <>
-                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.physical_country)}</div>
-                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">City</label>{getCityName(formData.physical_city)}</div>
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.country')}</label>{getCountryName(formData.physical_country)}</div>
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.city')}</label>{getCityName(formData.physical_city)}</div>
                 </>
               )}
             </div>
@@ -1023,28 +1026,28 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-yellow-50 rounded-lg"><Mail className="text-yellow-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Mailing Address</h2>
+                <h2 className="profile-section-title">{t('profile_screen.sections.mailing_address.title')}</h2>
                 <div className="flex items-center mt-2">
                   <input type="checkbox" id="mailing_same" name="mailing_same_as_physical" checked={formData.mailing_same_as_physical} onChange={(e) => handleChange({ target: { name: 'mailing_same_as_physical', value: e.target.checked } })} disabled={!isEditing} className="mr-2 h-4 w-4 text-blue-600 rounded" />
-                  <label htmlFor="mailing_same" className="text-sm text-gray-700">Same as Physical Address</label>
+                  <label htmlFor="mailing_same" className="text-sm text-gray-700">{t('profile_screen.sections.mailing_address.same_as_physical')}</label>
                 </div>
               </div>
             </div>
             {!formData.mailing_same_as_physical && (
               <div className="profile-form-grid">
-                <FormInput label="Street Address" name="mailing_street" value={formData.mailing_street} onChange={handleChange} disabled={!isEditing} error={errors.mailing_street} required />
-                <FormInput label="Postal Code" name="mailing_postal_code" value={formData.mailing_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.mailing_postal_code} required />
+                <FormInput label={t('profile_screen.form.street_address')} name="mailing_street" value={formData.mailing_street} onChange={handleChange} disabled={!isEditing} error={errors.mailing_street} required />
+                <FormInput label={t('profile_screen.form.postal_code')} name="mailing_postal_code" value={formData.mailing_postal_code} onChange={handleChange} disabled={!isEditing} error={errors.mailing_postal_code} required />
                 {isEditing ? (
                   <>
-                    <FormInput label="Country" name="mailing_country" type="select" value={formData.mailing_country} onChange={handleChange} disabled={loadingCountries} error={errors.mailing_country} required
-                      options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
-                    <FormInput label="City" name="mailing_city" type="select" value={formData.mailing_city} onChange={handleChange} disabled={!formData.mailing_country} error={errors.mailing_city} required
-                      options={[{ value: '', label: 'Select City' }, ...mailingCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
+                    <FormInput label={t('profile_screen.form.country')} name="mailing_country" type="select" value={formData.mailing_country} onChange={handleChange} disabled={loadingCountries} error={errors.mailing_country} required
+                      options={[{ value: '', label: t('profile_screen.placeholders.select_country') }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                    <FormInput label={t('profile_screen.form.city')} name="mailing_city" type="select" value={formData.mailing_city} onChange={handleChange} disabled={!formData.mailing_country} error={errors.mailing_city} required
+                      options={[{ value: '', label: t('profile_screen.placeholders.select_city') }, ...mailingCities.map(c => ({ value: c.name || c, label: c.name || c }))]} />
                   </>
                 ) : (
                   <>
-                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.mailing_country)}</div>
-                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">City</label>{getCityName(formData.mailing_city)}</div>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.country')}</label>{getCountryName(formData.mailing_country)}</div>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.city')}</label>{getCityName(formData.mailing_city)}</div>
                   </>
                 )}
               </div>
@@ -1056,28 +1059,28 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-purple-50 rounded-lg"><User className="text-purple-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Primary Contact</h2>
-                <p className="text-sm text-gray-500 mt-1">Main point of contact</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.primary_contact.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.primary_contact.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
-              <FormInput label="Title" name="primary_contact_title" type="select" value={formData.primary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
-              <FormInput label="First Name" name="primary_contact_first_name" value={formData.primary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_first_name} required />
-              <FormInput label="Last Name" name="primary_contact_last_name" value={formData.primary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_last_name} required />
-              <FormInput label="Email" name="primary_contact_email" type="email" value={formData.primary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_email} required />
-              <FormInput label="Mobile" name="primary_contact_mobile" type="tel" value={formData.primary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_mobile} required />
+              <FormInput label={t('profile_screen.form.title')} name="primary_contact_title" type="select" value={formData.primary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
+              <FormInput label={t('profile_screen.form.first_name')} name="primary_contact_first_name" value={formData.primary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_first_name} required />
+              <FormInput label={t('profile_screen.form.last_name')} name="primary_contact_last_name" value={formData.primary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_last_name} required />
+              <FormInput label={t('profile_screen.form.email')} name="primary_contact_email" type="email" value={formData.primary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_email} required />
+              <FormInput label={t('profile_screen.form.mobile')} name="primary_contact_mobile" type="tel" value={formData.primary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.primary_contact_mobile} required />
               {isEditing ? (
-                <FormInput label="Country" name="primary_contact_country" type="select" value={formData.primary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.primary_contact_country} required
-                  options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                <FormInput label={t('profile_screen.form.country')} name="primary_contact_country" type="select" value={formData.primary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.primary_contact_country} required
+                  options={[{ value: '', label: t('profile_screen.placeholders.select_country') }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
               ) : (
-                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.primary_contact_country)}</div>
+                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.country')}</label>{getCountryName(formData.primary_contact_country)}</div>
               )}
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Passport Copy {isEditing && <span className="text-red-500">*</span>}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile_screen.form.passport_copy')} {isEditing && <span className="text-red-500">*</span>}</label>
                 {profileData?.primary_contact?.passport_url && (
                   <div className="mb-2">
-                    <a href={profileData.primary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Passport</a>
+                    <a href={profileData.primary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> {t('profile_screen.form.view_passport')}</a>
                   </div>
                 )}
                 {isEditing && (
@@ -1093,28 +1096,28 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-indigo-50 rounded-lg"><User className="text-indigo-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Secondary Contact</h2>
-                <p className="text-sm text-gray-500 mt-1">Secondary point of contact</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.secondary_contact.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.secondary_contact.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
-              <FormInput label="Title" name="secondary_contact_title" type="select" value={formData.secondary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
-              <FormInput label="First Name" name="secondary_contact_first_name" value={formData.secondary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_first_name} required />
-              <FormInput label="Last Name" name="secondary_contact_last_name" value={formData.secondary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_last_name} required />
-              <FormInput label="Email" name="secondary_contact_email" type="email" value={formData.secondary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_email} required />
-              <FormInput label="Mobile" name="secondary_contact_mobile" type="tel" value={formData.secondary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_mobile} required />
+              <FormInput label={t('profile_screen.form.title')} name="secondary_contact_title" type="select" value={formData.secondary_contact_title} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_title} required options={['Mr.', 'Mrs.', 'Eng.', 'Prof.'].map(t => ({ value: t, label: t }))} />
+              <FormInput label={t('profile_screen.form.first_name')} name="secondary_contact_first_name" value={formData.secondary_contact_first_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_first_name} required />
+              <FormInput label={t('profile_screen.form.last_name')} name="secondary_contact_last_name" value={formData.secondary_contact_last_name} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_last_name} required />
+              <FormInput label={t('profile_screen.form.email')} name="secondary_contact_email" type="email" value={formData.secondary_contact_email} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_email} required />
+              <FormInput label={t('profile_screen.form.mobile')} name="secondary_contact_mobile" type="tel" value={formData.secondary_contact_mobile} onChange={handleChange} disabled={!isEditing} error={errors.secondary_contact_mobile} required />
               {isEditing ? (
-                <FormInput label="Country" name="secondary_contact_country" type="select" value={formData.secondary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.secondary_contact_country} required
-                  options={[{ value: '', label: 'Select Country' }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
+                <FormInput label={t('profile_screen.form.country')} name="secondary_contact_country" type="select" value={formData.secondary_contact_country} onChange={handleChange} disabled={loadingCountries} error={errors.secondary_contact_country} required
+                  options={[{ value: '', label: t('profile_screen.placeholders.select_country') }, ...countries.map(c => ({ value: c.code, label: c.name }))]} />
               ) : (
-                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">Country</label>{getCountryName(formData.secondary_contact_country)}</div>
+                <div className="bg-gray-50 p-3 rounded border border-gray-200"><label className="block text-xs text-gray-500">{t('profile_screen.form.country')}</label>{getCountryName(formData.secondary_contact_country)}</div>
               )}
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Passport Copy {isEditing && <span className="text-red-500">*</span>}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile_screen.form.passport_copy')} {isEditing && <span className="text-red-500">*</span>}</label>
                 {profileData?.secondary_contact?.passport_url && (
                   <div className="mb-2">
-                    <a href={profileData.secondary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Passport</a>
+                    <a href={profileData.secondary_contact.passport_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> {t('profile_screen.form.view_passport')}</a>
                   </div>
                 )}
                 {isEditing && (
@@ -1130,19 +1133,19 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-orange-50 rounded-lg"><FileText className="text-orange-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Additional Information</h2>
-                <p className="text-sm text-gray-500 mt-1">Official Documents & Details</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.additional_info.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.additional_info.subtitle')}</p>
               </div>
             </div>
             <div className="profile-form-grid">
-              <FormInput label="Gov Registry Number" name="company_gov_registry_number" value={formData.company_gov_registry_number} onChange={handleChange} disabled={!isEditing} error={errors.company_gov_registry_number} required />
-              <FormInput label="How did you hear about us?" name="how_did_you_hear_about_us" value={formData.how_did_you_hear_about_us} onChange={handleChange} disabled={!isEditing} error={errors.how_did_you_hear_about_us} />
+              <FormInput label={t('profile_screen.form.gov_registry_number')} name="company_gov_registry_number" value={formData.company_gov_registry_number} onChange={handleChange} disabled={!isEditing} error={errors.company_gov_registry_number} required />
+              <FormInput label={t('profile_screen.form.hear_about_us')} name="how_did_you_hear_about_us" value={formData.how_did_you_hear_about_us} onChange={handleChange} disabled={!isEditing} error={errors.how_did_you_hear_about_us} />
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Registration Certificate {isEditing && <span className="text-red-500">*</span>}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile_screen.form.company_certificate')} {isEditing && <span className="text-red-500">*</span>}</label>
                 {profileData?.company_registration_certificate_url && (
                   <div className="mb-2">
-                    <a href={profileData.company_registration_certificate_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> View Current Certificate</a>
+                    <a href={profileData.company_registration_certificate_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><FileText size={16} /> {t('profile_screen.form.view_certificate')}</a>
                   </div>
                 )}
                 {isEditing && (
@@ -1158,22 +1161,22 @@ const ProfileScreen = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-gray-50 rounded-lg"><Shield className="text-gray-600" size={24} /></div>
               <div>
-                <h2 className="profile-section-title">Agreements</h2>
-                <p className="text-sm text-gray-500 mt-1">Terms & Conditions</p>
+                <h2 className="profile-section-title">{t('profile_screen.sections.agreements.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.agreements.subtitle')}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div className="flex items-start">
                 <input type="checkbox" id="agreed_comms" name="agreed_to_receive_communications" checked={formData.agreed_to_receive_communications} onChange={(e) => handleChange({ target: { name: 'agreed_to_receive_communications', value: e.target.checked } })} disabled={!isEditing} className="mt-1 h-4 w-4 text-blue-600 rounded" />
                 <div className="ml-3">
-                  <label htmlFor="agreed_comms" className="text-sm font-medium text-gray-700">I agree to receive other communications from BOMEQP</label>
+                  <label htmlFor="agreed_comms" className="text-sm font-medium text-gray-700">{t('profile_screen.agreements.receive_comms')}</label>
                   {errors.agreed_to_receive_communications && <p className="text-red-500 text-xs mt-1">{errors.agreed_to_receive_communications}</p>}
                 </div>
               </div>
               <div className="flex items-start">
                 <input type="checkbox" id="agreed_terms" name="agreed_to_terms_and_conditions" checked={formData.agreed_to_terms_and_conditions} onChange={(e) => handleChange({ target: { name: 'agreed_to_terms_and_conditions', value: e.target.checked } })} disabled={!isEditing} className="mt-1 h-4 w-4 text-blue-600 rounded" />
                 <div className="ml-3">
-                  <label htmlFor="agreed_terms" className="text-sm font-medium text-gray-700">I confirm that I have read, understood, and accepted the terms and conditions</label>
+                  <label htmlFor="agreed_terms" className="text-sm font-medium text-gray-700">{t('profile_screen.agreements.terms')}</label>
                   {errors.agreed_to_terms_and_conditions && <p className="text-red-500 text-xs mt-1">{errors.agreed_to_terms_and_conditions}</p>}
                 </div>
               </div>
@@ -1183,9 +1186,9 @@ const ProfileScreen = () => {
           {/* Form Actions */}
           {isEditing && (
             <div className="profile-actions">
-              <button type="button" onClick={handleCancel} className="profile-cancel-btn" disabled={loading}>Cancel</button>
+              <button type="button" onClick={handleCancel} className="profile-cancel-btn" disabled={loading}>{t('profile_screen.buttons.cancel')}</button>
               <button type="submit" className="profile-save-btn" disabled={loading}>
-                {loading ? <div className="loader small"></div> : <><Save size={18} /> Save Changes</>}
+                {loading ? <div className="loader small"></div> : <><Save size={18} /> {t('profile_screen.buttons.save')}</>}
               </button>
             </div>
           )}
@@ -1367,6 +1370,34 @@ const ProfileScreen = () => {
         </div>
         </div> */}
 
+        {/* Language Section - Separate from Profile Form */}
+        <div className="profile-content language-section">
+          <div className="profile-form-section">
+            <div className="flex items-center gap-3 mb-4" style={{ marginTop: 0 }}>
+              <div className="p-2 bg-teal-50 rounded-lg">
+                <Globe className="text-teal-600" size={24} />
+              </div>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>{t('profile_screen.sections.language.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.language.subtitle')}</p>
+              </div>
+            </div>
+
+            <div className="profile-form-grid">
+              <FormInput
+                label={t('profile_screen.form.language')}
+                type="select"
+                value={currentLanguage}
+                onChange={(e) => changeLanguage(e.target.value)}
+                options={Object.keys(languages).map((code) => ({
+                  value: code,
+                  label: languages[code],
+                }))}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Change Password Section - Separate from Profile Form */}
         <div className="profile-content password-section">
           <div className="profile-form-section">
@@ -1375,45 +1406,45 @@ const ProfileScreen = () => {
                 <KeyRound className="text-red-600" size={24} />
               </div>
               <div>
-                <h2 className="profile-section-title" style={{ margin: 0 }}>Change Password</h2>
-                <p className="text-sm text-gray-500 mt-1">Update your account password</p>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>{t('profile_screen.sections.password.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('profile_screen.sections.password.subtitle')}</p>
               </div>
             </div>
 
             <form onSubmit={handleChangePassword} className="password-form">
               <div className="space-y-4">
                 <FormInput
-                  label="Current Password"
+                  label={t('profile_screen.password.current')}
                   type="password"
                   name="current_password"
                   value={passwordData.current_password}
                   onChange={handlePasswordChange}
                   required
                   error={errors.current_password}
-                  placeholder="Enter your current password"
+                  placeholder={t('profile_screen.password.current_placeholder')}
                 />
 
                 <div className="profile-form-grid">
                   <FormInput
-                    label="New Password"
+                    label={t('profile_screen.password.new')}
                     type="password"
                     name="password"
                     value={passwordData.password}
                     onChange={handlePasswordChange}
                     required
                     error={errors.password}
-                    placeholder="Must include uppercase, numbers & special characters"
+                    placeholder={t('profile_screen.password.new_placeholder')}
                   />
 
                   <FormInput
-                    label="Confirm New Password"
+                    label={t('profile_screen.password.confirm')}
                     type="password"
                     name="password_confirmation"
                     value={passwordData.password_confirmation}
                     onChange={handlePasswordChange}
                     required
                     error={errors.password_confirmation}
-                    placeholder="Confirm your new password"
+                    placeholder={t('profile_screen.password.confirm_placeholder')}
                   />
                 </div>
 
@@ -1424,7 +1455,7 @@ const ProfileScreen = () => {
                     disabled={changingPassword}
                   >
                     <Lock size={18} />
-                    {changingPassword ? 'Changing...' : 'Change Password'}
+                    {changingPassword ? t('profile_screen.password.submitting') : t('profile_screen.password.submit')}
                   </button>
                 </div>
               </div>

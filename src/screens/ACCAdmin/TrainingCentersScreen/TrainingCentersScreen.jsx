@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Building2, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Phone, MapPin, Globe, FileText, Hash, Calendar, Search, ExternalLink, User } from 'lucide-react';
@@ -13,6 +14,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './TrainingCentersScreen.css';
 
 const TrainingCentersScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -72,8 +74,8 @@ const TrainingCentersScreen = () => {
   }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle('Training Centers');
-    setHeaderSubtitle('Manage training center authorizations and requests');
+    setHeaderTitle(t('training_centers_screen.header.title'));
+    setHeaderSubtitle(t('training_centers_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -182,14 +184,14 @@ const TrainingCentersScreen = () => {
   };
 
   const handleApprove = async (id) => {
-    if (window.confirm('Approve this training center request?')) {
+    if (window.confirm(t('training_centers_screen.messages.approve_confirm'))) {
       try {
         await accAPI.approveTrainingCenterRequest(id);
         await loadData();
         await fetchStats();
-        alert('Training center request approved successfully!');
+        alert(t('training_centers_screen.messages.approve_success'));
       } catch (error) {
-        alert('Failed to approve: ' + (error.message || 'Unknown error'));
+        alert(t('training_centers_screen.messages.approve_failed') + ': ' + (error.message || 'Unknown error'));
       }
     }
   };
@@ -206,7 +208,7 @@ const TrainingCentersScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Training Center',
+      header: t('training_centers_screen.table.training_center'),
       accessor: '_normalizedName',
       sortable: true,
       render: (value, row) => {
@@ -251,7 +253,7 @@ const TrainingCentersScreen = () => {
       }
     },
     {
-      header: 'Email',
+      header: t('training_centers_screen.table.email'),
       accessor: '_normalizedEmail',
       sortable: true,
       render: (value) => (
@@ -262,7 +264,7 @@ const TrainingCentersScreen = () => {
       )
     },
     {
-      header: 'Date',
+      header: t('training_centers_screen.table.date'),
       accessor: '_normalizedDate',
       sortable: true,
       render: (value) => (
@@ -272,7 +274,7 @@ const TrainingCentersScreen = () => {
       )
     },
     {
-      header: 'Status',
+      header: t('training_centers_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value, row) => {
@@ -303,13 +305,13 @@ const TrainingCentersScreen = () => {
         return (
           <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
             <Icon size={12} className="mr-1" />
-            {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+            {value ? t(`training_centers_screen.status.${value}`) : t('training_centers_screen.common.na')}
           </span>
         );
       }
     },
     {
-      header: 'Actions',
+      header: t('training_centers_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -317,7 +319,7 @@ const TrainingCentersScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="View Details"
+            title={t('training_centers_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
@@ -328,7 +330,7 @@ const TrainingCentersScreen = () => {
                 handleApprove(row.id);
               }}
               className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              title="Approve"
+              title={t('training_centers_screen.actions.approve')}
             >
               <CheckCircle size={16} />
             </button>
@@ -346,7 +348,7 @@ const TrainingCentersScreen = () => {
 
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason');
+      alert(t('training_centers_screen.rejection.missing_reason'));
       return;
     }
     try {
@@ -356,7 +358,7 @@ const TrainingCentersScreen = () => {
       setRejectModalOpen(false);
       setSelectedRequest(null);
       setRejectionReason('');
-      alert('Training center request rejected');
+      alert(t('training_centers_screen.rejection.success'));
     } catch (error) {
       alert('Failed to reject: ' + (error.message || 'Unknown error'));
     }
@@ -370,7 +372,7 @@ const TrainingCentersScreen = () => {
 
   const confirmReturn = async () => {
     if (!returnComment.trim()) {
-      alert('Please provide a return comment');
+      alert(t('training_centers_screen.return.missing_comment'));
       return;
     }
     try {
@@ -380,7 +382,7 @@ const TrainingCentersScreen = () => {
       setReturnModalOpen(false);
       setSelectedRequest(null);
       setReturnComment('');
-      alert('Request returned for revision');
+      alert(t('training_centers_screen.return.success'));
     } catch (error) {
       alert('Failed to return request: ' + (error.message || 'Unknown error'));
     }
@@ -392,7 +394,7 @@ const TrainingCentersScreen = () => {
       <div className="mb-6">
         <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
           <TabCard
-            name="Total"
+            name={t('training_centers_screen.tabs.total')}
             value={stats.total}
             icon={Building2}
             colorType="indigo"
@@ -403,7 +405,7 @@ const TrainingCentersScreen = () => {
             }}
           />
           <TabCard
-            name="Pending"
+            name={t('training_centers_screen.tabs.pending')}
             value={stats.pending}
             icon={Clock}
             colorType="yellow"
@@ -414,7 +416,7 @@ const TrainingCentersScreen = () => {
             }}
           />
           <TabCard
-            name="Active"
+            name={t('training_centers_screen.tabs.active')}
             value={stats.active}
             icon={CheckCircle}
             colorType="green"
@@ -425,7 +427,7 @@ const TrainingCentersScreen = () => {
             }}
           />
           <TabCard
-            name="Returned"
+            name={t('training_centers_screen.tabs.returned')}
             value={stats.returned}
             icon={ArrowLeft}
             colorType="blue"
@@ -443,7 +445,7 @@ const TrainingCentersScreen = () => {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search training centers..."
+            placeholder={t('training_centers_screen.search.placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -463,7 +465,7 @@ const TrainingCentersScreen = () => {
           searchable={false} // Disable client-side search
           sortable={true}
           filterable={false}
-          emptyMessage="No training centers found"
+          emptyMessage={t('training_centers_screen.table.empty')}
           onRowClick={(item) => handleRowClick(item)}
         />
 
@@ -489,7 +491,7 @@ const TrainingCentersScreen = () => {
           setDetailModalOpen(false);
           setSelectedRequest(null);
         }}
-        title={selectedRequest?._isRequest ? "Training Center Request Details" : "Training Center Details"}
+        title={selectedRequest?._isRequest ? t('training_centers_screen.details.request_title') : t('training_centers_screen.details.details_title')}
         size="lg"
       >
         {selectedRequest && (
@@ -499,18 +501,18 @@ const TrainingCentersScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <FileText className="mr-2" size={20} />
-                  Request Information
+                  {t('training_centers_screen.details.request_info')}
                 </h3>
                 <DetailForm
                   data={selectedRequest}
                   fields={[
-                    { key: 'id', label: 'Request ID', icon: Hash, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                    { key: 'training_center_id', label: 'Training Center ID', icon: Building2, render: (value) => value ? `#${value}` : 'N/A', showEmpty: false },
-                    { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'status', label: 'Status', type: 'status', icon: Clock },
-                    { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'id', label: t('training_centers_screen.details.request_id'), icon: Hash, render: (value) => value ? `#${value}` : t('training_centers_screen.common.na'), showEmpty: false },
+                    { key: 'training_center_id', label: t('training_centers_screen.details.training_center_id'), icon: Building2, render: (value) => value ? `#${value}` : t('training_centers_screen.common.na'), showEmpty: false },
+                    { key: 'request_date', label: t('training_centers_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'status', label: t('training_centers_screen.table.status'), type: 'status', icon: Clock },
+                    { key: 'created_at', label: t('training_centers_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'updated_at', label: t('training_centers_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'reviewed_at', label: t('training_centers_screen.details.reviewed_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                   ]}
                 />
               </div>
@@ -520,7 +522,7 @@ const TrainingCentersScreen = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Building2 className="mr-2" size={20} />
-                Training Center Information
+                {t('training_centers_screen.details.training_center_info')}
               </h3>
               <DetailForm
                 data={{
@@ -586,48 +588,48 @@ const TrainingCentersScreen = () => {
                 }}
                 fields={[
                   // Company Information
-                  { key: 'name', label: 'Company Name', icon: Building2 },
-                  { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
-                  { key: 'email', label: 'Company Email', type: 'email', icon: Mail },
-                  { key: 'phone', label: 'Telephone Number', icon: Phone, showEmpty: false },
-                  { key: 'fax', label: 'Fax', icon: Phone, showEmpty: false },
-                  { key: 'training_provider_type', label: 'Training Provider Type', showEmpty: false },
+                  { key: 'name', label: t('training_centers_screen.company.company_name'), icon: Building2 },
+                  { key: 'website', label: t('training_centers_screen.company.website'), type: 'url', icon: Globe, showEmpty: false },
+                  { key: 'email', label: t('training_centers_screen.company.email'), type: 'email', icon: Mail },
+                  { key: 'phone', label: t('training_centers_screen.company.phone'), icon: Phone, showEmpty: false },
+                  { key: 'fax', label: t('training_centers_screen.company.fax'), icon: Phone, showEmpty: false },
+                  { key: 'training_provider_type', label: t('training_centers_screen.company.training_provider_type'), showEmpty: false },
 
                   // Physical Address
-                  { key: 'full_address', label: 'Physical Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'full_address', label: t('training_centers_screen.company.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
 
                   // Mailing Address
                   {
                     key: 'mailing_same_as_physical',
-                    label: 'Mailing Same as Physical',
-                    transform: (value) => value ? 'Yes' : 'No',
+                    label: t('training_centers_screen.company.mailing_same_as_physical'),
+                    transform: (value) => value ? t('training_centers_screen.common.yes') : t('training_centers_screen.common.no'),
                     showEmpty: false
                   },
-                  { key: 'mailing_full_address', label: 'Mailing Address', icon: Mail, fullWidth: true, showEmpty: false },
+                  { key: 'mailing_full_address', label: t('training_centers_screen.company.mailing_address'), icon: Mail, fullWidth: true, showEmpty: false },
 
                   // Primary Contact
-                  { key: 'primary_contact_name', label: 'Primary Contact', icon: User, showEmpty: false },
-                  { key: 'primary_contact_email', label: 'Primary Contact Email', type: 'email', showEmpty: false },
-                  { key: 'primary_contact_country', label: 'Primary Contact Country', showEmpty: false },
-                  { key: 'primary_contact_mobile', label: 'Primary Contact Mobile', showEmpty: false },
+                  { key: 'primary_contact_name', label: t('training_centers_screen.company.primary_contact'), icon: User, showEmpty: false },
+                  { key: 'primary_contact_email', label: t('training_centers_screen.company.primary_contact_email'), type: 'email', showEmpty: false },
+                  { key: 'primary_contact_country', label: t('training_centers_screen.company.primary_contact_country'), showEmpty: false },
+                  { key: 'primary_contact_mobile', label: t('training_centers_screen.company.primary_contact_mobile'), showEmpty: false },
 
                   // Secondary Contact
                   {
                     key: 'has_secondary_contact',
-                    label: 'Has Secondary Contact',
-                    transform: (value) => value ? 'Yes' : 'No',
+                    label: t('training_centers_screen.company.secondary_contact'),
+                    transform: (value) => value ? t('training_centers_screen.common.yes') : t('training_centers_screen.common.no'),
                     showEmpty: false
                   },
-                  { key: 'secondary_contact_name', label: 'Secondary Contact', icon: User, showEmpty: false },
-                  { key: 'secondary_contact_email', label: 'Secondary Contact Email', type: 'email', showEmpty: false },
-                  { key: 'secondary_contact_country', label: 'Secondary Contact Country', showEmpty: false },
-                  { key: 'secondary_contact_mobile', label: 'Secondary Contact Mobile', showEmpty: false },
+                  { key: 'secondary_contact_name', label: t('training_centers_screen.company.secondary_contact'), icon: User, showEmpty: false },
+                  { key: 'secondary_contact_email', label: t('training_centers_screen.company.secondary_contact_email'), type: 'email', showEmpty: false },
+                  { key: 'secondary_contact_country', label: t('training_centers_screen.company.secondary_contact_country'), showEmpty: false },
+                  { key: 'secondary_contact_mobile', label: t('training_centers_screen.company.secondary_contact_mobile'), showEmpty: false },
 
                   // Additional Information
-                  { key: 'company_gov_registry_number', label: 'GOV Registry Number', showEmpty: false },
+                  { key: 'company_gov_registry_number', label: t('training_centers_screen.company.gov_registry_number'), showEmpty: false },
                   {
                     key: 'company_registration_certificate_url',
-                    label: 'Registration Certificate',
+                    label: t('training_centers_screen.company.registration_certificate'),
                     showEmpty: false,
                     render: (value) => (
                       <a
@@ -637,14 +639,14 @@ const TrainingCentersScreen = () => {
                         className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium"
                       >
                         <FileText size={16} className="mr-2" />
-                        View Certificate
+                        {t('training_centers_screen.documents.view_certificate')}
                         <ExternalLink size={14} className="ml-1 opacity-70" />
                       </a>
                     )
                   },
                   {
                     key: 'facility_floorplan_url',
-                    label: 'Facility Floorplan',
+                    label: t('training_centers_screen.company.facility_floorplan'),
                     showEmpty: false,
                     render: (value) => (
                       <a
@@ -654,28 +656,28 @@ const TrainingCentersScreen = () => {
                         className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium"
                       >
                         <MapPin size={16} className="mr-2" />
-                        View Floorplan
+                        {t('training_centers_screen.documents.view_floorplan')}
                         <ExternalLink size={14} className="ml-1 opacity-70" />
                       </a>
                     )
                   },
                   {
                     key: 'interested_fields',
-                    label: 'Interested Fields',
+                    label: t('training_centers_screen.company.interested_fields'),
                     transform: (value) => Array.isArray(value) ? value.join(', ') : value,
                     showEmpty: false
                   },
-                  { key: 'how_did_you_hear_about_us', label: 'How Did You Hear About Us', showEmpty: false },
+                  { key: 'how_did_you_hear_about_us', label: t('training_centers_screen.company.how_did_you_hear'), showEmpty: false },
 
                   // Legacy fields
-                  { key: 'legal_name', label: 'Legal Name', showEmpty: false },
-                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
-                  { key: 'authorized_at', label: 'Authorized At', type: 'datetime', icon: Calendar, showEmpty: false },
+                  { key: 'legal_name', label: t('training_centers_screen.company.company_name'), showEmpty: false },
+                  { key: 'registration_number', label: t('training_centers_screen.company.gov_registry_number'), showEmpty: false },
+                  { key: 'authorized_at', label: t('training_centers_screen.details.reviewed_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                 ]}
               />
               {(selectedRequest.training_center?.description || selectedRequest.description) && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Description</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('training_centers_screen.company.description')}</p>
                   <p className="text-base text-gray-900">
                     {selectedRequest.training_center?.description || selectedRequest.description}
                   </p>
@@ -688,7 +690,7 @@ const TrainingCentersScreen = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <FileText className="mr-2" size={20} />
-                  Documents
+                  {t('training_centers_screen.details.documents')}
                 </h3>
                 <div className="space-y-2">
                   {selectedRequest.documents_json.map((doc, index) => (
@@ -707,7 +709,7 @@ const TrainingCentersScreen = () => {
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                           >
-                            View Document
+                            {t('training_centers_screen.documents.view_document')}
                           </a>
                         )}
                       </div>
@@ -722,7 +724,7 @@ const TrainingCentersScreen = () => {
               <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
                 <div className="flex items-center mb-2">
                   <XCircle className="h-5 w-5 text-red-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-red-900">Rejection Reason</h3>
+                  <h3 className="text-lg font-semibold text-red-900">{t('training_centers_screen.rejection.reason_label')}</h3>
                 </div>
                 <p className="text-base text-gray-900">{selectedRequest.rejection_reason}</p>
               </div>
@@ -733,7 +735,7 @@ const TrainingCentersScreen = () => {
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="flex items-center mb-2">
                   <ArrowLeft className="h-5 w-5 text-blue-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-blue-900">Return Comment</h3>
+                  <h3 className="text-lg font-semibold text-blue-900">{t('training_centers_screen.return.comment_label')}</h3>
                 </div>
                 <p className="text-base text-gray-900">{selectedRequest.return_comment}</p>
               </div>
@@ -769,7 +771,7 @@ const TrainingCentersScreen = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
                 >
                   <ArrowLeft size={20} className="mr-2" />
-                  Return
+                  {t('training_centers_screen.actions.return')}
                 </button>
               </div>
             )}

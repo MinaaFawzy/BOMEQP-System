@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle, Search } from 'lucide-react';
@@ -9,6 +10,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './CertificatesScreen.css';
 
 const CertificatesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +48,8 @@ const CertificatesScreen = () => {
   }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle('Certificates');
-    setHeaderSubtitle('View all certificates issued using your templates');
+    setHeaderTitle(t('certificates_screen.header.title'));
+    setHeaderSubtitle(t('certificates_screen.header.subtitle'));
     setHeaderActions(null);
     return () => {
       setHeaderActions(null);
@@ -116,7 +118,7 @@ const CertificatesScreen = () => {
 
   // Format date helper
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('certificates_screen.common.na');
     return new Date(dateString).toLocaleDateString();
   };
 
@@ -132,7 +134,7 @@ const CertificatesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Certificate Number',
+      header: t('certificates_screen.table.certificate_number'),
       accessor: 'certificate_number',
       sortable: true,
       render: (value, row) => (
@@ -142,28 +144,28 @@ const CertificatesScreen = () => {
           </div>
           <div>
             <div className="text-sm font-semibold text-gray-900">
-              {value || 'N/A'}
+              {value || t('certificates_screen.common.na')}
             </div>
           </div>
         </div>
       )
     },
     {
-      header: 'Trainee',
+      header: t('certificates_screen.table.trainee'),
       accessor: 'trainee_name',
       sortable: true,
       render: (value, row) => (
         <div className="text-sm font-semibold text-gray-900">
-          {value || row.student_name || 'N/A'}
+          {value || row.student_name || t('certificates_screen.common.na')}
         </div>
       )
     },
     {
-      header: 'Course',
+      header: t('certificates_screen.table.course'),
       accessor: 'course',
       sortable: true,
       render: (value, row) => {
-        const courseName = typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A';
+        const courseName = typeof value === 'object' ? value?.name || t('certificates_screen.common.na') : value || t('certificates_screen.common.na');
         return (
           <div className="text-sm text-gray-700">
             {courseName}
@@ -172,7 +174,7 @@ const CertificatesScreen = () => {
       }
     },
     {
-      header: 'Issue Date',
+      header: t('certificates_screen.table.issue_date'),
       accessor: 'issue_date',
       sortable: true,
       render: (value) => (
@@ -182,19 +184,19 @@ const CertificatesScreen = () => {
       )
     },
     {
-      header: 'Status',
+      header: t('certificates_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'valid' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
           'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300'
           }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`certificates_screen.status.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('certificates_screen.common.na')}
         </span>
       )
     },
     {
-      header: 'Actions',
+      header: t('certificates_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => (
@@ -202,7 +204,7 @@ const CertificatesScreen = () => {
           <button
             onClick={() => handleViewDetails(row)}
             className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-            title="View Details"
+            title={t('certificates_screen.actions.view_details')}
           >
             <Eye size={16} />
           </button>
@@ -212,7 +214,7 @@ const CertificatesScreen = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              title="Verify Certificate"
+              title={t('certificates_screen.actions.verify')}
               onClick={(e) => e.stopPropagation()}
             >
               <CheckCircle size={16} />
@@ -234,7 +236,7 @@ const CertificatesScreen = () => {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Search certificates..."
+              placeholder={t('certificates_screen.search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -254,9 +256,9 @@ const CertificatesScreen = () => {
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
             >
-              <option value="all">All Status</option>
-              <option value="valid">Valid</option>
-              <option value="invalid">Invalid</option>
+              <option value="all">{t('certificates_screen.filters.all')}</option>
+              <option value="valid">{t('certificates_screen.filters.valid')}</option>
+              <option value="invalid">{t('certificates_screen.filters.invalid')}</option>
             </select>
           </div>
         </div>
@@ -296,7 +298,7 @@ const CertificatesScreen = () => {
           setDetailModalOpen(false);
           setSelectedCertificate(null);
         }}
-        title="Certificate Details"
+        title={t('certificates_screen.details.modal_title')}
         size="lg"
       >
         {selectedCertificate && (
@@ -304,16 +306,16 @@ const CertificatesScreen = () => {
             <DetailForm
               data={selectedCertificate}
               fields={[
-                { key: 'certificate_number', label: 'Certificate Number', icon: FileText },
-                { key: 'trainee_name', label: 'Trainee Name', icon: User, render: (value, row) => value || row.student_name || 'N/A' },
-                { key: 'course', label: 'Course', icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
-                { key: 'template', label: 'Template', icon: FileText, render: (value) => typeof value === 'object' ? value?.name || 'N/A' : value || 'N/A' },
-                { key: 'issue_date', label: 'Issue Date', icon: Calendar, render: (value) => formatDate(value) },
-                { key: 'expiry_date', label: 'Expiry Date', icon: Calendar, render: (value) => formatDate(value) },
-                { key: 'verification_code', label: 'Verification Code', icon: Hash },
+                { key: 'certificate_number', label: t('certificates_screen.details.certificate_number'), icon: FileText },
+                { key: 'trainee_name', label: t('certificates_screen.details.trainee_name'), icon: User, render: (value, row) => value || row.student_name || t('certificates_screen.common.na') },
+                { key: 'course', label: t('certificates_screen.details.course'), icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.common.na') : value || t('certificates_screen.common.na') },
+                { key: 'template', label: t('certificates_screen.details.template'), icon: FileText, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.common.na') : value || t('certificates_screen.common.na') },
+                { key: 'issue_date', label: t('certificates_screen.details.issue_date'), icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'expiry_date', label: t('certificates_screen.details.expiry_date'), icon: Calendar, render: (value) => formatDate(value) },
+                { key: 'verification_code', label: t('certificates_screen.details.verification_code'), icon: Hash },
                 {
                   key: 'certificate_pdf_url',
-                  label: 'Certificate PDF',
+                  label: t('certificates_screen.details.certificate_pdf'),
                   icon: Download,
                   render: (value) => value ? (
                     <a
@@ -322,11 +324,11 @@ const CertificatesScreen = () => {
                       rel="noopener noreferrer"
                       className="text-primary-600 hover:text-primary-700 underline"
                     >
-                      Download PDF
+                      {t('certificates_screen.details.download_pdf')}
                     </a>
-                  ) : 'N/A'
+                  ) : t('certificates_screen.common.na')
                 },
-                { key: 'status', label: 'Status', type: 'status' },
+                { key: 'status', label: t('certificates_screen.details.status'), type: 'status' },
               ]}
             />
           </div>

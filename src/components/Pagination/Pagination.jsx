@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 import './Pagination.css';
 
 const Pagination = ({
@@ -12,6 +13,8 @@ const Pagination = ({
   perPageOptions = [5, 10, 25, 50, 100],
   className = '',
 }) => {
+  const { t } = useTranslation('common');
+
   if (totalPages <= 1 && !showPerPageSelector) {
     return null;
   }
@@ -69,17 +72,18 @@ const Pagination = ({
     <div className={`pagination-container ${className}`}>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Items info */}
+        {/* Items info */}
         <div className="text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{startItem}</span> to{' '}
-          <span className="font-semibold text-gray-900">{endItem}</span> of{' '}
-          <span className="font-semibold text-gray-900">{totalItems}</span> results
+          {t('pagination.info.showing')} <span className="font-semibold text-gray-900">{startItem}</span> {t('pagination.info.to')}{' '}
+          <span className="font-semibold text-gray-900">{endItem}</span> {t('pagination.info.of')}{' '}
+          <span className="font-semibold text-gray-900">{totalItems}</span> {t('pagination.info.results')}
         </div>
 
         <div className="flex items-center gap-4">
           {/* Per page selector */}
           {showPerPageSelector && (
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Show:</label>
+              <label className="text-sm text-gray-600">{t('pagination.per_page.label')}</label>
               <select
                 value={perPage}
                 onChange={(e) => onPerPageChange(Number(e.target.value))}
@@ -102,7 +106,7 @@ const Pagination = ({
                 onClick={() => handlePageChange(1)}
                 disabled={currentPage === 1}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
-                title="First page"
+                title={t('pagination.controls.first_page')}
               >
                 <ChevronsLeft size={16} className="text-gray-600" />
               </button>
@@ -112,7 +116,7 @@ const Pagination = ({
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
-                title="Previous page"
+                title={t('pagination.controls.previous_page')}
               >
                 <ChevronLeft size={16} className="text-gray-600" />
               </button>
@@ -150,7 +154,7 @@ const Pagination = ({
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
-                title="Next page"
+                title={t('pagination.controls.next_page')}
               >
                 <ChevronRight size={16} className="text-gray-600" />
               </button>
@@ -160,7 +164,7 @@ const Pagination = ({
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
-                title="Last page"
+                title={t('pagination.controls.last_page')}
               >
                 <ChevronsRight size={16} className="text-gray-600" />
               </button>

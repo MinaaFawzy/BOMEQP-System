@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { Plus, FileText, Layers, RefreshCw, Edit, Trash2, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
@@ -12,6 +13,7 @@ import './CategoriesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
 const CategoriesScreen = () => {
+  const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
 
   const [categories, setCategories] = useState([]);
@@ -48,8 +50,8 @@ const CategoriesScreen = () => {
   }, []);
 
   useEffect(() => {
-    setHeaderTitle('Categories');
-    setHeaderSubtitle('View assigned categories and manage your own categories');
+    setHeaderTitle(t('categories_screen.header.title'));
+    setHeaderSubtitle(t('categories_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -188,7 +190,7 @@ const CategoriesScreen = () => {
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: error.message || 'Failed to save category' });
+        setErrors({ general: error.message || t('categories_screen.messages.save_failed') });
       }
     } finally {
       setSaving(false);
@@ -205,7 +207,7 @@ const CategoriesScreen = () => {
       await accAPI.deleteCategory(selectedCategory.id);
       await loadCategories();
     } catch (error) {
-      alert('Failed to delete category: ' + (error.response?.data?.message || error.message || 'Unknown error'));
+      alert(`${t('categories_screen.messages.delete_failed')}: ${error.response?.data?.message || error.message || 'Unknown error'}`);
     }
     setIsDeleteDialogOpen(false);
     setSelectedCategory(null);
@@ -329,7 +331,7 @@ const CategoriesScreen = () => {
       } else if (error.response?.data?.message) {
         setSubCategoryErrors({ general: error.response.data.message });
       } else {
-        setSubCategoryErrors({ general: error.message || 'Failed to save sub category' });
+        setSubCategoryErrors({ general: error.message || t('categories_screen.messages.save_failed') });
       }
     } finally {
       setSubCategorySaving(false);
@@ -346,7 +348,7 @@ const CategoriesScreen = () => {
       await accAPI.deleteSubCategory(selectedSubCategory.id);
       await loadSubCategories();
     } catch (error) {
-      alert('Failed to delete sub category: ' + (error.response?.data?.message || error.message || 'Unknown error'));
+      alert(`${t('categories_screen.messages.delete_failed')}: ${error.response?.data?.message || error.message || 'Unknown error'}`);
     }
     setIsSubCategoryDeleteDialogOpen(false);
     setSelectedSubCategory(null);
@@ -389,7 +391,7 @@ const CategoriesScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
-      header: 'Category',
+      header: t('categories_screen.table.category'),
       accessor: 'name',
       sortable: true,
       render: (value, row, { isExpanded, toggleExpand }) => {
@@ -414,14 +416,14 @@ const CategoriesScreen = () => {
             </div>
             <div>
               <div className="text-sm font-semibold text-gray-900">
-                {row.name || 'N/A'}
+                {row.name || t('categories_screen.common.na')}
               </div>
               {row.name_ar && (
                 <div className="text-xs text-gray-500">{row.name_ar}</div>
               )}
               {categorySubCats.length > 0 && (
                 <div className="text-xs text-gray-400 mt-0.5">
-                  {categorySubCats.length} sub-categor{categorySubCats.length === 1 ? 'y' : 'ies'}
+                  {categorySubCats.length} {t('categories_screen.stats.sub_categories')}
                 </div>
               )}
             </div>
@@ -430,7 +432,7 @@ const CategoriesScreen = () => {
       },
     },
     {
-      header: 'Description',
+      header: t('categories_screen.table.description'),
       accessor: 'description',
       sortable: true,
       render: (value) => (
@@ -440,35 +442,35 @@ const CategoriesScreen = () => {
       ),
     },
     {
-      header: 'Status',
+      header: t('categories_screen.table.status'),
       accessor: 'status',
       sortable: true,
       render: (value) => (
         <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${value === 'active'
-            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
-            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
+          : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
           }`}>
-          {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
+          {value ? t(`categories_screen.form.${value}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) }) : t('categories_screen.common.na')}
         </span>
       ),
     },
     {
-      header: 'Type',
+      header: t('categories_screen.table.type'),
       accessor: 'type',
       sortable: false,
       render: (value, row) => (
         <div className="flex flex-col gap-1">
           <span className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm ${isCategoryCreatedByMe(row)
-              ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300'
-              : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
+            ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300'
+            : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
             }`}>
-            {isCategoryCreatedByMe(row) ? 'Created by Me' : 'Assigned by Admin'}
+            {isCategoryCreatedByMe(row) ? t('categories_screen.badges.created_by_me') : t('categories_screen.badges.assigned_by_admin')}
           </span>
         </div>
       ),
     },
     {
-      header: 'Actions',
+      header: t('categories_screen.table.actions'),
       accessor: 'actions',
       sortable: false,
       render: (value, row) => {
@@ -482,10 +484,10 @@ const CategoriesScreen = () => {
                 }
               }}
               className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${canEdit
-                  ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                 }`}
-              title={canEdit ? 'Edit Category' : 'Cannot edit - Assigned by Admin'}
+              title={canEdit ? t('categories_screen.actions.edit_category') : t('categories_screen.badges.assigned_by_admin')}
               disabled={!canEdit}
             >
               <Edit size={16} />
@@ -497,10 +499,10 @@ const CategoriesScreen = () => {
                 }
               }}
               className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${canEdit
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                 }`}
-              title={canEdit ? 'Delete Category' : 'Cannot delete - Assigned by Admin'}
+              title={canEdit ? t('categories_screen.actions.delete_category') : t('categories_screen.badges.assigned_by_admin')}
               disabled={!canEdit}
             >
               <Trash2 size={16} />
@@ -513,9 +515,9 @@ const CategoriesScreen = () => {
 
   // Filter options for DataTable
   const filterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
-    { value: 'active', label: 'Active', filterFn: (row) => row.status === 'active' },
-    { value: 'inactive', label: 'Inactive', filterFn: (row) => row.status === 'inactive' },
+    { value: 'all', label: t('categories_screen.filters.all'), filterFn: () => true },
+    { value: 'active', label: t('categories_screen.filters.active'), filterFn: (row) => row.status === 'active' },
+    { value: 'inactive', label: t('categories_screen.filters.inactive'), filterFn: (row) => row.status === 'inactive' },
   ], []);
 
   // Render expanded row content
@@ -525,12 +527,12 @@ const CategoriesScreen = () => {
       <div>
         <div className="mb-3">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Sub Categories for "{category.name}"
+            {t('categories_screen.stats.sub_categories')} "{category.name}"
           </h3>
         </div>
         {categorySubCats.length === 0 ? (
           <div className="text-center py-8 text-gray-500 text-sm bg-white rounded-lg border border-gray-200">
-            No sub categories found for this category.
+            {t('categories_screen.table.no_sub_categories')}
           </div>
         ) : (
           <div className="space-y-2 mb-4">
@@ -546,7 +548,7 @@ const CategoriesScreen = () => {
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold text-gray-900">
-                        {subCat.name || 'N/A'}
+                        {subCat.name || t('categories_screen.common.na')}
                       </div>
                       {subCat.name_ar && (
                         <div className="text-xs text-gray-500">{subCat.name_ar}</div>
@@ -556,20 +558,20 @@ const CategoriesScreen = () => {
                       )}
                     </div>
                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${subCat.status === 'active'
-                        ? 'bg-green-100 text-green-800 border border-green-300'
-                        : 'bg-gray-100 text-gray-800 border border-gray-300'
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-gray-100 text-gray-800 border border-gray-300'
                       }`}>
-                      {subCat.status ? subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) : 'N/A'}
+                      {subCat.status ? t(`categories_screen.form.${subCat.status}`, { defaultValue: subCat.status.charAt(0).toUpperCase() + subCat.status.slice(1) }) : t('categories_screen.common.na')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => handleOpenSubCategoryModal(subCat)}
                       className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${isSubCategoryCreatedByMe(subCat)
-                          ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                         }`}
-                      title={isSubCategoryCreatedByMe(subCat) ? 'Edit Sub Category' : 'Cannot edit - Created by Admin'}
+                      title={isSubCategoryCreatedByMe(subCat) ? t('categories_screen.actions.edit_sub_category') : t('categories_screen.badges.assigned_by_admin')}
                       disabled={!isSubCategoryCreatedByMe(subCat)}
                     >
                       <Edit size={16} />
@@ -577,10 +579,10 @@ const CategoriesScreen = () => {
                     <button
                       onClick={() => handleDeleteSubCategory(subCat)}
                       className={`p-2 rounded-lg hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md ${isSubCategoryCreatedByMe(subCat)
-                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                        ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                        : 'bg-gray-50 text-gray-400 hover:bg-gray-100 cursor-not-allowed'
                         }`}
-                      title={isSubCategoryCreatedByMe(subCat) ? 'Delete Sub Category' : 'Cannot delete - Created by Admin'}
+                      title={isSubCategoryCreatedByMe(subCat) ? t('categories_screen.actions.delete_sub_category') : t('categories_screen.badges.assigned_by_admin')}
                       disabled={!isSubCategoryCreatedByMe(subCat)}
                     >
                       <Trash2 size={16} />
@@ -608,7 +610,7 @@ const CategoriesScreen = () => {
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
             <Plus size={16} />
-            Add Sub Category
+            {t('categories_screen.actions.add_sub_category')}
           </button>
         </div>
       </div>
@@ -617,15 +619,15 @@ const CategoriesScreen = () => {
 
   // Filter options for sub categories
   const subCategoryFilterOptions = useMemo(() => [
-    { value: 'all', label: 'All Status', filterFn: () => true },
+    { value: 'all', label: t('categories_screen.filters.all'), filterFn: () => true },
     {
       value: 'active',
-      label: 'Active',
+      label: t('categories_screen.filters.active'),
       filterFn: (subCat) => subCat.status === 'active'
     },
     {
       value: 'inactive',
-      label: 'Inactive',
+      label: t('categories_screen.filters.inactive'),
       filterFn: (subCat) => subCat.status === 'inactive'
     }
   ], []);
@@ -637,35 +639,34 @@ const CategoriesScreen = () => {
       {/* Stats Cards */}
       <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }} className="mb-6">
         <TabCard
-          name="Total Categories"
+          name={t('categories_screen.stats.total_categories')}
           value={totalCategories}
           icon={FileText}
           colorType="indigo"
         />
         <TabCard
-          name="Active Categories"
+          name={t('categories_screen.stats.active_categories')}
           value={activeCategories}
           icon={FileText}
           colorType="green"
         />
         <TabCard
-          name="Sub Categories"
+          name={t('categories_screen.stats.sub_categories')}
           value={totalSubCategories}
           icon={Layers}
           colorType="blue"
         />
         <TabCard
-          name="Active Sub Categories"
+          name={t('categories_screen.stats.active_sub_categories')}
           value={activeSubCategories}
           icon={Layers}
           colorType="purple"
         />
       </TabCardsGrid>
 
-      {/* Categories Table with Expandable Sub Categories */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('categories_screen.header.title')}</h2>
           <div className="flex gap-2">
             <Button
               onClick={() => loadCategories()}
@@ -673,15 +674,15 @@ const CategoriesScreen = () => {
               variant="outline"
               disabled={loading}
               loading={loading}
-              title="Refresh categories list"
+              title={t('categories_screen.actions.refresh')}
             >
-              Refresh
+              {t('categories_screen.actions.refresh')}
             </Button>
             <Button
               onClick={() => handleOpenModal()}
               icon={<Plus size={20} />}
             >
-              Add Category
+              {t('categories_screen.actions.add_category')}
             </Button>
           </div>
         </div>
@@ -705,12 +706,12 @@ const CategoriesScreen = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedCategory ? 'Edit Category' : 'Add New Category'}
+        title={selectedCategory ? t('categories_screen.modal.edit_category') : t('categories_screen.modal.add_category')}
         size="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormInput
-            label="Category Name (English)"
+            label={t('categories_screen.form.category_name_en')}
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -719,7 +720,7 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Category Name (Arabic)"
+            label={t('categories_screen.form.category_name_ar')}
             name="name_ar"
             value={formData.name_ar}
             onChange={handleChange}
@@ -727,7 +728,7 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Description"
+            label={t('categories_screen.form.description')}
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -737,14 +738,14 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Status"
+            label={t('categories_screen.form.status')}
             name="status"
             type="select"
             value={formData.status}
             onChange={handleChange}
             options={[
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
+              { value: 'active', label: t('categories_screen.form.active') },
+              { value: 'inactive', label: t('categories_screen.form.inactive') },
             ]}
             error={errors.status}
           />
@@ -759,7 +760,7 @@ const CategoriesScreen = () => {
               onClick={handleCloseModal}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Cancel
+              {t('categories_screen.common.cancel')}
             </button>
             <Button
               type="submit"
@@ -767,7 +768,7 @@ const CategoriesScreen = () => {
               loading={saving}
               fullWidth
             >
-              {selectedCategory ? 'Update' : 'Create'}
+              {selectedCategory ? t('categories_screen.actions.edit_category').split(' ')[0] : t('categories_screen.actions.add_category').split(' ')[0]}
             </Button>
           </div>
         </form>
@@ -781,9 +782,9 @@ const CategoriesScreen = () => {
           setSelectedCategory(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Category"
-        message={`Are you sure you want to delete "${selectedCategory?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('categories_screen.actions.delete_category')}
+        message={t('categories_screen.confirmations.delete', { name: selectedCategory?.name })}
+        confirmText={t('categories_screen.actions.delete_category').split(' ')[0]}
         variant="danger"
       />
 
@@ -791,12 +792,12 @@ const CategoriesScreen = () => {
       <Modal
         isOpen={isSubCategoryModalOpen}
         onClose={handleCloseSubCategoryModal}
-        title={selectedSubCategory ? 'Edit Sub Category' : 'Add New Sub Category'}
+        title={selectedSubCategory ? t('categories_screen.modal.edit_sub_category') : t('categories_screen.modal.add_sub_category')}
         size="md"
       >
         <form onSubmit={handleSubCategorySubmit} className="space-y-4">
           <FormInput
-            label="Category"
+            label={t('categories_screen.table.category')}
             name="category_id"
             type="select"
             value={subCategoryFormData.category_id}
@@ -813,7 +814,7 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Sub Category Name (English)"
+            label={t('categories_screen.form.category_name_en')}
             name="name"
             value={subCategoryFormData.name}
             onChange={handleSubCategoryChange}
@@ -822,7 +823,7 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Sub Category Name (Arabic)"
+            label={t('categories_screen.form.category_name_ar')}
             name="name_ar"
             value={subCategoryFormData.name_ar}
             onChange={handleSubCategoryChange}
@@ -830,7 +831,7 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Description"
+            label={t('categories_screen.form.description')}
             name="description"
             value={subCategoryFormData.description}
             onChange={handleSubCategoryChange}
@@ -840,14 +841,14 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Status"
+            label={t('categories_screen.form.status')}
             name="status"
             type="select"
             value={subCategoryFormData.status}
             onChange={handleSubCategoryChange}
             options={[
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
+              { value: 'active', label: t('categories_screen.form.active') },
+              { value: 'inactive', label: t('categories_screen.form.inactive') },
             ]}
             error={subCategoryErrors.status}
           />
@@ -864,7 +865,7 @@ const CategoriesScreen = () => {
               onClick={handleCloseSubCategoryModal}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-105 transform"
             >
-              Cancel
+              {t('categories_screen.common.cancel')}
             </button>
             <Button
               type="submit"
@@ -872,7 +873,7 @@ const CategoriesScreen = () => {
               loading={subCategorySaving}
               fullWidth
             >
-              {selectedSubCategory ? 'Update' : 'Create'}
+              {selectedSubCategory ? t('categories_screen.actions.edit_sub_category').split(' ')[0] : t('categories_screen.actions.add_sub_category').split(' ')[0]}
             </Button>
           </div>
         </form>
@@ -886,9 +887,9 @@ const CategoriesScreen = () => {
           setSelectedSubCategory(null);
         }}
         onConfirm={confirmDeleteSubCategory}
-        title="Delete Sub Category"
-        message={`Are you sure you want to delete "${selectedSubCategory?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('categories_screen.actions.delete_sub_category')}
+        message={t('categories_screen.confirmations.delete', { name: selectedSubCategory?.name })}
+        confirmText={t('categories_screen.actions.delete_sub_category').split(' ')[0]}
         variant="danger"
       />
     </div>

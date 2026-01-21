@@ -1,0 +1,309 @@
+{
+  "dashboard_screen": {
+    "errors": {
+      "load_failed": "فشل تحميل بيانات لوحة التحكم"
+    },
+
+    "stats": {
+      "total_classes": "إجمالي الدورات",
+      "scheduled": "مجدولة",
+      "completed": "مكتملة",
+
+      "click_to_view_all": "اضغط لعرض الكل",
+      "scheduled_classes": "دورات مجدولة",
+      "finished_classes": "دورات منتهية"
+    },
+
+    "charts": {
+      "earnings_over_time": "الأرباح بمرور الوقت",
+      "earnings": "الأرباح",
+      "classes_status_distribution": "توزيع حالات الدورات",
+      "count": "العدد"
+    },
+
+    "recent_classes": {
+      "title": "أحدث الدورات",
+      "view_all": "عرض الكل",
+
+      "table": {
+        "course": "الدورة",
+        "training_center": "مركز التدريب",
+        "dates": "التواريخ",
+        "status": "الحالة",
+        "students": "المتدربون",
+        "code_prefix": "الكود:"
+      },
+
+      "empty": {
+        "title": "لا توجد دورات",
+        "subtitle": "لا توجد لديك دورات حتى الآن"
+      }
+    },
+
+    "profile_summary": {
+      "title": "ملخص الملف الشخصي",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "view_full_profile": "عرض الملف بالكامل"
+    },
+
+    "training_centers": {
+      "title": "مراكز التدريب",
+      "view_all_with_count": "عرض الكل ({{count}})",
+      "empty": "لا توجد مراكز تدريب"
+    },
+
+    "accs": {
+      "title": "جهات الاعتماد",
+      "authorized": "معتمد",
+      "view_all_with_count": "عرض الكل ({{count}})",
+      "empty": "لا توجد جهات اعتماد"
+    },
+
+    "status": {
+      "scheduled": "مجدولة",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة"
+    },
+
+    "location": {
+      "online": "أونلاين"
+    },
+
+    "common": {
+      "na": "غير متاح",
+      "to": "إلى",
+      "class_one": "دورة",
+      "class_other": "دورات"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "دوراتي",
+      "subtitle": "عرض وإدارة الدورات المكلّف بها"
+    },
+
+    "search": {
+      "placeholder": "ابحث عن دورة..."
+    },
+
+    "filters": {
+      "all": "كل الدورات",
+      "scheduled": "مجدولة",
+      "completed": "مكتملة"
+    },
+
+    "table": {
+      "course": "الدورة",
+      "training_center": "مركز التدريب",
+      "start_date": "تاريخ البداية",
+      "end_date": "تاريخ النهاية",
+      "exam_date": "تاريخ الاختبار",
+      "exam_score": "درجة الاختبار",
+      "status": "الحالة",
+      "enrolled": "المسجلون",
+      "empty": "لا توجد دورات مخصصة لك حتى الآن."
+    },
+
+    "status": {
+      "scheduled": "مجدولة",
+      "completed": "مكتملة",
+      "default": "غير معروف",
+      "not_set": "غير محدد",
+      "na": "غير متاح"
+    },
+
+    "actions": {
+      "view_details": "عرض التفاصيل",
+      "mark_complete": "تحديد كمكتملة"
+    },
+
+    "details": {
+      "modal_title": "تفاصيل الدورة",
+
+      "course": "الدورة",
+      "training_center": "مركز التدريب",
+      "start_date": "تاريخ البداية",
+      "end_date": "تاريخ النهاية",
+      "exam_date": "تاريخ الاختبار",
+      "exam_score": "درجة الاختبار",
+      "enrollment": "عدد المسجلين",
+      "status": "الحالة",
+      "location": "الموقع",
+
+      "materials_title": "مواد الدورة",
+      "download": "تحميل"
+    },
+
+    "complete": {
+      "modal_title": "تحديد الدورة كمكتملة",
+
+      "completion_rate": "نسبة الإكمال (%)",
+      "completion_rate_placeholder": "مثال: 95",
+
+      "notes": "ملاحظات (اختياري)",
+      "notes_placeholder": "أضف أي ملاحظات حول إكمال الدورة...",
+
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الإكمال"
+    },
+
+    "validation": {
+      "completion_rate_required": "يرجى إدخال نسبة الإكمال"
+    },
+
+    "messages": {
+      "marked_complete_success": "تم تحديد الدورة كمكتملة بنجاح!",
+      "mark_complete_failed": "فشل تحديد الدورة كمكتملة"
+    },
+
+    "common": {
+      "na": "غير متاح"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "الملف الشخصي",
+      "subtitle": "إدارة إعدادات الحساب والتفضيلات",
+      "edit": "تعديل الملف الشخصي"
+    },
+
+    "sections": {
+      "profile_info": {
+        "title": "معلومات الملف الشخصي",
+        "subtitle": "تحديث بياناتك الشخصية"
+      },
+      "cv": {
+        "title": "السيرة الذاتية",
+        "subtitle": "رفع أو تحديث السيرة الذاتية"
+      },
+      "passport": {
+        "title": "صورة جواز السفر",
+        "subtitle": "رفع أو تحديث مستند جواز السفر"
+      },
+      "certificates": {
+        "title": "الشهادات",
+        "subtitle": "إدارة شهاداتك المهنية"
+      },
+      "password": {
+        "title": "تغيير كلمة المرور",
+        "subtitle": "تحديث كلمة مرور الحساب"
+      },
+      "language": {
+        "title": "إعدادات اللغة",
+        "subtitle": "اختر لغة النظام المفضلة",
+        "application_language": "لغة التطبيق"
+      }
+    },
+
+    "form": {
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "email": "البريد الإلكتروني",
+      "email_help": "لا يمكن تغيير البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "date_of_birth": "تاريخ الميلاد",
+      "id_number": "رقم الهوية",
+      "id_placeholder": "أدخل رقم الهوية (8 أحرف على الأقل)",
+
+      "country": "الدولة",
+      "city": "المدينة",
+      "select_country": "اختر الدولة",
+      "select_city": "اختر المدينة",
+
+      "type": "النوع",
+      "account_status": "حالة الحساب",
+      "training_center": "مركز التدريب",
+
+      "specializations": "التخصصات"
+    },
+
+    "profile_photo": {
+      "label": "الصورة الشخصية",
+      "select": "اختيار صورة",
+      "change": "تغيير الصورة",
+      "hint": "JPG أو PNG فقط، بحد أقصى 5 ميجابايت"
+    },
+
+    "status": {
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "suspended": "موقوف",
+      "inactive": "غير نشط",
+      "assessor": "مقيّم",
+      "instructor": "مدرب"
+    },
+
+    "cv": {
+      "current": "السيرة الذاتية الحالية",
+      "view": "عرض السيرة الذاتية",
+      "none": "لا توجد سيرة ذاتية",
+      "none_hint": "اضغط على تعديل الملف الشخصي لرفع السيرة الذاتية",
+      "upload": "رفع السيرة الذاتية",
+      "update": "تحديث السيرة الذاتية",
+      "uploading": "جاري رفع السيرة الذاتية...",
+      "remove": "حذف السيرة الذاتية",
+      "remove_confirm": "هل أنت متأكد من حذف السيرة الذاتية؟ لا يمكن التراجع عن هذا الإجراء.",
+      "hint": "PDF فقط، بحد أقصى 10 ميجابايت"
+    },
+
+    "passport": {
+      "current": "جواز السفر الحالي",
+      "view": "عرض جواز السفر",
+      "none": "لا يوجد جواز سفر مرفوع",
+      "none_hint": "اضغط على تعديل الملف الشخصي لرفع جواز السفر",
+      "upload": "رفع جواز السفر",
+      "update": "تحديث جواز السفر",
+      "processing": "جاري معالجة جواز السفر...",
+      "hint": "JPG أو PNG أو PDF، بحد أقصى 10 ميجابايت"
+    },
+
+    "certificates": {
+      "add": "إضافة شهادة",
+      "new_title": "شهادات جديدة للإضافة",
+      "name": "اسم الشهادة",
+      "issue_date": "تاريخ الإصدار",
+      "file": "ملف الشهادة (PDF)",
+      "view": "عرض الشهادة",
+      "none": "لم تتم إضافة شهادات بعد",
+      "selected": "تم اختيار:"
+    },
+
+    "password": {
+      "current": "كلمة المرور الحالية",
+      "new": "كلمة المرور الجديدة",
+      "confirm": "تأكيد كلمة المرور الجديدة",
+      "current_placeholder": "أدخل كلمة المرور الحالية",
+      "new_placeholder": "يجب أن تحتوي على أحرف كبيرة وأرقام ورموز",
+      "confirm_placeholder": "تأكيد كلمة المرور الجديدة",
+      "submit": "تغيير كلمة المرور"
+    },
+
+    "buttons": {
+      "save": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "cancel": "إلغاء"
+    },
+
+    "messages": {
+      "profile_updated": "تم تحديث الملف الشخصي بنجاح!",
+      "password_changed": "تم تغيير كلمة المرور بنجاح!"
+    },
+
+    "validation": {
+      "required": "هذا الحقل مطلوب",
+      "invalid_email": "بريد إلكتروني غير صالح",
+      "photo_type": "يرجى اختيار صورة صالحة (JPG أو PNG فقط)",
+      "photo_size": "يجب ألا يتجاوز حجم الصورة 5 ميجابايت",
+      "file_type": "يسمح بملفات PDF فقط",
+      "file_size": "يجب ألا يتجاوز حجم الملف 10 ميجابايت",
+      "password_required": "كلمة المرور الحالية مطلوبة",
+      "password_failed": "فشل تغيير كلمة المرور"
+    },
+
+    "common": {
+      "na": "غير متاح"
+    }
+  }
+}
