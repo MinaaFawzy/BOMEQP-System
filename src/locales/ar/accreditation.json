@@ -413,6 +413,7 @@
       "course_name_en": "اسم الدورة (إنجليزي)",
       "course_name_ar": "اسم الدورة (عربي)",
       "course_code": "كود الدورة",
+      "category": "التصنيف",
       "sub_category": "التصنيف الفرعي",
       "description": "الوصف",
 
@@ -430,6 +431,7 @@
       "course_name_max": "يجب ألا يزيد اسم الدورة عن 255 حرفًا",
       "course_code_required": "كود الدورة مطلوب",
       "course_code_max": "يجب ألا يزيد كود الدورة عن 255 حرفًا",
+      "category_required": "التصنيف مطلوب",
       "sub_category_required": "التصنيف الفرعي مطلوب",
       "duration_min": "يجب ألا تقل المدة عن ساعة واحدة",
       "capacity_required": "الحد الأقصى مطلوب",

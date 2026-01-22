@@ -17,7 +17,9 @@ const CoursesScreen = () => {
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const handleOpenModalRef = useRef(null);
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [allSubCategories, setAllSubCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -30,7 +32,7 @@ const CoursesScreen = () => {
     current_page: 1,
     last_page: 1,
     total: 0,
-    per_page: 5,
+    per_page: 10,
     from: 0,
     to: 0
   });
@@ -39,6 +41,7 @@ const CoursesScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [formData, setFormData] = useState({
+    category_id: '',
     sub_category_id: '',
     name: '',
     name_ar: '',
@@ -67,6 +70,7 @@ const CoursesScreen = () => {
   }, [searchQuery]);
 
   useEffect(() => {
+    loadCategories();
     loadSubCategories();
   }, []);
 
@@ -158,6 +162,27 @@ const CoursesScreen = () => {
     }));
   };
 
+  const loadCategories = async () => {
+    try {
+      const data = await accAPI.listCategories({ per_page: 1000 });
+
+      // Handle various response structures
+      if (data.data && Array.isArray(data.data)) {
+        setCategories(data.data);
+      } else if (data.categories && Array.isArray(data.categories)) {
+        setCategories(data.categories);
+      } else if (Array.isArray(data)) {
+        setCategories(data);
+      } else {
+        console.warn('Unexpected categories response format:', data);
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      setCategories([]);
+    }
+  };
+
   const loadSubCategories = async () => {
     try {
       // Fetch all sub-categories for the dropdown
@@ -166,19 +191,24 @@ const CoursesScreen = () => {
       // Handle various response structures
       if (data.data && Array.isArray(data.data)) {
         // Laravel pagination results
+        setAllSubCategories(data.data);
         setSubCategories(data.data);
       } else if (data.sub_categories && Array.isArray(data.sub_categories)) {
         // Wrapped in key
+        setAllSubCategories(data.sub_categories);
         setSubCategories(data.sub_categories);
       } else if (Array.isArray(data)) {
         // Direct array
+        setAllSubCategories(data);
         setSubCategories(data);
       } else {
         console.warn('Unexpected sub categories response format:', data);
+        setAllSubCategories([]);
         setSubCategories([]);
       }
     } catch (error) {
       console.error('Failed to load sub categories:', error);
+      setAllSubCategories([]);
       setSubCategories([]);
     }
   };
@@ -186,7 +216,12 @@ const CoursesScreen = () => {
   const handleOpenModal = useCallback((course = null) => {
     if (course) {
       setSelectedCourse(course);
+
+      // Get category_id from sub_category if available
+      const categoryId = course.sub_category?.category_id || '';
+
       setFormData({
+        category_id: categoryId,
         sub_category_id: course.sub_category_id || '',
         name: course.name || '',
         name_ar: course.name_ar || '',
@@ -198,6 +233,15 @@ const CoursesScreen = () => {
         status: course.status || 'active',
         assessor_required: course.assessor_required || false,
       });
+
+      // Filter sub-categories based on category
+      if (categoryId) {
+        const filtered = allSubCategories.filter(sub => sub.category_id === parseInt(categoryId));
+        setSubCategories(filtered);
+      } else {
+        setSubCategories([]);
+      }
+
       // Load pricing data if available (check both pricing and current_price)
       const pricing = course.current_price || course.pricing || (course.certificate_pricing && course.certificate_pricing.length > 0 ? course.certificate_pricing[0] : null);
       if (pricing) {
@@ -214,6 +258,7 @@ const CoursesScreen = () => {
     } else {
       setSelectedCourse(null);
       setFormData({
+        category_id: '',
         sub_category_id: '',
         name: '',
         name_ar: '',
@@ -225,6 +270,7 @@ const CoursesScreen = () => {
         status: 'active',
         assessor_required: false,
       });
+      setSubCategories([]);
       setPricingData({
         base_price: '',
         currency: 'USD',
@@ -232,7 +278,7 @@ const CoursesScreen = () => {
     }
     setErrors({});
     setIsModalOpen(true);
-  }, []);
+  }, [allSubCategories]);
 
   // Update ref when handleOpenModal is defined
   useEffect(() => {
@@ -243,6 +289,7 @@ const CoursesScreen = () => {
     setIsModalOpen(false);
     setSelectedCourse(null);
     setFormData({
+      category_id: '',
       sub_category_id: '',
       name: '',
       name_ar: '',
@@ -253,6 +300,7 @@ const CoursesScreen = () => {
       status: 'active',
       assessor_required: false,
     });
+    setSubCategories([]);
     setPricingData({
       base_price: '',
       currency: 'USD',
@@ -270,6 +318,25 @@ const CoursesScreen = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setErrors({});
+  };
+
+  const handleCategoryChange = (e) => {
+    const categoryId = e.target.value;
+    setFormData({
+      ...formData,
+      category_id: categoryId,
+      sub_category_id: '', // Reset sub-category when category changes
+    });
+
+    // Filter sub-categories based on selected category
+    if (categoryId) {
+      const filtered = allSubCategories.filter(sub => sub.category_id === parseInt(categoryId));
+      setSubCategories(filtered);
+    } else {
+      setSubCategories([]);
+    }
+
     setErrors({});
   };
 
@@ -304,6 +371,10 @@ const CoursesScreen = () => {
       newErrors.code = t('courses_screen.validation.course_code_required');
     } else if (formData.code.length > 255) {
       newErrors.code = t('courses_screen.validation.course_code_max');
+    }
+
+    if (!formData.category_id) {
+      newErrors.category_id = t('courses_screen.validation.category_required');
     }
 
     if (!formData.sub_category_id) {
@@ -696,17 +767,35 @@ const CoursesScreen = () => {
             />
 
             <FormInput
+              label={t('courses_screen.form.category')}
+              name="category_id"
+              type="select"
+              value={formData.category_id}
+              onChange={handleCategoryChange}
+              required
+              options={categories.map(cat => ({
+                value: cat.id,
+                label: cat.name || cat.title || `Category ${cat.id}`,
+              }))}
+              error={errors.category_id}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
               label={t('courses_screen.form.sub_category')}
               name="sub_category_id"
               type="select"
               value={formData.sub_category_id}
               onChange={handleChange}
               required
-              options={subCategories.map(cat => ({
+              disabled={!formData.category_id}
+              options={formData.category_id ? subCategories.map(cat => ({
                 value: cat.id,
                 label: cat.name || cat.title || `Sub Category ${cat.id}`,
-              }))}
+              })) : []}
               error={errors.sub_category_id}
+              placeholder={!formData.category_id ? "Please select a category first" : "Select sub-category"}
             />
           </div>
 

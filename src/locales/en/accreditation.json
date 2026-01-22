@@ -413,6 +413,7 @@
       "course_name_en": "Course Name (English)",
       "course_name_ar": "Course Name (Arabic)",
       "course_code": "Course Code",
+      "category": "Category",
       "sub_category": "Sub Category",
       "description": "Description",
 
@@ -430,6 +431,7 @@
       "course_name_max": "Course name must be at most 255 characters",
       "course_code_required": "Course code is required",
       "course_code_max": "Course code must be at most 255 characters",
+      "category_required": "Category is required",
       "sub_category_required": "Sub category is required",
       "duration_min": "Duration must be at least 1 hour",
       "capacity_required": "Max capacity is required",
