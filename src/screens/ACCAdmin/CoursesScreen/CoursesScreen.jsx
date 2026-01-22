@@ -946,77 +946,14 @@ const CoursesScreen = () => {
                   </h3>
                   <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {pricing.id && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Hash size={14} className="mr-1" />
-                            Pricing ID
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            #{pricing.id}
-                          </p>
-                        </div>
-                      )}
+
                       <div className="p-4 bg-white rounded-lg">
                         <p className="text-sm text-gray-500 mb-1">{t('courses_screen.pricing.base_price')}</p>
                         <p className="text-lg font-bold text-gray-900">
                           {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
                         </p>
                       </div>
-                      {pricing.group_commission_percentage !== undefined && pricing.group_commission_percentage !== null && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1">Group Commission</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {parseFloat(pricing.group_commission_percentage || 0).toFixed(2)}%
-                          </p>
-                        </div>
-                      )}
-                      {pricing.training_center_commission_percentage !== undefined && pricing.training_center_commission_percentage !== null && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1">Training Center Commission</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {parseFloat(pricing.training_center_commission_percentage || 0).toFixed(2)}%
-                          </p>
-                        </div>
-                      )}
-                      {pricing.instructor_commission_percentage !== undefined && pricing.instructor_commission_percentage !== null && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1">Instructor Commission</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {parseFloat(pricing.instructor_commission_percentage || 0).toFixed(2)}%
-                          </p>
-                        </div>
-                      )}
-                      {pricing.effective_from && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            Effective From
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {new Date(pricing.effective_from).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      )}
-                      {pricing.effective_to && (
-                        <div className="p-4 bg-white rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            Effective To
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {new Date(pricing.effective_to).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      )}
+
                       {pricing.created_at && (
                         <div className="p-4 bg-white rounded-lg">
                           <p className="text-sm text-gray-500 mb-1 flex items-center">

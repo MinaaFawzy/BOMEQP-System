@@ -36,7 +36,7 @@ export const useTranslation = (namespace = 'common') => {
         isRTL: i18n.language === 'ar',
         languages: {
             en: 'English',
-            ar: 'العربية',
+            // ar: 'العربية',
             zhCN: '中文',
             hi: 'हिन्दी',
         },
