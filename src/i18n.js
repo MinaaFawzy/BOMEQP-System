@@ -17,6 +17,22 @@ import arTrainingCenter from './locales/ar/training_center.json';
 import arAccreditation from './locales/ar/accreditation.json';
 import arInstructor from './locales/ar/instructor.json';
 
+// Import Chinese (Simplified) translations
+import zhCNCommon from './locales/zh-CN/common.json';
+import zhCNAuth from './locales/zh-CN/auth.json';
+import zhCNNavigation from './locales/zh-CN/navigation.json';
+import zhCNTrainingCenter from './locales/zh-CN/training_center.json';
+import zhCNAccreditation from './locales/zh-CN/accreditation.json';
+import zhCNInstructor from './locales/zh-CN/instructor.json';
+
+// Import Hindi translations
+import hiCommon from './locales/hi/common.json';
+import hiAuth from './locales/hi/auth.json';
+import hiNavigation from './locales/hi/navigation.json';
+import hiTrainingCenter from './locales/hi/training_center.json';
+import hiAccreditation from './locales/hi/accreditation.json';
+import hiInstructor from './locales/hi/instructor.json';
+
 // Get saved language from localStorage or default to 'en'
 const savedLanguage = localStorage.getItem('language') || 'en';
 
@@ -40,6 +56,22 @@ i18n
                 training_center: arTrainingCenter,
                 accreditation: arAccreditation,
                 instructor: arInstructor,
+            },
+            zhCN: {
+                common: zhCNCommon,
+                auth: zhCNAuth,
+                navigation: zhCNNavigation,
+                training_center: zhCNTrainingCenter,
+                accreditation: zhCNAccreditation,
+                instructor: zhCNInstructor,
+            },
+            hi: {
+                common: hiCommon,
+                auth: hiAuth,
+                navigation: hiNavigation,
+                training_center: hiTrainingCenter,
+                accreditation: hiAccreditation,
+                instructor: hiInstructor,
             },
         },
         lng: savedLanguage, // default language

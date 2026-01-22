@@ -1,0 +1,12 @@
+{
+  "example_key": "उदाहरण मान",
+  "another_key": "एक और मान",
+  "nested": {
+    "key": "नेस्टेड मान"
+  },
+  "actions": {
+    "create": "बनाएं",
+    "update": "अपडेट करें",
+    "delete": "हटाएं"
+  }
+}

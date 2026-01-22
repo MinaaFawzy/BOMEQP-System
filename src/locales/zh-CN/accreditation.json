@@ -1,0 +1,1063 @@
+{
+  "dashboard": {
+    "cards": {
+      "total_revenue": "总计 收入",
+      "pending_requests": "待处理 申请",
+      "active_training_centers": "启用 培训 中心",
+      "active_instructors": "启用 讲师",
+      "click_to_view_details": "点击 到 查看 详情"
+    },
+    "sections": {
+      "revenue_overview": "收入 概览",
+      "monthly_revenue": "月度 收入",
+      "revenue_over_time": "收入 超过 时间",
+      "certificates_over_time": "证书 超过 时间"
+    },
+    "charts": {
+      "revenue": "收入",
+      "certificates": "证书"
+    }
+  },
+  "subscription_screen": {
+    "header": {
+      "title": "订阅 管理",
+      "subtitle": "管理 您的 认证 订阅 和 付款 详情"
+    },
+    "no_subscription": {
+      "title": "未启用 订阅",
+      "description": "您 需要 到 订阅 到 访问 全部 认证 功能. 请 完成 您的 订阅 付款 到 继续.",
+      "subscribe_now": "订阅 现在"
+    },
+    "current_subscription": {
+      "title": "当前 订阅",
+      "subtitle": "管理 您的 订阅 详情",
+      "status": {
+        "paid": "已支付",
+        "pending": "待处理"
+      },
+      "fields": {
+        "start_date": "开始 日期",
+        "end_date": "结束 日期",
+        "amount": "金额",
+        "auto_renew": "自动 续订",
+        "enabled": "已启用",
+        "disabled": "已禁用"
+      },
+      "actions": {
+        "pay_subscription": "支付 订阅",
+        "manage_renewal": "管理 续订"
+      }
+    },
+    "payment_modal": {
+      "title": "订阅 / 支付 订阅",
+      "amount": "金额",
+      "amount_placeholder": "5000.00",
+      "payment_method_title": "支付方式：信用卡",
+      "payment_method_description": "付款将通过 Stripe 安全处理。点击下方“立即支付”以输入您的卡信息。",
+      "cancel": "取消",
+      "pay_now": "支付 现在",
+      "processing": "处理中..."
+    },
+    "renewal_modal": {
+      "title": "管理 订阅 续订",
+      "amount": "金额",
+      "amount_placeholder": "10000.00",
+      "payment_method_title": "支付方式：信用卡",
+      "payment_method_description": "付款 将  已处理 安全地 通过 Stripe. 点击 \"续订 订阅\" 下方 到 输入 您的 卡 详情.",
+      "auto_renew": "启用 自动-续订",
+      "auto_renew_hint": "当 已启用, 您的 订阅 将 自动 续订 在  结束 的  当前 周期.",
+      "cancel": "取消",
+      "renew": "续订 订阅",
+      "processing": "处理中..."
+    },
+    "messages": {
+      "payment_success": "订阅 付款 已处理 成功!",
+      "renew_success": "订阅 已续订 成功!"
+    },
+    "errors": {
+      "invalid_amount": "请 输入 a 有效 金额 更大 比 0",
+      "min_amount": "金额 必须  在 至少 $1.00",
+      "create_payment_intent_failed": "创建支付意图失败。请重试。",
+      "payment_not_completed": "付款未完成。状态：{{status}}",
+      "payment_verification_failed": "付款验证失败。请联系支持。",
+      "payment_process_failed": "付款 成功 但是 失败 到 处理 订阅. 请 联系 支持.",
+      "renew_failed": "付款 成功 但是 失败 到 续订 订阅. 请 联系 支持."
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "training_centers_screen": {
+    "header": {
+      "title": "培训 中心",
+      "subtitle": "管理 培训 中心 授权 和 申请"
+    },
+    "tabs": {
+      "total": "总计",
+      "pending": "待处理",
+      "active": "启用",
+      "returned": "已退回"
+    },
+    "search": {
+      "placeholder": "搜索 培训 中心..."
+    },
+    "table": {
+      "training_center": "培训 中心",
+      "email": "电子邮件",
+      "date": "日期",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "否 培训 中心 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情",
+      "approve": "批准",
+      "reject": "拒绝",
+      "return": "退回"
+    },
+    "status": {
+      "pending": "待处理",
+      "active": "启用",
+      "approved": "已批准",
+      "returned": "已退回",
+      "rejected": "已拒绝",
+      "na": "N/A"
+    },
+    "details": {
+      "request_title": "培训 中心 申请 详情",
+      "details_title": "培训 中心 详情",
+      "request_info": "申请 信息",
+      "training_center_info": "培训 中心 信息",
+      "documents": "文件",
+      "request_id": "申请 ID",
+      "training_center_id": "培训 中心 ID",
+      "request_date": "申请 日期",
+      "created_at": "已创建 在",
+      "updated_at": "已更新 在",
+      "reviewed_at": "已审核 在"
+    },
+    "company": {
+      "company_name": "公司 名称",
+      "website": "网站",
+      "email": "公司 电子邮件",
+      "phone": "电话 编号",
+      "fax": "传真",
+      "training_provider_type": "培训 提供方 类型",
+      "physical_address": "实际 地址",
+      "mailing_same_as_physical": "邮寄 相同 作为 实际",
+      "mailing_address": "邮寄 地址",
+      "primary_contact": "主要 联系",
+      "primary_contact_email": "主要 联系 电子邮件",
+      "primary_contact_country": "主要 联系 国家",
+      "primary_contact_mobile": "主要 联系 手机",
+      "secondary_contact": "次要 联系",
+      "secondary_contact_email": "次要 联系 电子邮件",
+      "secondary_contact_country": "次要 联系 国家",
+      "secondary_contact_mobile": "次要 联系 手机",
+      "gov_registry_number": "GOV 登记 编号",
+      "registration_certificate": "注册 证书",
+      "facility_floorplan": "设施 平面图",
+      "interested_fields": "感兴趣 领域",
+      "how_did_you_hear": "如何 已 您 得知 关于 我们",
+      "description": "描述"
+    },
+    "documents": {
+      "view_certificate": "查看 证书",
+      "view_floorplan": "查看 平面图",
+      "view_document": "查看 文件"
+    },
+    "rejection": {
+      "title": "拒绝 培训 中心 申请",
+      "reason_label": "拒绝 原因",
+      "reason_placeholder": "输入  原因 为 拒绝...",
+      "confirm": "拒绝 申请",
+      "missing_reason": "请 提供 a 拒绝 原因",
+      "success": "培训 中心 申请 已拒绝"
+    },
+    "return": {
+      "title": "退回 培训 中心 申请",
+      "comment_label": "退回 备注",
+      "comment_placeholder": "输入 备注 为 退回中  申请...",
+      "confirm": "退回 申请",
+      "missing_comment": "请 提供 a 退回 备注",
+      "success": "申请 已退回 为 修订"
+    },
+    "messages": {
+      "approve_confirm": "批准 此 培训 中心 申请?",
+      "approve_success": "培训 中心 申请 已批准 成功!",
+      "approve_failed": "失败 到 批准 申请",
+      "load_failed": "失败 到 加载 数据"
+    },
+    "common": {
+      "yes": "是",
+      "no": "否",
+      "cancel": "取消",
+      "na": "N/A"
+    }
+  },
+  "instructors_screen": {
+    "header": {
+      "title": "讲师",
+      "subtitle": "管理 讲师 授权 和 申请"
+    },
+    "tabs": {
+      "total": "总计",
+      "pending": "待处理",
+      "active": "启用",
+      "returned": "已退回"
+    },
+    "search": {
+      "placeholder": "搜索 讲师..."
+    },
+    "table": {
+      "instructor": "讲师",
+      "email": "电子邮件",
+      "date": "日期",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "否 讲师 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情",
+      "approve": "批准",
+      "reject": "拒绝",
+      "return": "退回"
+    },
+    "status": {
+      "pending": "待处理",
+      "approved": "已批准",
+      "active": "启用",
+      "returned": "已退回",
+      "rejected": "已拒绝",
+      "paid": "已支付",
+      "unpaid": "未支付",
+      "na": "N/A"
+    },
+    "details": {
+      "request_title": "讲师 申请 详情",
+      "details_title": "讲师 详情",
+      "request_info": "申请 信息",
+      "instructor_info": "讲师 信息",
+      "documents": "文件",
+      "authorization_details": "授权 详情",
+      "request_id": "申请 ID",
+      "training_center_id": "培训 中心 ID",
+      "request_date": "申请 日期",
+      "created_at": "已创建 在",
+      "updated_at": "已更新 在",
+      "reviewed_at": "已审核 在",
+      "payment_status": "付款 状态",
+      "authorization_price": "授权 价格"
+    },
+    "fields": {
+      "first_name": "名 名称",
+      "last_name": "姓 名称",
+      "email": "电子邮件",
+      "phone": "电话",
+      "date_of_birth": "日期 的 出生",
+      "nationality": "国籍",
+      "specialization": "专业方向",
+      "training_center": "培训 中心"
+    },
+    "documents": {
+      "view_document": "查看 文件",
+      "document": "文件"
+    },
+    "approval": {
+      "modal_title": "批准 讲师 申请",
+      "price_label": "授权 价格",
+      "price_placeholder": "500.00",
+      "description": "请 设置  授权 价格 为 此 讲师.",
+      "note": "批准后，集团管理员需要先设置佣金比例，培训中心才能付款。",
+      "success": "讲师 已批准 成功. 等待 为 集团 管理员 到 设置 佣金 百分比."
+    },
+    "rejection": {
+      "modal_title": "拒绝 讲师 申请",
+      "reason_label": "拒绝 原因",
+      "reason_placeholder": "输入  原因 为 拒绝...",
+      "success": "讲师 申请 已拒绝",
+      "missing_reason": "请 提供 a 拒绝 原因"
+    },
+    "return": {
+      "modal_title": "退回 讲师 申请",
+      "comment_label": "退回 备注",
+      "comment_placeholder": "输入 备注 为 退回中  申请...",
+      "success": "申请 已退回 为 修订",
+      "missing_comment": "请 提供 a 退回 备注"
+    },
+    "messages": {
+      "approve_confirm": "批准 此 讲师 申请?",
+      "approve_failed": "失败 到 批准 申请",
+      "load_failed": "失败 到 加载 数据"
+    },
+    "common": {
+      "cancel": "取消",
+      "approve": "批准",
+      "reject": "拒绝",
+      "return": "退回",
+      "yes": "是",
+      "no": "否",
+      "na": "N/A"
+    }
+  },
+  "courses_screen": {
+    "header": {
+      "title": "课程",
+      "subtitle": "管理 和 整理 您的 课程 目录",
+      "add": "添加 课程",
+      "edit": "编辑 课程",
+      "create": "创建 课程",
+      "update": "更新 课程"
+    },
+    "search": {
+      "placeholder": "搜索 课程..."
+    },
+    "filters": {
+      "all_status": "全部 状态",
+      "active": "启用",
+      "inactive": "禁用",
+      "archived": "已归档",
+      "all_levels": "全部 级别",
+      "beginner": "初级",
+      "intermediate": "中级",
+      "advanced": "高级"
+    },
+    "table": {
+      "course": "课程",
+      "level": "级别",
+      "duration": "时长",
+      "status": "状态",
+      "pricing": "定价",
+      "assessor": "评估员",
+      "actions": "操作",
+      "no_courses": "否 课程 找到"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用",
+      "archived": "已归档"
+    },
+    "assessor": {
+      "required": "必填",
+      "not_required": "不 必填"
+    },
+    "pricing": {
+      "not_set": "不 设置",
+      "information_title": "定价 信息",
+      "optional_note": "可选: 设置 定价 在 创建 时间. 您 可以 添加 定价 稍后 如果 需要.",
+      "base_price": "基础 价格",
+      "currency": "货币",
+      "note": "备注: 佣金 百分比 是 已管理 由 集团 管理员. 定价 是 生效 立即 当 设置."
+    },
+    "form": {
+      "course_name_en": "课程 名称 (英语)",
+      "course_name_ar": "课程 名称 (阿拉伯语)",
+      "course_code": "课程 代码",
+      "sub_category": "子 分类",
+      "description": "描述",
+      "duration_hours": "时长 (小时)",
+      "max_capacity": "最大 容量",
+      "level": "级别",
+      "status": "状态",
+      "assessor_required": "评估员 必填",
+      "assessor_required_hint": "此 课程 需要 一个 评估员"
+    },
+    "validation": {
+      "course_name_required": "课程 名称 是 必填",
+      "course_name_max": "课程 名称 必须  在 最 255 字符",
+      "course_code_required": "课程 代码 是 必填",
+      "course_code_max": "课程 代码 必须  在 最 255 字符",
+      "sub_category_required": "子 分类 是 必填",
+      "duration_min": "时长 必须  在 至少 1 小时",
+      "capacity_required": "最大 容量 是 必填",
+      "capacity_min": "最大 容量 必须  在 至少 1",
+      "invalid_level": "无效 级别 已选择",
+      "invalid_status": "无效 状态 已选择",
+      "currency_required": "货币 是 必填 当 定价 是 设置"
+    },
+    "messages": {
+      "created_success": "课程 已创建 成功!",
+      "updated_success": "课程 已更新 成功!",
+      "deleted_success": "课程 已删除 成功!",
+      "load_failed": "失败 到 加载 课程",
+      "save_failed": "失败 到 保存 课程"
+    },
+    "details": {
+      "modal_title": "课程 详情",
+      "course_information": "课程 信息",
+      "category_information": "分类 信息",
+      "pricing_information": "定价 信息",
+      "course_id": "课程 ID",
+      "course_name": "课程 名称",
+      "course_code": "课程 代码",
+      "duration": "时长",
+      "max_capacity": "最大 容量",
+      "trainees": "学员",
+      "created_at": "已创建 在",
+      "updated_at": "已更新 在",
+      "sub_category": "子 分类",
+      "category": "分类",
+      "no_pricing": "否 定价 设置",
+      "no_pricing_hint": "您 可以 添加 定价 当 编辑中  课程"
+    },
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "view_details": "查看 详情",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中...",
+      "delete_confirm_title": "删除 课程",
+      "delete_confirm_message": "确定要删除此课程吗？此操作无法撤销。"
+    },
+    "common": {
+      "na": "N/A",
+      "hours": "小时",
+      "trainees": "学员"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "班级",
+      "subtitle": "查看 全部 班级 从 已授权 培训 中心"
+    },
+    "search": {
+      "placeholder": "搜索 班级..."
+    },
+    "filters": {
+      "all": "全部 状态",
+      "scheduled": "已安排",
+      "in_progress": "在 进度",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "table": {
+      "class_name": "班级 名称",
+      "course": "课程",
+      "training_center": "培训 中心",
+      "instructor": "讲师",
+      "schedule": "日程",
+      "exam_date": "考试 日期",
+      "exam_score": "考试 分数",
+      "location": "位置",
+      "capacity": "容量",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "否 班级 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情"
+    },
+    "status": {
+      "scheduled": "已安排",
+      "in_progress": "在 进度",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "班级 详情",
+      "class_info": "班级 信息",
+      "course_info": "课程 信息",
+      "training_center_info": "培训 中心 信息",
+      "instructor_info": "讲师 信息",
+      "schedule_info": "日程 信息",
+      "location_capacity": "位置 & 容量",
+      "trainees": "学员",
+      "weekly_schedule": "每周 日程",
+      "no_trainees": "否 学员 已报名 在 此 班级"
+    },
+    "fields": {
+      "status": "状态",
+      "created_at": "已创建 在",
+      "updated_at": "已更新 在",
+      "course_name": "课程 名称",
+      "course_code": "课程 代码",
+      "course_name_ar": "课程 名称 (阿拉伯语)",
+      "duration": "时长",
+      "duration_hours": "{{count}} 小时",
+      "level": "级别",
+      "max_capacity": "最大 容量",
+      "course_status": "课程 状态",
+      "description": "描述",
+      "sub_category": "子 分类",
+      "category": "分类",
+      "name": "名称",
+      "email": "电子邮件",
+      "phone": "电话",
+      "website": "网站",
+      "address": "地址",
+      "city": "城市",
+      "country": "国家",
+      "start_date": "开始 日期",
+      "end_date": "结束 日期",
+      "exam_date": "考试 日期",
+      "exam_score": "考试 分数",
+      "start_time": "开始 时间",
+      "end_time": "结束 时间",
+      "location_type": "位置 类型",
+      "location_details": "位置 详情",
+      "capacity": "容量",
+      "full_percentage": "{{percent}}% 完整",
+      "trainee_id": "ID"
+    },
+    "common": {
+      "na": "N/A",
+      "to": "到",
+      "hours": "小时",
+      "trainees": "学员"
+    }
+  },
+  "certificates_screen": {
+    "header": {
+      "title": "证书",
+      "subtitle": "查看 全部 证书 已签发 使用 您的 模板"
+    },
+    "search": {
+      "placeholder": "搜索 证书..."
+    },
+    "filters": {
+      "all": "全部 状态",
+      "valid": "有效",
+      "invalid": "无效"
+    },
+    "table": {
+      "certificate_number": "证书 编号",
+      "trainee": "学员",
+      "course": "课程",
+      "issue_date": "签发 日期",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "否 证书 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情",
+      "verify": "验证 证书"
+    },
+    "status": {
+      "valid": "有效",
+      "invalid": "无效",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "证书 详情",
+      "certificate_number": "证书 编号",
+      "trainee_name": "学员 名称",
+      "course": "课程",
+      "template": "模板",
+      "issue_date": "签发 日期",
+      "expiry_date": "到期 日期",
+      "verification_code": "验证 代码",
+      "certificate_pdf": "证书 PDF",
+      "download_pdf": "下载 PDF",
+      "status": "状态"
+    },
+    "pagination": {
+      "per_page": "项 每 页面"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "certificate_templates_screen": {
+    "header": {
+      "title": "证书 模板",
+      "subtitle": "创建 和 管理 证书 模板",
+      "create": "创建 模板"
+    },
+    "search": {
+      "placeholder": "搜索 模板..."
+    },
+    "filters": {
+      "all": "全部 状态",
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "table": {
+      "name": "名称",
+      "category": "分类",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "否 模板 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情",
+      "edit": "编辑",
+      "design": "设计 模板",
+      "delete": "删除"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用",
+      "na": "N/A"
+    },
+    "modal": {
+      "create_title": "创建 模板",
+      "edit_title": "编辑 模板",
+      "details_title": "模板 详情"
+    },
+    "form": {
+      "template_name": "模板 名称",
+      "category": "分类",
+      "select_category": "选择 分类",
+      "status": "状态"
+    },
+    "buttons": {
+      "cancel": "取消",
+      "create": "创建",
+      "update": "更新",
+      "saving": "保存中..."
+    },
+    "details": {
+      "template_name": "模板 名称",
+      "category": "分类",
+      "status": "状态",
+      "configuration": "配置",
+      "background_image": "背景 图片",
+      "no_configuration": "否 配置",
+      "no_background": "否 背景 图片"
+    },
+    "errors": {
+      "save_failed": "失败 到 保存 模板. 请 尝试 再次.",
+      "delete_failed": "失败 到 删除 模板. 请 尝试 再次.",
+      "delete_in_use": "此 模板 是 正在 已使用 由 {{count}} 证书(s). 删除中 它 将 也 删除 全部 相关 证书."
+    },
+    "confirmations": {
+      "delete": "确定要删除“{{name}}”吗？"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "discount_codes_screen": {
+    "header": {
+      "title": "折扣 代码",
+      "subtitle": "管理 和 跟踪 全部 折扣 代码",
+      "add_code": "添加 代码"
+    },
+    "search": {
+      "placeholder": "搜索 由 代码 或 类型..."
+    },
+    "filters": {
+      "status": {
+        "all": "全部 状态",
+        "active": "启用",
+        "inactive": "禁用",
+        "expired": "已过期",
+        "depleted": "已耗尽"
+      }
+    },
+    "table": {
+      "code": "代码",
+      "discount": "折扣",
+      "type": "类型",
+      "courses": "课程",
+      "status": "状态",
+      "start_date": "开始 日期",
+      "end_date": "结束 日期",
+      "quantity": "数量",
+      "empty": "否 折扣 代码 找到. 创建 您的 名 折扣 代码!",
+      "no_courses_assigned": "否 课程 已分配",
+      "unknown_course": "未知 课程",
+      "not_set": "不 设置"
+    },
+    "types": {
+      "time_limited": "时间 有限",
+      "quantity_based": "数量 基于"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用",
+      "na": "N/A"
+    },
+    "modal": {
+      "add_title": "添加 新 折扣 代码",
+      "edit_title": "编辑 折扣 代码"
+    },
+    "form": {
+      "discount_code": "折扣 代码",
+      "discount_percentage": "折扣 百分比",
+      "course": "课程",
+      "select_course": "选择 a 课程...",
+      "discount_type": "折扣 类型",
+      "status": "状态",
+      "valid_from": "有效 从",
+      "valid_until": "有效 直到",
+      "total_quantity": "总计 数量",
+      "code_placeholder": "e.g., SAVE20",
+      "percentage_placeholder": "e.g., 20",
+      "quantity_placeholder": "e.g., 100"
+    },
+    "buttons": {
+      "cancel": "取消",
+      "create": "创建 折扣 代码",
+      "update": "更新 折扣 代码",
+      "creating": "创建中...",
+      "updating": "更新中..."
+    },
+    "validation": {
+      "code_required": "折扣 代码 是 必填",
+      "discount_percentage_required": "有效 折扣 百分比 是 必填",
+      "discount_type_required": "折扣 类型 是 必填",
+      "course_required": "课程 是 必填",
+      "valid_from_required": "有效 从 日期 是 必填",
+      "valid_until_required": "有效 直到 日期 是 必填",
+      "valid_until_after_valid_from": "有效 直到 日期 必须  之后 有效 从 日期",
+      "total_quantity_required": "总计 数量 是 必填 和 必须  更大 比 0"
+    },
+    "messages": {
+      "created_success": "折扣 代码 已创建 成功!",
+      "updated_success": "折扣 代码 已更新 成功!",
+      "deleted_success": "折扣 代码 已删除 成功!"
+    },
+    "errors": {
+      "create_failed": "失败 到 创建 折扣 代码. 请 尝试 再次.",
+      "delete_id_not_found": "不能 删除: 折扣 代码 ID 不 找到",
+      "delete_failed": "失败 到 删除 折扣 代码: {{message}}"
+    },
+    "confirmations": {
+      "delete_title": "删除 折扣 代码",
+      "delete_message": "确定要删除折扣码“{{code}}”吗？此操作无法撤销。",
+      "delete_confirm": "删除"
+    }
+  },
+  "categories_screen": {
+    "header": {
+      "title": "分类",
+      "subtitle": "查看 已分配 分类 和 管理 您的 自己的 分类"
+    },
+    "stats": {
+      "total_categories": "总计 分类",
+      "active_categories": "启用 分类",
+      "sub_categories": "子 分类",
+      "active_sub_categories": "启用 子 分类"
+    },
+    "table": {
+      "category": "分类",
+      "description": "描述",
+      "status": "状态",
+      "type": "类型",
+      "actions": "操作",
+      "no_data": "否 分类 找到",
+      "no_sub_categories": "否 子 分类 找到 为 此 分类"
+    },
+    "filters": {
+      "all": "全部 状态",
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "search": {
+      "placeholder": "搜索 由 名称..."
+    },
+    "actions": {
+      "refresh": "刷新",
+      "add_category": "添加 分类",
+      "edit_category": "编辑 分类",
+      "delete_category": "删除 分类",
+      "add_sub_category": "添加 子 分类",
+      "edit_sub_category": "编辑 子 分类",
+      "delete_sub_category": "删除 子 分类"
+    },
+    "badges": {
+      "created_by_me": "已创建 由 我",
+      "assigned_by_admin": "已分配 由 管理员"
+    },
+    "modal": {
+      "add_category": "添加 新 分类",
+      "edit_category": "编辑 分类",
+      "add_sub_category": "添加 子 分类",
+      "edit_sub_category": "编辑 子 分类"
+    },
+    "form": {
+      "category_name_en": "分类 名称 (英语)",
+      "category_name_ar": "分类 名称 (阿拉伯语)",
+      "description": "描述",
+      "status": "状态",
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "messages": {
+      "save_failed": "失败 到 保存 分类",
+      "delete_failed": "失败 到 删除 分类"
+    },
+    "common": {
+      "na": "N/A",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    }
+  },
+  "payment_transactions_screen": {
+    "header": {
+      "title": "付款 交易",
+      "subtitle": "查看 全部 付款 交易"
+    },
+    "summary": {
+      "total_transactions": "总计 交易",
+      "total_received": "总计 已收到",
+      "total_paid": "总计 已支付"
+    },
+    "search": {
+      "placeholder": "搜索 交易..."
+    },
+    "filters": {
+      "type": {
+        "all": "全部 类型",
+        "subscription": "订阅",
+        "code_purchase": "代码 购买",
+        "material_purchase": "资料 购买",
+        "course_purchase": "课程 购买",
+        "commission": "佣金",
+        "settlement": "结算"
+      },
+      "status": {
+        "all": "全部 状态",
+        "completed": "已完成",
+        "pending": "待处理",
+        "failed": "失败",
+        "refunded": "已退款"
+      }
+    },
+    "table": {
+      "type": "类型",
+      "payer": "付款方",
+      "payee": "收款方",
+      "total_amount": "总计 金额",
+      "received": "已收到",
+      "commission": "佣金",
+      "status": "状态",
+      "date": "日期",
+      "actions": "操作",
+      "empty": "否 交易 找到"
+    },
+    "actions": {
+      "view_details": "查看 详情"
+    },
+    "status": {
+      "completed": "已完成",
+      "pending": "待处理",
+      "failed": "失败",
+      "refunded": "已退款",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "交易 详情",
+      "transaction_type": "交易 类型",
+      "payment_method": "付款 方式",
+      "payment_type": "付款 类型",
+      "total_amount": "总计 金额",
+      "amount_received": "金额 已收到",
+      "platform_commission": "平台 佣金",
+      "payer_info": "付款方 信息",
+      "payee_info": "收款方 信息",
+      "name": "名称",
+      "email": "电子邮件",
+      "type": "类型",
+      "description": "描述",
+      "reference_info": "参考 信息",
+      "reference_type": "类型",
+      "commission_ledgers": "佣金 账本",
+      "group_commission": "集团 佣金",
+      "acc_commission": "ACC 佣金",
+      "created_at": "已创建 在",
+      "completed_at": "已完成 在",
+      "payment_gateway_transaction_id": "付款 网关 交易 ID"
+    },
+    "messages": {
+      "amount_after_commission": "金额 您 已收到 之后 佣金",
+      "commission_deducted": "佣金 已扣除 从 总计 金额"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "pending_payments_screen": {
+    "header": {
+      "title": "待处理 手动 付款",
+      "subtitle": "审核 和 批准 手动 付款 申请"
+    },
+    "search": {
+      "placeholder": "搜索 由 培训 中心, 课程, 金额, 或 日期..."
+    },
+    "table": {
+      "training_center": "培训 中心",
+      "course": "课程",
+      "quantity": "数量",
+      "total_amount": "总计 金额",
+      "payment_amount": "付款 金额",
+      "submitted_date": "已提交 日期",
+      "actions": "操作",
+      "empty": "否 待处理 付款 找到",
+      "empty_title": "否 待处理 付款",
+      "empty_subtitle": "所有付款申请均已审核"
+    },
+    "actions": {
+      "view_details": "查看 详情",
+      "approve_payment": "批准 付款",
+      "reject_payment": "拒绝 付款"
+    },
+    "details": {
+      "modal_title": "付款 申请 详情",
+      "training_center": "培训 中心",
+      "course": "课程",
+      "quantity": "数量",
+      "total_amount": "总计 金额",
+      "payment_amount": "付款 金额",
+      "final_amount": "最终 金额",
+      "submitted_date": "已提交 日期",
+      "updated_at": "已更新 在",
+      "receipt": "付款 收据",
+      "view_receipt": "查看 收据"
+    },
+    "approve": {
+      "modal_title": "批准 付款",
+      "training_center": "培训 中心",
+      "course": "课程",
+      "quantity": "数量",
+      "calculated_total": "已计算 总计",
+      "payment_amount": "付款 金额",
+      "payment_amount_help": "输入  付款 金额 (应 匹配: {{amount}})",
+      "submit": "批准 付款",
+      "submitting": "审批中..."
+    },
+    "reject": {
+      "modal_title": "拒绝 付款",
+      "training_center": "培训 中心",
+      "course": "课程",
+      "quantity": "数量",
+      "amount": "金额",
+      "rejection_reason": "拒绝 原因",
+      "rejection_placeholder": "输入 拒绝 原因...",
+      "rejection_help": "请 提供 a 清除 原因 为 拒绝中 此 付款 申请 (最大 1000 字符)",
+      "submit": "拒绝 付款",
+      "submitting": "拒绝中..."
+    },
+    "validation": {
+      "payment_amount_required": "请 输入 a 有效 付款 金额",
+      "payment_amount_mismatch": "付款 金额 必须 匹配  已计算 总计 金额: {{amount}}",
+      "rejection_reason_required": "请 输入 a 拒绝 原因",
+      "rejection_reason_max": "拒绝 原因 必须  少于 比 1000 字符"
+    },
+    "messages": {
+      "approve_success": "付款 已批准 成功. 代码 有 已 已生成.",
+      "reject_success": "付款 已拒绝 成功.",
+      "approve_failed": "失败 到 批准 付款. 请 尝试 再次.",
+      "reject_failed": "失败 到 拒绝 付款. 请 尝试 再次."
+    },
+    "common": {
+      "cancel": "取消",
+      "na": "N/A"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "资料",
+      "subtitle": "管理 您的 账户 信息",
+      "edit": "编辑 资料"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "禁用"
+    },
+    "sections": {
+      "accreditation_info": {
+        "title": "认证 机构 信息",
+        "subtitle": "基础 组织 详情"
+      },
+      "physical_address": {
+        "title": "实际 地址",
+        "subtitle": "主要 办公室 位置"
+      },
+      "mailing_address": {
+        "title": "邮寄 地址",
+        "same_as_physical": "相同 作为 实际 地址"
+      },
+      "primary_contact": {
+        "title": "主要 联系",
+        "subtitle": "主要 点 的 联系"
+      },
+      "secondary_contact": {
+        "title": "次要 联系",
+        "subtitle": "次要 点 的 联系"
+      },
+      "additional_info": {
+        "title": "附加 信息",
+        "subtitle": "官方 文件 & 详情"
+      },
+      "agreements": {
+        "title": "协议",
+        "subtitle": "条款 & 条件"
+      },
+      "language": {
+        "title": "语言 设置",
+        "subtitle": "选择 您的 首选 系统 语言"
+      },
+      "password": {
+        "title": "更改 密码",
+        "subtitle": "更新 您的 账户 密码"
+      }
+    },
+    "form": {
+      "legal_name": "法律 名称",
+      "email": "电子邮件",
+      "phone": "电话",
+      "fax": "传真",
+      "website": "网站",
+      "street_address": "街道 地址",
+      "postal_code": "邮编 代码",
+      "country": "国家",
+      "city": "城市",
+      "title": "称谓",
+      "first_name": "名 名称",
+      "last_name": "姓 名称",
+      "mobile": "手机",
+      "passport_copy": "护照 复制",
+      "view_passport": "查看 当前 护照",
+      "gov_registry_number": "政府 登记 编号",
+      "hear_about_us": "如何 已 您 得知 关于 我们?",
+      "company_certificate": "公司 注册 证书",
+      "view_certificate": "查看 当前 证书",
+      "language": "语言"
+    },
+    "placeholders": {
+      "select_country": "选择 国家",
+      "select_city": "选择 城市",
+      "hear_about_us": "如何 已 您 得知 关于 我们?"
+    },
+    "agreements": {
+      "receive_comms": "I 同意 到 接收 其他 通讯 从 BOMEQP",
+      "terms": "I 确认 该 I 有 读取, 已了解, 和 已接受  条款 和 条件"
+    },
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存 更改",
+      "saving": "保存中...",
+      "upload_logo": "点击 到 上传 徽标"
+    },
+    "messages": {
+      "profile_updated": "资料 已更新 成功!",
+      "password_changed": "密码 已更改 成功!"
+    },
+    "validation": {
+      "required": "此 字段 是 必填",
+      "invalid_email": "无效 电子邮件",
+      "logo_type": "徽标 必须  一个 图片 文件 (JPG, JPEG, 或 PNG 仅)",
+      "logo_size": "徽标 大小 必须 不 超过 5MB",
+      "file_type": "文件 必须  PDF, JPG, JPEG, 或 PNG",
+      "file_size": "文件 大小 必须 不 超过 10MB"
+    },
+    "password": {
+      "current": "当前 密码",
+      "new": "新 密码",
+      "confirm": "确认 新 密码",
+      "current_placeholder": "输入 您的 当前 密码",
+      "new_placeholder": "必须 包含 大写, 数字 & 特殊 字符",
+      "confirm_placeholder": "确认 您的 新 密码",
+      "submit": "更改 密码",
+      "submitting": "更改中..."
+    },
+    "common": {
+      "na": "N/A"
+    }
+  }
+}

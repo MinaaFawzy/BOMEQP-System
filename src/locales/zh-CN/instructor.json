@@ -1,0 +1,267 @@
+{
+  "dashboard_screen": {
+    "errors": {
+      "load_failed": "无法加载仪表板数据"
+    },
+    "stats": {
+      "total_classes": "课程总数",
+      "scheduled": "已安排",
+      "completed": "已完成",
+      "click_to_view_all": "点击查看全部",
+      "scheduled_classes": "已安排课程",
+      "finished_classes": "已完成课程"
+    },
+    "charts": {
+      "earnings_over_time": "收入趋势",
+      "earnings": "收入",
+      "classes_status_distribution": "课程状态分布",
+      "count": "数量"
+    },
+    "recent_classes": {
+      "title": "最近课程",
+      "view_all": "查看全部",
+      "table": {
+        "course": "课程",
+        "training_center": "培训中心",
+        "dates": "日期",
+        "status": "状态",
+        "students": "学员",
+        "code_prefix": "代码："
+      },
+      "empty": {
+        "title": "未找到课程",
+        "subtitle": "您目前还没有任何课程"
+      }
+    },
+    "profile_summary": {
+      "title": "个人资料概览",
+      "name": "姓名",
+      "email": "电子邮件",
+      "view_full_profile": "查看完整资料"
+    },
+    "training_centers": {
+      "title": "培训中心",
+      "view_all_with_count": "查看全部 ({{count}})",
+      "empty": "未找到培训中心"
+    },
+    "accs": {
+      "title": "认证机构",
+      "authorized": "已授权",
+      "view_all_with_count": "查看全部 ({{count}})",
+      "empty": "未找到 ACC"
+    },
+    "status": {
+      "scheduled": "已安排",
+      "in_progress": "进行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "location": {
+      "online": "在线"
+    },
+    "common": {
+      "na": "不适用",
+      "to": "至",
+      "class_one": "课程",
+      "class_other": "课程"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "我的课程",
+      "subtitle": "查看并管理您分配的课程"
+    },
+    "search": {
+      "placeholder": "搜索课程..."
+    },
+    "filters": {
+      "all": "所有课程",
+      "scheduled": "已安排",
+      "completed": "已完成"
+    },
+    "table": {
+      "course": "课程",
+      "training_center": "培训中心",
+      "start_date": "开始日期",
+      "end_date": "结束日期",
+      "exam_date": "考试日期",
+      "exam_score": "考试成绩",
+      "status": "状态",
+      "enrolled": "已报名",
+      "empty": "尚未分配任何课程。"
+    },
+    "status": {
+      "scheduled": "已安排",
+      "completed": "已完成",
+      "default": "未知",
+      "not_set": "未设置",
+      "na": "不适用"
+    },
+    "actions": {
+      "view_details": "查看详情",
+      "mark_complete": "标记为完成"
+    },
+    "details": {
+      "modal_title": "课程详情",
+      "course": "课程",
+      "training_center": "培训中心",
+      "start_date": "开始日期",
+      "end_date": "结束日期",
+      "exam_date": "考试日期",
+      "exam_score": "考试成绩",
+      "enrollment": "报名情况",
+      "status": "状态",
+      "location": "地点",
+      "materials_title": "课程资料",
+      "download": "下载"
+    },
+    "complete": {
+      "modal_title": "标记课程为完成",
+      "completion_rate": "完成率 (%)",
+      "completion_rate_placeholder": "例如：95",
+      "notes": "备注（可选）",
+      "notes_placeholder": "添加有关课程完成情况的备注...",
+      "cancel": "取消",
+      "confirm": "标记完成"
+    },
+    "validation": {
+      "completion_rate_required": "请输入完成率百分比"
+    },
+    "messages": {
+      "marked_complete_success": "课程已成功标记为完成！",
+      "mark_complete_failed": "标记完成失败"
+    },
+    "common": {
+      "na": "不适用"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "个人资料",
+      "subtitle": "管理您的账户设置和偏好",
+      "edit": "编辑资料"
+    },
+    "sections": {
+      "profile_info": {
+        "title": "个人信息",
+        "subtitle": "更新您的个人详细信息"
+      },
+      "cv": {
+        "title": "简历",
+        "subtitle": "上传或更新您的简历"
+      },
+      "passport": {
+        "title": "护照复印件",
+        "subtitle": "上传或更新您的护照文件"
+      },
+      "certificates": {
+        "title": "证书",
+        "subtitle": "管理您的专业证书"
+      },
+      "password": {
+        "title": "更改密码",
+        "subtitle": "更新您的账户密码"
+      },
+      "language": {
+        "title": "语言设置",
+        "subtitle": "选择您偏好的系统语言",
+        "application_language": "应用语言"
+      }
+    },
+    "form": {
+      "first_name": "名",
+      "last_name": "姓",
+      "email": "电子邮件地址",
+      "email_help": "电子邮件不可更改",
+      "phone": "电话号码",
+      "date_of_birth": "出生日期",
+      "id_number": "身份证号",
+      "id_placeholder": "请输入身份证号（至少 8 个字符）",
+      "country": "国家",
+      "city": "城市",
+      "select_country": "选择国家",
+      "select_city": "选择城市",
+      "type": "类型",
+      "account_status": "账户状态",
+      "training_center": "培训中心",
+      "specializations": "专业领域"
+    },
+    "profile_photo": {
+      "label": "头像",
+      "select": "选择照片",
+      "change": "更换照片",
+      "hint": "仅支持 JPG、JPEG、PNG，最大 5MB"
+    },
+    "status": {
+      "active": "启用",
+      "pending": "待处理",
+      "suspended": "已暂停",
+      "inactive": "已停用",
+      "assessor": "评估员",
+      "instructor": "讲师"
+    },
+    "cv": {
+      "current": "当前简历",
+      "view": "查看简历",
+      "none": "未上传简历",
+      "none_hint": "点击编辑资料以上传简历",
+      "upload": "上传简历",
+      "update": "更新简历",
+      "uploading": "正在上传简历...",
+      "remove": "删除简历",
+      "remove_confirm": "确定要删除简历吗？此操作无法撤销。",
+      "hint": "仅限 PDF，最大 10MB"
+    },
+    "passport": {
+      "current": "当前护照",
+      "view": "查看护照",
+      "none": "未上传护照",
+      "none_hint": "点击编辑资料以上传护照",
+      "upload": "上传护照",
+      "update": "更新护照",
+      "processing": "正在处理护照...",
+      "hint": "JPG、PNG 或 PDF，最大 10MB"
+    },
+    "certificates": {
+      "add": "添加证书",
+      "new_title": "新增证书",
+      "name": "证书名称",
+      "issue_date": "颁发日期",
+      "file": "证书文件（PDF）",
+      "view": "查看证书",
+      "none": "尚未添加任何证书",
+      "selected": "已选择："
+    },
+    "password": {
+      "current": "当前密码",
+      "new": "新密码",
+      "confirm": "确认新密码",
+      "current_placeholder": "请输入当前密码",
+      "new_placeholder": "必须包含大写字母、数字和特殊字符",
+      "confirm_placeholder": "确认您的新密码",
+      "submit": "更改密码"
+    },
+    "buttons": {
+      "save": "保存更改",
+      "saving": "保存中...",
+      "cancel": "取消"
+    },
+    "messages": {
+      "profile_updated": "个人资料更新成功！",
+      "password_changed": "密码修改成功！"
+    },
+    "validation": {
+      "required": "此字段为必填项",
+      "invalid_email": "无效的电子邮件地址",
+      "photo_type": "请选择有效的图片文件（仅 JPG、JPEG 或 PNG）",
+      "photo_size": "图片大小不得超过 5MB",
+      "file_type": "仅允许 PDF 文件",
+      "file_size": "文件大小必须小于 10MB",
+      "password_required": "需要当前密码",
+      "password_failed": "修改密码失败"
+    },
+    "common": {
+      "na": "不适用"
+    }
+  }
+}

@@ -1,0 +1,1063 @@
+{
+  "dashboard": {
+    "cards": {
+      "total_revenue": "कुल राजस्व",
+      "pending_requests": "लंबित अनुरोध",
+      "active_training_centers": "सक्रिय प्रशिक्षण केंद्र",
+      "active_instructors": "सक्रिय प्रशिक्षक",
+      "click_to_view_details": "क्लिक करें को/तक देखें विवरण"
+    },
+    "sections": {
+      "revenue_overview": "राजस्व अवलोकन",
+      "monthly_revenue": "मासिक राजस्व",
+      "revenue_over_time": "राजस्व के दौरान समय",
+      "certificates_over_time": "प्रमाणपत्र के दौरान समय"
+    },
+    "charts": {
+      "revenue": "राजस्व",
+      "certificates": "प्रमाणपत्र"
+    }
+  },
+  "subscription_screen": {
+    "header": {
+      "title": "सब्सक्रिप्शन प्रबंधन",
+      "subtitle": "प्रबंधित करें आपका ACC सब्सक्रिप्शन और भुगतान विवरण"
+    },
+    "no_subscription": {
+      "title": "नहीं सक्रिय सब्सक्रिप्शन",
+      "description": "आप आवश्यक है को/तक सब्सक्राइब करें को/तक पहुंच सभी ACC सुविधाएँ. कृपया पूरा करें आपका सब्सक्रिप्शन भुगतान को/तक जारी रखें.",
+      "subscribe_now": "सब्सक्राइब करें अब"
+    },
+    "current_subscription": {
+      "title": "वर्तमान सब्सक्रिप्शन",
+      "subtitle": "प्रबंधित करें आपका सब्सक्रिप्शन विवरण",
+      "status": {
+        "paid": "PAID",
+        "pending": "लंबित"
+      },
+      "fields": {
+        "start_date": "प्रारंभ तिथि",
+        "end_date": "समाप्ति तिथि",
+        "amount": "राशि",
+        "auto_renew": "स्वचालित नवीनीकरण करें",
+        "enabled": "सक्रिय",
+        "disabled": "निष्क्रिय"
+      },
+      "actions": {
+        "pay_subscription": "भुगतान करें सब्सक्रिप्शन",
+        "manage_renewal": "प्रबंधित करें नवीनीकरण"
+      }
+    },
+    "payment_modal": {
+      "title": "सब्सक्राइब करें / भुगतान करें सब्सक्रिप्शन",
+      "amount": "राशि",
+      "amount_placeholder": "5000.00",
+      "payment_method_title": "भुगतान विधि: क्रेडिट कार्ड",
+      "payment_method_description": "भुगतान Stripe के माध्यम से सुरक्षित रूप से प्रोसेस किया जाएगा। कार्ड विवरण दर्ज करने के लिए नीचे \"अभी भुगतान करें\" पर क्लिक करें।",
+      "cancel": "रद्द करें",
+      "pay_now": "भुगतान करें अब",
+      "processing": "प्रोसेस हो रहा है..."
+    },
+    "renewal_modal": {
+      "title": "प्रबंधित करें सब्सक्रिप्शन नवीनीकरण",
+      "amount": "राशि",
+      "amount_placeholder": "10000.00",
+      "payment_method_title": "भुगतान विधि: क्रेडिट कार्ड",
+      "payment_method_description": "भुगतान होगा होना प्रोसेस किया गया सुरक्षित रूप से के माध्यम से Stripe. क्लिक करें \"नवीनीकरण करें सब्सक्रिप्शन\" नीचे को/तक दर्ज करें आपका कार्ड विवरण.",
+      "auto_renew": "सक्षम करें स्वचालित-नवीनीकरण",
+      "auto_renew_hint": "जब सक्षम, आपका सब्सक्रिप्शन होगा स्वतः नवीनीकरण करें पर  अंत का/की/के  वर्तमान अवधि.",
+      "cancel": "रद्द करें",
+      "renew": "नवीनीकरण करें सब्सक्रिप्शन",
+      "processing": "प्रोसेस हो रहा है..."
+    },
+    "messages": {
+      "payment_success": "सब्सक्रिप्शन भुगतान प्रोसेस किया गया सफलतापूर्वक!",
+      "renew_success": "सब्सक्रिप्शन नवीनीकृत सफलतापूर्वक!"
+    },
+    "errors": {
+      "invalid_amount": "कृपया दर्ज करें a मान्य राशि अधिक से 0",
+      "min_amount": "राशि आवश्यक/ज़रूरी होना पर कम से कम $1.00",
+      "create_payment_intent_failed": "भुगतान इंटेंट बनाने में विफल। कृपया पुनः प्रयास करें।",
+      "payment_not_completed": "भुगतान पूरा नहीं हुआ। स्थिति: {{status}}",
+      "payment_verification_failed": "भुगतान सत्यापन विफल। कृपया सहायता से संपर्क करें।",
+      "payment_process_failed": "भुगतान सफल हुआ लेकिन विफल को/तक प्रक्रिया सब्सक्रिप्शन. कृपया संपर्क सपोर्ट.",
+      "renew_failed": "भुगतान सफल हुआ लेकिन विफल को/तक नवीनीकरण करें सब्सक्रिप्शन. कृपया संपर्क सपोर्ट."
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "training_centers_screen": {
+    "header": {
+      "title": "प्रशिक्षण केंद्र",
+      "subtitle": "प्रबंधित करें प्रशिक्षण केंद्र प्राधिकरण और अनुरोध"
+    },
+    "tabs": {
+      "total": "कुल",
+      "pending": "लंबित",
+      "active": "सक्रिय",
+      "returned": "वापस किया गया"
+    },
+    "search": {
+      "placeholder": "खोजें प्रशिक्षण केंद्र..."
+    },
+    "table": {
+      "training_center": "प्रशिक्षण केंद्र",
+      "email": "ईमेल",
+      "date": "तिथि",
+      "status": "स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "नहीं प्रशिक्षण केंद्र मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण",
+      "approve": "स्वीकृत करें",
+      "reject": "अस्वीकृत करें",
+      "return": "वापस"
+    },
+    "status": {
+      "pending": "लंबित",
+      "active": "सक्रिय",
+      "approved": "स्वीकृत",
+      "returned": "वापस किया गया",
+      "rejected": "अस्वीकृत",
+      "na": "N/A"
+    },
+    "details": {
+      "request_title": "प्रशिक्षण केंद्र अनुरोध विवरण",
+      "details_title": "प्रशिक्षण केंद्र विवरण",
+      "request_info": "अनुरोध जानकारी",
+      "training_center_info": "प्रशिक्षण केंद्र जानकारी",
+      "documents": "दस्तावेज़",
+      "request_id": "अनुरोध ID",
+      "training_center_id": "प्रशिक्षण केंद्र ID",
+      "request_date": "अनुरोध तिथि",
+      "created_at": "बनाया गया पर",
+      "updated_at": "अपडेट किया गया पर",
+      "reviewed_at": "समीक्षित पर"
+    },
+    "company": {
+      "company_name": "कंपनी नाम",
+      "website": "वेबसाइट",
+      "email": "कंपनी ईमेल",
+      "phone": "टेलीफोन नंबर",
+      "fax": "फैक्स",
+      "training_provider_type": "प्रशिक्षण प्रदाता प्रकार",
+      "physical_address": "भौतिक पता",
+      "mailing_same_as_physical": "डाक समान के रूप में भौतिक",
+      "mailing_address": "डाक पता",
+      "primary_contact": "मुख्य संपर्क",
+      "primary_contact_email": "मुख्य संपर्क ईमेल",
+      "primary_contact_country": "मुख्य संपर्क देश",
+      "primary_contact_mobile": "मुख्य संपर्क मोबाइल",
+      "secondary_contact": "द्वितीयक संपर्क",
+      "secondary_contact_email": "द्वितीयक संपर्क ईमेल",
+      "secondary_contact_country": "द्वितीयक संपर्क देश",
+      "secondary_contact_mobile": "द्वितीयक संपर्क मोबाइल",
+      "gov_registry_number": "GOV रजिस्ट्री नंबर",
+      "registration_certificate": "पंजीकरण प्रमाणपत्र",
+      "facility_floorplan": "सुविधा फ़्लोरप्लान",
+      "interested_fields": "रुचि क्षेत्र",
+      "how_did_you_hear": "कैसे किया आप सुनना/जानना के बारे में हमें",
+      "description": "विवरण"
+    },
+    "documents": {
+      "view_certificate": "देखें प्रमाणपत्र",
+      "view_floorplan": "देखें फ़्लोरप्लान",
+      "view_document": "देखें दस्तावेज़"
+    },
+    "rejection": {
+      "title": "अस्वीकृत करें प्रशिक्षण केंद्र अनुरोध",
+      "reason_label": "अस्वीकृति कारण",
+      "reason_placeholder": "दर्ज करें  कारण के लिए अस्वीकृति...",
+      "confirm": "अस्वीकृत करें अनुरोध",
+      "missing_reason": "कृपया प्रदान करें a अस्वीकृति कारण",
+      "success": "प्रशिक्षण केंद्र अनुरोध अस्वीकृत"
+    },
+    "return": {
+      "title": "वापस प्रशिक्षण केंद्र अनुरोध",
+      "comment_label": "वापस टिप्पणी",
+      "comment_placeholder": "दर्ज करें टिप्पणियाँ के लिए वापस किया जा रहा है  अनुरोध...",
+      "confirm": "वापस अनुरोध",
+      "missing_comment": "कृपया प्रदान करें a वापस टिप्पणी",
+      "success": "अनुरोध वापस किया गया के लिए संशोधन"
+    },
+    "messages": {
+      "approve_confirm": "स्वीकृत करें यह प्रशिक्षण केंद्र अनुरोध?",
+      "approve_success": "प्रशिक्षण केंद्र अनुरोध स्वीकृत सफलतापूर्वक!",
+      "approve_failed": "विफल को/तक स्वीकृत करें अनुरोध",
+      "load_failed": "विफल को/तक लोड डेटा"
+    },
+    "common": {
+      "yes": "हाँ",
+      "no": "नहीं",
+      "cancel": "रद्द करें",
+      "na": "N/A"
+    }
+  },
+  "instructors_screen": {
+    "header": {
+      "title": "प्रशिक्षक",
+      "subtitle": "प्रबंधित करें प्रशिक्षक प्राधिकरण और अनुरोध"
+    },
+    "tabs": {
+      "total": "कुल",
+      "pending": "लंबित",
+      "active": "सक्रिय",
+      "returned": "वापस किया गया"
+    },
+    "search": {
+      "placeholder": "खोजें प्रशिक्षक..."
+    },
+    "table": {
+      "instructor": "प्रशिक्षक",
+      "email": "ईमेल",
+      "date": "तिथि",
+      "status": "स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "नहीं प्रशिक्षक मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण",
+      "approve": "स्वीकृत करें",
+      "reject": "अस्वीकृत करें",
+      "return": "वापस"
+    },
+    "status": {
+      "pending": "लंबित",
+      "approved": "स्वीकृत",
+      "active": "सक्रिय",
+      "returned": "वापस किया गया",
+      "rejected": "अस्वीकृत",
+      "paid": "भुगतान किया गया",
+      "unpaid": "अवैतनिक",
+      "na": "N/A"
+    },
+    "details": {
+      "request_title": "प्रशिक्षक अनुरोध विवरण",
+      "details_title": "प्रशिक्षक विवरण",
+      "request_info": "अनुरोध जानकारी",
+      "instructor_info": "प्रशिक्षक जानकारी",
+      "documents": "दस्तावेज़",
+      "authorization_details": "प्राधिकरण विवरण",
+      "request_id": "अनुरोध ID",
+      "training_center_id": "प्रशिक्षण केंद्र ID",
+      "request_date": "अनुरोध तिथि",
+      "created_at": "बनाया गया पर",
+      "updated_at": "अपडेट किया गया पर",
+      "reviewed_at": "समीक्षित पर",
+      "payment_status": "भुगतान स्थिति",
+      "authorization_price": "प्राधिकरण शुल्क"
+    },
+    "fields": {
+      "first_name": "पहला नाम",
+      "last_name": "अंतिम नाम",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+      "date_of_birth": "तिथि का/की/के जन्म",
+      "nationality": "राष्ट्रीयता",
+      "specialization": "विशेषज्ञता",
+      "training_center": "प्रशिक्षण केंद्र"
+    },
+    "documents": {
+      "view_document": "देखें दस्तावेज़",
+      "document": "दस्तावेज़"
+    },
+    "approval": {
+      "modal_title": "स्वीकृत करें प्रशिक्षक अनुरोध",
+      "price_label": "प्राधिकरण शुल्क",
+      "price_placeholder": "500.00",
+      "description": "कृपया सेट करें  प्राधिकरण शुल्क के लिए यह प्रशिक्षक.",
+      "note": "स्वीकृति के बाद, प्रशिक्षण केंद्र के भुगतान से पहले ग्रुप एडमिन को कमीशन प्रतिशत सेट करना होगा।",
+      "success": "प्रशिक्षक स्वीकृत सफलतापूर्वक. प्रतीक्षा के लिए ग्रुप एडमिन को/तक सेट करें कमीशन प्रतिशत."
+    },
+    "rejection": {
+      "modal_title": "अस्वीकृत करें प्रशिक्षक अनुरोध",
+      "reason_label": "अस्वीकृति कारण",
+      "reason_placeholder": "दर्ज करें  कारण के लिए अस्वीकृति...",
+      "success": "प्रशिक्षक अनुरोध अस्वीकृत",
+      "missing_reason": "कृपया प्रदान करें a अस्वीकृति कारण"
+    },
+    "return": {
+      "modal_title": "वापस प्रशिक्षक अनुरोध",
+      "comment_label": "वापस टिप्पणी",
+      "comment_placeholder": "दर्ज करें टिप्पणियाँ के लिए वापस किया जा रहा है  अनुरोध...",
+      "success": "अनुरोध वापस किया गया के लिए संशोधन",
+      "missing_comment": "कृपया प्रदान करें a वापस टिप्पणी"
+    },
+    "messages": {
+      "approve_confirm": "स्वीकृत करें यह प्रशिक्षक अनुरोध?",
+      "approve_failed": "विफल को/तक स्वीकृत करें अनुरोध",
+      "load_failed": "विफल को/तक लोड डेटा"
+    },
+    "common": {
+      "cancel": "रद्द करें",
+      "approve": "स्वीकृत करें",
+      "reject": "अस्वीकृत करें",
+      "return": "वापस",
+      "yes": "हाँ",
+      "no": "नहीं",
+      "na": "N/A"
+    }
+  },
+  "courses_screen": {
+    "header": {
+      "title": "पाठ्यक्रम",
+      "subtitle": "प्रबंधित करें और व्यवस्थित करें आपका पाठ्यक्रम कैटलॉग",
+      "add": "जोड़ें पाठ्यक्रम",
+      "edit": "संपादित करें पाठ्यक्रम",
+      "create": "बनाएं पाठ्यक्रम",
+      "update": "अपडेट करें पाठ्यक्रम"
+    },
+    "search": {
+      "placeholder": "खोजें पाठ्यक्रम..."
+    },
+    "filters": {
+      "all_status": "सभी स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "archived": "आर्काइव्ड",
+      "all_levels": "सभी स्तर",
+      "beginner": "शुरुआती",
+      "intermediate": "मध्यम",
+      "advanced": "उन्नत"
+    },
+    "table": {
+      "course": "पाठ्यक्रम",
+      "level": "स्तर",
+      "duration": "अवधि",
+      "status": "स्थिति",
+      "pricing": "मूल्य निर्धारण",
+      "assessor": "मूल्यांकनकर्ता",
+      "actions": "क्रियाएं",
+      "no_courses": "नहीं पाठ्यक्रम मिला"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "archived": "आर्काइव्ड"
+    },
+    "assessor": {
+      "required": "आवश्यक",
+      "not_required": "नहीं आवश्यक"
+    },
+    "pricing": {
+      "not_set": "नहीं सेट करें",
+      "information_title": "मूल्य निर्धारण जानकारी",
+      "optional_note": "वैकल्पिक: सेट करें मूल्य निर्धारण पर निर्माण समय. आप सकता है जोड़ें मूल्य निर्धारण बाद में यदि आवश्यक.",
+      "base_price": "आधार शुल्क",
+      "currency": "मुद्रा",
+      "note": "नोट: कमीशन प्रतिशत हैं प्रबंधित द्वारा ग्रुप एडमिन्स. मूल्य निर्धारण है प्रभावी तुरंत जब सेट करें."
+    },
+    "form": {
+      "course_name_en": "पाठ्यक्रम नाम (अंग्रेज़ी)",
+      "course_name_ar": "पाठ्यक्रम नाम (अरबी)",
+      "course_code": "पाठ्यक्रम कोड",
+      "sub_category": "उप श्रेणी",
+      "description": "विवरण",
+      "duration_hours": "अवधि (घंटे)",
+      "max_capacity": "अधिकतम क्षमता",
+      "level": "स्तर",
+      "status": "स्थिति",
+      "assessor_required": "मूल्यांकनकर्ता आवश्यक",
+      "assessor_required_hint": "यह पाठ्यक्रम आवश्यक है एक मूल्यांकनकर्ता"
+    },
+    "validation": {
+      "course_name_required": "पाठ्यक्रम नाम है आवश्यक",
+      "course_name_max": "पाठ्यक्रम नाम आवश्यक/ज़रूरी होना पर सबसे 255 अक्षर",
+      "course_code_required": "पाठ्यक्रम कोड है आवश्यक",
+      "course_code_max": "पाठ्यक्रम कोड आवश्यक/ज़रूरी होना पर सबसे 255 अक्षर",
+      "sub_category_required": "उप श्रेणी है आवश्यक",
+      "duration_min": "अवधि आवश्यक/ज़रूरी होना पर कम से कम 1 घंटा",
+      "capacity_required": "अधिकतम क्षमता है आवश्यक",
+      "capacity_min": "अधिकतम क्षमता आवश्यक/ज़रूरी होना पर कम से कम 1",
+      "invalid_level": "अमान्य स्तर चयनित",
+      "invalid_status": "अमान्य स्थिति चयनित",
+      "currency_required": "मुद्रा है आवश्यक जब मूल्य निर्धारण है सेट करें"
+    },
+    "messages": {
+      "created_success": "पाठ्यक्रम बनाया गया सफलतापूर्वक!",
+      "updated_success": "पाठ्यक्रम अपडेट किया गया सफलतापूर्वक!",
+      "deleted_success": "पाठ्यक्रम हटाया गया सफलतापूर्वक!",
+      "load_failed": "विफल को/तक लोड पाठ्यक्रम",
+      "save_failed": "विफल को/तक सहेजें पाठ्यक्रम"
+    },
+    "details": {
+      "modal_title": "पाठ्यक्रम विवरण",
+      "course_information": "पाठ्यक्रम जानकारी",
+      "category_information": "श्रेणी जानकारी",
+      "pricing_information": "मूल्य निर्धारण जानकारी",
+      "course_id": "पाठ्यक्रम ID",
+      "course_name": "पाठ्यक्रम नाम",
+      "course_code": "पाठ्यक्रम कोड",
+      "duration": "अवधि",
+      "max_capacity": "अधिकतम क्षमता",
+      "trainees": "प्रशिक्षार्थी",
+      "created_at": "बनाया गया पर",
+      "updated_at": "अपडेट किया गया पर",
+      "sub_category": "उप श्रेणी",
+      "category": "श्रेणी",
+      "no_pricing": "नहीं मूल्य निर्धारण सेट करें",
+      "no_pricing_hint": "आप सकता है जोड़ें मूल्य निर्धारण जब संपादन  पाठ्यक्रम"
+    },
+    "actions": {
+      "edit": "संपादित करें",
+      "delete": "हटाएँ",
+      "view_details": "देखें विवरण",
+      "cancel": "रद्द करें",
+      "save": "सहेजें",
+      "saving": "सहेजा जा रहा है...",
+      "delete_confirm_title": "हटाएँ पाठ्यक्रम",
+      "delete_confirm_message": "क्या आप वाकई इस पाठ्यक्रम को हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।"
+    },
+    "common": {
+      "na": "N/A",
+      "hours": "घंटे",
+      "trainees": "प्रशिक्षार्थी"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "कक्षाएँ",
+      "subtitle": "देखें सभी कक्षाएँ से अधिकृत प्रशिक्षण केंद्र"
+    },
+    "search": {
+      "placeholder": "खोजें कक्षाएँ..."
+    },
+    "filters": {
+      "all": "सभी स्थिति",
+      "scheduled": "निर्धारित",
+      "in_progress": "में प्रगति",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द"
+    },
+    "table": {
+      "class_name": "कक्षा नाम",
+      "course": "पाठ्यक्रम",
+      "training_center": "प्रशिक्षण केंद्र",
+      "instructor": "प्रशिक्षक",
+      "schedule": "शेड्यूल",
+      "exam_date": "परीक्षा तिथि",
+      "exam_score": "परीक्षा स्कोर",
+      "location": "स्थान",
+      "capacity": "क्षमता",
+      "status": "स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "नहीं कक्षाएँ मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण"
+    },
+    "status": {
+      "scheduled": "निर्धारित",
+      "in_progress": "में प्रगति",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "कक्षा विवरण",
+      "class_info": "कक्षा जानकारी",
+      "course_info": "पाठ्यक्रम जानकारी",
+      "training_center_info": "प्रशिक्षण केंद्र जानकारी",
+      "instructor_info": "प्रशिक्षक जानकारी",
+      "schedule_info": "शेड्यूल जानकारी",
+      "location_capacity": "स्थान & क्षमता",
+      "trainees": "प्रशिक्षार्थी",
+      "weekly_schedule": "साप्ताहिक शेड्यूल",
+      "no_trainees": "नहीं प्रशिक्षार्थी नामांकित में यह कक्षा"
+    },
+    "fields": {
+      "status": "स्थिति",
+      "created_at": "बनाया गया पर",
+      "updated_at": "अपडेट किया गया पर",
+      "course_name": "पाठ्यक्रम नाम",
+      "course_code": "पाठ्यक्रम कोड",
+      "course_name_ar": "पाठ्यक्रम नाम (अरबी)",
+      "duration": "अवधि",
+      "duration_hours": "{{count}} घंटे",
+      "level": "स्तर",
+      "max_capacity": "अधिकतम क्षमता",
+      "course_status": "पाठ्यक्रम स्थिति",
+      "description": "विवरण",
+      "sub_category": "उप श्रेणी",
+      "category": "श्रेणी",
+      "name": "नाम",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+      "website": "वेबसाइट",
+      "address": "पता",
+      "city": "शहर",
+      "country": "देश",
+      "start_date": "प्रारंभ तिथि",
+      "end_date": "समाप्ति तिथि",
+      "exam_date": "परीक्षा तिथि",
+      "exam_score": "परीक्षा स्कोर",
+      "start_time": "प्रारंभ समय",
+      "end_time": "समाप्ति समय",
+      "location_type": "स्थान प्रकार",
+      "location_details": "स्थान विवरण",
+      "capacity": "क्षमता",
+      "full_percentage": "{{percent}}% पूरा",
+      "trainee_id": "ID"
+    },
+    "common": {
+      "na": "N/A",
+      "to": "को/तक",
+      "hours": "घंटे",
+      "trainees": "प्रशिक्षार्थी"
+    }
+  },
+  "certificates_screen": {
+    "header": {
+      "title": "प्रमाणपत्र",
+      "subtitle": "देखें सभी प्रमाणपत्र जारी किया गया उपयोग करते हुए आपका टेम्पलेट्स"
+    },
+    "search": {
+      "placeholder": "खोजें प्रमाणपत्र..."
+    },
+    "filters": {
+      "all": "सभी स्थिति",
+      "valid": "मान्य",
+      "invalid": "अमान्य"
+    },
+    "table": {
+      "certificate_number": "प्रमाणपत्र नंबर",
+      "trainee": "प्रशिक्षार्थी",
+      "course": "पाठ्यक्रम",
+      "issue_date": "जारी करें तिथि",
+      "status": "स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "नहीं प्रमाणपत्र मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण",
+      "verify": "सत्यापित करें प्रमाणपत्र"
+    },
+    "status": {
+      "valid": "मान्य",
+      "invalid": "अमान्य",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "प्रमाणपत्र विवरण",
+      "certificate_number": "प्रमाणपत्र नंबर",
+      "trainee_name": "प्रशिक्षार्थी नाम",
+      "course": "पाठ्यक्रम",
+      "template": "टेम्पलेट",
+      "issue_date": "जारी करें तिथि",
+      "expiry_date": "समाप्ति तिथि",
+      "verification_code": "सत्यापन कोड",
+      "certificate_pdf": "प्रमाणपत्र PDF",
+      "download_pdf": "डाउनलोड PDF",
+      "status": "स्थिति"
+    },
+    "pagination": {
+      "per_page": "आइटम प्रति पृष्ठ"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "certificate_templates_screen": {
+    "header": {
+      "title": "प्रमाणपत्र टेम्पलेट्स",
+      "subtitle": "बनाएं और प्रबंधित करें प्रमाणपत्र टेम्पलेट्स",
+      "create": "बनाएं टेम्पलेट"
+    },
+    "search": {
+      "placeholder": "खोजें टेम्पलेट्स..."
+    },
+    "filters": {
+      "all": "सभी स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "table": {
+      "name": "नाम",
+      "category": "श्रेणी",
+      "status": "स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "नहीं टेम्पलेट्स मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण",
+      "edit": "संपादित करें",
+      "design": "डिज़ाइन टेम्पलेट",
+      "delete": "हटाएँ"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "na": "N/A"
+    },
+    "modal": {
+      "create_title": "बनाएं टेम्पलेट",
+      "edit_title": "संपादित करें टेम्पलेट",
+      "details_title": "टेम्पलेट विवरण"
+    },
+    "form": {
+      "template_name": "टेम्पलेट नाम",
+      "category": "श्रेणी",
+      "select_category": "चुनें श्रेणी",
+      "status": "स्थिति"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "create": "बनाएं",
+      "update": "अपडेट करें",
+      "saving": "सहेजा जा रहा है..."
+    },
+    "details": {
+      "template_name": "टेम्पलेट नाम",
+      "category": "श्रेणी",
+      "status": "स्थिति",
+      "configuration": "कॉन्फ़िगरेशन",
+      "background_image": "पृष्ठभूमि इमेज",
+      "no_configuration": "नहीं कॉन्फ़िगरेशन",
+      "no_background": "नहीं पृष्ठभूमि इमेज"
+    },
+    "errors": {
+      "save_failed": "विफल को/तक सहेजें टेम्पलेट. कृपया प्रयास करें फिर से.",
+      "delete_failed": "विफल को/तक हटाएँ टेम्पलेट. कृपया प्रयास करें फिर से.",
+      "delete_in_use": "यह टेम्पलेट है हो रहा है उपयोग किया गया द्वारा {{count}} प्रमाणपत्र(s). हटाया जा रहा है यह होगा भी हटाएँ सभी संबंधित प्रमाणपत्र."
+    },
+    "confirmations": {
+      "delete": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं?"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "discount_codes_screen": {
+    "header": {
+      "title": "छूट कोड",
+      "subtitle": "प्रबंधित करें और ट्रैक सभी छूट कोड",
+      "add_code": "जोड़ें कोड"
+    },
+    "search": {
+      "placeholder": "खोजें द्वारा कोड या प्रकार..."
+    },
+    "filters": {
+      "status": {
+        "all": "सभी स्थिति",
+        "active": "सक्रिय",
+        "inactive": "निष्क्रिय",
+        "expired": "समाप्त",
+        "depleted": "समाप्त"
+      }
+    },
+    "table": {
+      "code": "कोड",
+      "discount": "छूट",
+      "type": "प्रकार",
+      "courses": "पाठ्यक्रम",
+      "status": "स्थिति",
+      "start_date": "प्रारंभ तिथि",
+      "end_date": "समाप्ति तिथि",
+      "quantity": "मात्रा",
+      "empty": "नहीं छूट कोड मिला. बनाएं आपका पहला छूट कोड!",
+      "no_courses_assigned": "नहीं पाठ्यक्रम निर्धारित/असाइन",
+      "unknown_course": "अज्ञात पाठ्यक्रम",
+      "not_set": "नहीं सेट करें"
+    },
+    "types": {
+      "time_limited": "समय सीमित",
+      "quantity_based": "मात्रा आधारित"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "na": "N/A"
+    },
+    "modal": {
+      "add_title": "जोड़ें नया छूट कोड",
+      "edit_title": "संपादित करें छूट कोड"
+    },
+    "form": {
+      "discount_code": "छूट कोड",
+      "discount_percentage": "छूट प्रतिशत",
+      "course": "पाठ्यक्रम",
+      "select_course": "चुनें a पाठ्यक्रम...",
+      "discount_type": "छूट प्रकार",
+      "status": "स्थिति",
+      "valid_from": "मान्य से",
+      "valid_until": "मान्य तक",
+      "total_quantity": "कुल मात्रा",
+      "code_placeholder": "e.g., SAVE20",
+      "percentage_placeholder": "e.g., 20",
+      "quantity_placeholder": "e.g., 100"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "create": "बनाएं छूट कोड",
+      "update": "अपडेट करें छूट कोड",
+      "creating": "बनाया जा रहा है...",
+      "updating": "अपडेट हो रहा है..."
+    },
+    "validation": {
+      "code_required": "छूट कोड है आवश्यक",
+      "discount_percentage_required": "मान्य छूट प्रतिशत है आवश्यक",
+      "discount_type_required": "छूट प्रकार है आवश्यक",
+      "course_required": "पाठ्यक्रम है आवश्यक",
+      "valid_from_required": "मान्य से तिथि है आवश्यक",
+      "valid_until_required": "मान्य तक तिथि है आवश्यक",
+      "valid_until_after_valid_from": "मान्य तक तिथि आवश्यक/ज़रूरी होना बाद मान्य से तिथि",
+      "total_quantity_required": "कुल मात्रा है आवश्यक और आवश्यक/ज़रूरी होना अधिक से 0"
+    },
+    "messages": {
+      "created_success": "छूट कोड बनाया गया सफलतापूर्वक!",
+      "updated_success": "छूट कोड अपडेट किया गया सफलतापूर्वक!",
+      "deleted_success": "छूट कोड हटाया गया सफलतापूर्वक!"
+    },
+    "errors": {
+      "create_failed": "विफल को/तक बनाएं छूट कोड. कृपया प्रयास करें फिर से.",
+      "delete_id_not_found": "नहीं कर सकता हटाएँ: छूट कोड ID नहीं मिला",
+      "delete_failed": "विफल को/तक हटाएँ छूट कोड: {{message}}"
+    },
+    "confirmations": {
+      "delete_title": "हटाएँ छूट कोड",
+      "delete_message": "क्या आप वाकई छूट कोड \"{{code}}\" को हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+      "delete_confirm": "हटाएँ"
+    }
+  },
+  "categories_screen": {
+    "header": {
+      "title": "श्रेणियाँ",
+      "subtitle": "देखें निर्धारित/असाइन श्रेणियाँ और प्रबंधित करें आपका अपना श्रेणियाँ"
+    },
+    "stats": {
+      "total_categories": "कुल श्रेणियाँ",
+      "active_categories": "सक्रिय श्रेणियाँ",
+      "sub_categories": "उप श्रेणियाँ",
+      "active_sub_categories": "सक्रिय उप श्रेणियाँ"
+    },
+    "table": {
+      "category": "श्रेणी",
+      "description": "विवरण",
+      "status": "स्थिति",
+      "type": "प्रकार",
+      "actions": "क्रियाएं",
+      "no_data": "नहीं श्रेणियाँ मिला",
+      "no_sub_categories": "नहीं उप श्रेणियाँ मिला के लिए यह श्रेणी"
+    },
+    "filters": {
+      "all": "सभी स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "search": {
+      "placeholder": "खोजें द्वारा नाम..."
+    },
+    "actions": {
+      "refresh": "रीफ़्रेश",
+      "add_category": "जोड़ें श्रेणी",
+      "edit_category": "संपादित करें श्रेणी",
+      "delete_category": "हटाएँ श्रेणी",
+      "add_sub_category": "जोड़ें उप श्रेणी",
+      "edit_sub_category": "संपादित करें उप श्रेणी",
+      "delete_sub_category": "हटाएँ उप श्रेणी"
+    },
+    "badges": {
+      "created_by_me": "बनाया गया द्वारा मुझे",
+      "assigned_by_admin": "निर्धारित/असाइन द्वारा एडमिन"
+    },
+    "modal": {
+      "add_category": "जोड़ें नया श्रेणी",
+      "edit_category": "संपादित करें श्रेणी",
+      "add_sub_category": "जोड़ें उप श्रेणी",
+      "edit_sub_category": "संपादित करें उप श्रेणी"
+    },
+    "form": {
+      "category_name_en": "श्रेणी नाम (अंग्रेज़ी)",
+      "category_name_ar": "श्रेणी नाम (अरबी)",
+      "description": "विवरण",
+      "status": "स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "messages": {
+      "save_failed": "विफल को/तक सहेजें श्रेणी",
+      "delete_failed": "विफल को/तक हटाएँ श्रेणी"
+    },
+    "common": {
+      "na": "N/A",
+      "cancel": "रद्द करें",
+      "save": "सहेजें",
+      "saving": "सहेजा जा रहा है..."
+    }
+  },
+  "payment_transactions_screen": {
+    "header": {
+      "title": "भुगतान लेनदेन",
+      "subtitle": "देखें सभी भुगतान लेनदेन"
+    },
+    "summary": {
+      "total_transactions": "कुल लेनदेन",
+      "total_received": "कुल प्राप्त",
+      "total_paid": "कुल भुगतान किया गया"
+    },
+    "search": {
+      "placeholder": "खोजें लेनदेन..."
+    },
+    "filters": {
+      "type": {
+        "all": "सभी प्रकार",
+        "subscription": "सब्सक्रिप्शन",
+        "code_purchase": "कोड खरीद",
+        "material_purchase": "सामग्री खरीद",
+        "course_purchase": "पाठ्यक्रम खरीद",
+        "commission": "कमीशन",
+        "settlement": "निपटान"
+      },
+      "status": {
+        "all": "सभी स्थिति",
+        "completed": "पूर्ण",
+        "pending": "लंबित",
+        "failed": "विफल",
+        "refunded": "रिफंड किया गया"
+      }
+    },
+    "table": {
+      "type": "प्रकार",
+      "payer": "भुगतानकर्ता",
+      "payee": "प्राप्तकर्ता",
+      "total_amount": "कुल राशि",
+      "received": "प्राप्त",
+      "commission": "कमीशन",
+      "status": "स्थिति",
+      "date": "तिथि",
+      "actions": "क्रियाएं",
+      "empty": "नहीं लेनदेन मिला"
+    },
+    "actions": {
+      "view_details": "देखें विवरण"
+    },
+    "status": {
+      "completed": "पूर्ण",
+      "pending": "लंबित",
+      "failed": "विफल",
+      "refunded": "रिफंड किया गया",
+      "na": "N/A"
+    },
+    "details": {
+      "modal_title": "लेनदेन विवरण",
+      "transaction_type": "लेनदेन प्रकार",
+      "payment_method": "भुगतान विधि",
+      "payment_type": "भुगतान प्रकार",
+      "total_amount": "कुल राशि",
+      "amount_received": "राशि प्राप्त",
+      "platform_commission": "प्लेटफॉर्म कमीशन",
+      "payer_info": "भुगतानकर्ता जानकारी",
+      "payee_info": "प्राप्तकर्ता जानकारी",
+      "name": "नाम",
+      "email": "ईमेल",
+      "type": "प्रकार",
+      "description": "विवरण",
+      "reference_info": "संदर्भ जानकारी",
+      "reference_type": "प्रकार",
+      "commission_ledgers": "कमीशन लेजर",
+      "group_commission": "ग्रुप कमीशन",
+      "acc_commission": "ACC कमीशन",
+      "created_at": "बनाया गया पर",
+      "completed_at": "पूर्ण पर",
+      "payment_gateway_transaction_id": "भुगतान गेटवे लेनदेन ID"
+    },
+    "messages": {
+      "amount_after_commission": "राशि आप प्राप्त बाद कमीशन",
+      "commission_deducted": "कमीशन कटौती किया गया से कुल राशि"
+    },
+    "common": {
+      "na": "N/A"
+    }
+  },
+  "pending_payments_screen": {
+    "header": {
+      "title": "लंबित मैनुअल भुगतान",
+      "subtitle": "समीक्षा और स्वीकृत करें मैनुअल भुगतान अनुरोध"
+    },
+    "search": {
+      "placeholder": "खोजें द्वारा प्रशिक्षण केंद्र, पाठ्यक्रम, राशि, या तिथि..."
+    },
+    "table": {
+      "training_center": "प्रशिक्षण केंद्र",
+      "course": "पाठ्यक्रम",
+      "quantity": "मात्रा",
+      "total_amount": "कुल राशि",
+      "payment_amount": "भुगतान राशि",
+      "submitted_date": "प्रस्तुत तिथि",
+      "actions": "क्रियाएं",
+      "empty": "नहीं लंबित भुगतान मिला",
+      "empty_title": "नहीं लंबित भुगतान",
+      "empty_subtitle": "सभी भुगतान अनुरोधों की समीक्षा हो चुकी है"
+    },
+    "actions": {
+      "view_details": "देखें विवरण",
+      "approve_payment": "स्वीकृत करें भुगतान",
+      "reject_payment": "अस्वीकृत करें भुगतान"
+    },
+    "details": {
+      "modal_title": "भुगतान अनुरोध विवरण",
+      "training_center": "प्रशिक्षण केंद्र",
+      "course": "पाठ्यक्रम",
+      "quantity": "मात्रा",
+      "total_amount": "कुल राशि",
+      "payment_amount": "भुगतान राशि",
+      "final_amount": "अंतिम राशि",
+      "submitted_date": "प्रस्तुत तिथि",
+      "updated_at": "अपडेट किया गया पर",
+      "receipt": "भुगतान रसीद",
+      "view_receipt": "देखें रसीद"
+    },
+    "approve": {
+      "modal_title": "स्वीकृत करें भुगतान",
+      "training_center": "प्रशिक्षण केंद्र",
+      "course": "पाठ्यक्रम",
+      "quantity": "मात्रा",
+      "calculated_total": "गणना किया गया कुल",
+      "payment_amount": "भुगतान राशि",
+      "payment_amount_help": "दर्ज करें  भुगतान राशि (चाहिए मेल: {{amount}})",
+      "submit": "स्वीकृत करें भुगतान",
+      "submitting": "स्वीकृत किया जा रहा है..."
+    },
+    "reject": {
+      "modal_title": "अस्वीकृत करें भुगतान",
+      "training_center": "प्रशिक्षण केंद्र",
+      "course": "पाठ्यक्रम",
+      "quantity": "मात्रा",
+      "amount": "राशि",
+      "rejection_reason": "अस्वीकृति कारण",
+      "rejection_placeholder": "दर्ज करें अस्वीकृति कारण...",
+      "rejection_help": "कृपया प्रदान करें a साफ़ कारण के लिए अस्वीकृत किया जा रहा है यह भुगतान अनुरोध (अधिकतम 1000 अक्षर)",
+      "submit": "अस्वीकृत करें भुगतान",
+      "submitting": "अस्वीकृत किया जा रहा है..."
+    },
+    "validation": {
+      "payment_amount_required": "कृपया दर्ज करें a मान्य भुगतान राशि",
+      "payment_amount_mismatch": "भुगतान राशि आवश्यक/ज़रूरी मेल  गणना किया गया कुल राशि: {{amount}}",
+      "rejection_reason_required": "कृपया दर्ज करें a अस्वीकृति कारण",
+      "rejection_reason_max": "अस्वीकृति कारण आवश्यक/ज़रूरी होना कम से 1000 अक्षर"
+    },
+    "messages": {
+      "approve_success": "भुगतान स्वीकृत सफलतापूर्वक. कोड है/हैं रहा है/थे जनरेट किया गया.",
+      "reject_success": "भुगतान अस्वीकृत सफलतापूर्वक.",
+      "approve_failed": "विफल को/तक स्वीकृत करें भुगतान. कृपया प्रयास करें फिर से.",
+      "reject_failed": "विफल को/तक अस्वीकृत करें भुगतान. कृपया प्रयास करें फिर से."
+    },
+    "common": {
+      "cancel": "रद्द करें",
+      "na": "N/A"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "प्रोफ़ाइल",
+      "subtitle": "प्रबंधित करें आपका खाता जानकारी",
+      "edit": "संपादित करें प्रोफ़ाइल"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "sections": {
+      "accreditation_info": {
+        "title": "मान्यता निकाय जानकारी",
+        "subtitle": "बुनियादी संगठन विवरण"
+      },
+      "physical_address": {
+        "title": "भौतिक पता",
+        "subtitle": "मुख्य कार्यालय स्थान"
+      },
+      "mailing_address": {
+        "title": "डाक पता",
+        "same_as_physical": "समान के रूप में भौतिक पता"
+      },
+      "primary_contact": {
+        "title": "मुख्य संपर्क",
+        "subtitle": "मुख्य बिंदु का/की/के संपर्क"
+      },
+      "secondary_contact": {
+        "title": "द्वितीयक संपर्क",
+        "subtitle": "द्वितीयक बिंदु का/की/के संपर्क"
+      },
+      "additional_info": {
+        "title": "अतिरिक्त जानकारी",
+        "subtitle": "आधिकारिक दस्तावेज़ & विवरण"
+      },
+      "agreements": {
+        "title": "समझौते",
+        "subtitle": "शर्तें & शर्तें"
+      },
+      "language": {
+        "title": "भाषा सेटिंग्स",
+        "subtitle": "चुनें आपका पसंदीदा सिस्टम भाषा"
+      },
+      "password": {
+        "title": "बदलें पासवर्ड",
+        "subtitle": "अपडेट करें आपका खाता पासवर्ड"
+      }
+    },
+    "form": {
+      "legal_name": "कानूनी नाम",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+      "fax": "फैक्स",
+      "website": "वेबसाइट",
+      "street_address": "सड़क पता",
+      "postal_code": "पोस्टल कोड",
+      "country": "देश",
+      "city": "शहर",
+      "title": "उपाधि",
+      "first_name": "पहला नाम",
+      "last_name": "अंतिम नाम",
+      "mobile": "मोबाइल",
+      "passport_copy": "पासपोर्ट कॉपी",
+      "view_passport": "देखें वर्तमान पासपोर्ट",
+      "gov_registry_number": "सरकारी रजिस्ट्री नंबर",
+      "hear_about_us": "कैसे किया आप सुनना/जानना के बारे में हमें?",
+      "company_certificate": "कंपनी पंजीकरण प्रमाणपत्र",
+      "view_certificate": "देखें वर्तमान प्रमाणपत्र",
+      "language": "भाषा"
+    },
+    "placeholders": {
+      "select_country": "चुनें देश",
+      "select_city": "चुनें शहर",
+      "hear_about_us": "कैसे किया आप सुनना/जानना के बारे में हमें?"
+    },
+    "agreements": {
+      "receive_comms": "I सहमत को/तक प्राप्त करें अन्य संचार से BOMEQP",
+      "terms": "I पुष्टि करें कि I है/हैं पढ़ें, समझा गया, और स्वीकृत  शर्तें और शर्तें"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "save": "सहेजें परिवर्तन",
+      "saving": "सहेजा जा रहा है...",
+      "upload_logo": "क्लिक करें को/तक अपलोड लोगो"
+    },
+    "messages": {
+      "profile_updated": "प्रोफ़ाइल अपडेट किया गया सफलतापूर्वक!",
+      "password_changed": "पासवर्ड बदला गया सफलतापूर्वक!"
+    },
+    "validation": {
+      "required": "यह क्षेत्र है आवश्यक",
+      "invalid_email": "अमान्य ईमेल",
+      "logo_type": "लोगो आवश्यक/ज़रूरी होना एक इमेज फ़ाइल (JPG, JPEG, या PNG केवल)",
+      "logo_size": "लोगो आकार आवश्यक/ज़रूरी नहीं से अधिक 5MB",
+      "file_type": "फ़ाइल आवश्यक/ज़रूरी होना PDF, JPG, JPEG, या PNG",
+      "file_size": "फ़ाइल आकार आवश्यक/ज़रूरी नहीं से अधिक 10MB"
+    },
+    "password": {
+      "current": "वर्तमान पासवर्ड",
+      "new": "नया पासवर्ड",
+      "confirm": "पुष्टि करें नया पासवर्ड",
+      "current_placeholder": "दर्ज करें आपका वर्तमान पासवर्ड",
+      "new_placeholder": "आवश्यक/ज़रूरी शामिल करें बड़े अक्षर, संख्याएँ & विशेष अक्षर",
+      "confirm_placeholder": "पुष्टि करें आपका नया पासवर्ड",
+      "submit": "बदलें पासवर्ड",
+      "submitting": "बदला जा रहा है..."
+    },
+    "common": {
+      "na": "N/A"
+    }
+  }
+}

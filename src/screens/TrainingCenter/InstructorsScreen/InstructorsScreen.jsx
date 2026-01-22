@@ -1373,6 +1373,7 @@ const TrainingCenterInstructorsScreen = () => {
 
           <LanguageSelector
             label={t('instructors_screen.languages')}
+            placeholder={t('instructors_screen.select_a_language')}
             value={formData.specializations}
             onChange={handleSpecializationsChange}
             error={errors.specializations}

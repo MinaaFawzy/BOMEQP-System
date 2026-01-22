@@ -1,0 +1,267 @@
+{
+  "dashboard_screen": {
+    "errors": {
+      "load_failed": "डैशबोर्ड डेटा लोड करने में विफल"
+    },
+    "stats": {
+      "total_classes": "कुल कक्षाएँ",
+      "scheduled": "निर्धारित",
+      "completed": "पूर्ण",
+      "click_to_view_all": "सभी देखने के लिए क्लिक करें",
+      "scheduled_classes": "निर्धारित कक्षाएँ",
+      "finished_classes": "पूर्ण कक्षाएँ"
+    },
+    "charts": {
+      "earnings_over_time": "समय के साथ आय",
+      "earnings": "आय",
+      "classes_status_distribution": "कक्षा स्थिति वितरण",
+      "count": "संख्या"
+    },
+    "recent_classes": {
+      "title": "हाल की कक्षाएँ",
+      "view_all": "सभी देखें",
+      "table": {
+        "course": "पाठ्यक्रम",
+        "training_center": "प्रशिक्षण केंद्र",
+        "dates": "तिथियाँ",
+        "status": "स्थिति",
+        "students": "छात्र",
+        "code_prefix": "कोड:"
+      },
+      "empty": {
+        "title": "कोई कक्षा नहीं मिली",
+        "subtitle": "आपके पास अभी कोई कक्षा नहीं है"
+      }
+    },
+    "profile_summary": {
+      "title": "प्रोफ़ाइल सारांश",
+      "name": "नाम",
+      "email": "ईमेल",
+      "view_full_profile": "पूरी प्रोफ़ाइल देखें"
+    },
+    "training_centers": {
+      "title": "प्रशिक्षण केंद्र",
+      "view_all_with_count": "सभी देखें ({{count}})",
+      "empty": "कोई प्रशिक्षण केंद्र नहीं मिला"
+    },
+    "accs": {
+      "title": "मान्यता निकाय",
+      "authorized": "अधिकृत",
+      "view_all_with_count": "सभी देखें ({{count}})",
+      "empty": "कोई ACC नहीं मिला"
+    },
+    "status": {
+      "scheduled": "निर्धारित",
+      "in_progress": "प्रगति में",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द"
+    },
+    "location": {
+      "online": "ऑनलाइन"
+    },
+    "common": {
+      "na": "लागू नहीं",
+      "to": "से",
+      "class_one": "कक्षा",
+      "class_other": "कक्षाएँ"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "मेरी कक्षाएँ",
+      "subtitle": "अपनी असाइन की गई कक्षाओं को देखें और प्रबंधित करें"
+    },
+    "search": {
+      "placeholder": "कक्षाएँ खोजें..."
+    },
+    "filters": {
+      "all": "सभी कक्षाएँ",
+      "scheduled": "निर्धारित",
+      "completed": "पूर्ण"
+    },
+    "table": {
+      "course": "पाठ्यक्रम",
+      "training_center": "प्रशिक्षण केंद्र",
+      "start_date": "प्रारंभ तिथि",
+      "end_date": "समाप्ति तिथि",
+      "exam_date": "परीक्षा तिथि",
+      "exam_score": "परीक्षा अंक",
+      "status": "स्थिति",
+      "enrolled": "नामांकित",
+      "empty": "अभी कोई कक्षा असाइन नहीं की गई।"
+    },
+    "status": {
+      "scheduled": "निर्धारित",
+      "completed": "पूर्ण",
+      "default": "अज्ञात",
+      "not_set": "सेट नहीं",
+      "na": "लागू नहीं"
+    },
+    "actions": {
+      "view_details": "विवरण देखें",
+      "mark_complete": "पूर्ण के रूप में चिह्नित करें"
+    },
+    "details": {
+      "modal_title": "कक्षा विवरण",
+      "course": "पाठ्यक्रम",
+      "training_center": "प्रशिक्षण केंद्र",
+      "start_date": "प्रारंभ तिथि",
+      "end_date": "समाप्ति तिथि",
+      "exam_date": "परीक्षा तिथि",
+      "exam_score": "परीक्षा अंक",
+      "enrollment": "नामांकन",
+      "status": "स्थिति",
+      "location": "स्थान",
+      "materials_title": "पाठ्यक्रम सामग्री",
+      "download": "डाउनलोड"
+    },
+    "complete": {
+      "modal_title": "कक्षा पूर्ण चिह्नित करें",
+      "completion_rate": "पूर्णता दर (%)",
+      "completion_rate_placeholder": "उदा., 95",
+      "notes": "नोट्स (वैकल्पिक)",
+      "notes_placeholder": "कक्षा पूर्णता के बारे में नोट्स जोड़ें...",
+      "cancel": "रद्द करें",
+      "confirm": "पूर्ण चिह्नित करें"
+    },
+    "validation": {
+      "completion_rate_required": "कृपया पूर्णता प्रतिशत दर्ज करें"
+    },
+    "messages": {
+      "marked_complete_success": "कक्षा सफलतापूर्वक पूर्ण चिह्नित की गई!",
+      "mark_complete_failed": "पूर्ण चिह्नित करने में विफल"
+    },
+    "common": {
+      "na": "लागू नहीं"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "प्रोफ़ाइल",
+      "subtitle": "अपनी खाता सेटिंग्स और प्राथमिकताएँ प्रबंधित करें",
+      "edit": "प्रोफ़ाइल संपादित करें"
+    },
+    "sections": {
+      "profile_info": {
+        "title": "प्रोफ़ाइल जानकारी",
+        "subtitle": "अपने व्यक्तिगत विवरण अपडेट करें"
+      },
+      "cv": {
+        "title": "सीवी / रिज़्यूमे",
+        "subtitle": "अपना बायोडाटा अपलोड या अपडेट करें"
+      },
+      "passport": {
+        "title": "पासपोर्ट प्रति",
+        "subtitle": "अपना पासपोर्ट दस्तावेज़ अपलोड या अपडेट करें"
+      },
+      "certificates": {
+        "title": "प्रमाणपत्र",
+        "subtitle": "अपने पेशेवर प्रमाणपत्र प्रबंधित करें"
+      },
+      "password": {
+        "title": "पासवर्ड बदलें",
+        "subtitle": "अपने खाते का पासवर्ड अपडेट करें"
+      },
+      "language": {
+        "title": "भाषा सेटिंग्स",
+        "subtitle": "अपनी पसंदीदा सिस्टम भाषा चुनें",
+        "application_language": "एप्लिकेशन भाषा"
+      }
+    },
+    "form": {
+      "first_name": "पहला नाम",
+      "last_name": "अंतिम नाम",
+      "email": "ईमेल पता",
+      "email_help": "ईमेल बदला नहीं जा सकता",
+      "phone": "फ़ोन नंबर",
+      "date_of_birth": "जन्म तिथि",
+      "id_number": "आईडी नंबर",
+      "id_placeholder": "आईडी नंबर दर्ज करें (न्यूनतम 8 अक्षर)",
+      "country": "देश",
+      "city": "शहर",
+      "select_country": "देश चुनें",
+      "select_city": "शहर चुनें",
+      "type": "प्रकार",
+      "account_status": "खाता स्थिति",
+      "training_center": "प्रशिक्षण केंद्र",
+      "specializations": "विशेषज्ञताएँ"
+    },
+    "profile_photo": {
+      "label": "प्रोफ़ाइल फोटो",
+      "select": "फोटो चुनें",
+      "change": "फोटो बदलें",
+      "hint": "केवल JPG, JPEG, PNG, अधिकतम 5MB"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "pending": "लंबित",
+      "suspended": "निलंबित",
+      "inactive": "निष्क्रिय",
+      "assessor": "मूल्यांकनकर्ता",
+      "instructor": "प्रशिक्षक"
+    },
+    "cv": {
+      "current": "वर्तमान सीवी",
+      "view": "सीवी देखें",
+      "none": "कोई सीवी अपलोड नहीं किया गया",
+      "none_hint": "सीवी अपलोड करने के लिए प्रोफ़ाइल संपादित करें पर क्लिक करें",
+      "upload": "सीवी अपलोड करें",
+      "update": "सीवी अपडेट करें",
+      "uploading": "सीवी अपलोड हो रहा है...",
+      "remove": "सीवी हटाएँ",
+      "remove_confirm": "क्या आप वाकई अपना सीवी हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+      "hint": "केवल PDF, अधिकतम 10MB"
+    },
+    "passport": {
+      "current": "वर्तमान पासपोर्ट",
+      "view": "पासपोर्ट देखें",
+      "none": "कोई पासपोर्ट अपलोड नहीं किया गया",
+      "none_hint": "पासपोर्ट अपलोड करने के लिए प्रोफ़ाइल संपादित करें पर क्लिक करें",
+      "upload": "पासपोर्ट अपलोड करें",
+      "update": "पासपोर्ट अपडेट करें",
+      "processing": "पासपोर्ट प्रोसेस हो रहा है...",
+      "hint": "JPG, PNG या PDF, अधिकतम 10MB"
+    },
+    "certificates": {
+      "add": "प्रमाणपत्र जोड़ें",
+      "new_title": "जोड़ने के लिए नए प्रमाणपत्र",
+      "name": "प्रमाणपत्र नाम",
+      "issue_date": "जारी करने की तिथि",
+      "file": "प्रमाणपत्र फ़ाइल (PDF)",
+      "view": "प्रमाणपत्र देखें",
+      "none": "अभी तक कोई प्रमाणपत्र नहीं जोड़ा गया",
+      "selected": "चयनित:"
+    },
+    "password": {
+      "current": "वर्तमान पासवर्ड",
+      "new": "नया पासवर्ड",
+      "confirm": "नए पासवर्ड की पुष्टि करें",
+      "current_placeholder": "अपना वर्तमान पासवर्ड दर्ज करें",
+      "new_placeholder": "बड़े अक्षर, संख्या और विशेष वर्ण शामिल होने चाहिए",
+      "confirm_placeholder": "अपने नए पासवर्ड की पुष्टि करें",
+      "submit": "पासवर्ड बदलें"
+    },
+    "buttons": {
+      "save": "परिवर्तन सहेजें",
+      "saving": "सहेजा जा रहा है...",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "profile_updated": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई!",
+      "password_changed": "पासवर्ड सफलतापूर्वक बदल दिया गया!"
+    },
+    "validation": {
+      "required": "यह फ़ील्ड आवश्यक है",
+      "invalid_email": "अमान्य ईमेल पता",
+      "photo_type": "कृपया वैध इमेज फ़ाइल चुनें (केवल JPG, JPEG या PNG)",
+      "photo_size": "इमेज का आकार 5MB से अधिक नहीं होना चाहिए",
+      "file_type": "केवल PDF फ़ाइलों की अनुमति है",
+      "file_size": "फ़ाइल का आकार 10MB से कम होना चाहिए",
+      "password_required": "वर्तमान पासवर्ड आवश्यक है",
+      "password_failed": "पासवर्ड बदलने में विफल"
+    },
+    "common": {
+      "na": "लागू नहीं"
+    }
+  }
+}

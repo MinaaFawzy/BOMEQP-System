@@ -1,0 +1,12 @@
+{
+  "example_key": "示例值",
+  "another_key": "另一个值",
+  "nested": {
+    "key": "嵌套值"
+  },
+  "actions": {
+    "create": "创建",
+    "update": "更新",
+    "delete": "删除"
+  }
+}

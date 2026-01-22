@@ -37,6 +37,8 @@ export const useTranslation = (namespace = 'common') => {
         languages: {
             en: 'English',
             ar: 'العربية',
+            zhCN: '中文',
+            hi: 'हिन्दी',
         },
     };
 };
