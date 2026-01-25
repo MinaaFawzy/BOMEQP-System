@@ -222,12 +222,12 @@ const PaymentTransactionsScreen = () => {
 
   // DataTable columns
   const columns = useMemo(() => [
-    {
-      header: 'ID',
-      accessor: 'id',
-      sortable: true,
-      render: (value) => <span className="text-gray-500 font-mono text-xs">#{value}</span>
-    },
+    // {
+    //   header: 'ID',
+    //   accessor: 'id',
+    //   sortable: true,
+    //   render: (value) => <span className="text-gray-500 font-mono text-xs">#{value}</span>
+    // },
     {
       header: 'Type',
       accessor: 'transaction_type',
@@ -320,8 +320,8 @@ const PaymentTransactionsScreen = () => {
         const config = statusConfig[value] || statusConfig.pending;
         const Icon = config.icon;
         return (
-          <span className={`px - 3 py - 1.5 inline - flex items - center text - xs leading - 5 font - bold rounded - full shadow - sm ${config.badgeClass} `}>
-            <Icon size={12} className="mr-1" />
+          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm transition-all hover:shadow-md ${config.badgeClass}`}>
+            <Icon size={12} className="mr-1.5" />
             {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'N/A'}
           </span>
         );

@@ -78,8 +78,8 @@ const InstructorsScreen = () => {
   }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle(t('instructors_screen.header.title'));
-    setHeaderSubtitle(t('instructors_screen.header.subtitle'));
+    setHeaderTitle('Instructor Authorization Requests');
+    setHeaderSubtitle('Review and manage instructor authorization requests');
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -546,8 +546,6 @@ const InstructorsScreen = () => {
                 <DetailForm
                   data={selectedRequest}
                   fields={[
-                    { key: 'id', label: t('instructors_screen.details.request_id'), icon: Hash, render: (value) => value ? `#${value}` : t('instructors_screen.common.na'), showEmpty: false },
-                    { key: 'training_center_id', label: t('instructors_screen.details.training_center_id'), icon: Building2, render: (value) => value ? `#${value}` : t('instructors_screen.common.na'), showEmpty: false },
                     { key: 'request_date', label: t('instructors_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
                     { key: 'status', label: t('instructors_screen.table.status'), type: 'status', icon: Clock },
                     { key: 'payment_status', label: t('instructors_screen.details.payment_status'), render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? (value === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}</span>, icon: CreditCard },
@@ -601,6 +599,63 @@ const InstructorsScreen = () => {
                 ]}
               />
             </div>
+
+            {/* Category and Sub-Category */}
+            {selectedRequest._isRequest && (selectedRequest.category || selectedRequest.sub_category) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  Category Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedRequest.category && (
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                      <p className="text-sm text-indigo-600 font-medium mb-1">Category</p>
+                      <p className="text-lg font-semibold text-gray-900">{selectedRequest.category.name}</p>
+                      {selectedRequest.category.name_ar && (
+                        <p className="text-sm text-gray-600 mt-1">{selectedRequest.category.name_ar}</p>
+                      )}
+                    </div>
+                  )}
+                  {selectedRequest.sub_category && (
+                    <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                      <p className="text-sm text-purple-600 font-medium mb-1">Sub-Category</p>
+                      <p className="text-lg font-semibold text-gray-900">{selectedRequest.sub_category.name}</p>
+                      {selectedRequest.sub_category.name_ar && (
+                        <p className="text-sm text-gray-600 mt-1">{selectedRequest.sub_category.name_ar}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Requested Courses */}
+            {selectedRequest._isRequest && selectedRequest.requested_courses && Array.isArray(selectedRequest.requested_courses) && selectedRequest.requested_courses.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  Requested Courses ({selectedRequest.requested_courses.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedRequest.requested_courses.map((course, index) => (
+                    <div key={course.id || index} className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded">{course.code}</span>
+                          </div>
+                          <p className="font-semibold text-gray-900 text-base">{course.name}</p>
+                          {course.name_ar && (
+                            <p className="text-sm text-gray-600 mt-1">{course.name_ar}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Documents */}
             {selectedRequest._isRequest && selectedRequest.documents_json && Array.isArray(selectedRequest.documents_json) && selectedRequest.documents_json.length > 0 && (

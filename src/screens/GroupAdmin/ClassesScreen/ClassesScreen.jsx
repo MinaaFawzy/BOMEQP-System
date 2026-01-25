@@ -150,18 +150,18 @@ const ClassesScreen = () => {
     };
 
     const columns = useMemo(() => [
-        {
-            header: 'Class ID',
-            accessor: 'id',
-            sortable: true,
-            render: (value) => <span className="text-gray-500">#{value}</span>
-        },
+        // {
+        //     header: 'Class ID',
+        //     accessor: 'id',
+        //     sortable: true,
+        //     render: (value) => <span className="text-gray-500">#{value}</span>
+        // },
         {
             header: 'Class Name',
             accessor: 'name',
             sortable: true,
             render: (value, row) => (
-                <div className="font-medium text-gray-900">{value}</div>
+                <div className="font-medium text-gray-900">{value} </div>
             )
         },
         {
@@ -235,6 +235,15 @@ const ClassesScreen = () => {
     const displayInProgress = stats.in_progress;
     const displayCompleted = stats.completed;
 
+    // Show loading spinner only on initial load
+    if (loading && classes.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
@@ -281,8 +290,24 @@ const ClassesScreen = () => {
                     searchPlaceholder="Search classes..."
                     searchValue={searchQuery}
                     onSearch={(value) => setSearchQuery(value)}
-                    filterable={false} // Use TabCards for filters or separate implementation
-                    emptyMessage="No classes found."
+                    filterable={false}
+                    emptyMessage={
+                        classes.length === 0 && !loading ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <BookOpen className="h-8 w-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                    {searchQuery || statusFilter !== 'all' ? 'No classes found' : 'No classes yet'}
+                                </h3>
+                                <p className="text-sm text-gray-500 text-center max-w-sm">
+                                    {searchQuery || statusFilter !== 'all'
+                                        ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                                        : 'Classes will appear here once they are created by training centers.'}
+                                </p>
+                            </div>
+                        ) : 'No classes found.'
+                    }
                 />
 
                 {classes.length > 0 && (

@@ -178,9 +178,6 @@ const ACCsScreen = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    hasDataRef.current = false; // Reset to force loading when switching tabs? Or keep it? 
-    // Usually valid to keep data but refresh is safer.
-    // Let's force reload for now to be safe.
   };
 
   const accsColumns = useMemo(() => [
@@ -579,7 +576,7 @@ const ACCsScreen = () => {
     setAuthDetailModalOpen(true);
   };
 
-  if (loading) {
+  if (loading && allAccs.length === 0 && allAuthorizations.length === 0) {
     return <LoadingSpinner />;
   }
 
@@ -634,11 +631,9 @@ const ACCsScreen = () => {
             totalItems={totalAccsCount}
             perPage={accsPerPage}
             onPageChange={(page) => {
-              hasDataRef.current = false;
               setAccsPage(page);
             }}
             onPerPageChange={(perPage) => {
-              hasDataRef.current = false;
               setAccsPerPage(perPage);
               setAccsPage(1);
             }}
@@ -668,11 +663,9 @@ const ACCsScreen = () => {
             totalItems={totalAuthsCount}
             perPage={authPerPage}
             onPageChange={(page) => {
-              hasDataRef.current = false;
               setAuthPage(page);
             }}
             onPerPageChange={(perPage) => {
-              hasDataRef.current = false;
               setAuthPerPage(perPage);
               setAuthPage(1);
             }}

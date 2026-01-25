@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength } from '../../../utils/validation';
-import { Building2, Eye, Edit, Tag, Mail, CheckCircle, Clock, ClipboardList, X, Plus, CreditCard, Trash2, AlertCircle, Phone, MapPin, Globe } from 'lucide-react';
+import { Building2, Eye, Edit, Tag, Mail, CheckCircle, Clock, ClipboardList, X, Plus, CreditCard, Trash2, AlertCircle, Phone, MapPin, Globe, XCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -48,7 +48,7 @@ const AllACCsScreen = () => {
     current_page: 1,
     last_page: 1,
     total: 0,
-    per_page: 5,
+    per_page: 10,
     from: 0,
     to: 0
   });
@@ -491,6 +491,7 @@ const AllACCsScreen = () => {
   const totalCount = stats.total || pagination.total;
   const activeCount = stats.active;
   const pendingCount = stats.pending;
+  const suspendedCount = stats.suspended;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -559,6 +560,10 @@ const AllACCsScreen = () => {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
             icon: Clock
           },
+          suspended: {
+            badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
+            icon: XCircle
+          },
           inactive: {
             badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
             icon: Clock
@@ -623,14 +628,17 @@ const AllACCsScreen = () => {
   return (
     <div className="space-y-4">
       {/* Stats Cards */}
-      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }}>
+      <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
         <TabCard
           name="Total"
           value={totalCount}
           icon={ClipboardList}
           colorType="indigo"
           isActive={statusFilter === 'all'}
-          onClick={() => setStatusFilter('all')}
+          onClick={() => {
+            setStatusFilter('all');
+            setPagination(prev => ({ ...prev, current_page: 1 }));
+          }}
         />
         <TabCard
           name="Active"
@@ -638,7 +646,10 @@ const AllACCsScreen = () => {
           icon={CheckCircle}
           colorType="green"
           isActive={statusFilter === 'active'}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => {
+            setStatusFilter('active');
+            setPagination(prev => ({ ...prev, current_page: 1 }));
+          }}
         />
         <TabCard
           name="Pending"
@@ -646,7 +657,21 @@ const AllACCsScreen = () => {
           icon={Clock}
           colorType="yellow"
           isActive={statusFilter === 'pending'}
-          onClick={() => setStatusFilter('pending')}
+          onClick={() => {
+            setStatusFilter('pending');
+            setPagination(prev => ({ ...prev, current_page: 1 }));
+          }}
+        />
+        <TabCard
+          name="Suspended"
+          value={suspendedCount}
+          icon={XCircle}
+          colorType="red"
+          isActive={statusFilter === 'suspended'}
+          onClick={() => {
+            setStatusFilter('suspended');
+            setPagination(prev => ({ ...prev, current_page: 1 }));
+          }}
         />
       </TabCardsGrid>
 

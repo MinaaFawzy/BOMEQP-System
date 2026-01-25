@@ -406,60 +406,6 @@ const PaymentTransactionsScreen = () => {
       )}
 
 
-      {/* Search and Filters Section */}
-      <div className="search-filters-section">
-        <div className="search-filters-container">
-          {/* Search */}
-          <div className="search-input-container">
-            <Search className="search-icon" size={20} />
-            <input
-              type="text"
-              placeholder={t('payment_transactions_screen.search.placeholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
-
-          {/* Type Filter */}
-          <div className="filter-container">
-            <Filter className="filter-icon" size={20} />
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setPage(1);
-              }}
-              className="filter-select"
-            >
-              <option value="all">{t('payment_transactions_screen.filters.type.all')}</option>
-              <option value="code_purchase">{t('payment_transactions_screen.filters.type.code_purchase')}</option>
-              <option value="course_purchase">{t('payment_transactions_screen.filters.type.course_purchase')}</option>
-              <option value="instructor_authorization">{t('payment_transactions_screen.filters.type.instructor_authorization')}</option>
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div className="filter-container">
-            <Filter className="filter-icon" size={20} />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              className="filter-select"
-            >
-              <option value="all">{t('payment_transactions_screen.filters.status.all')}</option>
-              <option value="pending">{t('payment_transactions_screen.filters.status.pending')}</option>
-              <option value="completed">{t('payment_transactions_screen.filters.status.completed')}</option>
-              <option value="failed">{t('payment_transactions_screen.filters.status.failed')}</option>
-              <option value="refunded">{t('payment_transactions_screen.filters.status.refunded')}</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       {/* Transactions DataTable */}
       <div className="datatable-container">
         <DataTable
@@ -468,6 +414,9 @@ const PaymentTransactionsScreen = () => {
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
+          searchable={true}
+          searchValue={searchTerm}
+          onSearch={(value) => setSearchTerm(value)}
           emptyMessage={
             transactions.length === 0 && !loading ? (
               <div className="empty-state">
@@ -479,9 +428,45 @@ const PaymentTransactionsScreen = () => {
               </div>
             ) : t('payment_transactions_screen.table.empty_filtered')
           }
-          searchable={false}
           filterable={false}
           sortable={true}
+          customFilters={
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {/* Type Filter */}
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all text-sm"
+                style={{ minWidth: '150px' }}
+              >
+                <option value="all">{t('payment_transactions_screen.filters.type.all')}</option>
+                <option value="subscription">{t('payment_transactions_screen.filters.type.subscription') || 'Subscription'}</option>
+                <option value="code_purchase">{t('payment_transactions_screen.filters.type.code_purchase')}</option>
+                <option value="course_purchase">{t('payment_transactions_screen.filters.type.course_purchase')}</option>
+                <option value="instructor_authorization">{t('payment_transactions_screen.filters.type.instructor_authorization')}</option>
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all text-sm"
+                style={{ minWidth: '150px' }}
+              >
+                <option value="all">{t('payment_transactions_screen.filters.status.all')}</option>
+                <option value="pending">{t('payment_transactions_screen.filters.status.pending')}</option>
+                <option value="completed">{t('payment_transactions_screen.filters.status.completed')}</option>
+                <option value="failed">{t('payment_transactions_screen.filters.status.failed')}</option>
+                <option value="refunded">{t('payment_transactions_screen.filters.status.refunded')}</option>
+              </select>
+            </div>
+          }
         />
         <Pagination
           currentPage={page}

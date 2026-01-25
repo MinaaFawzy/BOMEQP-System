@@ -958,7 +958,6 @@ const ClassesScreen = () => {
           colorType="indigo"
           isActive={statusFilter === 'all'}
           onClick={() => {
-            hasDataRef.current = false;
             setStatusFilter('all');
             setPage(1);
           }}
@@ -970,7 +969,6 @@ const ClassesScreen = () => {
           colorType="blue"
           isActive={statusFilter === 'scheduled'}
           onClick={() => {
-            hasDataRef.current = false;
             setStatusFilter('scheduled');
             setPage(1);
           }}
@@ -982,7 +980,6 @@ const ClassesScreen = () => {
           colorType="green"
           isActive={statusFilter === 'completed'}
           onClick={() => {
-            hasDataRef.current = false;
             setStatusFilter('completed');
             setPage(1);
           }}
@@ -1027,11 +1024,9 @@ const ClassesScreen = () => {
           totalItems={totalItems}
           perPage={perPage}
           onPageChange={(p) => {
-            hasDataRef.current = false;
             setPage(p);
           }}
           onPerPageChange={(newPerPage) => {
-            hasDataRef.current = false;
             setPerPage(newPerPage);
             setPage(1);
           }}

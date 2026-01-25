@@ -1,0 +1,429 @@
+/* Modern Smooth Certificate Details */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.cert-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  padding: 0;
+  position: relative;
+}
+
+.cert-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* Back Button - Floating Pill */
+.cert-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  padding: 1rem 1.75rem; /* Increased padding */
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin: 2rem 2rem; /* Add horizontal margin */
+}
+
+.cert-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+/* Loading & Error */
+.cert-loading, .cert-error-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.cert-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+/* --- HERO SECTION: Clean & Centered --- */
+.cert-hero {
+  text-align: center;
+  padding: 3rem 0;
+  position: relative;
+}
+
+.cert-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.cert-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+  margin: 0 0 1rem 0;
+  line-height: 1.1;
+}
+
+.cert-subtitle {
+  font-size: 1.25rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* --- ACC HIGHLIGHT (The "Black Card") --- */
+.cert-acc-section {
+  width: 100%;
+  margin-bottom: 4rem;
+}
+
+.cert-acc-container {
+  background: #0f172a;
+  border-radius: 32px;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.4);
+}
+
+@media (min-width: 1024px) {
+  .cert-acc-container {
+    flex-direction: row;
+    text-align: left;
+    padding: 4rem 5rem;
+    gap: 4rem;
+  }
+}
+
+.cert-acc-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.cert-acc-logo-wrapper {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cert-acc-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cert-acc-content {
+  flex: 1;
+  z-index: 1;
+}
+
+.cert-acc-label {
+  display: inline-block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 1rem;
+}
+
+.cert-acc-name {
+  font-size: 2.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.cert-acc-legal {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+}
+
+.cert-acc-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .cert-acc-grid {
+    justify-content: flex-start;
+  }
+}
+
+.cert-acc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255,255,255,0.8);
+  font-size: 1rem;
+}
+
+.cert-acc-item a {
+  color: white;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  transition: all 0.2s;
+}
+
+.cert-acc-item a:hover {
+  border-color: white;
+}
+
+/* --- DETAILS GRID --- */
+.cert-section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.cert-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 640px) {
+  .cert-grid-layout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .cert-grid-layout {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cert-data-box {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.cert-data-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.cert-data-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cert-data-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+  margin-top: auto;
+  line-height: 1.3;
+}
+
+/* --- Training Center (Clean Panel) --- */
+.cert-tc-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 4rem;
+}
+
+.cert-tc-header {
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cert-tc-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.cert-tc-card {
+  background: white;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+}
+
+@media (min-width: 768px) {
+  .cert-tc-card {
+    flex-direction: row;
+  }
+}
+
+.cert-tc-logo-area {
+  background: #f8fafc;
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+@media (min-width: 768px) {
+  .cert-tc-logo-area {
+    width: 300px;
+    border-bottom: none;
+    border-right: 1px solid #e2e8f0;
+  }
+}
+
+.cert-tc-logo {
+  max-width: 160px;
+  height: auto;
+  opacity: 0.9;
+}
+
+.cert-tc-content {
+  padding: 3rem;
+  flex: 1;
+}
+
+.cert-tc-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.cert-tc-legal {
+  color: #64748b;
+  font-style: italic;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.cert-tc-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .cert-tc-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cert-tc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.cert-tc-item svg {
+  color: #94a3b8;
+}
+
+.cert-tc-item a {
+  color: #0f172a;
+  text-decoration: none;
+  border-bottom: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.cert-tc-item a:hover {
+  border-color: #0f172a;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .cert-title {
+    font-size: 2.5rem;
+  }
+  
+  .cert-acc-name {
+    font-size: 2rem;
+  }
+  
+  .cert-acc-container {
+    padding: 2.5rem;
+  }
+  
+  .cert-data-box {
+    padding: 1.5rem;
+  }
+  
+  .cert-back-btn {
+    margin: 1.5rem;
+    padding: 0.75rem 1.25rem;
+  }
+}

@@ -1,0 +1,22 @@
+/* Authorized Instructors Screen Styles */
+.authorized-instructors-container {
+  padding: 1rem;
+}
+
+.authorized-instructors-search {
+  margin-bottom: 1.5rem;
+}
+
+.authorized-instructors-table-container {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+  overflow: hidden;
+}
+
+.photo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

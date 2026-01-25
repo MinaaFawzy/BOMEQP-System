@@ -283,14 +283,14 @@ const InstructorAuthorizationsScreen = () => {
   return (
     <div>
       {/* Stats Cards */}
-      <TabCardsGrid columns={{ mobile: 1, tablet: 1, desktop: 1 }}>
+      {/* <TabCardsGrid columns={{ mobile: 1, tablet: 1, desktop: 1 }}>
         <TabCard
           name="Pending Commission Requests"
           value={stats.total}
           icon={Clock}
           colorType="yellow"
         />
-      </TabCardsGrid>
+      </TabCardsGrid> */}
 
       {/* DataTable */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 mt-4">

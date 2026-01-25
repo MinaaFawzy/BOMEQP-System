@@ -292,7 +292,10 @@
     "click_to_view_current_passport": "वर्तमान पासपोर्ट देखने के लिए क्लिक करें",
     "click_to_change_file": "फ़ाइल बदलने के लिए क्लिक करें",
     "accreditation_body": "मान्यता निकाय",
-    "select_a_language": "भाषा चुनें..."
+    "select_a_language": "भाषा चुनें...",
+    "specializations_languages": "विशेषज्ञताएँ और भाषाएँ",
+    "instructor_details": "प्रशिक्षक विवरण",
+    "at_least_one_language_required": "कम से कम एक भाषा आवश्यक है"
   },
   "trainees": {
     "header": {
@@ -794,6 +797,7 @@
     "filters": {
       "type": {
         "all": "सभी प्रकार",
+        "subscription": "सब्सक्रिप्शन",
         "code_purchase": "कोड खरीद",
         "course_purchase": "पाठ्यक्रम खरीद",
         "instructor_authorization": "प्रशिक्षक प्राधिकरण"
@@ -818,6 +822,7 @@
       "empty_filtered": "आपके फ़िल्टर से मेल खाने वाले कोई लेनदेन नहीं मिले"
     },
     "transaction_type": {
+      "subscription": "सब्सक्रिप्शन",
       "code_purchase": "कोड खरीद",
       "course_purchase": "पाठ्यक्रम खरीद",
       "instructor_authorization": "प्रशिक्षक प्राधिकरण"

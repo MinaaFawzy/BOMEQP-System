@@ -80,6 +80,15 @@ const TrainingCenterInstructorsScreen = () => {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const hasDataRef = useRef(false);
 
+  // Statistics from API
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    pending: 0,
+    active: 0,
+    suspended: 0,
+    inactive: 0
+  });
+
   useEffect(() => {
     const showLoading = !hasDataRef.current;
 
@@ -87,8 +96,8 @@ const TrainingCenterInstructorsScreen = () => {
       return;
     }
 
-    loadInstructors(page, perPage, debouncedSearchTerm, showLoading);
-  }, [page, perPage, debouncedSearchTerm, searchTerm]);
+    loadInstructors(page, perPage, debouncedSearchTerm, statusFilter, showLoading);
+  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
 
   useEffect(() => {
     setHeaderTitle(t('instructors_screen.instructors'));
@@ -119,7 +128,7 @@ const TrainingCenterInstructorsScreen = () => {
   // No longer needed in the new structure as we calculate indeterminate states during render
   // or via helper functions specific to the tree structure.
 
-  const loadInstructors = async (pageArg = 1, limitArg = 10, search = '', showLoading = true) => {
+  const loadInstructors = async (pageArg = 1, limitArg = 10, search = '', status = 'all', showLoading = true) => {
     if (showLoading) {
       setLoading(true);
     } else {
@@ -130,7 +139,8 @@ const TrainingCenterInstructorsScreen = () => {
       const data = await trainingCenterAPI.listInstructors({
         page: pageArg,
         per_page: limitArg,
-        ...(search && { search })
+        ...(search && { search }),
+        ...(status !== 'all' && { status })
       });
 
       let instructorsArray = [];
@@ -152,6 +162,17 @@ const TrainingCenterInstructorsScreen = () => {
         const total = data.total || instructorsArray.length;
         setTotalItems(total);
         setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+
+        // Update statistics from API response
+        if (data.statistics) {
+          setStatistics({
+            total: data.statistics.total || 0,
+            pending: data.statistics.pending || 0,
+            active: data.statistics.active || 0,
+            suspended: data.statistics.suspended || 0,
+            inactive: data.statistics.inactive || 0
+          });
+        }
       }
       hasDataRef.current = true;
     } catch (error) {
@@ -537,7 +558,7 @@ const TrainingCenterInstructorsScreen = () => {
         console.log('➕ Creating new instructor');
         await trainingCenterAPI.createInstructor(submitData);
       }
-      await loadInstructors(page, perPage);
+      await loadInstructors(page, perPage, debouncedSearchTerm, statusFilter);
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting instructor:', error);
@@ -568,7 +589,7 @@ const TrainingCenterInstructorsScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteInstructor(selectedInstructor.id);
-      await loadInstructors(page, perPage);
+      await loadInstructors(page, perPage, debouncedSearchTerm, statusFilter);
     } catch (error) {
       alert(t('training_center.instructors_screen.failed_to_delete_instructor') + ': ' + (error.message || 'Unknown error'));
     }
@@ -1021,13 +1042,12 @@ const TrainingCenterInstructorsScreen = () => {
     }
   ], []);
 
-  // Calculate stats - Note: With server-side pagination, these will only match current page or we need separate API
-  const totalCount = totalItems;
-  // These counts will be from the CURRENT PAGE only with server-side pagination, which is a known limitation
-  // unless we fetch counts separately. For now, we display what we have or 0.
-  const activeCount = instructors.filter(i => i.status === 'active').length;
-  const pendingCount = instructors.filter(i => i.status === 'pending').length;
-  const suspendedCount = instructors.filter(i => i.status === 'suspended').length;
+  // Use statistics from API response
+  const totalCount = statistics.total;
+  const activeCount = statistics.active;
+  const pendingCount = statistics.pending;
+  const suspendedCount = statistics.suspended;
+  const inactiveCount = statistics.inactive;
 
   if (loading) {
     return <LoadingSpinner />;
@@ -1044,7 +1064,10 @@ const TrainingCenterInstructorsScreen = () => {
           icon={Users}
           colorType="indigo"
           isActive={statusFilter === 'all'}
-          onClick={() => setStatusFilter('all')}
+          onClick={() => {
+            setStatusFilter('all');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('instructors_screen.active')}
@@ -1052,7 +1075,10 @@ const TrainingCenterInstructorsScreen = () => {
           icon={CheckCircle}
           colorType="green"
           isActive={statusFilter === 'active'}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => {
+            setStatusFilter('active');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('instructors_screen.pending')}
@@ -1060,7 +1086,10 @@ const TrainingCenterInstructorsScreen = () => {
           icon={Clock}
           colorType="yellow"
           isActive={statusFilter === 'pending'}
-          onClick={() => setStatusFilter('pending')}
+          onClick={() => {
+            setStatusFilter('pending');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('instructors_screen.suspended')}
@@ -1068,7 +1097,10 @@ const TrainingCenterInstructorsScreen = () => {
           icon={XCircle}
           colorType="red"
           isActive={statusFilter === 'suspended'}
-          onClick={() => setStatusFilter('suspended')}
+          onClick={() => {
+            setStatusFilter('suspended');
+            setPage(1);
+          }}
         />
       </TabCardsGrid>
 
@@ -1104,11 +1136,9 @@ const TrainingCenterInstructorsScreen = () => {
           totalItems={totalItems}
           perPage={perPage}
           onPageChange={(p) => {
-            hasDataRef.current = false;
             setPage(p);
           }}
           onPerPageChange={(newPerPage) => {
-            hasDataRef.current = false;
             setPerPage(newPerPage);
             setPage(1);
           }}

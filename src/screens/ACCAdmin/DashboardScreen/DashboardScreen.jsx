@@ -78,7 +78,7 @@ const ACCDashboardScreen = () => {
               label={t('dashboard.cards.active_instructors')}
               value={dashboardData.active_instructors || 0}
               hint={t('dashboard.cards.click_to_view_details')}
-              onClick={() => navigate('/acc/instructors?filter=active')}
+              onClick={() => navigate('/acc/authorized-instructors')}
             />
 
             {/* Total Revenue Card */}

@@ -57,6 +57,14 @@ const TraineesScreen = () => {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const hasDataRef = useRef(false);
 
+  // Statistics from API
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    suspended: 0
+  });
+
   useEffect(() => {
     loadTrainingClasses();
   }, []);
@@ -68,8 +76,8 @@ const TraineesScreen = () => {
       return;
     }
 
-    loadTrainees(page, perPage, debouncedSearchTerm, showLoading);
-  }, [page, perPage, debouncedSearchTerm, searchTerm]);
+    loadTrainees(page, perPage, debouncedSearchTerm, statusFilter, showLoading);
+  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
 
   useEffect(() => {
     setHeaderTitle(t('trainees.header.title'));
@@ -91,7 +99,7 @@ const TraineesScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
 
-  const loadTrainees = async (pageArg = 1, limitArg = 10, search = '', showLoading = true) => {
+  const loadTrainees = async (pageArg = 1, limitArg = 10, search = '', status = 'all', showLoading = true) => {
     if (showLoading) {
       setLoading(true);
     } else {
@@ -102,9 +110,8 @@ const TraineesScreen = () => {
       const params = {
         page: pageArg,
         per_page: limitArg,
-        page: pageArg,
-        per_page: limitArg,
         ...(search && { search }),
+        ...(status !== 'all' && { status })
       };
       const data = await trainingCenterAPI.listTrainees(params);
 
@@ -120,10 +127,25 @@ const TraineesScreen = () => {
 
       // Update pagination info
       if (data) {
-        const total = data.total || traineesArray.length;
-        setTotalItems(total);
-        setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
-        setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+        // Use pagination data from response
+        if (data.pagination) {
+          setTotalItems(data.pagination.total || 0);
+          setTotalPages(data.pagination.last_page || 1);
+        } else {
+          const total = data.total || traineesArray.length;
+          setTotalItems(total);
+          setTotalPages(data.last_page || Math.ceil(total / limitArg) || 1);
+        }
+
+        // Update statistics from API response
+        if (data.statistics) {
+          setStatistics({
+            total: data.statistics.total || 0,
+            active: data.statistics.active || 0,
+            inactive: data.statistics.inactive || 0,
+            suspended: data.statistics.suspended || 0
+          });
+        }
       }
       hasDataRef.current = true;
     } catch (error) {
@@ -549,7 +571,7 @@ const TraineesScreen = () => {
 
         await trainingCenterAPI.createTrainee(submitFormData);
       }
-      await loadTrainees(page, perPage);
+      await loadTrainees(page, perPage, debouncedSearchTerm, statusFilter);
       handleCloseModal();
     } catch (error) {
       console.error('Error submitting trainee:', error);
@@ -573,7 +595,7 @@ const TraineesScreen = () => {
   const confirmDelete = async () => {
     try {
       await trainingCenterAPI.deleteTrainee(selectedTrainee.id);
-      await loadTrainees(page, perPage);
+      await loadTrainees(page, perPage, debouncedSearchTerm, statusFilter);
     } catch (error) {
       alert(t('trainees.errors.deleteFailedPrefix') + (error.message || t('trainees.errors.unknown')));
     }
@@ -593,11 +615,11 @@ const TraineesScreen = () => {
     }
   };
 
-  // Calculate stats - Note: With server-side pagination, these will only match current page
-  const totalCount = totalItems;
-  const activeCount = trainees.filter(t => t.status === 'active').length;
-  const inactiveCount = trainees.filter(t => t.status === 'inactive').length;
-  const suspendedCount = trainees.filter(t => t.status === 'suspended').length;
+  // Use statistics from API response
+  const totalCount = statistics.total;
+  const activeCount = statistics.active;
+  const inactiveCount = statistics.inactive;
+  const suspendedCount = statistics.suspended;
 
   // Define columns for DataTable
   const traineesColumns = useMemo(() => [
@@ -773,7 +795,10 @@ const TraineesScreen = () => {
           icon={UserCheck}
           colorType="indigo"
           isActive={statusFilter === 'all'}
-          onClick={() => setStatusFilter('all')}
+          onClick={() => {
+            setStatusFilter('all');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('trainees.status.active')}
@@ -781,7 +806,10 @@ const TraineesScreen = () => {
           icon={CheckCircle}
           colorType="green"
           isActive={statusFilter === 'active'}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => {
+            setStatusFilter('active');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('trainees.status.inactive')}
@@ -789,7 +817,10 @@ const TraineesScreen = () => {
           icon={Clock}
           colorType="blue"
           isActive={statusFilter === 'inactive'}
-          onClick={() => setStatusFilter('inactive')}
+          onClick={() => {
+            setStatusFilter('inactive');
+            setPage(1);
+          }}
         />
         <TabCard
           name={t('trainees.status.suspended')}
@@ -797,7 +828,10 @@ const TraineesScreen = () => {
           icon={XCircle}
           colorType="red"
           isActive={statusFilter === 'suspended'}
-          onClick={() => setStatusFilter('suspended')}
+          onClick={() => {
+            setStatusFilter('suspended');
+            setPage(1);
+          }}
         />
       </TabCardsGrid>
 
@@ -833,11 +867,9 @@ const TraineesScreen = () => {
           totalItems={totalItems}
           perPage={perPage}
           onPageChange={(p) => {
-            hasDataRef.current = false;
             setPage(p);
           }}
           onPerPageChange={(newPerPage) => {
-            hasDataRef.current = false;
             setPerPage(newPerPage);
             setPage(1);
           }}

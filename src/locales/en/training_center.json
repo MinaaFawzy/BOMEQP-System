@@ -302,7 +302,10 @@
     "click_to_view_current_passport": "Click to view current passport",
     "click_to_change_file": "Click to change file",
     "accreditation_body": "Accreditation body",
-    "select_a_language": "Select a language..."
+    "select_a_language": "Select a language...",
+    "specializations_languages": "Specializations & Languages",
+    "instructor_details": "Instructor Details",
+    "at_least_one_language_required": "At least one language is required"
   },
 
   "trainees": {
@@ -873,6 +876,7 @@
     "filters": {
       "type": {
         "all": "All Types",
+        "subscription": "Subscription",
         "code_purchase": "Code Purchase",
         "course_purchase": "Course Purchase",
         "instructor_authorization": "Instructor Authorization"
@@ -899,6 +903,7 @@
     },
 
     "transaction_type": {
+      "subscription": "Subscription",
       "code_purchase": "Code Purchase",
       "course_purchase": "Course Purchase",
       "instructor_authorization": "Instructor Authorization"

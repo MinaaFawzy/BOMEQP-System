@@ -35,6 +35,7 @@ import SubscriptionScreen from './screens/ACCAdmin/SubscriptionScreen/Subscripti
 import ACCProfileScreen from './screens/ACCAdmin/ProfileScreen/ProfileScreen';
 import TrainingCentersScreen from './screens/ACCAdmin/TrainingCentersScreen/TrainingCentersScreen';
 import InstructorsScreen from './screens/ACCAdmin/InstructorsScreen/InstructorsScreen';
+import AuthorizedInstructorsScreen from './screens/ACCAdmin/AuthorizedInstructorsScreen/AuthorizedInstructorsScreen';
 import CoursesScreen from './screens/ACCAdmin/CoursesScreen/CoursesScreen';
 import CertificatesScreen from './screens/ACCAdmin/CertificatesScreen/CertificatesScreen';
 import CertificateTemplatesScreen from './screens/ACCAdmin/CertificateTemplatesScreen/CertificateTemplatesScreen';
@@ -72,6 +73,8 @@ import ProfileScreen from './screens/Profile/ProfileScreen/ProfileScreen';
 
 // Public screens
 import CertificateVerificationScreen from './screens/Public/CertificateVerificationScreen/CertificateVerificationScreen';
+import CertificateDetailsScreen from './screens/Public/CertificateDetailsScreen/CertificateDetailsScreen';
+import CertificateRedirect from './screens/Public/CertificateRedirect/CertificateRedirect';
 
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
@@ -107,7 +110,8 @@ function App() {
               <Route path="/register" element={<AuthScreen />} />
               <Route path="/reset-password" element={<ResetPasswordScreen />} />
               <Route path="/verify-certificate" element={<CertificateVerificationScreen />} />
-              <Route path="/certificates/verify/:code" element={<CertificateVerificationScreen />} />
+              <Route path="/certificates/verify/:code" element={<CertificateRedirect />} />
+              <Route path="/certificates/verify/:code/details" element={<CertificateDetailsScreen />} />
 
               {/* Pending account screen - accessible to authenticated but inactive users */}
               <Route
@@ -184,7 +188,8 @@ function App() {
                         <Route path="dashboard" element={<ACCDashboardScreen />} />
                         <Route path="subscription" element={<SubscriptionScreen />} />
                         <Route path="training-centers" element={<TrainingCentersScreen />} />
-                        <Route path="instructors" element={<InstructorsScreen />} />
+                        <Route path="authorized-instructors" element={<AuthorizedInstructorsScreen />} />
+                        <Route path="instructor-requests" element={<InstructorsScreen />} />
                         <Route path="courses" element={<CoursesScreen />} />
                         <Route path="certificates" element={<CertificatesScreen />} />
                         <Route path="certificate-templates" element={<CertificateTemplatesScreen />} />

@@ -237,7 +237,8 @@ const Layout = ({ children }) => {
             label: t('acc_drawer.management'),
             items: [
               { path: '/acc/training-centers', icon: Building2, label: t('acc_drawer.training_centers') },
-              { path: '/acc/instructors', icon: Users, label: t('acc_drawer.instructors') },
+              { path: '/acc/authorized-instructors', icon: Users, label: 'Authorized Instructors' },
+              { path: '/acc/instructor-requests', icon: Clock, label: 'Instructor Requests' },
             ]
           },
           {
@@ -354,7 +355,8 @@ const Layout = ({ children }) => {
     if (path === '/acc/dashboard') return t('dashboard');
     if (path === '/acc/subscription') return 'Subscription Management';
     if (path === '/acc/training-centers') return 'Training Centers';
-    if (path === '/acc/instructors') return 'Instructors';
+    if (path === '/acc/authorized-instructors') return 'Authorized Instructors';
+    if (path === '/acc/instructor-requests') return 'Instructor Authorization Requests';
     if (path === '/acc/courses') return 'Courses';
     if (path === '/acc/certificates') return 'Certificates';
     if (path === '/acc/certificate-templates') return 'Certificate Templates';
@@ -449,7 +451,7 @@ const Layout = ({ children }) => {
         {/* Sidebar */}
         <aside
           className={`fixed lg:static inset-y-0 left-0 z-50 border-r shadow-xl lg:shadow-none transform transition-all duration-300 ease-out layout-gradient-sidebar ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            } ${sidebarCollapsed ? 'w-16' : 'w-64'
+            } ${sidebarCollapsed ? 'w-16' : 'w-72'
             }`}
           style={{ overflow: 'visible' }}
         >

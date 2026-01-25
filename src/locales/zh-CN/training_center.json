@@ -291,7 +291,10 @@
     "click_to_view_current_passport": "点击查看当前护照",
     "click_to_change_file": "点击更改文件",
     "accreditation_body": "认证机构",
-    "select_a_language": "选择一种语言..."
+    "select_a_language": "选择一种语言...",
+    "specializations_languages": "专业和语言",
+    "instructor_details": "讲师详情",
+    "at_least_one_language_required": "至少需要选择一种语言"
   },
   "trainees": {
     "header": {
@@ -793,6 +796,7 @@
     "filters": {
       "type": {
         "all": "所有类型",
+        "subscription": "订阅",
         "code_purchase": "代码购买",
         "course_purchase": "课程购买",
         "instructor_authorization": "讲师授权"
@@ -817,6 +821,7 @@
       "empty_filtered": "未找到符合筛选条件的交易"
     },
     "transaction_type": {
+      "subscription": "订阅",
       "code_purchase": "代码购买",
       "course_purchase": "课程购买",
       "instructor_authorization": "讲师授权"
