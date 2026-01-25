@@ -63,6 +63,8 @@
     "management": "الإدارة",
     "training_centers": "مراكز التدريب",
     "instructors": "المدربين",
+    "authorized_instructors": "المدربون المخالفة",
+    "instructor_requests": "طلبات المدربين",
     "courses_and_content": "الدورات والمحتوى",
     "courses": "الدورات",
     "classes": "الفصول",

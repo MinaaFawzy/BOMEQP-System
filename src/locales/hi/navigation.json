@@ -59,6 +59,8 @@
     "management": "प्रबंधन",
     "training_centers": "प्रशिक्षण केंद्र",
     "instructors": "प्रशिक्षक",
+    "authorized_instructors": "प्रशिक्षक",
+    "instructor_requests": "प्रशिक्षक",
     "courses_and_content": "पाठ्यक्रम और सामग्री",
     "courses": "पाठ्यक्रम",
     "classes": "कक्षाएँ",

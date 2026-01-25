@@ -234,8 +234,8 @@
   },
   "instructors_screen": {
     "header": {
-      "title": "المدربون",
-      "subtitle": "إدارة طلبات واعتمادات المدربين"
+      "title": "طلبات اعتماد المدربين",
+      "subtitle": "مراجعة طلبات اعتماد المدربين"
     },
 
     "tabs": {
@@ -349,6 +349,63 @@
       "return": "إرجاع",
       "yes": "نعم",
       "no": "لا",
+      "na": "غير متاح"
+    }
+  },
+  "authorized_instructors_screen": {
+    "header": {
+      "title": "المدربون المعتمدون",
+      "subtitle": "عرض جميع المدربين المعتمدين"
+    },
+
+    "search": {
+      "placeholder": "ابحث بالاسم أو البريد الإلكتروني أو الهاتف أو مركز التدريب..."
+    },
+
+    "table": {
+      "instructor": "المدرب",
+      "email": "البريد الإلكتروني",
+      "training_center": "مركز التدريب",
+      "commission": "نسبة العمولة",
+      "payment_status": "حالة الدفع",
+      "actions": "الإجراءات",
+      "empty": "لا يوجد مدربون معتمدون"
+    },
+
+    "actions": {
+      "view_details": "عرض التفاصيل"
+    },
+
+    "status": {
+      "paid": "مدفوع",
+      "pending": "قيد الانتظار",
+      "na": "غير متاح"
+    },
+
+    "details": {
+      "modal_title": "تفاصيل المدرب",
+
+      "instructor_info": "معلومات المدرب",
+      "training_center_info": "مركز التدريب",
+      "authorization_details": "تفاصيل الاعتماد",
+      "authorized_courses": "الدورات المعتمدة",
+
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+
+      "name": "الاسم",
+      "commission_percentage": "نسبة العمولة",
+      "authorization_price": "سعر الاعتماد"
+    },
+
+    "cards": {
+      "commission_percentage": "نسبة العمولة",
+      "authorization_price": "سعر الاعتماد"
+    },
+
+    "common": {
       "na": "غير متاح"
     }
   },

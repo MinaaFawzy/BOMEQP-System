@@ -197,8 +197,8 @@
   },
   "instructors_screen": {
     "header": {
-      "title": "讲师",
-      "subtitle": "管理 讲师 授权 和 申请"
+      "title": "讲师授权申请",
+      "subtitle": "审核 讲师 授权 申请"
     },
     "tabs": {
       "total": "总计",
@@ -298,6 +298,63 @@
       "yes": "是",
       "no": "否",
       "na": "N/A"
+    }
+  },
+  "authorized_instructors_screen": {
+    "header": {
+      "title": "已授权讲师",
+      "subtitle": "查看所有已批准的讲师"
+    },
+
+    "search": {
+      "placeholder": "按姓名、电子邮件、电话或培训中心搜索..."
+    },
+
+    "table": {
+      "instructor": "讲师",
+      "email": "电子邮件",
+      "training_center": "培训中心",
+      "commission": "佣金 %",
+      "payment_status": "付款状态",
+      "actions": "操作",
+      "empty": "未找到已授权的讲师"
+    },
+
+    "actions": {
+      "view_details": "查看详情"
+    },
+
+    "status": {
+      "paid": "已支付",
+      "pending": "待处理",
+      "na": "不适用"
+    },
+
+    "details": {
+      "modal_title": "讲师详情",
+
+      "instructor_info": "讲师信息",
+      "training_center_info": "培训中心",
+      "authorization_details": "授权详情",
+      "authorized_courses": "已授权课程",
+
+      "first_name": "名",
+      "last_name": "姓",
+      "email": "电子邮件",
+      "phone": "电话",
+
+      "name": "名称",
+      "commission_percentage": "佣金比例",
+      "authorization_price": "授权费用"
+    },
+
+    "cards": {
+      "commission_percentage": "佣金比例",
+      "authorization_price": "授权费用"
+    },
+
+    "common": {
+      "na": "不适用"
     }
   },
   "courses_screen": {

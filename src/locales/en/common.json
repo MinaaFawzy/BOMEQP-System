@@ -70,5 +70,7 @@
       "next_page": "Next page",
       "last_page": "Last page"
     }
-  }
+  },
+  "no_results_found": "No results found",
+  "try_adjusting_your_search_or_filters": "Try adjusting your search or filters"
 }

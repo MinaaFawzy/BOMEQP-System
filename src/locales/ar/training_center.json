@@ -319,7 +319,9 @@
     "select_courses_for_authorization": "اختر الدورات للاعتماد",
     "no_approved_acc_available": "لا توجد جهة اعتماد معتمدة",
     "no_approved_acc_found": "لم يتم العثور على جهات اعتماد معتمدة",
-    "selected": "تم الاختيار"
+    "selected": "تم الاختيار",
+    "no_results_found": "لا توجد نتائج",
+    "try_adjusting_your_search_or_filters": "حاول تعديل البحث أو الفلاتر"
   },
   "trainees": {
     "header": {

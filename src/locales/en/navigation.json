@@ -61,6 +61,8 @@
     "management": "Management",
     "training_centers": "Training Centers",
     "instructors": "Instructors",
+    "authorized_instructors": "Authorized Instructors",
+    "instructor_requests": "Instructor Requests",
     "courses_and_content": "Courses and Content",
     "courses": "Courses",
     "classes": "Classes",

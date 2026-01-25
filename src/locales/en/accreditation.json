@@ -234,8 +234,8 @@
   },
   "instructors_screen": {
     "header": {
-      "title": "Instructors",
-      "subtitle": "Manage instructor authorizations and requests"
+      "title": "Instructor Authorization Requests",
+      "subtitle": "Review and manage instructor authorization requests"
     },
 
     "tabs": {
@@ -349,6 +349,63 @@
       "return": "Return",
       "yes": "Yes",
       "no": "No",
+      "na": "N/A"
+    }
+  },
+  "authorized_instructors_screen": {
+    "header": {
+      "title": "Authorized Instructors",
+      "subtitle": "View all approved instructors"
+    },
+
+    "search": {
+      "placeholder": "Search by name, email, phone, or training center..."
+    },
+
+    "table": {
+      "instructor": "Instructor",
+      "email": "Email",
+      "training_center": "Training Center",
+      "commission": "Commission %",
+      "payment_status": "Payment Status",
+      "actions": "Actions",
+      "empty": "No authorized instructors found"
+    },
+
+    "actions": {
+      "view_details": "View Details"
+    },
+
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "na": "N/A"
+    },
+
+    "details": {
+      "modal_title": "Instructor Details",
+
+      "instructor_info": "Instructor Information",
+      "training_center_info": "Training Center",
+      "authorization_details": "Authorization Details",
+      "authorized_courses": "Authorized Courses",
+
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+
+      "name": "Name",
+      "commission_percentage": "Commission Percentage",
+      "authorization_price": "Authorization Price"
+    },
+
+    "cards": {
+      "commission_percentage": "Commission Percentage",
+      "authorization_price": "Authorization Price"
+    },
+
+    "common": {
       "na": "N/A"
     }
   },

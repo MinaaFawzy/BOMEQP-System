@@ -936,23 +936,23 @@ const TrainingCenterCertificatesScreen = () => {
                   label: t('certificates_screen.details.certificate_file'),
                   icon: Download,
                   render: (value) => (
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       {value && (
                         <a
                           href={value}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
                         >
-                          <Eye size={16} />
+                          <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
                           {t('certificates_screen.details.view_certificate')}
                         </a>
                       )}
                       <button
                         onClick={() => handleDownload(selectedCertificate)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
                       >
-                        <Download size={16} />
+                        <Download size={18} className="group-hover:scale-110 group-hover:translate-y-0.5 transition-transform duration-300" />
                         {t('certificates_screen.details.download_certificate')}
                       </button>
                     </div>

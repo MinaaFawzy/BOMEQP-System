@@ -100,8 +100,8 @@ const TrainingCenterInstructorsScreen = () => {
   }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle(t('instructors_screen.instructors'));
-    setHeaderSubtitle(t('instructors_screen.manage_your_instructors'));
+    setHeaderTitle(t('instructors_screen.header.title'));
+    setHeaderSubtitle(t('instructors_screen.header.subtitle'));
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}

@@ -78,8 +78,8 @@ const InstructorsScreen = () => {
   }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
 
   useEffect(() => {
-    setHeaderTitle('Instructor Authorization Requests');
-    setHeaderSubtitle('Review and manage instructor authorization requests');
+    setHeaderTitle(t('instructors_screen.header.title'));
+    setHeaderSubtitle(t('instructors_screen.header.subtitle'));
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);

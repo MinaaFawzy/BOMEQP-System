@@ -68,5 +68,7 @@
       "next_page": "下一页",
       "last_page": "最后一页"
     }
-  }
+  },
+  "no_results_found": "未找到结果",
+  "try_adjusting_your_search_or_filters": "尝试调整您的搜索或筛选条件"
 }

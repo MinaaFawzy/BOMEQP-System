@@ -57,7 +57,7 @@ i18n
                 accreditation: arAccreditation,
                 instructor: arInstructor,
             },
-            zhCN: {
+            'zh-CN': { // Chinese Simplified - matches backend language code format
                 common: zhCNCommon,
                 auth: zhCNAuth,
                 navigation: zhCNNavigation,
@@ -65,7 +65,7 @@ i18n
                 accreditation: zhCNAccreditation,
                 instructor: zhCNInstructor,
             },
-            hi: {
+            'hi': {
                 common: hiCommon,
                 auth: hiAuth,
                 navigation: hiNavigation,
@@ -96,10 +96,41 @@ const updateDirection = (language) => {
 // Set initial direction
 updateDirection(savedLanguage);
 
-// Listen for language changes
-i18n.on('languageChanged', (lng) => {
+// Listen for language changes and sync with backend
+i18n.on('languageChanged', async (lng) => {
     localStorage.setItem('language', lng);
     updateDirection(lng);
+
+    // Sync language preference with backend
+    try {
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Only sync if user is logged in
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}/auth/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ language: lng })
+            });
+
+            if (response.ok) {
+                console.log('Language preference synced with backend:', lng);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to sync language with backend:', error);
+        // Don't throw error - language change should still work locally
+    }
 });
+
+// Helper function to set language from backend user data
+export const setLanguageFromUser = (user) => {
+    if (user && user.language && user.language !== i18n.language) {
+        i18n.changeLanguage(user.language);
+    }
+};
 
 export default i18n;

@@ -237,8 +237,8 @@ const Layout = ({ children }) => {
             label: t('acc_drawer.management'),
             items: [
               { path: '/acc/training-centers', icon: Building2, label: t('acc_drawer.training_centers') },
-              { path: '/acc/authorized-instructors', icon: Users, label: 'Authorized Instructors' },
-              { path: '/acc/instructor-requests', icon: Clock, label: 'Instructor Requests' },
+              { path: '/acc/authorized-instructors', icon: Users, label: t('acc_drawer.authorized_instructors') },
+              { path: '/acc/instructor-requests', icon: Clock, label: t('acc_drawer.instructor_requests') },
             ]
           },
           {

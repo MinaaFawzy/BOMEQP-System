@@ -197,8 +197,8 @@
   },
   "instructors_screen": {
     "header": {
-      "title": "प्रशिक्षक",
-      "subtitle": "प्रबंधित करें प्रशिक्षक प्राधिकरण और अनुरोध"
+      "title": "स्वीकृतीकरण अनुरोध",
+      "subtitle": "प्रबंधित करें स्वीकृतीकरण अनुरोध"
     },
     "tabs": {
       "total": "कुल",
@@ -298,6 +298,63 @@
       "yes": "हाँ",
       "no": "नहीं",
       "na": "N/A"
+    }
+  },
+  "authorized_instructors_screen": {
+    "header": {
+      "title": "अधिकृत प्रशिक्षक",
+      "subtitle": "सभी स्वीकृत प्रशिक्षकों को देखें"
+    },
+
+    "search": {
+      "placeholder": "नाम, ईमेल, फ़ोन या प्रशिक्षण केंद्र से खोजें..."
+    },
+
+    "table": {
+      "instructor": "प्रशिक्षक",
+      "email": "ईमेल",
+      "training_center": "प्रशिक्षण केंद्र",
+      "commission": "कमीशन %",
+      "payment_status": "भुगतान स्थिति",
+      "actions": "क्रियाएं",
+      "empty": "कोई अधिकृत प्रशिक्षक नहीं मिला"
+    },
+
+    "actions": {
+      "view_details": "विवरण देखें"
+    },
+
+    "status": {
+      "paid": "भुगतान किया गया",
+      "pending": "लंबित",
+      "na": "लागू नहीं"
+    },
+
+    "details": {
+      "modal_title": "प्रशिक्षक विवरण",
+
+      "instructor_info": "प्रशिक्षक जानकारी",
+      "training_center_info": "प्रशिक्षण केंद्र",
+      "authorization_details": "प्राधिकरण विवरण",
+      "authorized_courses": "अधिकृत पाठ्यक्रम",
+
+      "first_name": "पहला नाम",
+      "last_name": "अंतिम नाम",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+
+      "name": "नाम",
+      "commission_percentage": "कमीशन प्रतिशत",
+      "authorization_price": "प्राधिकरण शुल्क"
+    },
+
+    "cards": {
+      "commission_percentage": "कमीशन प्रतिशत",
+      "authorization_price": "प्राधिकरण शुल्क"
+    },
+
+    "common": {
+      "na": "लागू नहीं"
     }
   },
   "courses_screen": {

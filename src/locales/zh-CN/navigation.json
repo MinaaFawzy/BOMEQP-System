@@ -59,6 +59,8 @@
     "management": "管理",
     "training_centers": "培训中心",
     "instructors": "讲师",
+    "authorized_instructors": "授权讲师",
+    "instructor_requests": "讲师请求",
     "courses_and_content": "课程与内容",
     "courses": "课程",
     "classes": "课程",

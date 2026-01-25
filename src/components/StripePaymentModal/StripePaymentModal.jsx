@@ -28,7 +28,7 @@ const getStripePromise = async () => {
   try {
     stripeConfigLoading = true;
     const publishableKey = await getStripeConfig();
-    
+
     if (!publishableKey) {
       console.warn('Stripe is not configured. Credit card payments will not be available.');
       return null;
@@ -122,7 +122,7 @@ const PaymentForm = ({ clientSecret, amount, currency, onPaymentSuccess, onPayme
       if (cardElement) {
         cardElement.clear();
       }
-      
+
       // Pass paymentIntent to onPaymentSuccess
       if (onPaymentSuccess) {
         onPaymentSuccess(paymentIntent);
@@ -194,22 +194,22 @@ const PaymentForm = ({ clientSecret, amount, currency, onPaymentSuccess, onPayme
   );
 };
 
-const StripePaymentModal = ({ 
-  isOpen, 
-  onClose, 
-  clientSecret, 
+const StripePaymentModal = ({
+  isOpen,
+  onClose,
+  clientSecret,
   paymentIntentId,
-  amount, 
+  amount,
   currency = 'USD',
   paymentSummary = null,
-  onPaymentSuccess, 
-  onPaymentError 
+  onPaymentSuccess,
+  onPaymentError
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stripePromise, setStripePromise] = useState(null);
   const [stripeConfigError, setStripeConfigError] = useState(null);
-  
+
   // Check if user is training center - hide commission details from them
   const isTrainingCenter = user?.role === 'training_center';
 
@@ -325,30 +325,30 @@ const StripePaymentModal = ({
             {paymentSummary.unit_price && (
               <p><strong>Unit Price:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.unit_price).toFixed(2)}</p>
             )}
-            
+
             {/* Payment Breakdown - Hidden from Training Center */}
             {/* Only show breakdown if user is NOT training center AND there's commission/provider info */}
-            {!isTrainingCenter && 
-             (paymentSummary.commission_amount || paymentSummary.provider_amount) && (
-              <div className="mt-3 pt-3 border-t border-green-300">
-                <p className="text-xs font-semibold text-green-900 mb-1">Payment Breakdown:</p>
-                {paymentSummary.provider_amount && (
-                  <p className="text-xs text-green-800">
-                    <strong>Provider Receives:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.provider_amount).toFixed(2)}
-                  </p>
-                )}
-                {paymentSummary.commission_amount && (
-                  <p className="text-xs text-green-800">
-                    <strong>Platform Commission:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.commission_amount).toFixed(2)}
-                  </p>
-                )}
-              </div>
-            )}
+            {!isTrainingCenter &&
+              (paymentSummary.commission_amount || paymentSummary.provider_amount) && (
+                <div className="mt-3 pt-3 border-t border-green-300">
+                  <p className="text-xs font-semibold text-green-900 mb-1">Payment Breakdown:</p>
+                  {paymentSummary.provider_amount && (
+                    <p className="text-xs text-green-800">
+                      <strong>Provider Receives:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.provider_amount).toFixed(2)}
+                    </p>
+                  )}
+                  {paymentSummary.commission_amount && (
+                    <p className="text-xs text-green-800">
+                      <strong>Platform Commission:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.commission_amount).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              )}
           </div>
         </div>
       )}
 
-      <Elements stripe={stripePromise}>
+      <Elements stripe={stripePromise} options={{ locale: 'en' }}>
         <PaymentForm
           clientSecret={clientSecret}
           amount={amount}

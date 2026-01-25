@@ -47,8 +47,8 @@ const AuthorizedInstructorsScreen = () => {
     }, [pagination.current_page, pagination.per_page, debouncedSearch]);
 
     useEffect(() => {
-        setHeaderTitle('Authorized Instructors');
-        setHeaderSubtitle('View all approved instructors');
+        setHeaderTitle(t('authorized_instructors_screen.header.title'));
+        setHeaderSubtitle(t('authorized_instructors_screen.header.subtitle'));
         return () => {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
@@ -109,7 +109,7 @@ const AuthorizedInstructorsScreen = () => {
     // Define columns for DataTable
     const columns = useMemo(() => [
         {
-            header: 'Instructor',
+            header: t('authorized_instructors_screen.table.instructor'),
             accessor: 'first_name',
             sortable: true,
             render: (value, row) => {
@@ -148,46 +148,46 @@ const AuthorizedInstructorsScreen = () => {
                             )}
                         </div>
                         <div>
-                            <div className="text-sm font-semibold text-gray-900">{fullName || 'N/A'}</div>
+                            <div className="text-sm font-semibold text-gray-900">{fullName || t('authorized_instructors_screen.common.na')}</div>
                         </div>
                     </div>
                 );
             }
         },
         {
-            header: 'Email',
+            header: t('authorized_instructors_screen.table.email'),
             accessor: 'email',
             sortable: true,
             render: (value) => (
                 <div className="flex items-center text-sm text-gray-600">
                     <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                    {value || 'N/A'}
+                    {value || t('authorized_instructors_screen.common.na')}
                 </div>
             )
         },
         {
-            header: 'Training Center',
+            header: t('authorized_instructors_screen.table.training_center'),
             accessor: 'training_center',
             sortable: true,
             render: (value) => (
                 <div className="flex items-center text-sm text-gray-600">
                     <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                    {value?.name || value?.legal_name || 'N/A'}
+                    {value?.name || value?.legal_name || t('authorized_instructors_screen.common.na')}
                 </div>
             )
         },
         {
-            header: 'Commission %',
+            header: t('authorized_instructors_screen.table.commission'),
             accessor: 'authorization',
             sortable: true,
             render: (value) => (
                 <span className="text-sm font-medium text-gray-900">
-                    {value?.commission_percentage ? `${value.commission_percentage}%` : 'N/A'}
+                    {value?.commission_percentage ? `${value.commission_percentage}%` : t('authorized_instructors_screen.common.na')}
                 </span>
             )
         },
         {
-            header: 'Payment Status',
+            header: t('authorized_instructors_screen.table.payment_status'),
             accessor: 'authorization',
             sortable: true,
             render: (value) => {
@@ -207,13 +207,13 @@ const AuthorizedInstructorsScreen = () => {
                 return (
                     <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
                         <Icon size={12} className="mr-1" />
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {t(`authorized_instructors_screen.status.${status}`)}
                     </span>
                 );
             }
         },
         {
-            header: 'Actions',
+            header: t('authorized_instructors_screen.table.actions'),
             accessor: 'actions',
             sortable: false,
             render: (value, row) => (
@@ -221,7 +221,7 @@ const AuthorizedInstructorsScreen = () => {
                     <button
                         onClick={() => handleViewDetails(row)}
                         className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                        title="View Details"
+                        title={t('authorized_instructors_screen.actions.view_details')}
                     >
                         <Eye size={16} />
                     </button>
@@ -237,7 +237,7 @@ const AuthorizedInstructorsScreen = () => {
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder="Search by name, email, phone, or training center..."
+                        placeholder={t('authorized_instructors_screen.search.placeholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
@@ -257,7 +257,7 @@ const AuthorizedInstructorsScreen = () => {
                     searchable={false}
                     sortable={true}
                     filterable={false}
-                    emptyMessage="No authorized instructors found"
+                    emptyMessage={t('authorized_instructors_screen.table.empty')}
                     onRowClick={(instructor) => handleViewDetails(instructor)}
                 />
 
@@ -283,7 +283,7 @@ const AuthorizedInstructorsScreen = () => {
                     setDetailModalOpen(false);
                     setSelectedInstructor(null);
                 }}
-                title="Instructor Details"
+                title={t('authorized_instructors_screen.details.modal_title')}
                 size="lg"
             >
                 {selectedInstructor && (
@@ -307,15 +307,15 @@ const AuthorizedInstructorsScreen = () => {
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                 <Users className="mr-2" size={20} />
-                                Instructor Information
+                                {t('authorized_instructors_screen.details.instructor_info')}
                             </h3>
                             <DetailForm
                                 data={selectedInstructor}
                                 fields={[
-                                    { key: 'first_name', label: 'First Name' },
-                                    { key: 'last_name', label: 'Last Name' },
-                                    { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                                    { key: 'phone', label: 'Phone' },
+                                    { key: 'first_name', label: t('authorized_instructors_screen.details.first_name') },
+                                    { key: 'last_name', label: t('authorized_instructors_screen.details.last_name') },
+                                    { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
+                                    { key: 'phone', label: t('authorized_instructors_screen.details.phone') },
                                 ]}
                             />
                         </div>
@@ -325,13 +325,13 @@ const AuthorizedInstructorsScreen = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Building2 className="mr-2" size={20} />
-                                    Training Center
+                                    {t('authorized_instructors_screen.details.training_center_info')}
                                 </h3>
                                 <DetailForm
                                     data={selectedInstructor.training_center}
                                     fields={[
-                                        { key: 'name', label: 'Name', icon: Building2 },
-                                        { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                                        { key: 'name', label: t('authorized_instructors_screen.details.name'), icon: Building2 },
+                                        { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
                                     ]}
                                 />
                             </div>
@@ -342,17 +342,17 @@ const AuthorizedInstructorsScreen = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Award className="mr-2" size={20} />
-                                    Authorization Details
+                                    {t('authorized_instructors_screen.details.authorization_details')}
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                                        <p className="text-sm text-green-600 font-medium mb-1">Commission Percentage</p>
+                                        <p className="text-sm text-green-600 font-medium mb-1">{t('authorized_instructors_screen.cards.commission_percentage')}</p>
                                         <p className="text-2xl font-bold text-gray-900">
                                             {selectedInstructor.authorization.commission_percentage}%
                                         </p>
                                     </div>
                                     <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                                        <p className="text-sm text-blue-600 font-medium mb-1">Authorization Price</p>
+                                        <p className="text-sm text-blue-600 font-medium mb-1">{t('authorized_instructors_screen.cards.authorization_price')}</p>
                                         <p className="text-2xl font-bold text-gray-900">
                                             ${parseFloat(selectedInstructor.authorization.authorization_price || 0).toFixed(2)}
                                         </p>
@@ -366,7 +366,7 @@ const AuthorizedInstructorsScreen = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <BookOpen className="mr-2" size={20} />
-                                    Authorized Courses ({selectedInstructor.authorized_courses.length})
+                                    {t('authorized_instructors_screen.details.authorized_courses')} ({selectedInstructor.authorized_courses.length})
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {selectedInstructor.authorized_courses.map((course, index) => (

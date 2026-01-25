@@ -987,51 +987,50 @@ const ClassesScreen = () => {
       </div>
 
       {/* DataTable */}
-      <div className="datatable-container">
-        <DataTable
-          columns={columns}
-          data={dataWithSearchText}
-          onEdit={handleOpenModal}
-          onDelete={handleDelete}
-          onView={handleViewDetails}
-          onRowClick={handleViewDetails}
-          isLoading={loading}
-          emptyMessage={
-            classes.length === 0 && !loading ? (
-              <div className="empty-state-container">
-                <div className="empty-state-icon-container">
-                  <GraduationCap className="empty-state-icon" size={32} />
-                </div>
-                <p className="empty-state-title">{t('classes_screen.table.no_classes')}</p>
-                <p className="empty-state-subtitle">{t('classes_screen.table.no_classes_subtitle')}</p>
+      <DataTable
+        columns={columns}
+        data={dataWithSearchText}
+        onEdit={handleOpenModal}
+        onDelete={handleDelete}
+        onView={handleViewDetails}
+        onRowClick={handleViewDetails}
+        isLoading={loading}
+        emptyMessage={
+          classes.length === 0 && !loading ? (
+            <div className="empty-state-container">
+              <div className="empty-state-icon-container">
+                <GraduationCap className="empty-state-icon" size={32} />
               </div>
-            ) : t('classes_screen.table.no_classes_filtered')
-          }
-          searchable={true}
-          filterable={false} // We sort by status using TabCards
-          searchPlaceholder={t('classes_screen.table.search_placeholder')}
-          searchValue={searchTerm}
-          onSearch={(value) => {
-            setSearchTerm(value);
-            setPage(1);
-          }}
-          sortable={true}
-          defaultFilter={statusFilter}
-        />
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          perPage={perPage}
-          onPageChange={(p) => {
-            setPage(p);
-          }}
-          onPerPageChange={(newPerPage) => {
-            setPerPage(newPerPage);
-            setPage(1);
-          }}
-        />
-      </div>
+              <p className="empty-state-title">{t('classes_screen.table.no_classes')}</p>
+              <p className="empty-state-subtitle">{t('classes_screen.table.no_classes_subtitle')}</p>
+            </div>
+          ) : t('classes_screen.table.no_classes_filtered')
+        }
+        searchable={true}
+        filterable={false} // We sort by status using TabCards
+        searchPlaceholder={t('classes_screen.table.search_placeholder')}
+        searchValue={searchTerm}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          setPage(1);
+        }}
+        sortable={true}
+        defaultFilter={statusFilter}
+      />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        perPage={perPage}
+        onPageChange={(p) => {
+          setPage(p);
+        }}
+        onPerPageChange={(newPerPage) => {
+          setPerPage(newPerPage);
+          setPage(1);
+        }}
+      />
+
 
       {/* Add/Edit Modal */}
       <Modal

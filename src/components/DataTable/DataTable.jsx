@@ -383,7 +383,7 @@ const DataTable = ({
               ) : filteredData.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
-                    {searchTerm || selectedFilter !== 'all' ? 'No results found. Try adjusting your search or filters.' : emptyMessage}
+                    {searchTerm || selectedFilter !== 'all' ? t('try_adjusting_your_search_or_filters') : t('no_results_found')}
                   </td>
                 </tr>
               ) : (

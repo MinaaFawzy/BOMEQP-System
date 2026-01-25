@@ -623,73 +623,72 @@ const InstructorAuthorizationsScreen = () => {
   return (
     <div>
       {/* DataTable */}
-      <div className="datatable-container">
-        <DataTable
-          columns={columns}
-          data={dataWithSearchText}
-          onRowClick={handleViewDetails}
-          isLoading={loading}
-          emptyMessage={t('instructor_authorizations.table.empty')}
-          searchable={true}
-          searchValue={searchTerm}
-          onSearch={(value) => {
-            setSearchTerm(value);
-            setPage(1);
-          }}
-          searchPlaceholder={t('instructor_authorizations.table.search_placeholder')}
-          // Remove default filterOptions and use customFilters for server-side filtering
-          filterable={false}
-          customFilters={
-            <div className="flex gap-2">
-              <select
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
-                value={statusFilter}
-                onChange={(e) => {
-                  hasDataRef.current = false;
-                  setStatusFilter(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="all">{t('instructor_authorizations.filters.all_status')}</option>
-                <option value="pending">{t('instructor_authorizations.filters.pending')}</option>
-                <option value="approved">{t('instructor_authorizations.filters.approved')}</option>
-                <option value="rejected">{t('instructor_authorizations.filters.rejected')}</option>
-                <option value="returned">{t('instructor_authorizations.filters.returned')}</option>
-              </select>
-              <select
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
-                value={paymentStatusFilter}
-                onChange={(e) => {
-                  hasDataRef.current = false;
-                  setPaymentStatusFilter(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="all">{t('instructor_authorizations.filters.all_payment_status')}</option>
-                <option value="pending">{t('instructor_authorizations.filters.unpaid')}</option>
-                <option value="paid">{t('instructor_authorizations.filters.paid')}</option>
-                <option value="failed">{t('instructor_authorizations.filters.failed')}</option>
-              </select>
-            </div>
-          }
-          sortable={true}
-        />
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          perPage={perPage}
-          onPageChange={(p) => {
-            hasDataRef.current = false;
-            setPage(p);
-          }}
-          onPerPageChange={(newPerPage) => {
-            hasDataRef.current = false;
-            setPerPage(newPerPage);
-            setPage(1);
-          }}
-        />
-      </div>
+      <DataTable
+        columns={columns}
+        data={dataWithSearchText}
+        onRowClick={handleViewDetails}
+        isLoading={loading}
+        emptyMessage={t('instructor_authorizations.table.empty')}
+        searchable={true}
+        searchValue={searchTerm}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          setPage(1);
+        }}
+        searchPlaceholder={t('instructor_authorizations.table.search_placeholder')}
+        // Remove default filterOptions and use customFilters for server-side filtering
+        filterable={false}
+        customFilters={
+          <div className="flex gap-2">
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
+              value={statusFilter}
+              onChange={(e) => {
+                hasDataRef.current = false;
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">{t('instructor_authorizations.filters.all_status')}</option>
+              <option value="pending">{t('instructor_authorizations.filters.pending')}</option>
+              <option value="approved">{t('instructor_authorizations.filters.approved')}</option>
+              <option value="rejected">{t('instructor_authorizations.filters.rejected')}</option>
+              <option value="returned">{t('instructor_authorizations.filters.returned')}</option>
+            </select>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white filter-select-fix"
+              value={paymentStatusFilter}
+              onChange={(e) => {
+                hasDataRef.current = false;
+                setPaymentStatusFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">{t('instructor_authorizations.filters.all_payment_status')}</option>
+              <option value="pending">{t('instructor_authorizations.filters.unpaid')}</option>
+              <option value="paid">{t('instructor_authorizations.filters.paid')}</option>
+              <option value="failed">{t('instructor_authorizations.filters.failed')}</option>
+            </select>
+          </div>
+        }
+        sortable={true}
+      />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        perPage={perPage}
+        onPageChange={(p) => {
+          hasDataRef.current = false;
+          setPage(p);
+        }}
+        onPerPageChange={(newPerPage) => {
+          hasDataRef.current = false;
+          setPerPage(newPerPage);
+          setPage(1);
+        }}
+      />
+
 
       {/* Payment Modal */}
       <Modal

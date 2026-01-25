@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { setAuthToken, getAuthToken } from '../config/api';
+import { setLanguageFromUser } from '../i18n';
 
 const AuthContext = createContext(null);
 
@@ -49,6 +50,8 @@ export const AuthProvider = ({ children }) => {
             // This allows them to see pending-account page, but they must log in again when they return
             setUser(response.user);
             setIsAuthenticated(true);
+            // Sync language from backend
+            setLanguageFromUser(response.user);
           } else {
             // Token invalid, clear it
             setAuthToken(null);
@@ -91,13 +94,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password });
-      
+
       if (response.token) {
         // For pending ACC admins, use sessionStorage instead of localStorage
         // This way the session is cleared when browser closes
-        const isPendingACC = response.user?.role === 'acc_admin' && 
-                            (response.user?.status === 'pending' || response.user?.status === 'inactive');
-        
+        const isPendingACC = response.user?.role === 'acc_admin' &&
+          (response.user?.status === 'pending' || response.user?.status === 'inactive');
+
         if (isPendingACC) {
           // Store token in sessionStorage (cleared when browser closes)
           sessionStorage.setItem('auth_token', response.token);
@@ -106,25 +109,27 @@ export const AuthProvider = ({ children }) => {
           // Store token in localStorage for active users
           setAuthToken(response.token);
         }
-        
+
         setUser(response.user);
         setIsAuthenticated(true);
-        
-        return { 
-          success: true, 
+        // Sync language from backend
+        setLanguageFromUser(response.user);
+
+        return {
+          success: true,
           data: response,
           isActive: response.user?.status === 'active',
-          userStatus: response.user?.status 
+          userStatus: response.user?.status
         };
       }
-      
+
       return { success: false, error: 'Login failed. Please try again.' };
     } catch (error) {
       console.error('Login error:', error);
-      
+
       // Extract error message from response
       let errorMessage = 'Login failed. Please try again.';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
@@ -137,7 +142,7 @@ export const AuthProvider = ({ children }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       return { success: false, error: errorMessage };
     }
   };
@@ -151,27 +156,29 @@ export const AuthProvider = ({ children }) => {
         password_confirmation: confirmPassword,
         role
       });
-      
+
       if (response.token) {
         setAuthToken(response.token);
         setUser(response.user);
         setIsAuthenticated(true);
-        
-        return { 
-          success: true, 
+        // Sync language from backend
+        setLanguageFromUser(response.user);
+
+        return {
+          success: true,
           data: response,
           isActive: response.user?.status === 'active',
           userStatus: response.user?.status
         };
       }
-      
+
       return { success: false, error: 'Registration failed. Please try again.' };
     } catch (error) {
       console.error('Register error:', error);
-      
+
       // Extract error message from response
       let errorMessage = 'Registration failed. Please try again.';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
@@ -184,7 +191,7 @@ export const AuthProvider = ({ children }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       return { success: false, error: errorMessage };
     }
   };
@@ -192,8 +199,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       // If user is pending ACC admin, clear sessionStorage and localStorage
-      if (user?.role === 'acc_admin' && 
-          (user?.status === 'pending' || user?.status === 'inactive')) {
+      if (user?.role === 'acc_admin' &&
+        (user?.status === 'pending' || user?.status === 'inactive')) {
         // Clear sessionStorage (where pending ACC token is stored)
         sessionStorage.clear();
         // Clear localStorage token if exists
@@ -204,7 +211,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         return;
       }
-      
+
       // For other users, call logout API
       await authAPI.logout();
     } catch (error) {
@@ -230,11 +237,11 @@ export const AuthProvider = ({ children }) => {
       return { success: true, data: response };
     } catch (error) {
       let errorMessage = 'Failed to send reset email. Please try again.';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
+
       return { success: false, error: errorMessage };
     }
   };
@@ -250,7 +257,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, data: response };
     } catch (error) {
       let errorMessage = 'Failed to reset password. Please try again.';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
@@ -261,7 +268,7 @@ export const AuthProvider = ({ children }) => {
         const firstError = Object.values(errors)[0];
         errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
       }
-      
+
       return { success: false, error: errorMessage };
     }
   };
@@ -272,6 +279,8 @@ export const AuthProvider = ({ children }) => {
       if (response.user) {
         setUser(response.user);
         setIsAuthenticated(true);
+        // Sync language from backend
+        setLanguageFromUser(response.user);
       }
     } catch (error) {
       console.error('Failed to refresh user:', error);

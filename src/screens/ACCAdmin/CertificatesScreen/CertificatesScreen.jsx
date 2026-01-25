@@ -322,8 +322,9 @@ const CertificatesScreen = () => {
                       href={value}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700 underline"
+                      className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
                     >
+                      <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
                       {t('certificates_screen.details.download_pdf')}
                     </a>
                   ) : t('certificates_screen.common.na')
