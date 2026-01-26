@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { CreditCard, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
+import { CreditCard, Calendar, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
@@ -10,7 +10,7 @@ import './SubscriptionScreen.css';
 
 const SubscriptionScreen = () => {
   const { t } = useTranslation('accreditation');
-  const { setHeaderTitle, setHeaderSubtitle } = useHeader();
+  const { setHeaderTitle, setHeaderSubtitle, setHeaderActions } = useHeader();
   const [subscription, setSubscription] = useState(null);
   const [subscriptionPrice, setSubscriptionPrice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -565,6 +565,26 @@ const SubscriptionScreen = () => {
     await handleRenewClick();
   };
 
+  useEffect(() => {
+    if (subscription) {
+      setHeaderActions(
+        <button
+          onClick={handleRenew}
+          className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 flex items-center gap-2 transition-colors shadow-lg hover:shadow-xl"
+        >
+          <RefreshCw size={20} />
+          {t('subscription_screen.current_subscription.actions.manage_renewal')}
+        </button>
+      );
+    } else {
+      setHeaderActions(null);
+    }
+
+    return () => {
+      setHeaderActions(null);
+    };
+  }, [subscription, subscriptionPrice, handleRenew, setHeaderActions, t]);
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
   }
@@ -664,12 +684,7 @@ const SubscriptionScreen = () => {
                 {t('subscription_screen.current_subscription.actions.pay_subscription')}
               </button>
             )}
-            <button
-              onClick={handleRenew}
-              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
-            >
-              {t('subscription_screen.current_subscription.actions.manage_renewal')}
-            </button>
+
           </div>
         </div>
       )}
