@@ -326,12 +326,12 @@
       "allStatus": "所有状态"
     },
     "form": {
-      "firstName": "名",
-      "lastName": "姓",
-      "email": "电子邮件",
-      "phone": "电话",
-      "nationality": "国籍",
-      "idNumber": "身份证号",
+      "firstName": "名:",
+      "lastName": "姓:",
+      "email": "电子邮件地址:",
+      "phone": "电话号码:",
+      "nationality": "国籍:",
+      "idNumber": "护照/身份证号码:",
       "status": "状态"
     },
     "status": {
@@ -372,13 +372,13 @@
       "idNumber": "输入身份证号（至少 8 个字符）"
     },
     "upload": {
-      "idImage": "证件图片",
-      "cardImage": "卡片图片",
+      "idImage": "护照/身份证复印件:",
+      "cardImage": "照片:",
       "resizing": "正在调整图片大小...",
       "change": "更换",
       "remove": "移除",
-      "uploadIdTitle": "上传证件图片",
-      "uploadCardTitle": "上传卡片图片",
+      "uploadIdTitle": "上传护照/身份证复印件",
+      "uploadCardTitle": "上传照片",
       "hint": "点击浏览或拖拽上传",
       "formatsHint": "JPEG、JPG、PNG、PDF（最大 10MB - 图片将自动调整大小）"
     },
@@ -390,7 +390,17 @@
     },
     "details": {
       "title": "学员详情",
-      "enrolledClassesWithCount": "已报名课程（{{count}}）"
+      "enrolledClassesWithCount": "已报名课程（{{count}}）",
+      "detailFields": {
+        "firstName": "名:",
+        "lastName": "姓:",
+        "email": "电子邮件地址:",
+        "nationality": "国籍:",
+        "phoneNo": "电话号码:",
+        "passportIdNumber": "护照/身份证号码:",
+        "uploadPassportId": "护照/身份证复印件:",
+        "picUpload": "照片:"
+      }
     },
     "deleteDialog": {
       "title": "删除学员",

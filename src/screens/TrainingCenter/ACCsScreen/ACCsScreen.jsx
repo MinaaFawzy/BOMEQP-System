@@ -24,7 +24,7 @@ const ACCsScreen = () => {
   const [allAuthorizations, setAllAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
-  const { t } = useTranslation('training_center');
+  const { t } = useTranslation(['training_center', 'accreditation']);
 
   // Total counts for cards (from API)
   const [totalAccsCount, setTotalAccsCount] = useState(0);
@@ -572,7 +572,72 @@ const ACCsScreen = () => {
   };
 
   const handleViewAuthorizationDetails = (auth) => {
-    setSelectedAuthorization(auth);
+    // Prepare ACC data in the same format as handleViewDetails
+    const acc = auth.acc || {};
+    const accData = {
+      ...acc,
+
+      // Company Information
+      name: acc.legal_name || acc.name,
+      email: acc.email,
+      phone: acc.phone,
+      fax: acc.fax,
+      website: acc.website,
+
+      // Physical Address - Merged with fallbacks
+      physical_address_full: [
+        acc.physical_address?.street || acc.physical_street || acc.address,
+        acc.physical_address?.city || acc.physical_city,
+        acc.physical_address?.country || acc.physical_country || acc.country,
+        acc.physical_address?.postal_code || acc.physical_postal_code
+      ].filter(Boolean).join(', '),
+
+      // Mailing Address - Merged with fallbacks
+      mailing_address_full: (acc.mailing_same_as_physical || acc.mailing_address?.same_as_physical)
+        ? 'Same as Physical Address'
+        : [
+          acc.mailing_address?.street || acc.mailing_street,
+          acc.mailing_address?.city || acc.mailing_city,
+          acc.mailing_address?.country || acc.mailing_country,
+          acc.mailing_address?.postal_code || acc.mailing_postal_code
+        ].filter(Boolean).join(', '),
+
+      // Primary Contact - Merged with fallbacks
+      primary_contact_full_name: [
+        acc.primary_contact?.title || acc.primary_contact_title,
+        acc.primary_contact?.first_name || acc.primary_contact_first_name,
+        acc.primary_contact?.last_name || acc.primary_contact_last_name
+      ].filter(Boolean).join(' '),
+      primary_contact_email: acc.primary_contact?.email || acc.primary_contact_email,
+      primary_contact_mobile: acc.primary_contact?.mobile || acc.primary_contact_mobile,
+      primary_contact_country: acc.primary_contact?.country || acc.primary_contact_country,
+      primary_contact_passport_url: acc.primary_contact?.passport_url || acc.primary_contact_passport_url,
+
+      // Secondary Contact - Merged with fallbacks
+      secondary_contact_full_name: [
+        acc.secondary_contact?.title || acc.secondary_contact_title,
+        acc.secondary_contact?.first_name || acc.secondary_contact_first_name,
+        acc.secondary_contact?.last_name || acc.secondary_contact_last_name
+      ].filter(Boolean).join(' '),
+      secondary_contact_email: acc.secondary_contact?.email || acc.secondary_contact_email,
+      secondary_contact_mobile: acc.secondary_contact?.mobile || acc.secondary_contact_mobile,
+      secondary_contact_country: acc.secondary_contact?.country || acc.secondary_contact_country,
+      secondary_contact_passport_url: acc.secondary_contact?.passport_url || acc.secondary_contact_passport_url,
+
+      // Additional Info
+      company_gov_registry_number: acc.company_gov_registry_number,
+      company_registration_certificate_url: acc.company_registration_certificate_url,
+      how_did_you_hear_about_us: acc.how_did_you_hear_about_us,
+
+      // Agreements
+      agreements_summary: [
+        acc.agreed_to_receive_communications ? 'Receives Comms' : null,
+        acc.agreed_to_terms_and_conditions ? 'Terms Accepted' : null
+      ].filter(Boolean).join(', ')
+    };
+
+    // Set both the authorization and the prepared ACC data
+    setSelectedAuthorization({ ...auth, acc: accData });
     setAuthDetailModalOpen(true);
   };
 
@@ -765,27 +830,42 @@ const ACCsScreen = () => {
           setAuthDetailModalOpen(false);
           setSelectedAuthorization(null);
         }}
-        title={t("training_center.authorization_request_details")}
+        title={t("training_center:authorization_request_details")}
         size="lg"
       >
         {selectedAuthorization && (
           <div className="accs-detail-section">
-            {/* ACC Information */}
+            {/* ACC Information - Complete Details */}
             <DetailForm
               data={selectedAuthorization.acc || {}}
               fields={[
-                { key: 'name', label: t('training_center.acc_name'), icon: Building2 },
-                { key: 'email', label: t('training_center.email'), type: 'email', icon: Mail },
-                { key: 'country', label: t('training_center.country'), icon: MapPin, showEmpty: false },
+                { key: 'id', label: t('training_center:id'), showEmpty: false },
+                { key: 'name', label: t('training_center:name'), icon: Building2 },
+                { key: 'email', label: t('training_center:email'), type: 'email', icon: Mail },
+                { key: 'phone', label: t('training_center:phone'), icon: Phone, showEmpty: false },
+                { key: 'fax', label: 'Fax', showEmpty: false },
+                { key: 'website', label: t('training_center:accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
+                { key: 'physical_address_full', label: t('training_center:physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                { key: 'mailing_address_full', label: t('training_center:mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                { key: 'primary_contact_full_name', label: t('training_center:primary_contact'), showEmpty: false },
+                { key: 'primary_contact_email', label: t('training_center:primary_contact_email'), type: 'email', showEmpty: false },
+                { key: 'primary_contact_mobile', label: t('training_center:primary_contact_mobile'), showEmpty: false },
+                { key: 'primary_contact_country', label: t('training_center:primary_contact_country'), showEmpty: false },
+                { key: 'company_gov_registry_number', label: t('training_center:gov_registry_number'), showEmpty: false },
+                { key: 'status', label: t('training_center:status'), type: 'status' },
+                { key: 'description', label: t('training_center:accreditations.description'), fullWidth: true, showEmpty: false },
+                { key: 'created_at', label: t('training_center:created_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                { key: 'updated_at', label: t('training_center:updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
               ]}
             />
 
+            {/* Authorization Status Information */}
             <DetailForm
               data={selectedAuthorization}
               fields={[
-                { key: 'status', label: t('training_center.status'), type: 'status' },
-                { key: 'request_date', label: t('training_center.request_date'), type: 'datetime', icon: Clock },
-                { key: 'reviewed_at', label: t('training_center.reviewed_at'), type: 'datetime', icon: CheckCircle, showEmpty: false },
+                { key: 'status', label: t('training_center:status'), type: 'status' },
+                { key: 'request_date', label: t('training_center:request_date'), type: 'datetime', icon: Clock },
+                { key: 'reviewed_at', label: t('training_center:reviewed_at'), type: 'datetime', icon: CheckCircle, showEmpty: false },
               ]}
             />
 

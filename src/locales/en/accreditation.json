@@ -296,11 +296,11 @@
     },
 
     "fields": {
-      "first_name": "First Name",
-      "last_name": "Last Name",
-      "email": "Email",
-      "phone": "Phone",
-      "date_of_birth": "Date of Birth",
+      "first_name": "First name:",
+      "last_name": "Last name:",
+      "email": "E-mail address:",
+      "phone": "Phone No:",
+      "date_of_birth": "D.O.B:",
       "nationality": "Nationality",
       "specialization": "Specialization",
       "training_center": "Training Center"
@@ -390,10 +390,14 @@
       "authorization_details": "Authorization Details",
       "authorized_courses": "Authorized Courses",
 
-      "first_name": "First Name",
-      "last_name": "Last Name",
-      "email": "Email",
-      "phone": "Phone",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "E-mail address",
+      "phone": "Phone No",
+      "languages": "Languages",
+      "is_assessor": "Instructor/Assessor",
+      "cv": "Upload C.V / Supporting Certificates",
+      "passport": "Passport copy",
 
       "name": "Name",
       "commission_percentage": "Commission Percentage",

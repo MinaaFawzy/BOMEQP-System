@@ -327,12 +327,12 @@
       "allStatus": "सभी स्थितियाँ"
     },
     "form": {
-      "firstName": "पहला नाम",
-      "lastName": "अंतिम नाम",
-      "email": "ईमेल",
-      "phone": "फ़ोन",
-      "nationality": "राष्ट्रीयता",
-      "idNumber": "आईडी नंबर",
+      "firstName": "पहला नाम:",
+      "lastName": "अंतिम नाम:",
+      "email": "ई-मेल पता:",
+      "phone": "फ़ोन नंबर:",
+      "nationality": "राष्ट्रीयता:",
+      "idNumber": "पासपोर्ट/राष्ट्रीय पहचान पत्र संख्या:",
       "status": "स्थिति"
     },
     "status": {
@@ -373,13 +373,13 @@
       "idNumber": "आईडी नंबर दर्ज करें (न्यूनतम 8 अक्षर)"
     },
     "upload": {
-      "idImage": "आईडी इमेज",
-      "cardImage": "कार्ड इमेज",
+      "idImage": "पासपोर्ट/राष्ट्रीय पहचान पत्र की प्रति:",
+      "cardImage": "फ़ोटो:",
       "resizing": "इमेज का आकार बदला जा रहा है...",
       "change": "बदलें",
       "remove": "हटाएँ",
-      "uploadIdTitle": "आईडी इमेज अपलोड करें",
-      "uploadCardTitle": "कार्ड इमेज अपलोड करें",
+      "uploadIdTitle": "पासपोर्ट/राष्ट्रीय पहचान पत्र की प्रति अपलोड करें",
+      "uploadCardTitle": "फ़ोटो अपलोड करें",
       "hint": "ब्राउज़ करने के लिए क्लिक करें या ड्रैग-एंड-ड्रॉप करें",
       "formatsHint": "JPEG, JPG, PNG, PDF (अधिकतम 10MB - इमेज स्वतः री-साइज़ होंगी)"
     },
@@ -391,7 +391,17 @@
     },
     "details": {
       "title": "प्रशिक्षार्थी विवरण",
-      "enrolledClassesWithCount": "नामांकित कक्षाएँ ({{count}})"
+      "enrolledClassesWithCount": "नामांकित कक्षाएँ ({{count}})",
+      "detailFields": {
+        "firstName": "पहला नाम:",
+        "lastName": "अंतिम नाम:",
+        "email": "ई-मेल पता:",
+        "nationality": "राष्ट्रीयता:",
+        "phoneNo": "फ़ोन नंबर:",
+        "passportIdNumber": "पासपोर्ट/राष्ट्रीय पहचान पत्र संख्या:",
+        "uploadPassportId": "पासपोर्ट/राष्ट्रीय पहचान पत्र की प्रति:",
+        "picUpload": "फ़ोटो:"
+      }
     },
     "deleteDialog": {
       "title": "प्रशिक्षार्थी हटाएँ",

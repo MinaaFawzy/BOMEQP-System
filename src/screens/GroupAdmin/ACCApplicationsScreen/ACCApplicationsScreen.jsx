@@ -22,6 +22,7 @@ const ACCApplicationsScreen = () => {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [commissionPercentage, setCommissionPercentage] = useState('10');
+  const [subscriptionPrice, setSubscriptionPrice] = useState('1000.00');
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Pagination State
@@ -161,25 +162,34 @@ const ACCApplicationsScreen = () => {
   const handleApprove = (app) => {
     setSelectedApp(app);
     setCommissionPercentage('10'); // Default 10%
+    setSubscriptionPrice('1000.00'); // Default 1000.00
     setApproveDialogOpen(true);
   };
 
   const confirmApprove = async () => {
     const commission = parseFloat(commissionPercentage);
+    const subscription = parseFloat(subscriptionPrice);
 
     if (isNaN(commission) || commission < 0 || commission > 100) {
       alert('Please enter a valid commission percentage between 0 and 100');
       return;
     }
 
+    if (isNaN(subscription) || subscription < 0) {
+      alert('Please enter a valid subscription price (>= 0)');
+      return;
+    }
+
     try {
       await adminAPI.approveACCApplication(selectedApp.id, {
-        commission_percentage: commission
+        commission_percentage: commission,
+        subscription_price: subscription
       });
       await loadApplications();
       setApproveDialogOpen(false);
       setSelectedApp(null);
       setCommissionPercentage('10');
+      setSubscriptionPrice('1000.00');
     } catch (error) {
       alert('Failed to approve application: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
     }
@@ -490,14 +500,16 @@ const ACCApplicationsScreen = () => {
           setApproveDialogOpen(false);
           setSelectedApp(null);
           setCommissionPercentage('10');
+          setSubscriptionPrice('1000.00');
         }}
         title="Approve ACC Application"
         size="md"
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Please set the commission percentage for this ACC:
+            Please configure the financial settings for this ACC:
           </p>
+
           <FormInput
             label="Commission Percentage (%)"
             name="commission_percentage"
@@ -510,9 +522,23 @@ const ACCApplicationsScreen = () => {
             required
             placeholder="Enter commission percentage (0-100)"
           />
+
+          <FormInput
+            label="Subscription Price (USD)"
+            name="subscription_price"
+            type="number"
+            value={subscriptionPrice}
+            onChange={(e) => setSubscriptionPrice(e.target.value)}
+            min="0"
+            step="0.01"
+            required
+            placeholder="Enter annual subscription price"
+          />
+
           <p className="text-sm text-gray-500">
-            This percentage will be applied to all transactions involving this ACC.
+            The commission percentage will be applied to transactions, and the subscription price will be charged annually.
           </p>
+
           <div className="flex space-x-3 pt-4">
             <Button
               variant="outline"
@@ -521,6 +547,7 @@ const ACCApplicationsScreen = () => {
                 setApproveDialogOpen(false);
                 setSelectedApp(null);
                 setCommissionPercentage('10');
+                setSubscriptionPrice('1000.00');
               }}
             >
               Cancel

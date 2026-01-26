@@ -299,7 +299,11 @@
       "file_type": "يسمح بملفات PDF فقط",
       "file_size": "يجب ألا يتجاوز حجم الملف 10 ميجابايت",
       "password_required": "كلمة المرور الحالية مطلوبة",
-      "password_failed": "فشل تغيير كلمة المرور"
+      "password_failed": "فشل تغيير كلمة المرور",
+      "this_field_is_managed_by_your_training_center": "هذا الحقل يُدار بواسطة مركز التدريب الخاص بك",
+      "your_account_status_is_managed_by_your_training_center": "حالة حسابك تُدار بواسطة مركز التدريب الخاص بك",
+      "you_are_registered_under_this_training_center": "أنت مسجل تحت هذا المركز التدريبي",
+      "click_to_view": "اضغط على الرابط أعلاه لعرض سيرتك الذاتية الحالية في علامة تبويب جديدة"
     },
 
     "common": {

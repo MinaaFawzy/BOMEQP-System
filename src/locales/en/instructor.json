@@ -299,7 +299,11 @@
       "file_type": "Only PDF files are allowed",
       "file_size": "File size must be less than 10MB",
       "password_required": "Current password is required",
-      "password_failed": "Failed to change password"
+      "password_failed": "Failed to change password",
+      "this_field_is_managed_by_your_training_center": "This field is managed by your Training Center",
+      "your_account_status_is_managed_by_your_training_center": "Your account status is managed by your Training Center",
+      "you_are_registered_under_this_training_center": "You are registered under this Training Center",
+      "click_to_view": "Click the link above to view your current CV in a new tab"
     },
 
     "common": {

@@ -50,7 +50,6 @@ const ClassesScreen = () => {
     category_id: '',
     sub_category_id: '',
     course_id: '',
-    course_id: '',
     name: '',
     instructor_id: '',
     start_date: '',
@@ -445,7 +444,6 @@ const ClassesScreen = () => {
         category_id: classItem.category_id || classItem.course?.category_id || '',
         sub_category_id: classItem.sub_category_id || classItem.course?.sub_category_id || '',
         course_id: classItem.course_id || '',
-        course_id: classItem.course_id || '',
         name: classItem.name || '',
         instructor_id: classItem.instructor_id || '',
         start_date: classItem.start_date ? classItem.start_date.split('T')[0] : '',
@@ -466,7 +464,6 @@ const ClassesScreen = () => {
         acc_id: '',
         category_id: '',
         sub_category_id: '',
-        course_id: '',
         course_id: '',
         name: '',
         instructor_id: '',
@@ -495,7 +492,6 @@ const ClassesScreen = () => {
       acc_id: '',
       category_id: '',
       sub_category_id: '',
-      course_id: '',
       course_id: '',
       name: '',
       instructor_id: '',
@@ -1248,8 +1244,7 @@ const ClassesScreen = () => {
             error={errors.location}
             options={[
               { value: 'physical', label: t('classes_screen.form.physical') },
-              { value: 'online', label: t('classes_screen.form.online') },
-              { value: 'hybrid', label: t('classes_screen.form.hybrid') }
+              { value: 'online', label: t('classes_screen.form.online') }
             ]}
           />
 
@@ -1361,7 +1356,6 @@ const ClassesScreen = () => {
 
           {Object.keys(errors).filter(key => key !== 'general').length > 0 && (
             <div className="form-error-general">
-              <p className="form-error-general-text">{t('authorization_form.at_least_one_document_required')}</p>
               <ul className="form-error-list">
                 {Object.entries(errors)
                   .filter(([key]) => key !== 'general')

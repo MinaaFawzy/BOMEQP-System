@@ -351,12 +351,12 @@
       "allStatus": "كل الحالات"
     },
     "form": {
-      "firstName": "الاسم الأول",
-      "lastName": "اسم العائلة",
-      "email": "البريد الإلكتروني",
-      "phone": "الهاتف",
-      "nationality": "الجنسية",
-      "idNumber": "رقم الهوية",
+      "firstName": "الاسم الأول:",
+      "lastName": "اسم العائلة:",
+      "email": "عنوان البريد الإلكتروني:",
+      "phone": "رقم الهاتف:",
+      "nationality": "الجنسية:",
+      "idNumber": "رقم جواز السفر/الهوية الوطنية:",
       "status": "الحالة"
     },
     "status": {
@@ -397,13 +397,13 @@
       "idNumber": "أدخل رقم الهوية (8 أحرف على الأقل)"
     },
     "upload": {
-      "idImage": "صورة الهوية",
-      "cardImage": "صورة البطاقة",
+      "idImage": "نسخة جواز السفر/الهوية الوطنية:",
+      "cardImage": "الصورة:",
       "resizing": "جاري تصغير الصورة...",
       "change": "تغيير",
       "remove": "إزالة",
-      "uploadIdTitle": "رفع صورة الهوية",
-      "uploadCardTitle": "رفع صورة البطاقة",
+      "uploadIdTitle": "رفع نسخة جواز السفر/الهوية الوطنية",
+      "uploadCardTitle": "رفع الصورة",
       "hint": "اضغط للاختيار أو اسحب وأفلت",
       "formatsHint": "JPEG, JPG, PNG, PDF (الحد الأقصى 10MB - سيتم تصغير الصور تلقائيًا)"
     },
@@ -415,7 +415,17 @@
     },
     "details": {
       "title": "تفاصيل المتدرب",
-      "enrolledClassesWithCount": "الدورات المسجّل بها ({{count}})"
+      "enrolledClassesWithCount": "الدورات المسجّل بها ({{count}})",
+      "detailFields": {
+        "firstName": "الاسم الأول:",
+        "lastName": "اسم العائلة:",
+        "email": "عنوان البريد الإلكتروني:",
+        "nationality": "الجنسية:",
+        "phoneNo": "رقم الهاتف:",
+        "passportIdNumber": "رقم جواز السفر/الهوية الوطنية:",
+        "uploadPassportId": "نسخة جواز السفر/الهوية الوطنية:",
+        "picUpload": "الصورة:"
+      }
     },
     "deleteDialog": {
       "title": "حذف متدرب",

@@ -327,11 +327,17 @@ const PaymentTransactionsScreen = () => {
     return (
       <div className="reference-details-grid">
         {filteredEntries.map(([key, value]) => {
-          // Format the key (convert snake_case to Title Case)
-          const formattedKey = key
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
+          // Try to translate the key, fallback to Title Case
+          const translationKey = `payment_transactions_screen.reference_fields.${key}`;
+          let formattedKey = t(translationKey);
+
+          // If translation is missing (returns key), fallback to manual formatting
+          if (formattedKey === translationKey) {
+            formattedKey = key
+              .split('_')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+          }
 
           // Handle different value types
           let displayValue = value;

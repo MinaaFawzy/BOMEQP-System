@@ -412,12 +412,21 @@ const TraineesScreen = () => {
       if (idFormatError) validationErrors.id_number = idFormatError;
     }
 
-    // File validations - required for create, optional for update
+    // File validations - required for create, optional for update if file already exists
     if (!selectedTrainee) {
+      // Create mode - files are required
       if (!formData.id_image) {
         validationErrors.id_image = t('trainees.errors.idImageRequired');
       }
       if (!formData.card_image) {
+        validationErrors.card_image = t('trainees.errors.cardImageRequired');
+      }
+    } else {
+      // Edit mode - files are only required if no existing file URL
+      if (!formData.id_image && !idImagePreview) {
+        validationErrors.id_image = t('trainees.errors.idImageRequired');
+      }
+      if (!formData.card_image && !cardImagePreview) {
         validationErrors.card_image = t('trainees.errors.cardImageRequired');
       }
     }
@@ -1245,12 +1254,12 @@ const TraineesScreen = () => {
             <DetailForm
               data={selectedTrainee}
               fields={[
-                { key: 'first_name', label: t('trainees.fields.firstName'), icon: User },
-                { key: 'last_name', label: t('trainees.fields.lastName'), icon: User },
-                { key: 'email', label: t('trainees.fields.email'), type: 'email', icon: Mail },
-                { key: 'phone', label: t('trainees.fields.phone'), icon: Phone },
-                { key: 'nationality', label: t('trainees.fields.nationality'), icon: User },
-                { key: 'id_number', label: t('trainees.fields.idNumber'), showEmpty: false },
+                { key: 'first_name', label: t('trainees.details.detailFields.firstName'), icon: User },
+                { key: 'last_name', label: t('trainees.details.detailFields.lastName'), icon: User },
+                { key: 'email', label: t('trainees.details.detailFields.email'), type: 'email', icon: Mail },
+                { key: 'nationality', label: t('trainees.details.detailFields.nationality'), icon: User },
+                { key: 'phone', label: t('trainees.details.detailFields.phoneNo'), icon: Phone },
+                { key: 'id_number', label: t('trainees.details.detailFields.passportIdNumber'), showEmpty: false },
                 { key: 'status', label: t('trainees.fields.status'), type: 'status' },
               ]}
             />
@@ -1259,7 +1268,7 @@ const TraineesScreen = () => {
             <div className="trainees-detail-images-grid">
               {selectedTrainee.id_image_url && (
                 <div className="trainees-detail-image-box">
-                  <p className="trainees-detail-image-label">{t('trainees.upload.idImage')}</p>
+                  <p className="trainees-detail-image-label">{t('trainees.details.detailFields.uploadPassportId')}</p>
                   <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
                     <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>
@@ -1267,7 +1276,7 @@ const TraineesScreen = () => {
               )}
               {selectedTrainee.card_image_url && (
                 <div className="trainees-detail-image-box">
-                  <p className="trainees-detail-image-label">{t('trainees.upload.cardImage')}</p>
+                  <p className="trainees-detail-image-label">{t('trainees.details.detailFields.picUpload')}</p>
                   <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
                     <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" loading="lazy" decoding="async" />
                   </a>

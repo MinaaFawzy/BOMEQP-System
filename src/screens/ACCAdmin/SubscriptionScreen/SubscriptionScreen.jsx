@@ -12,6 +12,7 @@ const SubscriptionScreen = () => {
   const { t } = useTranslation('accreditation');
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [subscription, setSubscription] = useState(null);
+  const [subscriptionPrice, setSubscriptionPrice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [renewModalOpen, setRenewModalOpen] = useState(false);
@@ -52,10 +53,12 @@ const SubscriptionScreen = () => {
       setLoading(true);
       const data = await accAPI.getSubscription();
       setSubscription(data.subscription || null);
+      setSubscriptionPrice(data.subscription_price || null);
     } catch (error) {
       console.error('Failed to load subscription:', error);
       // If subscription doesn't exist, set to null
       setSubscription(null);
+      setSubscriptionPrice(null);
     } finally {
       setLoading(false);
     }
@@ -63,7 +66,7 @@ const SubscriptionScreen = () => {
 
   const handlePayment = () => {
     setPaymentForm({
-      amount: '',
+      amount: subscriptionPrice ? subscriptionPrice.toString() : '',
       payment_method: 'credit_card',
       payment_intent_id: '',
     });
@@ -314,7 +317,7 @@ const SubscriptionScreen = () => {
   const handleRenew = () => {
     // Pre-fill form with current subscription amount if available
     setRenewForm({
-      amount: subscription?.amount ? subscription.amount.toString() : '',
+      amount: subscriptionPrice ? subscriptionPrice.toString() : (subscription?.amount ? subscription.amount.toString() : ''),
       payment_method: 'credit_card',
       payment_intent_id: '',
       auto_renew: subscription?.auto_renew || false,
@@ -699,6 +702,7 @@ const SubscriptionScreen = () => {
             step="0.01"
             placeholder={t('subscription_screen.payment_modal.amount_placeholder')}
             error={errors.amount}
+            disabled={true}
           />
 
           {/* Payment Method - Only Credit Card Available */}
@@ -775,6 +779,7 @@ const SubscriptionScreen = () => {
             step="0.01"
             placeholder={t('subscription_screen.renewal_modal.amount_placeholder')}
             error={errors.amount}
+            disabled={true}
           />
 
           {/* Payment Method - Only Credit Card Available */}

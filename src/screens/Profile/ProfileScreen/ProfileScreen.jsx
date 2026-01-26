@@ -5,11 +5,10 @@ import { authAPI, instructorAPI, publicAPI, trainingCenterAPI } from '../../../s
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
-import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 import { validateEmail, validatePhone, validatePassword, validatePasswordConfirmation, validateRequired, validateUKID } from '../../../utils/validation';
 import {
   User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound,
-  Phone, MapPin, FileText, Upload, X, Award, Building2, Globe, Edit
+  Phone, MapPin, FileText, Upload, X, Award, Building2, Edit
 } from 'lucide-react';
 import axios from 'axios';
 import './ProfileScreen.css';
@@ -1173,30 +1172,6 @@ const ProfileScreen = () => {
             </form>
           </div>
 
-          {/* Language Settings Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
-                <Globe className="text-blue-600" size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">Language Settings</h2>
-                <p className="text-sm text-gray-500">Choose your preferred language</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Application Language
-                </label>
-                <p className="text-sm text-gray-500 mb-4">
-                  Select the language you want to use for the application interface. The page will automatically update when you change the language.
-                </p>
-                <LanguageSwitcher />
-              </div>
-            </div>
-          </div>
 
           {/* Instructor CV Section */}
           {isInstructor && (

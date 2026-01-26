@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, Check, Trash2, CheckCheck } from 'lucide-react';
 import { useNotificationsContext } from '../../context/NotificationsContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import './NotificationBell.css';
 
 const NotificationBell = () => {
+  const { t } = useTranslation('notifications');
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef(null);
@@ -26,13 +28,13 @@ const NotificationBell = () => {
       const dropdownWidth = 400;
       const maxDropdownWidth = window.innerWidth - 32;
       const actualDropdownWidth = Math.min(dropdownWidth, maxDropdownWidth);
-      
+
       // Calculate right position, ensuring it doesn't go off-screen
       let rightPosition = window.innerWidth - buttonRect.right;
       if (rightPosition + actualDropdownWidth > window.innerWidth - 16) {
         rightPosition = 16; // Minimum margin from screen edge
       }
-      
+
       setDropdownPosition({
         top: buttonRect.bottom + 12,
         right: rightPosition,
@@ -49,9 +51,9 @@ const NotificationBell = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        buttonRef.current && 
+        buttonRef.current &&
         !buttonRef.current.contains(event.target) &&
-        dropdownRef.current && 
+        dropdownRef.current &&
         !dropdownRef.current.contains(event.target)
       ) {
         setIsOpen(false);
@@ -106,18 +108,18 @@ const NotificationBell = () => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
-    
+
     if (diffInSeconds < 60) {
-      return 'Just now';
+      return t('time.just_now');
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m ago`;
+      return t('time.minutes_ago', { minutes });
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h ago`;
+      return t('time.hours_ago', { hours });
     } else if (diffInSeconds < 604800) {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d ago`;
+      return t('time.days_ago', { days });
     } else {
       return date.toLocaleDateString();
     }
@@ -142,7 +144,7 @@ const NotificationBell = () => {
       </div>
 
       {isOpen && (
-        <div 
+        <div
           className="notification-dropdown"
           ref={dropdownRef}
           style={{
@@ -151,13 +153,13 @@ const NotificationBell = () => {
           }}
         >
           <div className="notification-header">
-            <h3 className="notification-title">Notifications</h3>
+            <h3 className="notification-title">{t('title')}</h3>
             <div className="notification-actions">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
                   className="notification-action-btn"
-                  title="Mark all as read"
+                  title={t('actions.mark_all_read')}
                 >
                   <CheckCheck size={16} />
                 </button>
@@ -166,7 +168,7 @@ const NotificationBell = () => {
                 <button
                   onClick={handleDeleteAllRead}
                   className="notification-action-btn"
-                  title="Delete all read"
+                  title={t('actions.delete_all_read')}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -174,7 +176,7 @@ const NotificationBell = () => {
               <button
                 onClick={() => setIsOpen(false)}
                 className="notification-action-btn"
-                title="Close"
+                title={t('actions.close')}
               >
                 <X size={16} />
               </button>
@@ -184,18 +186,18 @@ const NotificationBell = () => {
           <div className="notification-list">
             {loading && notifications.length === 0 ? (
               <div className="notification-empty">
-                <div className="notification-loading">Loading notifications...</div>
+                <div className="notification-loading">{t('loading')}</div>
               </div>
             ) : notifications.length === 0 ? (
               <div className="notification-empty">
                 <Bell size={48} className="notification-empty-icon" />
-                <p className="notification-empty-text">No notifications</p>
+                <p className="notification-empty-text">{t('empty')}</p>
               </div>
             ) : (
               <>
                 {unreadNotifications.length > 0 && (
                   <div className="notification-section">
-                    <div className="notification-section-header">Unread</div>
+                    <div className="notification-section-header">{t('sections.unread')}</div>
                     {unreadNotifications.map((notification) => (
                       <div
                         key={notification.id}
@@ -208,7 +210,7 @@ const NotificationBell = () => {
                             <button
                               onClick={(e) => handleDeleteNotification(e, notification.id)}
                               className="notification-delete-btn"
-                              title="Delete"
+                              title={t('actions.delete')}
                             >
                               <X size={14} />
                             </button>
@@ -225,7 +227,7 @@ const NotificationBell = () => {
                                   markAsRead(notification.id);
                                 }}
                                 className="notification-item-action"
-                                title="Mark as read"
+                                title={t('actions.mark_as_read')}
                               >
                                 <Check size={14} />
                               </button>
@@ -240,7 +242,7 @@ const NotificationBell = () => {
 
                 {readNotifications.length > 0 && (
                   <div className="notification-section">
-                    <div className="notification-section-header">Read</div>
+                    <div className="notification-section-header">{t('sections.read')}</div>
                     {readNotifications.map((notification) => (
                       <div
                         key={notification.id}
@@ -253,7 +255,7 @@ const NotificationBell = () => {
                             <button
                               onClick={(e) => handleDeleteNotification(e, notification.id)}
                               className="notification-delete-btn"
-                              title="Delete"
+                              title={t('actions.delete')}
                             >
                               <X size={14} />
                             </button>

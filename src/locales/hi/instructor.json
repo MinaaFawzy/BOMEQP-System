@@ -258,7 +258,11 @@
       "file_type": "केवल PDF फ़ाइलों की अनुमति है",
       "file_size": "फ़ाइल का आकार 10MB से कम होना चाहिए",
       "password_required": "वर्तमान पासवर्ड आवश्यक है",
-      "password_failed": "पासवर्ड बदलने में विफल"
+      "password_failed": "पासवर्ड बदलने में विफल",
+      "this_field_is_managed_by_your_training_center": "यह फ़ील्ड आपके प्रशिक्षण केंद्र द्वारा प्रबंधित है",
+      "your_account_status_is_managed_by_your_training_center": "आपकी खाता स्थिति आपके प्रशिक्षण केंद्र द्वारा प्रबंधित है",
+      "you_are_registered_under_this_training_center": "आप इस प्रशिक्षण केंद्र के तहत पंजीकृत हैं",
+      "click_to_view": "ऊपर दिए गए लिंक पर क्लिक करके अपने वर्तमान सीवी को एक नए टैब में देखें"
     },
     "common": {
       "na": "लागू नहीं"

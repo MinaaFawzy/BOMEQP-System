@@ -30,7 +30,7 @@ const GroupAdminDashboard = () => {
     try {
       // Use the dedicated dashboard endpoint
       const data = await adminAPI.getDashboard();
-      
+
       // API returns: accreditation_bodies, training_centers, instructors, trainees, revenue { monthly, total }, charts { revenue_over_time, entity_distribution }
       setDashboard({
         accreditation_bodies: data.accreditation_bodies || 0,
@@ -144,7 +144,7 @@ const GroupAdminDashboard = () => {
 
           {/* Charts Section */}
           {dashboard.charts && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Revenue Over Time Chart */}
               {dashboard.charts.revenue_over_time && dashboard.charts.revenue_over_time.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
@@ -152,22 +152,22 @@ const GroupAdminDashboard = () => {
                   <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={dashboard.charts.revenue_over_time} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                      <XAxis 
-                        dataKey="month_name" 
+                      <XAxis
+                        dataKey="month_name"
                         stroke="#374151"
                         style={{ fontSize: '13px', fontWeight: '500' }}
                         tick={{ fill: '#374151' }}
                       />
-                      <YAxis 
+                      <YAxis
                         stroke="#374151"
                         style={{ fontSize: '13px', fontWeight: '500' }}
                         tick={{ fill: '#374151' }}
                         tickFormatter={(value) => `$${value.toLocaleString()}`}
                       />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [`$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Revenue']}
-                        contentStyle={{ 
-                          backgroundColor: '#fff', 
+                        contentStyle={{
+                          backgroundColor: '#fff',
                           border: '2px solid #3B82F6',
                           borderRadius: '8px',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
@@ -176,10 +176,10 @@ const GroupAdminDashboard = () => {
                         labelStyle={{ fontWeight: '600', color: '#111827', marginBottom: '5px' }}
                       />
                       <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="#3B82F6" 
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#3B82F6"
                         strokeWidth={3}
                         dot={{ fill: '#3B82F6', r: 5, strokeWidth: 2, stroke: '#fff' }}
                         activeDot={{ r: 7, fill: '#3B82F6', stroke: '#fff', strokeWidth: 2 }}
@@ -191,7 +191,7 @@ const GroupAdminDashboard = () => {
               )}
 
               {/* Entity Distribution Chart */}
-              {dashboard.charts.entity_distribution && dashboard.charts.entity_distribution.length > 0 && (
+              {/* {dashboard.charts.entity_distribution && dashboard.charts.entity_distribution.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Entity Distribution</h2>
                   <ResponsiveContainer width="100%" height={350}>
@@ -247,7 +247,7 @@ const GroupAdminDashboard = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-              )}
+              )} */}
             </div>
           )}
         </>

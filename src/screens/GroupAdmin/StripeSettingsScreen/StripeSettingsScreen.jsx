@@ -55,15 +55,15 @@ const StripeSettingsScreen = () => {
         setForm({
           publishable_key:
             active.publishable_key || active.public_key || active.stripe_key || '',
-            // Try common field names from different backends
+          // Try common field names from different backends
           secret_key:
             active.secret_key || active.secret || active.stripe_secret || '',
           is_active:
             typeof active.is_active === 'boolean'
               ? active.is_active
               : active.status
-              ? active.status === 'active'
-              : true,
+                ? active.status === 'active'
+                : true,
         });
       }
     } catch (error) {
@@ -129,151 +129,167 @@ const StripeSettingsScreen = () => {
   }
 
   return (
-    <div className="stripe-settings-screen">
-      {/* Main Content Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Settings Form - Takes 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+    <div className="stripe-settings-screen max-w-7xl mx-auto px-4 py-8">
+      {/* Settings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        {/* Main Configuration Panel */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden relative">
+
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-purple-100/50 rounded-full blur-3xl -z-0 pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-                    <CreditCard className="h-6 w-6 text-white" />
+            <div className="relative z-10 p-8 border-b border-gray-100">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <div className="p-4 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg shadow-primary-200">
+                    <CreditCard className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Payment Configuration</h2>
-                    <p className="text-sm text-primary-100 mt-1">Manage your Stripe API credentials</p>
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Payment Configuration</h2>
+                    <p className="text-sm text-gray-500 mt-1 font-medium">Manage your Stripe API credentials</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-sm font-medium ${form.is_active ? 'text-green-300' : 'text-gray-300'}`}>
-                    {form.is_active ? 'Active' : 'Inactive'}
+
+                {/* Status Toggle */}
+                <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                  <span className={`text-sm font-semibold ${form.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                    {form.is_active ? 'Live Mode Active' : 'Payments Disabled'}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleChange('is_active', !form.is_active)}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white ${
-                      form.is_active 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${form.is_active
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-md shadow-green-200'
                         : 'bg-gray-300'
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`absolute h-6 w-6 rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out ${
-                        form.is_active ? 'left-[28px]' : 'left-[4px]'
-                      }`}
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${form.is_active ? 'translate-x-6' : 'translate-x-1'
+                        }`}
                     />
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="p-8">
+            {/* Form Content */}
+            <div className="relative z-10 p-8">
               {errors.general && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 rounded-xl shadow-lg animate-fade-in">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0" />
-                    <p className="text-sm text-red-800 font-semibold">{errors.general}</p>
+                <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+                  <div className="p-1 bg-red-100 rounded-full flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-red-800">Configuration Error</h4>
+                    <p className="text-sm text-red-600 mt-1">{errors.general}</p>
                   </div>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Publishable Key Field */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg">
-                      <Key className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">
-                        Stripe Publishable Key
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">Public key for client-side operations</p>
-                    </div>
+                {/* Publishable Key */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary-500" />
+                      publishable Key
+                    </label>
+                    <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline">
+                      Find in Dashboard
+                    </a>
                   </div>
-                  <div className="relative">
-                    <FormInput
+
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <div className="p-1.5 bg-gray-100 text-gray-500 rounded-lg group-focus-within:bg-primary-50 group-focus-within:text-primary-600 transition-colors">
+                        <Key className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <input
                       name="publishable_key"
                       value={form.publishable_key}
                       onChange={(e) => handleChange('publishable_key', e.target.value)}
-                      placeholder="pk_live_51ABC..."
-                      required
-                      error={errors.publishable_key}
+                      placeholder="pk_live_..."
+                      className={`block w-full pl-12 pr-10 py-4 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-mono text-sm ${errors.publishable_key ? 'border-red-300 bg-red-50/30' : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     />
-                    {form.publishable_key && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {form.publishable_key && !errors.publishable_key && (
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                         <CheckCircle className="h-5 w-5 text-green-500" />
                       </div>
                     )}
                   </div>
-                  <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-blue-800">
-                      Your Stripe publishable key starts with <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono text-blue-900">pk_live_</code> or <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono text-blue-900">pk_test_</code>
-                    </p>
+                  <div className="flex gap-2 text-xs text-gray-500 px-1">
+                    <Info className="h-4 w-4 flex-shrink-0" />
+                    <p>Standard prefix: <span className="font-mono text-primary-600 bg-primary-50 px-1 rounded">pk_live_</span> or <span className="font-mono text-gray-600 bg-gray-100 px-1 rounded">pk_test_</span></p>
                   </div>
                 </div>
 
-                {/* Secret Key Field */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg">
-                      <Lock className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">
-                        Stripe Secret Key
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">Private key for server-side operations</p>
-                    </div>
+                {/* Secret Key */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-purple-500" />
+                      Secret Key
+                    </label>
+                    <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full font-medium">
+                      Server-side only
+                    </span>
                   </div>
-                  <div className="relative">
-                    <FormInput
+
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <div className="p-1.5 bg-gray-100 text-gray-500 rounded-lg group-focus-within:bg-purple-50 group-focus-within:text-purple-600 transition-colors">
+                        <Lock className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <input
                       name="secret_key"
                       type={showSecretKey ? 'text' : 'password'}
                       value={form.secret_key}
                       onChange={(e) => handleChange('secret_key', e.target.value)}
-                      placeholder="sk_live_51ABC..."
-                      required
-                      error={errors.secret_key}
+                      placeholder="sk_live_..."
+                      className={`block w-full pl-12 pr-12 py-4 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-mono text-sm ${errors.secret_key ? 'border-red-300 bg-red-50/30' : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowSecretKey(!showSecretKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                     >
                       {showSecretKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  <div className="flex items-start gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <AlertCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-purple-800">
-                      <strong>Keep this secure!</strong> Your secret key starts with <code className="bg-purple-100 px-1.5 py-0.5 rounded font-mono text-purple-900">sk_live_</code> or <code className="bg-purple-100 px-1.5 py-0.5 rounded font-mono text-purple-900">sk_test_</code>. Never share this key publicly.
-                    </p>
+                  <div className="flex gap-2 text-xs text-gray-500 px-1">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-500" />
+                    <p>Keep secert! Prefix: <span className="font-mono text-purple-600 bg-purple-50 px-1 rounded">sk_live_</span> or <span className="font-mono text-gray-600 bg-gray-100 px-1 rounded">sk_test_</span></p>
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-6 border-t-2 border-gray-200">
+                {/* Footer Actions */}
+                <div className="pt-8 flex items-center justify-end border-t border-gray-100">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-primary-600 via-primary-700 to-primary-600 text-white rounded-xl hover:from-primary-700 hover:via-primary-800 hover:to-primary-700 font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-2xl flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="relative group overflow-hidden px-8 py-3.5 bg-gray-900 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-wait"
                   >
-                    {saving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                        <span>Saving Settings...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-6 w-6" />
-                        <span>Save Stripe Settings</span>
-                      </>
-                    )}
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center gap-2">
+                      {saving ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Saving keys...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-5 w-5" />
+                          <span>Save Configuration</span>
+                        </>
+                      )}
+                    </div>
                   </button>
                 </div>
               </form>
@@ -281,63 +297,57 @@ const StripeSettingsScreen = () => {
           </div>
         </div>
 
-        {/* Info Card - Takes 1 column on large screens */}
-        <div className="lg:col-span-1">
-          {/* Quick Guide Card */}
-          <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl shadow-lg border border-blue-200 p-4 h-fit sticky top-4">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-200">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
-                <Info className="h-4 w-4 text-white" />
+        {/* Sidebar Guide */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Info className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-gray-900">Quick Guide</h3>
+              <h3 className="font-bold text-lg text-gray-900">Setup Guide</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                  <span className="text-xs font-bold text-white">1</span>
+
+            <div className="space-y-6 relative">
+              {/* Timeline Line */}
+              <div className="absolute left-[15px] top-8 bottom-8 w-0.5 bg-gray-100"></div>
+
+              {/* Steps */}
+              {[
+                { title: 'Get API Keys', desc: 'Login to Stripe Dashboard > Developers > API keys', icon: '1', color: 'blue' },
+                { title: 'Copy Credentials', desc: 'Copy the Publishable key and Secret key', icon: '2', color: 'indigo' },
+                { title: 'Paste & Save', desc: 'Enter keys in the form and save changes', icon: '3', color: 'purple' }
+              ].map((step, idx) => (
+                <div key={idx} className="relative flex gap-4 group">
+                  <div className={`w-8 h-8 rounded-full border-4 border-white shadow-md flex items-center justify-center text-xs font-bold text-white z-10 transition-transform group-hover:scale-110 bg-${step.color}-500`}>
+                    {step.icon}
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <h4 className="text-sm font-bold text-gray-900">{step.title}</h4>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{step.desc}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900 mb-1">Get Your Keys</p>
-                  <p className="text-xs text-gray-600 leading-relaxed">Log in to Stripe Dashboard and navigate to API keys.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-indigo-200">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                  <span className="text-xs font-bold text-white">2</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900 mb-1">Enter Keys</p>
-                  <p className="text-xs text-gray-600 leading-relaxed">Copy and paste your keys into the form.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                  <span className="text-xs font-bold text-white">3</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900 mb-1">Save</p>
-                  <p className="text-xs text-gray-600 leading-relaxed">Click Save Settings to complete setup.</p>
-                </div>
-              </div>
+              ))}
             </div>
-            <div className="mt-4 pt-3 border-t border-blue-200">
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Quick Links</h4>
               <a
                 href="https://dashboard.stripe.com/apikeys"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 border border-gray-200 hover:border-indigo-200 transition-all group"
               >
-                <span>Visit Stripe Dashboard</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
+                <span className="text-sm font-medium">Stripe Dashboard</span>
+                <span className="p-1 bg-white rounded-lg shadow-sm group-hover:translate-x-1 transition-transform">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </span>
               </a>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
 };
-
 export default StripeSettingsScreen;

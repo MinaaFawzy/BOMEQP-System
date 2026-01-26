@@ -416,7 +416,7 @@ const StripeConnectScreen = () => {
                                     setStatusFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-white cursor-pointer bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1rem] bg-[right_0.5rem_center] bg-no-repeat pr-8"
                             >
                                 <option value="all">All Status</option>
                                 <option value="connected">Connected</option>
@@ -473,7 +473,7 @@ const StripeConnectScreen = () => {
                                     );
                                     setSelectedAccountForInitiate(account || null);
                                 }}
-                                className="form-control"
+                                className="form-control appearance-none bg-white cursor-pointer bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1rem] bg-[right_0.5rem_center] bg-no-repeat pr-8"
                             >
                                 <option value="">-- Select an account --</option>
                                 {allAccountsForDropdown.map((account) => (
@@ -489,7 +489,7 @@ const StripeConnectScreen = () => {
                         <select
                             value={initiateCountry}
                             onChange={(e) => setInitiateCountry(e.target.value)}
-                            className="form-control"
+                            className="form-control appearance-none bg-white cursor-pointer bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1rem] bg-[right_0.5rem_center] bg-no-repeat pr-8"
                         >
                             <option value="">-- Select a country --</option>
                             {Array.isArray(countries) ? (

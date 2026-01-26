@@ -100,8 +100,8 @@ const TrainingCenterInstructorsScreen = () => {
   }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
 
   useEffect(() => {
-    setHeaderTitle(t('instructors_screen.header.title'));
-    setHeaderSubtitle(t('instructors_screen.header.subtitle'));
+    setHeaderTitle(t('instructors_screen.title'));
+    setHeaderSubtitle(t('instructors_screen.subtitle'));
     setHeaderActions(
       <button
         onClick={() => handleOpenModal()}
@@ -198,7 +198,7 @@ const TrainingCenterInstructorsScreen = () => {
         last_name: instructor.last_name || '',
         email: instructor.email || '',
         phone: instructor.phone || '',
-        date_of_birth: instructor.date_of_birth || '',
+        date_of_birth: instructor.date_of_birth ? instructor.date_of_birth.split('T')[0] : '',
         id_number: instructor.id_number || '',
         cv: null,
         passport: null,
@@ -372,8 +372,10 @@ const TrainingCenterInstructorsScreen = () => {
   };
 
   const handlePassportFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+
       // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
       if (!validTypes.includes(file.type)) {
@@ -387,35 +389,42 @@ const TrainingCenterInstructorsScreen = () => {
       }
 
       setResizingPassport(true);
-      try {
-        // Resize image if it's an image file (not PDF)
-        let processedFile = file;
-        if (file.type.startsWith('image/')) {
+
+      let processedFile = file;
+      if (file.type.startsWith('image/')) {
+        try {
           processedFile = await resizePassportImage(file);
-          console.log(`Passport image resized: ${file.size} bytes -> ${processedFile.size} bytes`);
+        } catch (resizeError) {
+          console.error("Resize failed", resizeError);
+          // Fallback to original file
+          processedFile = file;
         }
-
-        setPassportFile(processedFile);
-        setPassportFileName(processedFile.name);
-        setFormData({
-          ...formData,
-          passport: processedFile,
-        });
-
-        // Clear any previous passport errors
-        if (errors.passport) {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors.passport;
-            return newErrors;
-          });
-        }
-      } catch (error) {
-        console.error('Error processing passport image:', error);
-        setErrors({ passport: t('instructors_screen.failed_to_process_image') });
-      } finally {
-        setResizingPassport(false);
       }
+
+      if (!processedFile) {
+        throw new Error("File processing resulted in null");
+      }
+
+      setPassportFile(processedFile);
+      setPassportFileName(processedFile.name || "passport.pdf");
+
+      setFormData(prev => ({
+        ...prev,
+        passport: processedFile,
+      }));
+
+      // Clear error
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.passport;
+        return newErrors;
+      });
+
+    } catch (error) {
+      console.error('Error in handlePassportFileChange:', error);
+      setErrors({ passport: "Failed to process image. Please try another file." });
+    } finally {
+      setResizingPassport(false);
     }
   };
 
@@ -464,12 +473,21 @@ const TrainingCenterInstructorsScreen = () => {
       validationErrors.specializations = t('instructors_screen.at_least_one_language_required');
     }
 
-    // File validations - required for create, optional for update
+    // File validations - required for create, optional for update if file already exists
     if (!selectedInstructor) {
+      // Create mode - files are required
       if (!cvFile) {
         validationErrors.cv = t('instructors_screen.cv_required');
       }
       if (!passportFile) {
+        validationErrors.passport = t('instructors_screen.passport_required');
+      }
+    } else {
+      // Edit mode - files are only required if no existing file URL
+      if (!cvFile && !existingCvUrl) {
+        validationErrors.cv = t('instructors_screen.cv_required');
+      }
+      if (!passportFile && !existingPassportUrl) {
         validationErrors.passport = t('instructors_screen.passport_required');
       }
     }
@@ -545,7 +563,8 @@ const TrainingCenterInstructorsScreen = () => {
         console.log('🔄 Updating instructor with ID:', selectedInstructor.id);
         console.log('📦 Submit data type:', hasFile ? 'FormData' : 'JSON');
         if (hasFile) {
-          console.log('📄 CV File:', cvFile.name, cvFile.size, 'bytes');
+          if (cvFile) console.log('📄 CV File:', cvFile.name, cvFile.size, 'bytes');
+          if (passportFile) console.log('📄 Passport File:', passportFile.name, passportFile.size, 'bytes');
         }
         const result = await trainingCenterAPI.updateInstructor(selectedInstructor.id, submitData);
         console.log('✅ Update result:', result);
@@ -1186,18 +1205,6 @@ const TrainingCenterInstructorsScreen = () => {
             />
 
             <FormInput
-              label={t('instructors_screen.phone')}
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              error={errors.phone}
-              placeholder={t('instructors_screen.enter_phone_number')}
-            />
-          </div>
-
-          <div className="instructors-form-grid">
-            <FormInput
               label={t('instructors_screen.date_of_birth')}
               type="date"
               name="date_of_birth"
@@ -1205,6 +1212,18 @@ const TrainingCenterInstructorsScreen = () => {
               onChange={handleChange}
               required
               error={errors.date_of_birth}
+            />
+          </div>
+
+          <div className="instructors-form-grid">
+            <FormInput
+              label={t('instructors_screen.phone')}
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              error={errors.phone}
+              placeholder={t('instructors_screen.enter_phone_number')}
             />
 
             <FormInput
@@ -1216,6 +1235,32 @@ const TrainingCenterInstructorsScreen = () => {
               placeholder={t('instructors_screen.enter_id_number')}
             />
           </div>
+
+          <LanguageSelector
+            label={t('instructors_screen.languages')}
+            placeholder={t('instructors_screen.select_a_language')}
+            value={formData.specializations}
+            onChange={handleSpecializationsChange}
+            error={errors.specializations}
+          />
+
+          <div className="instructors-checkbox-container">
+            <input
+              type="checkbox"
+              id="is_assessor"
+              name="is_assessor"
+              checked={formData.is_assessor || false}
+              onChange={(e) => setFormData({
+                ...formData,
+                is_assessor: e.target.checked
+              })}
+              className="instructors-checkbox"
+            />
+            <label htmlFor="is_assessor" className="instructors-checkbox-label">
+              {t('instructors_screen.is_assessor')}
+            </label>
+          </div>
+          <p className="instructors-helper-text">{t('instructors_screen.mark_as_assessor')}</p>
 
           <div>
             <label className="instructors-cv-label">
@@ -1401,31 +1446,7 @@ const TrainingCenterInstructorsScreen = () => {
             )}
           </div>
 
-          <LanguageSelector
-            label={t('instructors_screen.languages')}
-            placeholder={t('instructors_screen.select_a_language')}
-            value={formData.specializations}
-            onChange={handleSpecializationsChange}
-            error={errors.specializations}
-          />
 
-          <div className="instructors-checkbox-container">
-            <input
-              type="checkbox"
-              id="is_assessor"
-              name="is_assessor"
-              checked={formData.is_assessor || false}
-              onChange={(e) => setFormData({
-                ...formData,
-                is_assessor: e.target.checked
-              })}
-              className="instructors-checkbox"
-            />
-            <label htmlFor="is_assessor" className="instructors-checkbox-label">
-              {t('instructors_screen.is_assessor')}
-            </label>
-          </div>
-          <p className="instructors-helper-text">{t('instructors_screen.mark_as_assessor')}</p>
 
           {errors.general && (
             <div className="instructors-error-box">
@@ -1479,12 +1500,12 @@ const TrainingCenterInstructorsScreen = () => {
                 { key: 'first_name', label: t('instructors_screen.first_name'), icon: User },
                 { key: 'last_name', label: t('instructors_screen.last_name'), icon: User },
                 { key: 'email', label: t('instructors_screen.email'), type: 'email', icon: Mail },
-                { key: 'phone', label: t('instructors_screen.phone'), icon: Phone },
                 { key: 'date_of_birth', label: t('instructors_screen.date_of_birth'), type: 'date', icon: Calendar, showEmpty: false },
+                { key: 'phone', label: t('instructors_screen.phone'), icon: Phone },
                 { key: 'id_number', label: t('instructors_screen.id_number'), showEmpty: false },
                 {
                   key: 'is_assessor',
-                  label: t('instructors_screen.type'),
+                  label: t('instructors_screen.is_assessor'),
                   transform: (value) => value ? t('instructors_screen.assessor') : t('instructors_screen.instructor'),
                   render: (value) => (
                     <span className={`detail-form-badge ${value === (t('instructors_screen.assessor') || 'Assessor') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
@@ -1644,6 +1665,32 @@ const TrainingCenterInstructorsScreen = () => {
                   >
                     <FileText size={18} className="instructors-cv-box-link-icon" />
                     {t('instructors_screen.view_cv')}
+                  </a>
+                </div>
+              </div>
+            )}
+            {(selectedInstructor.passport_image_url || selectedInstructor.passport_url) && (
+              <div className="instructors-cv-box" style={{ marginTop: '1rem' }}>
+                <div className="instructors-cv-box-flex">
+                  <div className="instructors-cv-box-inner">
+                    <div className="instructors-cv-box-icon-wrapper">
+                      <FileText className="text-white" size={28} />
+                    </div>
+                    <div>
+                      <p className="instructors-cv-box-text-title">{t('instructors_screen.passport')}</p>
+                      <p className="instructors-cv-box-text-hint">{t('instructors_screen.click_to_view_current_passport')}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={(selectedInstructor.passport_image_url || selectedInstructor.passport_url).startsWith('http')
+                      ? (selectedInstructor.passport_image_url || selectedInstructor.passport_url)
+                      : `${API_BASE_URL}${selectedInstructor.passport_image_url || selectedInstructor.passport_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="instructors-cv-box-link"
+                  >
+                    <FileText size={18} className="instructors-cv-box-link-icon" />
+                    {t('instructors_screen.view_passport')}
                   </a>
                 </div>
               </div>

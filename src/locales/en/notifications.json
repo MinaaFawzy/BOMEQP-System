@@ -1,0 +1,22 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications",
+  "loading": "Loading notifications...",
+  "sections": {
+    "unread": "Unread",
+    "read": "Read"
+  },
+  "actions": {
+    "mark_all_read": "Mark all as read",
+    "delete_all_read": "Delete all read",
+    "close": "Close",
+    "mark_as_read": "Mark as read",
+    "delete": "Delete"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{{minutes}}m ago",
+    "hours_ago": "{{hours}}h ago",
+    "days_ago": "{{days}}d ago"
+  }
+}

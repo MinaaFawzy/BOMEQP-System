@@ -113,7 +113,6 @@
   "primary_contact_country": "Primary Contact Country",
   "company_gov_registry_number": "Company Gov Registry Number",
   "gov_registry_number": "Gov Registry Number",
-
   "dashboard": {
     "authorized_accreditation": "Authorized Accreditations",
     "classes": "Classes",
@@ -215,8 +214,8 @@
     "please_upload_file": "Please upload a file"
   },
   "instructors_screen": {
-    "instructors": "Instructors",
-    "manage_your_instructors": "Manage your instructors",
+    "title": "Instructors",
+    "subtitle": "Manage your instructors",
     "add_instructor": "Add Instructor",
     "total_instructors": "Total Instructors",
     "active": "Active",
@@ -227,8 +226,8 @@
     "search_instructors_placeholder": "Search instructors...",
     "no_instructors_found": "No instructors found",
     "instructor": "Instructor",
-    "email": "Email",
-    "phone": "Phone",
+    "email": "E-mail address",
+    "phone": "Phone No",
     "status": "Status",
     "type": "Type",
     "actions": "Actions",
@@ -240,8 +239,8 @@
     "edit_instructor": "Edit Instructor",
     "update_instructor": "Update Instructor",
 
-    "first_name": "First Name",
-    "last_name": "Last Name",
+    "first_name": "First name",
+    "last_name": "Last name",
     "example_email": "example@email.com",
     "enter_phone_number": "Enter phone number",
     "date_of_birth": "Date of Birth",
@@ -250,7 +249,7 @@
     "cv": "CV",
     "passport": "Passport",
     "cv_resume_pdf": "CV / Resume (PDF)",
-    "upload_cv": "Upload CV",
+    "upload_cv": "CV / Resume (PDF)",
     "update_cv": "Update CV",
     "view_cv": "View CV",
     "click_to_select_pdf": "Click to select PDF",
@@ -259,9 +258,9 @@
     "file_size_must_be_less_than_10mb": "File size must be less than 10MB",
     "cv_required": "CV file is required",
 
-    "passport_copy": "Passport Copy",
-    "upload_passport": "Upload Passport",
-    "update_passport": "Update Passport",
+    "passport_copy": "Passport copy",
+    "upload_passport": "Upload Passport copy",
+    "update_passport": "Update Passport copy",
     "view_passport": "View Passport",
     "click_to_select_document": "Click to select document",
     "jpeg_png_pdf_only_max_10mb": "JPEG, PNG or PDF only (Max 10MB)",
@@ -270,7 +269,7 @@
     "resizing_image": "Resizing image...",
 
     "languages": "Languages",
-    "is_assessor": "Is Assessor",
+    "is_assessor": "Instructor/Assessor",
     "mark_as_assessor": "Mark this instructor as an assessor",
 
     "cancel": "Cancel",
@@ -338,12 +337,12 @@
       "allStatus": "All Status"
     },
     "form": {
-      "firstName": "First Name",
-      "lastName": "Last Name",
-      "email": "Email",
-      "phone": "Phone",
-      "nationality": "Nationality",
-      "idNumber": "ID Number",
+      "firstName": "First name:",
+      "lastName": "Last name:",
+      "email": "E-mail address:",
+      "phone": "Phone No:",
+      "nationality": "Nationality:",
+      "idNumber": "Passport/National ID number:",
       "status": "Status"
     },
     "status": {
@@ -384,13 +383,13 @@
       "idNumber": "Enter ID number (minimum 8 characters)"
     },
     "upload": {
-      "idImage": "ID Image",
-      "cardImage": "Card Image",
+      "idImage": "Passport/National ID copy:",
+      "cardImage": "Picture:",
       "resizing": "Resizing image...",
       "change": "Change",
       "remove": "Remove",
-      "uploadIdTitle": "Upload ID Image",
-      "uploadCardTitle": "Upload Card Image",
+      "uploadIdTitle": "Upload Passport/National ID copy",
+      "uploadCardTitle": "Upload Picture",
       "hint": "Click to browse or drag and drop",
       "formatsHint": "JPEG, JPG, PNG, PDF (Max 10MB - Images will be auto-resized)"
     },
@@ -402,7 +401,17 @@
     },
     "details": {
       "title": "Trainee Details",
-      "enrolledClassesWithCount": "Enrolled Classes ({{count}})"
+      "enrolledClassesWithCount": "Enrolled Classes ({{count}})",
+      "detailFields": {
+        "firstName": "First name:",
+        "lastName": "Last name:",
+        "email": "E-mail address:",
+        "nationality": "Nationality:",
+        "phoneNo": "Phone No:",
+        "passportIdNumber": "Passport/National ID number:",
+        "uploadPassportId": "Passport/National ID copy:",
+        "picUpload": "Picture:"
+      }
     },
     "deleteDialog": {
       "title": "Delete Trainee",
@@ -908,7 +917,17 @@
       "subscription": "Subscription",
       "code_purchase": "Code Purchase",
       "course_purchase": "Course Purchase",
-      "instructor_authorization": "Instructor Authorization"
+      "instructor_authorization": "Instructor Authorization",
+      "InstructorAccAuthorization": "Instructor Authorization"
+    },
+
+    "reference_fields": {
+      "instructor_id": "Instructor ID",
+      "instructor_name": "Instructor Name",
+      "acc_id": "ACC ID",
+      "acc_name": "ACC Name",
+      "training_center_id": "Training Center ID",
+      "authorization_price": "Authorization Price"
     },
 
     "status": {

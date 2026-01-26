@@ -8,6 +8,7 @@ import enNavigation from './locales/en/navigation.json';
 import enTrainingCenter from './locales/en/training_center.json';
 import enAccreditation from './locales/en/accreditation.json';
 import enInstructor from './locales/en/instructor.json';
+import enNotifications from './locales/en/notifications.json';
 
 // Import Arabic translations
 import arCommon from './locales/ar/common.json';
@@ -16,6 +17,7 @@ import arNavigation from './locales/ar/navigation.json';
 import arTrainingCenter from './locales/ar/training_center.json';
 import arAccreditation from './locales/ar/accreditation.json';
 import arInstructor from './locales/ar/instructor.json';
+// import arNotifications from './locales/ar/notifications.json';
 
 // Import Chinese (Simplified) translations
 import zhCNCommon from './locales/zh-CN/common.json';
@@ -24,6 +26,7 @@ import zhCNNavigation from './locales/zh-CN/navigation.json';
 import zhCNTrainingCenter from './locales/zh-CN/training_center.json';
 import zhCNAccreditation from './locales/zh-CN/accreditation.json';
 import zhCNInstructor from './locales/zh-CN/instructor.json';
+import zhCNNotifications from './locales/zh-CN/notifications.json';
 
 // Import Hindi translations
 import hiCommon from './locales/hi/common.json';
@@ -32,6 +35,7 @@ import hiNavigation from './locales/hi/navigation.json';
 import hiTrainingCenter from './locales/hi/training_center.json';
 import hiAccreditation from './locales/hi/accreditation.json';
 import hiInstructor from './locales/hi/instructor.json';
+import hiNotifications from './locales/hi/notifications.json';
 
 // Get saved language from localStorage or default to 'en'
 const savedLanguage = localStorage.getItem('language') || 'en';
@@ -48,6 +52,7 @@ i18n
                 training_center: enTrainingCenter,
                 accreditation: enAccreditation,
                 instructor: enInstructor,
+                notifications: enNotifications,
             },
             ar: {
                 common: arCommon,
@@ -64,6 +69,7 @@ i18n
                 training_center: zhCNTrainingCenter,
                 accreditation: zhCNAccreditation,
                 instructor: zhCNInstructor,
+                notifications: zhCNNotifications,
             },
             'hi': {
                 common: hiCommon,
@@ -72,11 +78,12 @@ i18n
                 training_center: hiTrainingCenter,
                 accreditation: hiAccreditation,
                 instructor: hiInstructor,
+                notifications: hiNotifications,
             },
         },
         lng: savedLanguage, // default language
         fallbackLng: 'en', // fallback language if translation is missing
-        ns: ['common', 'auth', 'navigation', 'training_center', 'accreditation', 'instructor'], // namespaces
+        ns: ['common', 'auth', 'navigation', 'training_center', 'accreditation', 'instructor', 'notifications'], // namespaces
         defaultNS: 'common', // default namespace
         interpolation: {
             escapeValue: false, // react already safes from xss

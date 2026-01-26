@@ -920,7 +920,7 @@ const InstructorProfileScreen = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">This field is managed by your Training Center</p>
+                <p className="text-xs text-gray-500 mt-1">{t('profile_screen.validation.this_field_is_managed_by_your_training_center')}</p>
               </div>
 
               {/* Account Status (Read-only) */}
@@ -956,7 +956,7 @@ const InstructorProfileScreen = () => {
                     <span className="text-sm text-gray-500">{t('profile_screen.common.na')}</span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Your account status is managed by your Training Center</p>
+                <p className="text-xs text-gray-500 mt-1">{t('profile_screen.validation.your_account_status_is_managed_by_your_training_center')}</p>
               </div>
             </div>
 
@@ -990,7 +990,7 @@ const InstructorProfileScreen = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">You are registered under this training center</p>
+                <p className="text-xs text-gray-500 mt-1">{t('profile_screen.validation.you_are_registered_under_this_training_center')}</p>
               </div>
             )}
 
@@ -1039,7 +1039,7 @@ const InstructorProfileScreen = () => {
                             {cvUrl.split('/').pop().split('?')[0] || t('profile_screen.cv.view')}
                           </a>
                           <p className="text-xs text-gray-500">
-                            Click the link above to view your current CV in a new tab
+                            {t('profile_screen.validation.click_to_view')}
                           </p>
                         </div>
                       </div>

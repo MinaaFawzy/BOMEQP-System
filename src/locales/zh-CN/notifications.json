@@ -1,0 +1,22 @@
+{
+  "title": "通知",
+  "empty": "暂无通知",
+  "loading": "正在加载通知...",
+  "sections": {
+    "unread": "未读",
+    "read": "已读"
+  },
+  "actions": {
+    "mark_all_read": "全部标记为已读",
+    "delete_all_read": "删除所有已读",
+    "close": "关闭",
+    "mark_as_read": "标记为已读",
+    "delete": "删除"
+  },
+  "time": {
+    "just_now": "刚刚",
+    "minutes_ago": "{{minutes}}分钟前",
+    "hours_ago": "{{hours}}小时前",
+    "days_ago": "{{days}}天前"
+  }
+}

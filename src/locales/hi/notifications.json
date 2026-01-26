@@ -1,0 +1,22 @@
+{
+  "title": "सूचनाएं",
+  "empty": "कोई सूचना नहीं",
+  "loading": "सूचनाएं लोड हो रही हैं...",
+  "sections": {
+    "unread": "अपठित",
+    "read": "पढ़ा गया"
+  },
+  "actions": {
+    "mark_all_read": "सभी को पढ़ा हुआ चिह्नित करें",
+    "delete_all_read": "सभी पढ़े गए हटाएं",
+    "close": "बंद करें",
+    "mark_as_read": "पढ़ा हुआ चिह्नित करें",
+    "delete": "हटाएं"
+  },
+  "time": {
+    "just_now": "अभी",
+    "minutes_ago": "{{minutes}} मिनट पहले",
+    "hours_ago": "{{hours}} घंटे पहले",
+    "days_ago": "{{days}} दिन पहले"
+  }
+}

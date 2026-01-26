@@ -258,7 +258,11 @@
       "file_type": "仅允许 PDF 文件",
       "file_size": "文件大小必须小于 10MB",
       "password_required": "需要当前密码",
-      "password_failed": "修改密码失败"
+      "password_failed": "修改密码失败",
+      "this_field_is_managed_by_your_training_center": "此字段 由您的 培训中心 管理",
+      "your_account_status_is_managed_by_your_training_center": "您的账户状态 由您的 培训中心 管理",
+      "you_are_registered_under_this_training_center": "您注册于此 培训中心",
+      "click_to_view": "点击上方的链接，在新标签页中查看当前简历"
     },
     "common": {
       "na": "不适用"

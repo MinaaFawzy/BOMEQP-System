@@ -1,17 +1,24 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { BookOpen, Users, Calendar, CheckCircle, Clock, XCircle, Search, Filter, ClipboardList } from 'lucide-react';
+import {
+    BookOpen, Users, Calendar, CheckCircle, Clock, XCircle, Search, Filter, ClipboardList,
+    Mail, Phone, MapPin, FileText, Award, User, Building2, Globe
+} from 'lucide-react';
 import DataTable from '../../../components/DataTable/DataTable';
 import Pagination from '../../../components/Pagination/Pagination';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
+import Modal from '../../../components/Modal/Modal';
+import DetailForm from '../../../components/DetailForm/DetailForm';
 import './ClassesScreen.css';
 
 const ClassesScreen = () => {
     const { setHeaderTitle, setHeaderSubtitle } = useHeader();
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
 
     // Pagination State
     const [pagination, setPagination] = useState({
@@ -70,6 +77,11 @@ const ClassesScreen = () => {
         loadClasses(showLoading);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination.current_page, pagination.per_page, debouncedSearch, statusFilter]);
+
+    const handleViewDetails = (classItem) => {
+        setSelectedClass(classItem);
+        setDetailModalOpen(true);
+    };
 
     const loadClasses = async (showLoading = true) => {
         if (showLoading) {
@@ -291,6 +303,7 @@ const ClassesScreen = () => {
                     searchValue={searchQuery}
                     onSearch={(value) => setSearchQuery(value)}
                     filterable={false}
+                    onRowClick={handleViewDetails}
                     emptyMessage={
                         classes.length === 0 && !loading ? (
                             <div className="flex flex-col items-center justify-center py-12">
@@ -323,6 +336,151 @@ const ClassesScreen = () => {
                     </div>
                 )}
             </div>
+
+            {/* Class Detail Modal */}
+            <Modal
+                isOpen={detailModalOpen}
+                onClose={() => setDetailModalOpen(false)}
+                title="Class Details"
+                size="lg"
+            >
+                {selectedClass && (
+                    <div className="space-y-8">
+                        {/* Basic Info */}
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <BookOpen size={16} className="text-primary-600" />
+                                Class Information
+                            </h4>
+                            <DetailForm
+                                data={selectedClass}
+                                fields={[
+                                    { key: 'name', label: 'Class Name', icon: BookOpen },
+                                    { key: 'status', label: 'Status', icon: Clock, type: 'status' },
+                                    { key: 'start_date', label: 'Start Date', icon: Calendar, type: 'date' },
+                                    { key: 'end_date', label: 'End Date', icon: Calendar, type: 'date' },
+                                    { key: 'exam_date', label: 'Exam Date', icon: ClipboardList, type: 'date' },
+                                    { key: 'location', label: 'Location', icon: MapPin },
+                                    { key: 'exam_score', label: 'Exam Score', icon: Award },
+                                ]}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Course Info */}
+                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <FileText size={16} className="text-blue-600" />
+                                    Course Information
+                                </h4>
+                                {selectedClass.course ? (
+                                    <DetailForm
+                                        data={selectedClass.course}
+                                        fields={[
+                                            { key: 'name', label: 'Course Name', icon: BookOpen },
+                                            { key: 'code', label: 'Code', icon: FileText },
+                                            { key: 'level', label: 'Level', icon: Award, type: 'badge', badgeClass: 'bg-blue-100 text-blue-800' },
+                                            { key: 'duration_hours', label: 'Duration', icon: Clock, transform: (val) => val ? `${val} Hours` : 'N/A' },
+                                        ]}
+                                    />
+                                ) : (
+                                    <p className="text-sm text-gray-500 italic">No course information available.</p>
+                                )}
+                            </div>
+
+                            {/* Instructor Info */}
+                            <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <User size={16} className="text-purple-600" />
+                                    Instructor Information
+                                </h4>
+                                {selectedClass.instructor ? (
+                                    <DetailForm
+                                        data={selectedClass.instructor}
+                                        fields={[
+                                            {
+                                                key: 'full_name',
+                                                label: 'Name',
+                                                icon: User,
+                                                transform: (_, data) => `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'N/A'
+                                            },
+                                            { key: 'email', label: 'Email', icon: Mail, type: 'email' },
+                                            { key: 'phone', label: 'Phone', icon: Phone },
+                                        ]}
+                                    />
+                                ) : (
+                                    <p className="text-sm text-gray-500 italic">No instructor assigned.</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Training Center Info */}
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <Building2 size={16} className="text-gray-600" />
+                                Training Center
+                            </h4>
+                            {selectedClass.training_center ? (
+                                <DetailForm
+                                    data={selectedClass.training_center}
+                                    fields={[
+                                        { key: 'name', label: 'Center Name', icon: Building2 },
+                                        { key: 'email', label: 'Email', icon: Mail, type: 'email' },
+                                        { key: 'phone', label: 'Phone', icon: Phone },
+                                        { key: 'country', label: 'Country', icon: Globe },
+                                    ]}
+                                />
+                            ) : (
+                                <p className="text-sm text-gray-500 italic">No training center information.</p>
+                            )}
+                        </div>
+
+                        {/* Trainees List */}
+                        <div>
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Users size={16} className="text-green-600" />
+                                Enrolled Trainees
+                                <span className="ml-auto px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                                    {selectedClass.trainees?.length || 0}
+                                </span>
+                            </h4>
+
+                            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar">
+                                {selectedClass.trainees && selectedClass.trainees.length > 0 ? (
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {selectedClass.trainees.map((trainee) => (
+                                                <tr key={trainee.id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        {trainee.first_name} {trainee.last_name}
+                                                    </td>
+                                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                        {trainee.email}
+                                                    </td>
+                                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                        {trainee.phone}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <div className="p-8 text-center text-gray-500 text-sm">
+                                        No trainees enrolled in this class.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

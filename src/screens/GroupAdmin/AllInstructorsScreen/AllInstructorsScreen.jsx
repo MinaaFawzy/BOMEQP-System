@@ -647,15 +647,77 @@ const AllInstructorsScreen = () => {
                 <DetailForm
                   data={selectedInstructor}
                   fields={[
-                    { key: 'first_name', label: 'First Name', icon: User },
-                    { key: 'last_name', label: 'Last Name', icon: User },
-                    { key: 'email', label: 'Email', type: 'email', icon: Mail },
-                    { key: 'phone', label: 'Phone', icon: Phone },
-                    { key: 'date_of_birth', label: 'Date of Birth', type: 'date', icon: Calendar, showEmpty: false },
+                    { key: 'first_name', label: 'First name', icon: User },
+                    { key: 'last_name', label: 'Last name', icon: User },
+                    { key: 'email', label: 'E-mail address', type: 'email', icon: Mail },
+                    { key: 'date_of_birth', label: 'D.O.B', type: 'date', icon: Calendar, showEmpty: false },
+                    { key: 'phone', label: 'Phone No', icon: Phone },
                     { key: 'id_number', label: 'ID Number', showEmpty: false },
+                    {
+                      key: 'is_assessor',
+                      label: 'Instructor/Assessor',
+                      render: (value) => value ? 'Assessor' : 'Instructor'
+                    },
                     { key: 'status', label: 'Status', type: 'status' },
                   ]}
                 />
+              )}
+
+              {/* Languages */}
+              {selectedInstructor && selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Languages:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedInstructor.specializations.map((lang, index) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CV & Passport */}
+              {selectedInstructor && (
+                <div className="mt-6 flex flex-col gap-4">
+                  {selectedInstructor.cv_url && (
+                    <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="p-2 bg-primary-100 rounded-lg mr-3">
+                        <FileText className="text-primary-600" size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Upload C.V + supporting certificates:</p>
+                      </div>
+                      <a
+                        href={selectedInstructor.cv_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                  {(selectedInstructor.passport_image_url || selectedInstructor.passport_url) && (
+                    <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="p-2 bg-primary-100 rounded-lg mr-3">
+                        <User className="text-primary-600" size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Passport copy:</p>
+                      </div>
+                      <a
+                        href={selectedInstructor.passport_image_url || selectedInstructor.passport_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
