@@ -51,6 +51,7 @@
       "empty": "कोई ACC नहीं मिला"
     },
     "status": {
+      "active": "सक्रिय",
       "scheduled": "निर्धारित",
       "in_progress": "प्रगति में",
       "completed": "पूर्ण",

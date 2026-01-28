@@ -51,6 +51,7 @@
       "empty": "未找到 ACC"
     },
     "status": {
+      "active": "活跃",
       "scheduled": "已安排",
       "in_progress": "进行中",
       "completed": "已完成",

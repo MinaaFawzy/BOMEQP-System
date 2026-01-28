@@ -200,7 +200,7 @@ const InstructorDashboardScreen = () => {
       {dashboardData?.charts && (
         <div className="charts-grid">
           {/* Earnings Over Time Chart */}
-          {dashboardData.charts.earnings_over_time && dashboardData.charts.earnings_over_time.length > 0 && (
+          {/* {dashboardData.charts.earnings_over_time && dashboardData.charts.earnings_over_time.length > 0 && (
             <div className="card chart-card">
               <div className="card-header">
                 <h2 className="card-title">
@@ -249,7 +249,7 @@ const InstructorDashboardScreen = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Classes Status Distribution Chart */}
           {dashboardData.charts.classes_status_distribution && dashboardData.charts.classes_status_distribution.length > 0 && (

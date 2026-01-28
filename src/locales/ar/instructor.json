@@ -8,7 +8,6 @@
       "total_classes": "إجمالي الدورات",
       "scheduled": "مجدولة",
       "completed": "مكتملة",
-
       "click_to_view_all": "اضغط لعرض الكل",
       "scheduled_classes": "دورات مجدولة",
       "finished_classes": "دورات منتهية"
@@ -61,6 +60,7 @@
     },
 
     "status": {
+      "active": "نشطة",
       "scheduled": "مجدولة",
       "in_progress": "قيد التنفيذ",
       "completed": "مكتملة",

@@ -51,6 +51,7 @@
       "empty": "No se encontraron ACCs"
     },
     "status": {
+      "active": "Activas",
       "scheduled": "Programada",
       "in_progress": "En progreso",
       "completed": "Completada",

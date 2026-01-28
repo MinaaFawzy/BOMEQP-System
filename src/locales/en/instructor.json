@@ -8,7 +8,6 @@
       "total_classes": "Total Classes",
       "scheduled": "Scheduled",
       "completed": "Completed",
-
       "click_to_view_all": "Click to view all",
       "scheduled_classes": "Scheduled classes",
       "finished_classes": "Finished classes"
@@ -61,6 +60,7 @@
     },
 
     "status": {
+      "active": "Active",
       "scheduled": "Scheduled",
       "in_progress": "In Progress",
       "completed": "Completed",
