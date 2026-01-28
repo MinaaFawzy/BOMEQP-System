@@ -29,16 +29,41 @@ const NotificationBell = () => {
       const maxDropdownWidth = window.innerWidth - 32;
       const actualDropdownWidth = Math.min(dropdownWidth, maxDropdownWidth);
 
-      // Calculate right position, ensuring it doesn't go off-screen
-      let rightPosition = window.innerWidth - buttonRect.right;
-      if (rightPosition + actualDropdownWidth > window.innerWidth - 16) {
-        rightPosition = 16; // Minimum margin from screen edge
+      const isRTL = document.dir === 'rtl' || document.body.dir === 'rtl';
+
+      if (isRTL) {
+        // RTL: Align left edge or ensuring it stays on screen
+        let leftPosition = buttonRect.left;
+
+        // If it overflows right edge
+        if (leftPosition + actualDropdownWidth > window.innerWidth - 16) {
+          leftPosition = window.innerWidth - actualDropdownWidth - 16;
+        }
+
+        // Ensure minimum margin from left
+        if (leftPosition < 16) {
+          leftPosition = 16;
+        }
+
+        setDropdownPosition({
+          top: buttonRect.bottom + 12,
+          left: leftPosition,
+          right: 'auto',
+        });
+      } else {
+        // LTR: Align right edge
+        let rightPosition = window.innerWidth - buttonRect.right;
+        if (rightPosition + actualDropdownWidth > window.innerWidth - 16) {
+          rightPosition = 16; // Minimum margin from screen edge
+        }
+
+        setDropdownPosition({
+          top: buttonRect.bottom + 12,
+          right: rightPosition,
+          left: 'auto',
+        });
       }
 
-      setDropdownPosition({
-        top: buttonRect.bottom + 12,
-        right: rightPosition,
-      });
       // Refresh notifications when opening dropdown (only if not already loading)
       if (!loading) {
         fetchNotifications({}, 1, 15);
@@ -149,7 +174,8 @@ const NotificationBell = () => {
           ref={dropdownRef}
           style={{
             top: `${dropdownPosition.top}px`,
-            right: `${dropdownPosition.right}px`,
+            right: dropdownPosition.right === 'auto' ? 'auto' : `${dropdownPosition.right}px`,
+            left: dropdownPosition.left === 'auto' ? 'auto' : `${dropdownPosition.left}px`,
           }}
         >
           <div className="notification-header">

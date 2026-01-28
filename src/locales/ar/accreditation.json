@@ -1221,7 +1221,8 @@
       },
       "language": {
         "title": "إعدادات اللغة",
-        "subtitle": "اختر لغة النظام المفضلة"
+        "subtitle": "اختر لغة النظام المفضلة",
+        "application_language": "لغة التطبيق"
       },
       "password": {
         "title": "تغيير كلمة المرور",

@@ -7,6 +7,7 @@ import Layout from './components/Layout/Layout';
 import AuthScreen from './screens/Auth/AuthScreen/AuthScreen';
 import PendingAccountScreen from './screens/Auth/PendingAccountScreen/PendingAccountScreen';
 import ResetPasswordScreen from './screens/Auth/ResetPasswordScreen/ResetPasswordScreen';
+import CompleteRegistrationScreen from './screens/Auth/CompleteRegistrationScreen/CompleteRegistrationScreen';
 
 // Dashboard screens
 import DashboardScreen from './screens/Dashboard/DashboardScreen/DashboardScreen';
@@ -108,6 +109,7 @@ function App() {
               {/* Public routes */}
               <Route path="/login" element={<AuthScreen />} />
               <Route path="/register" element={<AuthScreen />} />
+              <Route path="/complete-registration" element={<CompleteRegistrationScreen />} />
               <Route path="/reset-password" element={<ResetPasswordScreen />} />
               <Route path="/verify-certificate" element={<CertificateVerificationScreen />} />
               <Route path="/certificates/verify/:code" element={<CertificateRedirect />} />

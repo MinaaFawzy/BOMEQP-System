@@ -205,7 +205,12 @@
     "approved": "معتمد",
     "rejected": "مرفوض",
     "returned": "معاد",
-    "na": "غير متاح"
+    "na": "غير متاح",
+    "acc_logo": "شعار هيئة الاعتماد",
+    "same_as_physical_address": "نفس العنوان الفعلي",
+    "receives_communications": "يستقبل المراسلات",
+    "terms_accepted": "تم قبول الشروط",
+    "fax": "فاكس"
   },
   "authorization_form": {
     "documents": "المستندات",

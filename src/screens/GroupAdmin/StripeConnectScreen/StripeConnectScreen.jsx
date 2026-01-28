@@ -326,41 +326,41 @@ const StripeConnectScreen = () => {
                 </div>
             )
         },
-        {
-            header: 'Actions',
-            accessor: 'actions',
-            render: (_, row) => (
-                <div className="action-buttons">
-                    <button
-                        className="action-btn view"
-                        onClick={() => handleViewDetails(row)}
-                        title="View Details"
-                    >
-                        <Eye size={16} />
-                    </button>
-                    {row.stripe_connect_status === 'failed' && (
-                        <button
-                            className="action-btn retry"
-                            onClick={() => handleRetry(row)}
-                            title="Retry"
-                            disabled={actionLoading}
-                        >
-                            <RotateCcw size={16} />
-                        </button>
-                    )}
-                    {row.stripe_connect_status === 'connected' && (
-                        <button
-                            className="action-btn disconnect"
-                            onClick={() => handleDisconnect(row)}
-                            title="Disconnect"
-                            disabled={actionLoading}
-                        >
-                            <Unlink size={16} />
-                        </button>
-                    )}
-                </div>
-            ),
-        },
+        // {
+        //     header: 'Actions',
+        //     accessor: 'actions',
+        //     render: (_, row) => (
+        //         <div className="action-buttons">
+        //             <button
+        //                 className="action-btn view"
+        //                 onClick={() => handleViewDetails(row)}
+        //                 title="View Details"
+        //             >
+        //                 <Eye size={16} />
+        //             </button>
+        //             {row.stripe_connect_status === 'failed' && (
+        //                 <button
+        //                     className="action-btn retry"
+        //                     onClick={() => handleRetry(row)}
+        //                     title="Retry"
+        //                     disabled={actionLoading}
+        //                 >
+        //                     <RotateCcw size={16} />
+        //                 </button>
+        //             )}
+        //             {row.stripe_connect_status === 'connected' && (
+        //                 <button
+        //                     className="action-btn disconnect"
+        //                     onClick={() => handleDisconnect(row)}
+        //                     title="Disconnect"
+        //                     disabled={actionLoading}
+        //                 >
+        //                     <Unlink size={16} />
+        //                 </button>
+        //             )}
+        //         </div>
+        //     ),
+        // },
     ], [actionLoading]);
 
     return (

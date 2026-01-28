@@ -32,7 +32,7 @@ const PendingPaymentsScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     loadPendingPayments();

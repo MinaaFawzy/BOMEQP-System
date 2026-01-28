@@ -1053,7 +1053,8 @@
       },
       "language": {
         "title": "语言 设置",
-        "subtitle": "选择 您的 首选 系统 语言"
+        "subtitle": "选择 您的 首选 系统 语言",
+        "application_language": "应用 语言"
       },
       "password": {
         "title": "更改 密码",

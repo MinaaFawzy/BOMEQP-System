@@ -17,7 +17,7 @@ import arNavigation from './locales/ar/navigation.json';
 import arTrainingCenter from './locales/ar/training_center.json';
 import arAccreditation from './locales/ar/accreditation.json';
 import arInstructor from './locales/ar/instructor.json';
-// import arNotifications from './locales/ar/notifications.json';
+import arNotifications from './locales/ar/notifications.json';
 
 // Import Chinese (Simplified) translations
 import zhCNCommon from './locales/zh-CN/common.json';
@@ -36,6 +36,15 @@ import hiTrainingCenter from './locales/hi/training_center.json';
 import hiAccreditation from './locales/hi/accreditation.json';
 import hiInstructor from './locales/hi/instructor.json';
 import hiNotifications from './locales/hi/notifications.json';
+
+// Import Spanish translations
+import esCommon from './locales/es/common.json';
+import esAuth from './locales/es/auth.json';
+import esNavigation from './locales/es/navigation.json';
+import esTrainingCenter from './locales/es/training_center.json';
+import esAccreditation from './locales/es/accreditation.json';
+import esInstructor from './locales/es/instructor.json';
+import esNotifications from './locales/es/notifications.json';
 
 // Get saved language from localStorage or default to 'en'
 const savedLanguage = localStorage.getItem('language') || 'en';
@@ -61,6 +70,7 @@ i18n
                 training_center: arTrainingCenter,
                 accreditation: arAccreditation,
                 instructor: arInstructor,
+                notifications: arNotifications,
             },
             'zh-CN': { // Chinese Simplified - matches backend language code format
                 common: zhCNCommon,
@@ -79,6 +89,15 @@ i18n
                 accreditation: hiAccreditation,
                 instructor: hiInstructor,
                 notifications: hiNotifications,
+            },
+            es: {
+                common: esCommon,
+                auth: esAuth,
+                navigation: esNavigation,
+                training_center: esTrainingCenter,
+                accreditation: esAccreditation,
+                instructor: esInstructor,
+                notifications: esNotifications,
             },
         },
         lng: savedLanguage, // default language
@@ -104,33 +123,10 @@ const updateDirection = (language) => {
 updateDirection(savedLanguage);
 
 // Listen for language changes and sync with backend
-i18n.on('languageChanged', async (lng) => {
+// Listen for language changes
+i18n.on('languageChanged', (lng) => {
     localStorage.setItem('language', lng);
     updateDirection(lng);
-
-    // Sync language preference with backend
-    try {
-        const token = localStorage.getItem('token');
-        if (token) {
-            // Only sync if user is logged in
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}/auth/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ language: lng })
-            });
-
-            if (response.ok) {
-                console.log('Language preference synced with backend:', lng);
-            }
-        }
-    } catch (error) {
-        console.error('Failed to sync language with backend:', error);
-        // Don't throw error - language change should still work locally
-    }
 });
 
 // Helper function to set language from backend user data

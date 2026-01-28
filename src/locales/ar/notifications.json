@@ -1,0 +1,22 @@
+{
+  "title": "الإشعارات",
+  "empty": "لا توجد إشعارات",
+  "loading": "جارٍ تحميل الإشعارات...",
+  "sections": {
+    "unread": "غير مقروءة",
+    "read": "مقروءة"
+  },
+  "actions": {
+    "mark_all_read": "تحديد الكل كمقروء",
+    "delete_all_read": "حذف المقروء",
+    "close": "إغلاق",
+    "mark_as_read": "تحديد كمقروء",
+    "delete": "حذف"
+  },
+  "time": {
+    "just_now": "الآن",
+    "minutes_ago": "منذ {{minutes}} دقيقة",
+    "hours_ago": "منذ {{hours}} ساعة",
+    "days_ago": "منذ {{days}} يوم"
+  }
+}

@@ -1,0 +1,267 @@
+:root {
+  /* Inherit/Map colors from index.css */
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  
+  /* BRAND COLORS FROM INDEX.CSS */
+  --primary: #1a2c49;     /* var(--primary-color) */
+  --secondary: #2c4a5f;   /* var(--secondary-color) */
+  --highlight: #3e669e;   /* var(--primary-500) - Lighter blue for active states/buttons */
+  --gold: #D4AF37;        /* var(--tertiary-color) - Optional accents */
+  
+  --input-bg: #f1f5f9; 
+  --input-hover: #e2e8f0;
+  
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius: 16px;
+  
+  --ok: #10b981;
+  --bad: #d32f2f; /* Using index.css error color */
+}
+
+.auth-page-root {
+  min-height: 100vh;
+  margin: 0;
+  font-family: inherit;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 28px;
+}
+
+.shell {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 6px;
+  direction: ltr;
+}
+
+.topbar h1 { 
+  margin: 0; 
+  font-size: 28px; 
+  letter-spacing: -0.5px; 
+  color: var(--primary);
+  font-weight: 800;
+}
+.topbar p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+
+.registration-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+
+.section { padding: 24px 0; border-top: 1px solid var(--border); }
+.section:first-child { border-top: 0; padding-top: 0; }
+
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-head h2 { 
+  margin: 0; 
+  font-size: 18px; 
+  color: var(--primary);
+  font-weight: 700;
+}
+.hint { font-size: 13px; color: var(--muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.field {
+  grid-column: span 6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 720px) {
+  .field { grid-column: span 12; }
+}
+
+label { 
+  font-size: 14px; 
+  color: var(--text); 
+  font-weight: 500;
+  margin-left: 2px;
+}
+.req { color: var(--bad); }
+
+/* --- Input Overrides --- */
+.custom-input-field {
+    margin-bottom: 0 !important; 
+}
+
+.custom-input-field .MuiOutlinedInput-root {
+    background-color: var(--input-bg) !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    color: var(--text) !important;
+    border-radius: 12px !important;
+    transition: all 0.2s ease !important;
+}
+
+.custom-input-field .MuiOutlinedInput-root:hover {
+    background-color: var(--input-hover) !important;
+}
+
+.custom-input-field .MuiOutlinedInput-root.Mui-focused {
+    background-color: white !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(26, 44, 73, 0.1) !important; /* Tint of primary */
+}
+
+.custom-input-field .MuiOutlinedInput-input {
+    color: var(--text) !important;
+    font-weight: 500;
+    padding: 12px 14px !important;
+}
+
+.custom-input-field .MuiOutlinedInput-input::placeholder {
+    color: var(--muted) !important;
+    opacity: 1 !important;
+}
+
+.custom-input-field .MuiSvgIcon-root,
+.custom-input-icon,
+.custom-input-field .MuiInputAdornment-root {
+    color: var(--muted) !important;
+}
+
+.MuiMenu-paper {
+    background-color: white !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+.MuiMenuItem-root {
+    color: var(--text) !important;
+}
+.MuiMenuItem-root:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.MuiFormHelperText-root {
+    color: var(--bad) !important;
+    margin-left: 4px !important;
+}
+
+.row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.check {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text);
+  user-select: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+.check input { 
+    width: 18px; 
+    height: 18px; 
+    accent-color: var(--primary); 
+}
+
+.note {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--input-bg);
+  border: 1px dashed var(--muted);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 10px;
+}
+.dot { width: 8px; height: 8px; border-radius: 999px; margin-top: 6px; background: var(--muted); }
+.note p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; font-weight: 500; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.chip:hover { background: var(--bg); }
+.chip.active { 
+    background: var(--bg);
+    border-color: var(--primary);
+    color: var(--primary); 
+    font-weight: 700;
+}
+.chip input { width: 14px; height: 14px; margin: 0; accent-color: var(--primary); }
+
+.file-upload-box {
+    background: var(--bg) !important;
+    border: 1px dashed #cbd5e1 !important;
+    color: var(--text) !important;
+    transition: all 0.2s !important;
+}
+.file-upload-box:hover {
+    background: #e2e8f0 !important;
+    border-color: var(--primary) !important;
+}
+.file-upload-box span { color: var(--muted) !important; }
+.file-upload-box svg { color: var(--muted) !important; }
+
+.actions {
+  display: flex; gap: 12px; justify-content: flex-end;
+  padding-top: 24px; border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-1px); }
+
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 6px -1px rgba(26, 44, 73, 0.3);
+}
+.btn.primary:hover {
+    background: var(--secondary);
+    box-shadow: 0 10px 15px -3px rgba(26, 44, 73, 0.4);
+}
+
+.btn.ghost {
+  background: white;
+  color: var(--muted);
+}
+.btn.ghost:hover {
+    background: var(--bg);
+    color: var(--text);
+}

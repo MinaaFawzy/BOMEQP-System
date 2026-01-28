@@ -57,7 +57,7 @@ const CertificatesScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, t]);
 
   const loadCertificates = async () => {
     setLoading(true);

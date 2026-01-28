@@ -32,6 +32,10 @@
   letter-spacing: 0.05em;
 }
 
+[dir="rtl"] .data-table-th {
+  text-align: right;
+}
+
 .data-table-th-sortable {
   cursor: pointer;
   user-select: none;
@@ -53,6 +57,12 @@
   align-items: center;
   color: rgba(255, 255, 255, 0.8);
   transition: color 0.2s;
+  margin-left: 0.5rem;
+}
+
+[dir="rtl"] .data-table-sort-icon {
+  margin-left: 0;
+  margin-right: 0.5rem;
 }
 
 .data-table-th-sortable:hover .data-table-sort-icon {
@@ -138,6 +148,11 @@
   color: #9ca3af;
 }
 
+[dir="rtl"] .data-table-search-icon {
+  left: auto;
+  right: 0.75rem;
+}
+
 .data-table-search-input {
   width: 100%;
   padding-left: 2.5rem;
@@ -151,8 +166,6 @@
 }
 
 .data-table-search-input:focus {
-  ring: 2px;
-  ring-color: var(--primary-500);
   border-color: var(--primary-500);
 }
 
@@ -167,6 +180,11 @@
   cursor: pointer;
   padding: 0;
   transition: color 0.2s;
+}
+
+[dir="rtl"] .data-table-search-clear {
+  right: auto;
+  left: 0.75rem;
 }
 
 .data-table-search-clear:hover {
@@ -243,6 +261,10 @@
   cursor: pointer;
   transition: background-color 0.2s;
   color: #374151;
+}
+
+[dir="rtl"] .data-table-filter-option {
+  text-align: right;
 }
 
 .data-table-filter-option:hover {

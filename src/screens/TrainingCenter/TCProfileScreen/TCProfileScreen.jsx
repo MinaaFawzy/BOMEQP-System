@@ -1184,15 +1184,9 @@ const TCProfileScreen = () => {
           </div>
 
           <div className="profile-form-grid">
-            <FormInput
+            <LanguageSwitcher
               label={t('tc_profile_screen.language.application_language')}
-              type="select"
-              value={currentLanguage}
-              onChange={(e) => changeLanguage(e.target.value)}
-              options={Object.keys(languages).map((code) => ({
-                value: code,
-                label: languages[code],
-              }))}
+              className="w-full"
             />
           </div>
         </div>

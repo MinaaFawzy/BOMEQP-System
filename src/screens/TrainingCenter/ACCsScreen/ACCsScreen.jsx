@@ -174,7 +174,7 @@ const ACCsScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -192,7 +192,7 @@ const ACCsScreen = () => {
               <>
                 <img
                   src={row.logo_url}
-                  alt={value || 'ACC Logo'}
+                  alt={value || t('accreditations.acc_logo')}
                   className="accs-table-row-icon"
                   width="40"
                   height="40"
@@ -318,7 +318,7 @@ const ACCsScreen = () => {
               <>
                 <img
                   src={value.logo_url}
-                  alt={value?.name || 'ACC Logo'}
+                  alt={value?.name || t('accreditations.acc_logo')}
                   className="accs-table-row-icon"
                   width="40"
                   height="40"
@@ -525,7 +525,7 @@ const ACCsScreen = () => {
 
       // Mailing Address - Merged with fallbacks
       mailing_address_full: (acc.mailing_same_as_physical || acc.mailing_address?.same_as_physical)
-        ? 'Same as Physical Address'
+        ? t('accreditations.same_as_physical_address')
         : [
           acc.mailing_address?.street || acc.mailing_street,
           acc.mailing_address?.city || acc.mailing_city,
@@ -562,8 +562,8 @@ const ACCsScreen = () => {
 
       // Agreements
       agreements_summary: [
-        acc.agreed_to_receive_communications ? 'Receives Comms' : null,
-        acc.agreed_to_terms_and_conditions ? 'Terms Accepted' : null
+        acc.agreed_to_receive_communications ? t('accreditations.receives_communications') : null,
+        acc.agreed_to_terms_and_conditions ? t('accreditations.terms_accepted') : null
       ].filter(Boolean).join(', ')
     };
 
@@ -815,7 +815,7 @@ const ACCsScreen = () => {
                   className="accs-detail-button"
                 >
                   <Send size={20} className="accs-detail-button-icon" />
-                  {t("training_center.request_authorization")}
+                  {t("accreditations.request_authorization")}
                 </button>
               </div>
             )}
@@ -830,7 +830,7 @@ const ACCsScreen = () => {
           setAuthDetailModalOpen(false);
           setSelectedAuthorization(null);
         }}
-        title={t("training_center:authorization_request_details")}
+        title={t("accreditations.authorization_request_details")}
         size="lg"
       >
         {selectedAuthorization && (
@@ -839,23 +839,23 @@ const ACCsScreen = () => {
             <DetailForm
               data={selectedAuthorization.acc || {}}
               fields={[
-                { key: 'id', label: t('training_center:id'), showEmpty: false },
-                { key: 'name', label: t('training_center:name'), icon: Building2 },
-                { key: 'email', label: t('training_center:email'), type: 'email', icon: Mail },
-                { key: 'phone', label: t('training_center:phone'), icon: Phone, showEmpty: false },
-                { key: 'fax', label: 'Fax', showEmpty: false },
-                { key: 'website', label: t('training_center:accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
-                { key: 'physical_address_full', label: t('training_center:physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'mailing_address_full', label: t('training_center:mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'primary_contact_full_name', label: t('training_center:primary_contact'), showEmpty: false },
-                { key: 'primary_contact_email', label: t('training_center:primary_contact_email'), type: 'email', showEmpty: false },
-                { key: 'primary_contact_mobile', label: t('training_center:primary_contact_mobile'), showEmpty: false },
-                { key: 'primary_contact_country', label: t('training_center:primary_contact_country'), showEmpty: false },
-                { key: 'company_gov_registry_number', label: t('training_center:gov_registry_number'), showEmpty: false },
-                { key: 'status', label: t('training_center:status'), type: 'status' },
-                { key: 'description', label: t('training_center:accreditations.description'), fullWidth: true, showEmpty: false },
-                { key: 'created_at', label: t('training_center:created_at'), type: 'datetime', icon: Clock, showEmpty: false },
-                { key: 'updated_at', label: t('training_center:updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                { key: 'id', label: t('accreditations.id'), showEmpty: false },
+                { key: 'name', label: t('accreditations.name'), icon: Building2 },
+                { key: 'email', label: t('accreditations.email'), type: 'email', icon: Mail },
+                { key: 'phone', label: t('accreditations.phone'), icon: Phone, showEmpty: false },
+                { key: 'fax', label: t('accreditations.fax'), showEmpty: false },
+                { key: 'website', label: t('accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
+                { key: 'physical_address_full', label: t('accreditations.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                { key: 'mailing_address_full', label: t('accreditations.mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                { key: 'primary_contact_full_name', label: t('accreditations.primary_contact'), showEmpty: false },
+                { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
+                { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
+                { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
+                { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
+                { key: 'status', label: t('accreditations.status'), type: 'status' },
+                { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
+                { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                { key: 'updated_at', label: t('accreditations.updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
               ]}
             />
 
@@ -863,16 +863,16 @@ const ACCsScreen = () => {
             <DetailForm
               data={selectedAuthorization}
               fields={[
-                { key: 'status', label: t('training_center:status'), type: 'status' },
-                { key: 'request_date', label: t('training_center:request_date'), type: 'datetime', icon: Clock },
-                { key: 'reviewed_at', label: t('training_center:reviewed_at'), type: 'datetime', icon: CheckCircle, showEmpty: false },
+                { key: 'status', label: t('accreditations.status'), type: 'status' },
+                { key: 'request_date', label: t('accreditations.request_date'), type: 'datetime', icon: Clock },
+                { key: 'reviewed_at', label: t('accreditations.reviewed_at'), type: 'datetime', icon: CheckCircle, showEmpty: false },
               ]}
             />
 
             {/* Additional Information */}
             {selectedAuthorization.additional_info && (
               <InfoBox
-                title={t("training_center.additional_information")}
+                title={t("accreditations.additional_information")}
                 content={selectedAuthorization.additional_info}
                 variant="blue"
               />
@@ -881,7 +881,7 @@ const ACCsScreen = () => {
             {/* ACC Comment (when status is returned) */}
             {selectedAuthorization.status === 'returned' && selectedAuthorization.return_comment && (
               <InfoBox
-                title={t("training_center.accreditation_body_comment_return_reason")}
+                title={t("accreditations.accreditation_body_comment_return_reason")}
                 content={selectedAuthorization.return_comment}
                 icon={MessageSquare}
                 variant="yellow"
@@ -892,7 +892,7 @@ const ACCsScreen = () => {
             {/* ACC Rejection Reason (if exists) */}
             {selectedAuthorization.status === 'rejected' && selectedAuthorization.rejection_reason && (
               <InfoBox
-                title={t("training_center.rejection_reason")}
+                title={t("accreditations.rejection_reason")}
                 content={selectedAuthorization.rejection_reason}
                 icon={XCircle}
                 variant="red"
@@ -903,7 +903,7 @@ const ACCsScreen = () => {
             {/* Documents */}
             <DocumentsList
               documents={selectedAuthorization.documents}
-              title={t("training_center.submitted_documents")}
+              title={t("accreditations.submitted_documents")}
             />
           </div>
         )}

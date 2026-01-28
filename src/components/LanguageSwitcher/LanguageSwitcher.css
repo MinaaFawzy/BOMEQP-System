@@ -1,5 +1,11 @@
 .language-switcher {
-  display: inline-block;
+    display: flex;
+    align-items: stretch; /* specific: ensures full width and text alignment follows container */
+}
+
+.language-switcher .relative-container {
+    position: relative;
+    display: inline-block;
 }
 
 .language-select {
@@ -46,4 +52,52 @@
 /* RTL support */
 [dir="rtl"] .language-select {
   text-align: right;
+}
+
+/* Loading Overlay */
+.language-switcher-loading-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+    border-radius: 0.5rem; /* Matches rounded-lg */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Spinner Animation */
+.language-switcher-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2.5px solid #e5e7eb; /* Light gray track */
+    border-top-color: #3b82f6; /* Primary blue accent */
+    border-radius: 50%;
+    animation: language-switcher-spin 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+}
+
+@keyframes language-switcher-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Dark mode adjustment for spinner */
+@media (prefers-color-scheme: dark) {
+    .language-switcher-loading-overlay {
+        background-color: rgba(31, 41, 55, 0.7); /* dark-gray-800 */
+    }
+    
+    .language-switcher-spinner {
+        border-color: #374151; /* dark-gray-700 */
+        border-top-color: #60a5fa; /* blue-400 */
+    }
 }

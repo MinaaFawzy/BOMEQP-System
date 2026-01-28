@@ -246,7 +246,7 @@ const TrainingCenterCertificatesScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, handleOpenModal]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, handleOpenModal, t]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

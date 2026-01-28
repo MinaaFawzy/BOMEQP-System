@@ -53,7 +53,7 @@ const AuthorizedInstructorsScreen = () => {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
         };
-    }, [setHeaderTitle, setHeaderSubtitle]);
+    }, [setHeaderTitle, setHeaderSubtitle, t]);
 
     const loadData = async () => {
         setLoading(true);

@@ -104,7 +104,7 @@ const CoursesScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, t]);
 
   const loadCourses = async () => {
     setLoading(true);

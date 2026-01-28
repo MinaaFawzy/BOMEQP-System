@@ -80,7 +80,7 @@ const TrainingCentersScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   // Fetch stats for tabs
   const fetchStats = async () => {

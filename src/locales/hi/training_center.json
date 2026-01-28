@@ -182,7 +182,12 @@
     "approved": "स्वीकृत",
     "rejected": "अस्वीकृत",
     "returned": "वापस किया गया",
-    "na": "लागू नहीं"
+    "na": "लागू नहीं",
+    "acc_logo": "मान्यता निकाय लोगो",
+    "same_as_physical_address": "भौतिक पते के समान",
+    "receives_communications": "संचार प्राप्त करता है",
+    "terms_accepted": "शर्तें स्वीकार की गईं",
+    "fax": "फैक्स"
   },
   "authorization_form": {
     "documents": "दस्तावेज़",

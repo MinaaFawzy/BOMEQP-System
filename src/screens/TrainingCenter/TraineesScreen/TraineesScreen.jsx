@@ -97,7 +97,7 @@ const TraineesScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, t]);
 
   const loadTrainees = async (pageArg = 1, limitArg = 10, search = '', status = 'all', showLoading = true) => {
     if (showLoading) {

@@ -7,11 +7,12 @@ import Button from '../../../components/Button/Button';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import { validateEmail, validatePhone, validatePassword, validatePasswordConfirmation, validateRequired, validateUKID } from '../../../utils/validation';
 import {
-  User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound,
+  User, Mail, Lock, Save, Shield, CheckCircle, Clock, Calendar, KeyRound, Globe,
   Phone, MapPin, FileText, Upload, X, Award, Building2, Edit
 } from 'lucide-react';
 import axios from 'axios';
 import './ProfileScreen.css';
+import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 
 const ProfileScreen = () => {
   const { user, updateUser } = useAuth();
@@ -1287,6 +1288,26 @@ const ProfileScreen = () => {
               </div>
             </div>
           )}
+
+          {/* Language Settings Section */}
+          {/* <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mt-6">
+            <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
+                <Globe className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Language Settings</h2>
+                <p className="text-sm text-gray-500">Change application language</p>
+              </div>
+            </div>
+
+            <div className="profile-form-grid">
+              <LanguageSwitcher
+                label="Application Language"
+                className="w-full"
+              />
+            </div>
+          </div> */}
         </div>
       </div>
     </div>

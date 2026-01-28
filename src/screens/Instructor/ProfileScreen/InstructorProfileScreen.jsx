@@ -12,6 +12,7 @@ import {
   Phone, MapPin, FileText, Upload, X, CheckCircle, Award, Calendar, Eye, Trash2, Edit, Clock, Building2
 } from 'lucide-react';
 import './InstructorProfileScreen.css';
+import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 
 const InstructorProfileScreen = () => {
   const { t, currentLanguage, changeLanguage, languages } = useTranslation('instructor');
@@ -67,7 +68,7 @@ const InstructorProfileScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     loadCountries();
@@ -1507,15 +1508,9 @@ const InstructorProfileScreen = () => {
           </div>
 
           <div className="profile-form-grid">
-            <FormInput
+            <LanguageSwitcher
               label={t('profile_screen.sections.language.application_language')}
-              type="select"
-              value={currentLanguage}
-              onChange={(e) => changeLanguage(e.target.value)}
-              options={Object.keys(languages).map((code) => ({
-                value: code,
-                label: languages[code],
-              }))}
+              className="w-full"
             />
           </div>
         </div>

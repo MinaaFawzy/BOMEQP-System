@@ -1,0 +1,1117 @@
+{
+  "dashboard": {
+    "cards": {
+      "total_revenue": "Ingresos totales",
+      "pending_requests": "Solicitudes pendientes",
+      "active_training_centers": "Centros de formación activos",
+      "active_instructors": "Instructores activos",
+      "click_to_view_details": "Haz clic para ver los detalles"
+    },
+    "sections": {
+      "revenue_overview": "Resumen de ingresos",
+      "monthly_revenue": "Ingresos mensuales",
+      "revenue_over_time": "Ingresos a lo largo del tiempo",
+      "certificates_over_time": "Certificados a lo largo del tiempo"
+    },
+    "charts": {
+      "revenue": "Ingresos",
+      "certificates": "Certificados"
+    }
+  },
+  "subscription_screen": {
+    "header": {
+      "title": "Gestión de suscripción",
+      "subtitle": "Administra tu suscripción ACC y los detalles de pago"
+    },
+    "no_subscription": {
+      "title": "Sin suscripción activa",
+      "description": "Necesitas suscribirte para acceder a todas las funciones de ACC. Por favor, completa el pago de tu suscripción para continuar.",
+      "subscribe_now": "Suscribirse ahora"
+    },
+    "current_subscription": {
+      "title": "Suscripción actual",
+      "subtitle": "Administra los detalles de tu suscripción",
+      "status": {
+        "paid": "PAGADO",
+        "pending": "PENDIENTE"
+      },
+      "fields": {
+        "start_date": "Fecha de inicio",
+        "end_date": "Fecha de finalización",
+        "amount": "Monto",
+        "auto_renew": "Renovación automática",
+        "enabled": "Habilitada",
+        "disabled": "Deshabilitada"
+      },
+      "actions": {
+        "pay_subscription": "Pagar suscripción",
+        "manage_renewal": "Gestionar renovación"
+      }
+    },
+    "payment_modal": {
+      "title": "Suscribirse / Pagar suscripción",
+      "amount": "Monto",
+      "amount_placeholder": "5000.00",
+      "payment_method_title": "Método de pago: Tarjeta de crédito",
+      "payment_method_description": "El pago se procesará de forma segura a través de Stripe. Haz clic en \"Pagar ahora\" a continuación para ingresar los datos de tu tarjeta.",
+      "cancel": "Cancelar",
+      "pay_now": "Pagar ahora",
+      "processing": "Procesando..."
+    },
+    "renewal_modal": {
+      "title": "Gestionar renovación de suscripción",
+      "amount": "Monto",
+      "amount_placeholder": "10000.00",
+      "payment_method_title": "Método de pago: Tarjeta de crédito",
+      "payment_method_description": "El pago se procesará de forma segura a través de Stripe. Haz clic en \"Renovar suscripción\" a continuación para ingresar los datos de tu tarjeta.",
+      "auto_renew": "Habilitar renovación automática",
+      "auto_renew_hint": "Cuando esté habilitada, tu suscripción se renovará automáticamente al final del período actual.",
+      "cancel": "Cancelar",
+      "renew": "Renovar suscripción",
+      "processing": "Procesando..."
+    },
+    "messages": {
+      "payment_success": "¡El pago de la suscripción se procesó correctamente!",
+      "renew_success": "¡La suscripción se renovó correctamente!"
+    },
+    "errors": {
+      "invalid_amount": "Por favor, ingresa un monto válido mayor que 0",
+      "min_amount": "El monto debe ser de al menos $1.00",
+      "create_payment_intent_failed": "No se pudo crear la intención de pago. Por favor, inténtalo de nuevo.",
+      "payment_not_completed": "El pago no se completó. Estado: {{status}}",
+      "payment_verification_failed": "La verificación del pago falló. Por favor, contacta al soporte.",
+      "payment_process_failed": "El pago fue exitoso, pero no se pudo procesar la suscripción. Por favor, contacta al soporte.",
+      "renew_failed": "El pago fue exitoso, pero no se pudo renovar la suscripción. Por favor, contacta al soporte."
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "training_centers_screen": {
+    "header": {
+      "title": "Centros de formación",
+      "subtitle": "Gestiona las autorizaciones y solicitudes de centros de formación"
+    },
+    "tabs": {
+      "total": "Total",
+      "pending": "Pendientes",
+      "active": "Activos",
+      "returned": "Devueltos"
+    },
+    "search": {
+      "placeholder": "Buscar centros de formación..."
+    },
+    "table": {
+      "training_center": "Centro de formación",
+      "email": "Correo electrónico",
+      "date": "Fecha",
+      "status": "Estado",
+      "actions": "Acciones",
+      "empty": "No se encontraron centros de formación"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "return": "Devolver"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activo",
+      "approved": "Aprobado",
+      "returned": "Devuelto",
+      "rejected": "Rechazado",
+      "na": "N/D"
+    },
+    "details": {
+      "request_title": "Detalles de la solicitud del centro de formación",
+      "details_title": "Detalles del centro de formación",
+      "request_info": "Información de la solicitud",
+      "training_center_info": "Información del centro de formación",
+      "documents": "Documentos",
+      "request_id": "ID de la solicitud",
+      "training_center_id": "ID del centro de formación",
+      "request_date": "Fecha de solicitud",
+      "created_at": "Creado el",
+      "updated_at": "Actualizado el",
+      "reviewed_at": "Revisado el"
+    },
+    "company": {
+      "company_name": "Nombre de la empresa",
+      "website": "Sitio web",
+      "email": "Correo electrónico de la empresa",
+      "phone": "Número de teléfono",
+      "fax": "Fax",
+      "training_provider_type": "Tipo de proveedor de formación",
+      "physical_address": "Dirección física",
+      "mailing_same_as_physical": "Dirección postal igual a la física",
+      "mailing_address": "Dirección postal",
+      "primary_contact": "Contacto principal",
+      "primary_contact_email": "Correo electrónico del contacto principal",
+      "primary_contact_country": "País del contacto principal",
+      "primary_contact_mobile": "Móvil del contacto principal",
+      "secondary_contact": "Contacto secundario",
+      "secondary_contact_email": "Correo electrónico del contacto secundario",
+      "secondary_contact_country": "País del contacto secundario",
+      "secondary_contact_mobile": "Móvil del contacto secundario",
+      "gov_registry_number": "Número de registro gubernamental",
+      "registration_certificate": "Certificado de registro",
+      "facility_floorplan": "Plano de las instalaciones",
+      "interested_fields": "Áreas de interés",
+      "how_did_you_hear": "¿Cómo se enteró de nosotros?",
+      "description": "Descripción"
+    },
+    "documents": {
+      "view_certificate": "Ver certificado",
+      "view_floorplan": "Ver plano",
+      "view_document": "Ver documento"
+    },
+    "rejection": {
+      "title": "Rechazar solicitud del centro de formación",
+      "reason_label": "Motivo del rechazo",
+      "reason_placeholder": "Ingresa el motivo del rechazo...",
+      "confirm": "Rechazar solicitud",
+      "missing_reason": "Por favor, proporciona un motivo de rechazo",
+      "success": "La solicitud del centro de formación fue rechazada"
+    },
+    "return": {
+      "title": "Devolver solicitud del centro de formación",
+      "comment_label": "Comentario de devolución",
+      "comment_placeholder": "Ingresa comentarios para devolver la solicitud...",
+      "confirm": "Devolver solicitud",
+      "missing_comment": "Por favor, proporciona un comentario de devolución",
+      "success": "La solicitud fue devuelta para revisión"
+    },
+    "messages": {
+      "approve_confirm": "¿Aprobar esta solicitud de centro de formación?",
+      "approve_success": "¡La solicitud del centro de formación fue aprobada correctamente!",
+      "approve_failed": "No se pudo aprobar la solicitud",
+      "load_failed": "No se pudieron cargar los datos"
+    },
+    "common": {
+      "yes": "Sí",
+      "no": "No",
+      "cancel": "Cancelar",
+      "na": "N/D"
+    }
+  },
+  "instructors_screen": {
+    "header": {
+      "title": "Solicitudes de autorización de instructores",
+      "subtitle": "Revisa y gestiona las solicitudes de autorización de instructores"
+    },
+    "tabs": {
+      "total": "Total",
+      "pending": "Pendientes",
+      "active": "Activos",
+      "returned": "Devueltos"
+    },
+    "search": {
+      "placeholder": "Buscar instructores..."
+    },
+    "table": {
+      "instructor": "Instructor",
+      "email": "Correo electrónico",
+      "date": "Fecha",
+      "status": "Estado",
+      "actions": "Acciones",
+      "empty": "No se encontraron instructores"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "return": "Devolver"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "approved": "Aprobado",
+      "active": "Activo",
+      "returned": "Devuelto",
+      "rejected": "Rechazado",
+      "paid": "Pagado",
+      "unpaid": "No pagado",
+      "na": "N/D"
+    },
+    "details": {
+      "request_title": "Detalles de la solicitud del instructor",
+      "details_title": "Detalles del instructor",
+      "request_info": "Información de la solicitud",
+      "instructor_info": "Información del instructor",
+      "documents": "Documentos",
+      "authorization_details": "Detalles de la autorización",
+      "request_id": "ID de la solicitud",
+      "training_center_id": "ID del centro de formación",
+      "request_date": "Fecha de solicitud",
+      "created_at": "Creado el",
+      "updated_at": "Actualizado el",
+      "reviewed_at": "Revisado el",
+      "payment_status": "Estado del pago",
+      "authorization_price": "Precio de autorización"
+    },
+    "fields": {
+      "first_name": "Nombre:",
+      "last_name": "Apellido:",
+      "email": "Correo electrónico:",
+      "phone": "Teléfono:",
+      "date_of_birth": "Fecha de nacimiento:",
+      "nationality": "Nacionalidad",
+      "specialization": "Especialización",
+      "training_center": "Centro de formación"
+    },
+    "documents": {
+      "view_document": "Ver documento",
+      "document": "Documento"
+    },
+    "approval": {
+      "modal_title": "Aprobar solicitud de instructor",
+      "price_label": "Precio de autorización",
+      "price_placeholder": "500.00",
+      "description": "Por favor, establece el precio de autorización para este instructor.",
+      "note": "Después de la aprobación, el Administrador del Grupo deberá establecer el porcentaje de comisión antes de que el Centro de formación pueda pagar.",
+      "success": "Instructor aprobado correctamente. En espera de que el Administrador del Grupo establezca el porcentaje de comisión."
+    },
+    "rejection": {
+      "modal_title": "Rechazar solicitud de instructor",
+      "reason_label": "Motivo del rechazo",
+      "reason_placeholder": "Ingresa el motivo del rechazo...",
+      "success": "La solicitud del instructor fue rechazada",
+      "missing_reason": "Por favor, proporciona un motivo de rechazo"
+    },
+    "return": {
+      "modal_title": "Devolver solicitud de instructor",
+      "comment_label": "Comentario de devolución",
+      "comment_placeholder": "Ingresa comentarios para devolver la solicitud...",
+      "success": "La solicitud fue devuelta para revisión",
+      "missing_comment": "Por favor, proporciona un comentario de devolución"
+    },
+    "messages": {
+      "approve_confirm": "¿Aprobar esta solicitud de instructor?",
+      "approve_failed": "No se pudo aprobar la solicitud",
+      "load_failed": "No se pudieron cargar los datos"
+    },
+    "common": {
+      "cancel": "Cancelar",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "return": "Devolver",
+      "yes": "Sí",
+      "no": "No",
+      "na": "N/D"
+    }
+  },
+  "authorized_instructors_screen": {
+    "header": {
+      "title": "Instructores autorizados",
+      "subtitle": "Ver todos los instructores aprobados"
+    },
+    "search": {
+      "placeholder": "Buscar por nombre, correo electrónico, teléfono o centro de formación..."
+    },
+    "table": {
+      "instructor": "Instructor",
+      "email": "Correo electrónico",
+      "training_center": "Centro de formación",
+      "commission": "Comisión %",
+      "payment_status": "Estado del pago",
+      "actions": "Acciones",
+      "empty": "No se encontraron instructores autorizados"
+    },
+    "actions": {
+      "view_details": "Ver detalles"
+    },
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente",
+      "na": "N/D"
+    },
+    "details": {
+      "modal_title": "Detalles del instructor",
+      "instructor_info": "Información del instructor",
+      "training_center_info": "Centro de formación",
+      "authorization_details": "Detalles de la autorización",
+      "authorized_courses": "Cursos autorizados",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "languages": "Idiomas",
+      "is_assessor": "Instructor/Evaluador",
+      "cv": "Subir CV / Certificados de respaldo",
+      "passport": "Copia del pasaporte",
+      "name": "Nombre",
+      "commission_percentage": "Porcentaje de comisión",
+      "authorization_price": "Precio de autorización"
+    },
+    "cards": {
+      "commission_percentage": "Porcentaje de comisión",
+      "authorization_price": "Precio de autorización"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "courses_screen": {
+    "header": {
+      "title": "Cursos",
+      "subtitle": "Gestiona y organiza tu catálogo de cursos",
+      "add": "Agregar curso",
+      "edit": "Editar curso",
+      "create": "Crear curso",
+      "update": "Actualizar curso"
+    },
+    "search": {
+      "placeholder": "Buscar cursos..."
+    },
+    "filters": {
+      "all_status": "Todos los estados",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "archived": "Archivado",
+      "all_levels": "Todos los niveles",
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzado"
+    },
+    "table": {
+      "course": "Curso",
+      "level": "Nivel",
+      "duration": "Duración",
+      "status": "Estado",
+      "pricing": "Precios",
+      "assessor": "Evaluador",
+      "actions": "Acciones",
+      "no_courses": "No se encontraron cursos"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "archived": "Archivado"
+    },
+    "assessor": {
+      "required": "Requerido",
+      "not_required": "No requerido"
+    },
+    "pricing": {
+      "not_set": "No establecido",
+      "information_title": "Información de precios",
+      "optional_note": "Opcional: configura el precio al momento de la creación. Puedes agregar el precio más tarde si es necesario.",
+      "base_price": "Precio base",
+      "currency": "Moneda",
+      "note": "Nota: los porcentajes de comisión son gestionados por los administradores del grupo. El precio entra en vigor inmediatamente cuando se establece."
+    },
+    "form": {
+      "course_name_en": "Nombre del curso (inglés)",
+      "course_name_ar": "Nombre del curso (árabe)",
+      "course_code": "Código del curso",
+      "category": "Categoría",
+      "sub_category": "Subcategoría",
+      "description": "Descripción",
+      "duration_hours": "Duración (horas)",
+      "max_capacity": "Capacidad máxima",
+      "level": "Nivel",
+      "status": "Estado",
+      "assessor_required": "Evaluador requerido",
+      "assessor_required_hint": "Este curso requiere un evaluador"
+    },
+    "validation": {
+      "course_name_required": "El nombre del curso es obligatorio",
+      "course_name_max": "El nombre del curso debe tener como máximo 255 caracteres",
+      "course_code_required": "El código del curso es obligatorio",
+      "course_code_max": "El código del curso debe tener como máximo 255 caracteres",
+      "category_required": "La categoría es obligatoria",
+      "sub_category_required": "La subcategoría es obligatoria",
+      "duration_min": "La duración debe ser de al menos 1 hora",
+      "capacity_required": "La capacidad máxima es obligatoria",
+      "capacity_min": "La capacidad máxima debe ser de al menos 1",
+      "invalid_level": "Nivel seleccionado no válido",
+      "invalid_status": "Estado seleccionado no válido",
+      "currency_required": "La moneda es obligatoria cuando se establece el precio"
+    },
+    "messages": {
+      "created_success": "¡Curso creado correctamente!",
+      "updated_success": "¡Curso actualizado correctamente!",
+      "deleted_success": "¡Curso eliminado correctamente!",
+      "load_failed": "No se pudieron cargar los cursos",
+      "save_failed": "No se pudo guardar el curso"
+    },
+    "details": {
+      "modal_title": "Detalles del curso",
+      "course_information": "Información del curso",
+      "category_information": "Información de la categoría",
+      "pricing_information": "Información de precios",
+      "course_id": "ID del curso",
+      "course_name": "Nombre del curso",
+      "course_code": "Código del curso",
+      "duration": "Duración",
+      "max_capacity": "Capacidad máxima",
+      "trainees": "Participantes",
+      "created_at": "Creado el",
+      "updated_at": "Actualizado el",
+      "sub_category": "Subcategoría",
+      "category": "Categoría",
+      "no_pricing": "No hay precio establecido",
+      "no_pricing_hint": "Puedes agregar el precio al editar el curso"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "view_details": "Ver detalles",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "delete_confirm_title": "Eliminar curso",
+      "delete_confirm_message": "¿Estás seguro de que deseas eliminar este curso? Esta acción no se puede deshacer."
+    },
+    "common": {
+      "na": "N/D",
+      "hours": "horas",
+      "trainees": "participantes"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "Clases",
+      "subtitle": "Ver todas las clases de los centros de formación autorizados"
+    },
+    "search": {
+      "placeholder": "Buscar clases..."
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "scheduled": "Programada",
+      "in_progress": "En progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "table": {
+      "class_name": "Nombre de la clase",
+      "course": "Curso",
+      "training_center": "Centro de formación",
+      "instructor": "Instructor",
+      "schedule": "Horario",
+      "exam_date": "Fecha del examen",
+      "exam_score": "Puntuación del examen",
+      "location": "Ubicación",
+      "capacity": "Capacidad",
+      "status": "Estado",
+      "actions": "Acciones",
+      "empty": "No se encontraron clases"
+    },
+    "actions": {
+      "view_details": "Ver detalles"
+    },
+    "status": {
+      "scheduled": "Programada",
+      "in_progress": "En progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "na": "N/D"
+    },
+    "details": {
+      "modal_title": "Detalles de la clase",
+      "class_info": "Información de la clase",
+      "course_info": "Información del curso",
+      "training_center_info": "Información del centro de formación",
+      "instructor_info": "Información del instructor",
+      "schedule_info": "Información del horario",
+      "location_capacity": "Ubicación y capacidad",
+      "trainees": "Participantes",
+      "weekly_schedule": "Horario semanal",
+      "no_trainees": "No hay participantes inscritos en esta clase"
+    },
+    "fields": {
+      "status": "Estado",
+      "created_at": "Creado el",
+      "updated_at": "Actualizado el",
+      "course_name": "Nombre del curso",
+      "course_code": "Código del curso",
+      "course_name_ar": "Nombre del curso (árabe)",
+      "duration": "Duración",
+      "duration_hours": "{{count}} horas",
+      "level": "Nivel",
+      "max_capacity": "Capacidad máxima",
+      "course_status": "Estado del curso",
+      "description": "Descripción",
+      "sub_category": "Subcategoría",
+      "category": "Categoría",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "website": "Sitio web",
+      "address": "Dirección",
+      "city": "Ciudad",
+      "country": "País",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de finalización",
+      "exam_date": "Fecha del examen",
+      "exam_score": "Puntuación del examen",
+      "start_time": "Hora de inicio",
+      "end_time": "Hora de finalización",
+      "location_type": "Tipo de ubicación",
+      "location_details": "Detalles de la ubicación",
+      "capacity": "Capacidad",
+      "full_percentage": "{{percent}}% completo",
+      "trainee_id": "ID"
+    },
+    "common": {
+      "na": "N/D",
+      "to": "a",
+      "hours": "horas",
+      "trainees": "participantes"
+    }
+  },
+  "certificates_screen": {
+    "header": {
+      "title": "Certificados",
+      "subtitle": "Ver todos los certificados emitidos usando tus plantillas"
+    },
+    "search": {
+      "placeholder": "Buscar certificados..."
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "valid": "Válido",
+      "invalid": "Inválido"
+    },
+    "table": {
+      "certificate_number": "Número de certificado",
+      "trainee": "Participante",
+      "course": "Curso",
+      "issue_date": "Fecha de emisión",
+      "status": "Estado",
+      "actions": "Acciones",
+      "empty": "No se encontraron certificados"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "verify": "Verificar certificado"
+    },
+    "status": {
+      "valid": "Válido",
+      "invalid": "Inválido",
+      "na": "N/D"
+    },
+    "details": {
+      "modal_title": "Detalles del certificado",
+      "certificate_number": "Número de certificado",
+      "trainee_name": "Nombre del participante",
+      "course": "Curso",
+      "template": "Plantilla",
+      "issue_date": "Fecha de emisión",
+      "expiry_date": "Fecha de vencimiento",
+      "verification_code": "Código de verificación",
+      "certificate_pdf": "PDF del certificado",
+      "download_pdf": "Descargar PDF",
+      "status": "Estado"
+    },
+    "pagination": {
+      "per_page": "Elementos por página"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "certificate_templates_screen": {
+    "header": {
+      "title": "Plantillas de certificados",
+      "subtitle": "Crear y gestionar plantillas de certificados",
+      "create": "Crear plantilla"
+    },
+    "search": {
+      "placeholder": "Buscar plantillas..."
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "table": {
+      "name": "Nombre",
+      "category": "Categoría",
+      "status": "Estado",
+      "actions": "Acciones",
+      "empty": "No se encontraron plantillas"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "edit": "Editar",
+      "design": "Diseñar plantilla",
+      "delete": "Eliminar"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "na": "N/D"
+    },
+    "modal": {
+      "create_title": "Crear plantilla",
+      "edit_title": "Editar plantilla",
+      "details_title": "Detalles de la plantilla"
+    },
+    "form": {
+      "template_name": "Nombre de la plantilla",
+      "category": "Categoría",
+      "select_category": "Seleccionar categoría",
+      "status": "Estado"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "create": "Crear",
+      "update": "Actualizar",
+      "saving": "Guardando..."
+    },
+    "details": {
+      "template_name": "Nombre de la plantilla",
+      "category": "Categoría",
+      "status": "Estado",
+      "configuration": "Configuración",
+      "background_image": "Imagen de fondo",
+      "no_configuration": "Sin configuración",
+      "no_background": "Sin imagen de fondo"
+    },
+    "errors": {
+      "save_failed": "No se pudo guardar la plantilla. Por favor, inténtalo de nuevo.",
+      "delete_failed": "No se pudo eliminar la plantilla. Por favor, inténtalo de nuevo.",
+      "delete_in_use": "Esta plantilla está siendo utilizada por {{count}} certificado(s). Al eliminarla también se eliminarán todos los certificados asociados."
+    },
+    "confirmations": {
+      "delete": "¿Estás seguro de que deseas eliminar \"{{name}}\"?"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "discount_codes_screen": {
+    "header": {
+      "title": "Códigos de descuento",
+      "subtitle": "Gestiona y supervisa todos los códigos de descuento",
+      "add_code": "Agregar código"
+    },
+    "search": {
+      "placeholder": "Buscar por código o tipo..."
+    },
+    "filters": {
+      "status": {
+        "all": "Todos los estados",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "expired": "Expirado",
+        "depleted": "Agotado"
+      }
+    },
+    "table": {
+      "code": "Código",
+      "discount": "Descuento",
+      "type": "Tipo",
+      "courses": "Cursos",
+      "status": "Estado",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de finalización",
+      "quantity": "Cantidad",
+      "empty": "No se encontraron códigos de descuento. ¡Crea tu primer código de descuento!",
+      "no_courses_assigned": "No hay cursos asignados",
+      "unknown_course": "Curso desconocido",
+      "not_set": "No establecido"
+    },
+    "types": {
+      "time_limited": "Por tiempo limitado",
+      "quantity_based": "Por cantidad"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "na": "N/D"
+    },
+    "modal": {
+      "add_title": "Agregar nuevo código de descuento",
+      "edit_title": "Editar código de descuento"
+    },
+    "form": {
+      "discount_code": "Código de descuento",
+      "discount_percentage": "Porcentaje de descuento",
+      "course": "Curso",
+      "select_course": "Seleccionar un curso...",
+      "discount_type": "Tipo de descuento",
+      "status": "Estado",
+      "valid_from": "Válido desde",
+      "valid_until": "Válido hasta",
+      "total_quantity": "Cantidad total",
+      "code_placeholder": "ej., SAVE20",
+      "percentage_placeholder": "ej., 20",
+      "quantity_placeholder": "ej., 100"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "create": "Crear código de descuento",
+      "update": "Actualizar código de descuento",
+      "creating": "Creando...",
+      "updating": "Actualizando..."
+    },
+    "validation": {
+      "code_required": "El código de descuento es obligatorio",
+      "discount_percentage_required": "Se requiere un porcentaje de descuento válido",
+      "discount_type_required": "El tipo de descuento es obligatorio",
+      "course_required": "El curso es obligatorio",
+      "valid_from_required": "La fecha de inicio es obligatoria",
+      "valid_until_required": "La fecha de finalización es obligatoria",
+      "valid_until_after_valid_from": "La fecha de finalización debe ser posterior a la fecha de inicio",
+      "total_quantity_required": "La cantidad total es obligatoria y debe ser mayor que 0"
+    },
+    "messages": {
+      "created_success": "¡El código de descuento se creó correctamente!",
+      "updated_success": "¡El código de descuento se actualizó correctamente!",
+      "deleted_success": "¡El código de descuento se eliminó correctamente!"
+    },
+    "errors": {
+      "create_failed": "No se pudo crear el código de descuento. Por favor, inténtalo de nuevo.",
+      "delete_id_not_found": "No se puede eliminar: no se encontró el ID del código de descuento",
+      "delete_failed": "No se pudo eliminar el código de descuento: {{message}}"
+    },
+    "confirmations": {
+      "delete_title": "Eliminar código de descuento",
+      "delete_message": "¿Estás seguro de que deseas eliminar el código de descuento \"{{code}}\"? Esta acción no se puede deshacer.",
+      "delete_confirm": "Eliminar"
+    }
+  },
+  "categories_screen": {
+    "header": {
+      "title": "Categorías",
+      "subtitle": "Ver las categorías asignadas y gestionar tus propias categorías"
+    },
+    "stats": {
+      "total_categories": "Total de categorías",
+      "active_categories": "Categorías activas",
+      "sub_categories": "Subcategorías",
+      "active_sub_categories": "Subcategorías activas"
+    },
+    "table": {
+      "category": "Categoría",
+      "description": "Descripción",
+      "status": "Estado",
+      "type": "Tipo",
+      "actions": "Acciones",
+      "no_data": "No se encontraron categorías",
+      "no_sub_categories": "No se encontraron subcategorías para esta categoría"
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "search": {
+      "placeholder": "Buscar por nombre..."
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "add_category": "Agregar categoría",
+      "edit_category": "Editar categoría",
+      "delete_category": "Eliminar categoría",
+      "add_sub_category": "Agregar subcategoría",
+      "edit_sub_category": "Editar subcategoría",
+      "delete_sub_category": "Eliminar subcategoría"
+    },
+    "badges": {
+      "created_by_me": "Creada por mí",
+      "assigned_by_admin": "Asignada por el administrador"
+    },
+    "modal": {
+      "add_category": "Agregar nueva categoría",
+      "edit_category": "Editar categoría",
+      "add_sub_category": "Agregar subcategoría",
+      "edit_sub_category": "Editar subcategoría"
+    },
+    "form": {
+      "category_name_en": "Nombre de la categoría (inglés)",
+      "category_name_ar": "Nombre de la categoría (árabe)",
+      "description": "Descripción",
+      "status": "Estado",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "messages": {
+      "save_failed": "No se pudo guardar la categoría",
+      "delete_failed": "No se pudo eliminar la categoría"
+    },
+    "common": {
+      "na": "N/D",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando..."
+    }
+  },
+  "payment_transactions_screen": {
+    "header": {
+      "title": "Transacciones de pago",
+      "subtitle": "Ver todas las transacciones de pago"
+    },
+    "summary": {
+      "total_transactions": "Total de transacciones",
+      "total_received": "Total recibido",
+      "total_paid": "Total pagado"
+    },
+    "search": {
+      "placeholder": "Buscar transacciones..."
+    },
+    "filters": {
+      "type": {
+        "all": "Todos los tipos",
+        "subscription": "Suscripción",
+        "code_purchase": "Compra de códigos",
+        "material_purchase": "Compra de materiales",
+        "course_purchase": "Compra de cursos",
+        "commission": "Comisión",
+        "settlement": "Liquidación"
+      },
+      "status": {
+        "all": "Todos los estados",
+        "completed": "Completada",
+        "pending": "Pendiente",
+        "failed": "Fallida",
+        "refunded": "Reembolsada"
+      }
+    },
+    "table": {
+      "type": "Tipo",
+      "payer": "Pagador",
+      "payee": "Beneficiario",
+      "total_amount": "Monto total",
+      "received": "Recibido",
+      "commission": "Comisión",
+      "status": "Estado",
+      "date": "Fecha",
+      "actions": "Acciones",
+      "empty": "No se encontraron transacciones"
+    },
+    "actions": {
+      "view_details": "Ver detalles"
+    },
+    "status": {
+      "completed": "Completada",
+      "pending": "Pendiente",
+      "failed": "Fallida",
+      "refunded": "Reembolsada",
+      "na": "N/D"
+    },
+    "details": {
+      "modal_title": "Detalles de la transacción",
+      "transaction_type": "Tipo de transacción",
+      "payment_method": "Método de pago",
+      "payment_type": "Tipo de pago",
+      "total_amount": "Monto total",
+      "amount_received": "Monto recibido",
+      "platform_commission": "Comisión de la plataforma",
+      "payer_info": "Información del pagador",
+      "payee_info": "Información del beneficiario",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "type": "Tipo",
+      "description": "Descripción",
+      "reference_info": "Información de referencia",
+      "reference_type": "Tipo",
+      "commission_ledgers": "Registros de comisión",
+      "group_commission": "Comisión del grupo",
+      "acc_commission": "Comisión ACC",
+      "created_at": "Creado el",
+      "completed_at": "Completado el",
+      "payment_gateway_transaction_id": "ID de transacción de la pasarela de pago"
+    },
+    "messages": {
+      "amount_after_commission": "Monto que recibiste después de la comisión",
+      "commission_deducted": "Comisión deducida del monto total"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "pending_payments_screen": {
+    "header": {
+      "title": "Pagos manuales pendientes",
+      "subtitle": "Revisa y aprueba solicitudes de pago manual"
+    },
+    "search": {
+      "placeholder": "Buscar por centro de formación, curso, monto o fecha..."
+    },
+    "table": {
+      "training_center": "Centro de formación",
+      "course": "Curso",
+      "quantity": "Cantidad",
+      "total_amount": "Monto total",
+      "payment_amount": "Monto del pago",
+      "submitted_date": "Fecha de envío",
+      "actions": "Acciones",
+      "empty": "No se encontraron pagos pendientes",
+      "empty_title": "No hay pagos pendientes",
+      "empty_subtitle": "Todas las solicitudes de pago han sido revisadas"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "approve_payment": "Aprobar pago",
+      "reject_payment": "Rechazar pago"
+    },
+    "details": {
+      "modal_title": "Detalles de la solicitud de pago",
+      "training_center": "Centro de formación",
+      "course": "Curso",
+      "quantity": "Cantidad",
+      "total_amount": "Monto total",
+      "payment_amount": "Monto del pago",
+      "final_amount": "Monto final",
+      "submitted_date": "Fecha de envío",
+      "updated_at": "Actualizado el",
+      "receipt": "Comprobante de pago",
+      "view_receipt": "Ver comprobante"
+    },
+    "approve": {
+      "modal_title": "Aprobar pago",
+      "training_center": "Centro de formación",
+      "course": "Curso",
+      "quantity": "Cantidad",
+      "calculated_total": "Total calculado",
+      "payment_amount": "Monto del pago",
+      "payment_amount_help": "Ingresa el monto del pago (debe coincidir con: {{amount}})",
+      "submit": "Aprobar pago",
+      "submitting": "Aprobando..."
+    },
+    "reject": {
+      "modal_title": "Rechazar pago",
+      "training_center": "Centro de formación",
+      "course": "Curso",
+      "quantity": "Cantidad",
+      "amount": "Monto",
+      "rejection_reason": "Motivo del rechazo",
+      "rejection_placeholder": "Ingresa el motivo del rechazo...",
+      "rejection_help": "Por favor, proporciona un motivo claro para rechazar esta solicitud de pago (máximo 1000 caracteres)",
+      "submit": "Rechazar pago",
+      "submitting": "Rechazando..."
+    },
+    "validation": {
+      "payment_amount_required": "Por favor, ingresa un monto de pago válido",
+      "payment_amount_mismatch": "El monto del pago debe coincidir con el monto total calculado: {{amount}}",
+      "rejection_reason_required": "Por favor, ingresa un motivo de rechazo",
+      "rejection_reason_max": "El motivo del rechazo debe tener menos de 1000 caracteres"
+    },
+    "messages": {
+      "approve_success": "Pago aprobado correctamente. Se han generado los códigos.",
+      "reject_success": "Pago rechazado correctamente.",
+      "approve_failed": "No se pudo aprobar el pago. Por favor, inténtalo de nuevo.",
+      "reject_failed": "No se pudo rechazar el pago. Por favor, inténtalo de nuevo."
+    },
+    "common": {
+      "cancel": "Cancelar",
+      "na": "N/D"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "Perfil",
+      "subtitle": "Administra la información de tu cuenta",
+      "edit": "Editar perfil"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "sections": {
+      "accreditation_info": {
+        "title": "Información del organismo de acreditación",
+        "subtitle": "Detalles básicos de la organización"
+      },
+      "physical_address": {
+        "title": "Dirección física",
+        "subtitle": "Ubicación de la oficina principal"
+      },
+      "mailing_address": {
+        "title": "Dirección postal",
+        "same_as_physical": "Igual que la dirección física"
+      },
+      "primary_contact": {
+        "title": "Contacto principal",
+        "subtitle": "Punto de contacto principal"
+      },
+      "secondary_contact": {
+        "title": "Contacto secundario",
+        "subtitle": "Punto de contacto secundario"
+      },
+      "additional_info": {
+        "title": "Información adicional",
+        "subtitle": "Documentos oficiales y detalles"
+      },
+      "agreements": {
+        "title": "Acuerdos",
+        "subtitle": "Términos y condiciones"
+      },
+      "language": {
+        "title": "Configuración de idioma",
+        "subtitle": "Elige el idioma preferido del sistema",
+        "application_language": "Idioma de la aplicación"
+      },
+      "password": {
+        "title": "Cambiar contraseña",
+        "subtitle": "Actualiza la contraseña de tu cuenta"
+      }
+    },
+    "form": {
+      "legal_name": "Nombre legal",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "fax": "Fax",
+      "website": "Sitio web",
+      "street_address": "Dirección",
+      "postal_code": "Código postal",
+      "country": "País",
+      "city": "Ciudad",
+      "title": "Título",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "mobile": "Móvil",
+      "passport_copy": "Copia del pasaporte",
+      "view_passport": "Ver pasaporte actual",
+      "gov_registry_number": "Número de registro gubernamental",
+      "hear_about_us": "¿Cómo te enteraste de nosotros?",
+      "company_certificate": "Certificado de registro de la empresa",
+      "view_certificate": "Ver certificado actual",
+      "language": "Idioma"
+    },
+    "placeholders": {
+      "select_country": "Seleccionar país",
+      "select_city": "Seleccionar ciudad",
+      "hear_about_us": "¿Cómo te enteraste de nosotros?"
+    },
+    "agreements": {
+      "receive_comms": "Acepto recibir otras comunicaciones de BOMEQP",
+      "terms": "Confirmo que he leído, entendido y aceptado los términos y condiciones"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "upload_logo": "Haz clic para subir el logo"
+    },
+    "messages": {
+      "profile_updated": "¡Perfil actualizado correctamente!",
+      "password_changed": "¡Contraseña cambiada correctamente!"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalid_email": "Correo electrónico inválido",
+      "logo_type": "El logo debe ser un archivo de imagen (solo JPG, JPEG o PNG)",
+      "logo_size": "El tamaño del logo no debe exceder los 5MB",
+      "file_type": "El archivo debe ser PDF, JPG, JPEG o PNG",
+      "file_size": "El tamaño del archivo no debe exceder los 10MB"
+    },
+    "password": {
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "current_placeholder": "Ingresa tu contraseña actual",
+      "new_placeholder": "Debe incluir mayúsculas, números y caracteres especiales",
+      "confirm_placeholder": "Confirma tu nueva contraseña",
+      "submit": "Cambiar contraseña",
+      "submitting": "Cambiando..."
+    },
+    "common": {
+      "na": "N/D"
+    }
+  }
+}

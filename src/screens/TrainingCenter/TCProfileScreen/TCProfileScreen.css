@@ -73,6 +73,10 @@
   position: relative;
 }
 
+[dir="rtl"] .profile-header {
+  text-align: right;
+}
+
 .profile-avatar-section {
   flex-shrink: 0;
 }
@@ -121,6 +125,11 @@
   border: 2px solid white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
+}
+
+[dir="rtl"] .profile-avatar-upload {
+  right: auto;
+  left: 0;
 }
 
 .profile-avatar-upload:hover {
@@ -203,6 +212,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+[dir="rtl"] .profile-section-title {
+  text-align: right;
 }
 
 .profile-form-grid {

@@ -1,0 +1,271 @@
+{
+  "dashboard_screen": {
+    "errors": {
+      "load_failed": "No se pudieron cargar los datos del panel"
+    },
+    "stats": {
+      "total_classes": "Total de clases",
+      "scheduled": "Programadas",
+      "completed": "Completadas",
+      "click_to_view_all": "Haz clic para ver todas",
+      "scheduled_classes": "Clases programadas",
+      "finished_classes": "Clases finalizadas"
+    },
+    "charts": {
+      "earnings_over_time": "Ganancias a lo largo del tiempo",
+      "earnings": "Ganancias",
+      "classes_status_distribution": "Distribución del estado de las clases",
+      "count": "Cantidad"
+    },
+    "recent_classes": {
+      "title": "Clases recientes",
+      "view_all": "Ver todas",
+      "table": {
+        "course": "Curso",
+        "training_center": "Centro de formación",
+        "dates": "Fechas",
+        "status": "Estado",
+        "students": "Estudiantes",
+        "code_prefix": "Código:"
+      },
+      "empty": {
+        "title": "No se encontraron clases",
+        "subtitle": "Aún no tienes clases"
+      }
+    },
+    "profile_summary": {
+      "title": "Resumen del perfil",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "view_full_profile": "Ver perfil completo"
+    },
+    "training_centers": {
+      "title": "Centros de formación",
+      "view_all_with_count": "Ver todos ({{count}})",
+      "empty": "No se encontraron centros de formación"
+    },
+    "accs": {
+      "title": "Organismos de acreditación",
+      "authorized": "Autorizado",
+      "view_all_with_count": "Ver todos ({{count}})",
+      "empty": "No se encontraron ACCs"
+    },
+    "status": {
+      "scheduled": "Programada",
+      "in_progress": "En progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "location": {
+      "online": "En línea"
+    },
+    "common": {
+      "na": "N/D",
+      "to": "a",
+      "class_one": "clase",
+      "class_other": "clases"
+    }
+  },
+  "classes_screen": {
+    "header": {
+      "title": "Mis clases",
+      "subtitle": "Ver y administrar tus clases asignadas"
+    },
+    "search": {
+      "placeholder": "Buscar clases..."
+    },
+    "filters": {
+      "all": "Todas las clases",
+      "scheduled": "Programadas",
+      "completed": "Completadas"
+    },
+    "table": {
+      "course": "Curso",
+      "training_center": "Centro de formación",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de finalización",
+      "exam_date": "Fecha del examen",
+      "exam_score": "Puntuación del examen",
+      "status": "Estado",
+      "enrolled": "Inscritos",
+      "empty": "Aún no hay clases asignadas."
+    },
+    "status": {
+      "scheduled": "Programada",
+      "completed": "Completada",
+      "default": "Desconocido",
+      "not_set": "No establecido",
+      "na": "N/D"
+    },
+    "actions": {
+      "view_details": "Ver detalles",
+      "mark_complete": "Marcar como completada"
+    },
+    "details": {
+      "modal_title": "Detalles de la clase",
+      "course": "Curso",
+      "training_center": "Centro de formación",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de finalización",
+      "exam_date": "Fecha del examen",
+      "exam_score": "Puntuación del examen",
+      "enrollment": "Inscripción",
+      "status": "Estado",
+      "location": "Ubicación",
+      "materials_title": "Materiales del curso",
+      "download": "Descargar"
+    },
+    "complete": {
+      "modal_title": "Marcar clase como completada",
+      "completion_rate": "Tasa de finalización (%)",
+      "completion_rate_placeholder": "ej., 95",
+      "notes": "Notas (Opcional)",
+      "notes_placeholder": "Agrega notas sobre la finalización de la clase...",
+      "cancel": "Cancelar",
+      "confirm": "Marcar como completada"
+    },
+    "validation": {
+      "completion_rate_required": "Por favor ingresa el porcentaje de finalización"
+    },
+    "messages": {
+      "marked_complete_success": "¡Clase marcada como completada!",
+      "mark_complete_failed": "No se pudo marcar como completada"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  },
+  "profile_screen": {
+    "header": {
+      "title": "Perfil",
+      "subtitle": "Administra la configuración y preferencias de tu cuenta",
+      "edit": "Editar perfil"
+    },
+    "sections": {
+      "profile_info": {
+        "title": "Información del perfil",
+        "subtitle": "Actualiza tus datos personales"
+      },
+      "cv": {
+        "title": "CV / Currículum",
+        "subtitle": "Sube o actualiza tu currículum vitae"
+      },
+      "passport": {
+        "title": "Copia del pasaporte",
+        "subtitle": "Sube o actualiza tu documento de pasaporte"
+      },
+      "certificates": {
+        "title": "Certificados",
+        "subtitle": "Administra tus certificados profesionales"
+      },
+      "password": {
+        "title": "Cambiar contraseña",
+        "subtitle": "Actualiza la contraseña de tu cuenta"
+      },
+      "language": {
+        "title": "Configuración de idioma",
+        "subtitle": "Elige el idioma preferido del sistema",
+        "application_language": "Idioma de la aplicación"
+      }
+    },
+    "form": {
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "email": "Correo electrónico",
+      "email_help": "El correo electrónico no se puede cambiar",
+      "phone": "Número de teléfono",
+      "date_of_birth": "Fecha de nacimiento",
+      "id_number": "Número de identificación",
+      "id_placeholder": "Ingresa el número de identificación (mínimo 8 caracteres)",
+      "country": "País",
+      "city": "Ciudad",
+      "select_country": "Seleccionar país",
+      "select_city": "Seleccionar ciudad",
+      "type": "Tipo",
+      "account_status": "Estado de la cuenta",
+      "training_center": "Centro de formación",
+      "specializations": "Especializaciones"
+    },
+    "profile_photo": {
+      "label": "Foto de perfil",
+      "select": "Seleccionar foto",
+      "change": "Cambiar foto",
+      "hint": "Solo JPG, JPEG, PNG, máximo 5MB"
+    },
+    "status": {
+      "active": "Activo",
+      "pending": "Pendiente",
+      "suspended": "Suspendido",
+      "inactive": "Inactivo",
+      "assessor": "Evaluador",
+      "instructor": "Instructor"
+    },
+    "cv": {
+      "current": "CV actual",
+      "view": "Ver CV",
+      "none": "No se ha subido ningún CV",
+      "none_hint": "Haz clic en Editar perfil para subir tu CV",
+      "upload": "Subir CV",
+      "update": "Actualizar CV",
+      "uploading": "Subiendo CV...",
+      "remove": "Eliminar CV",
+      "remove_confirm": "¿Estás seguro de que deseas eliminar tu CV? Esta acción no se puede deshacer.",
+      "hint": "Solo PDF, máximo 10MB"
+    },
+    "passport": {
+      "current": "Pasaporte actual",
+      "view": "Ver pasaporte",
+      "none": "No se ha subido ningún pasaporte",
+      "none_hint": "Haz clic en Editar perfil para subir tu pasaporte",
+      "upload": "Subir pasaporte",
+      "update": "Actualizar pasaporte",
+      "processing": "Procesando pasaporte...",
+      "hint": "JPG, PNG o PDF, máximo 10MB"
+    },
+    "certificates": {
+      "add": "Agregar certificado",
+      "new_title": "Nuevos certificados para agregar",
+      "name": "Nombre del certificado",
+      "issue_date": "Fecha de emisión",
+      "file": "Archivo del certificado (PDF)",
+      "view": "Ver certificado",
+      "none": "Aún no se han agregado certificados",
+      "selected": "Seleccionado:"
+    },
+    "password": {
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "current_placeholder": "Ingresa tu contraseña actual",
+      "new_placeholder": "Debe incluir mayúsculas, números y caracteres especiales",
+      "confirm_placeholder": "Confirma tu nueva contraseña",
+      "submit": "Cambiar contraseña"
+    },
+    "buttons": {
+      "save": "Guardar cambios",
+      "saving": "Guardando...",
+      "cancel": "Cancelar"
+    },
+    "messages": {
+      "profile_updated": "¡Perfil actualizado correctamente!",
+      "password_changed": "¡Contraseña cambiada correctamente!"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalid_email": "Dirección de correo electrónico inválida",
+      "photo_type": "Selecciona un archivo de imagen válido (solo JPG, JPEG o PNG)",
+      "photo_size": "El tamaño de la imagen no debe exceder los 5MB",
+      "file_type": "Solo se permiten archivos PDF",
+      "file_size": "El tamaño del archivo debe ser menor a 10MB",
+      "password_required": "La contraseña actual es obligatoria",
+      "password_failed": "No se pudo cambiar la contraseña",
+      "this_field_is_managed_by_your_training_center": "Este campo es gestionado por tu Centro de formación",
+      "your_account_status_is_managed_by_your_training_center": "El estado de tu cuenta es gestionado por tu Centro de formación",
+      "you_are_registered_under_this_training_center": "Estás registrado bajo este Centro de formación",
+      "click_to_view": "Haz clic en el enlace de arriba para ver tu CV actual en una nueva pestaña"
+    },
+    "common": {
+      "na": "N/D"
+    }
+  }
+}

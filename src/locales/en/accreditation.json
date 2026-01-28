@@ -1221,7 +1221,8 @@
       },
       "language": {
         "title": "Language Settings",
-        "subtitle": "Choose your preferred system language"
+        "subtitle": "Choose your preferred system language",
+        "application_language": "Application Language"
       },
       "password": {
         "title": "Change Password",

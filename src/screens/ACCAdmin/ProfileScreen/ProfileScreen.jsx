@@ -8,6 +8,7 @@ import { User, Mail, Phone, MapPin, CheckCircle, AlertCircle, Globe, Building2, 
 import FormInput from '../../../components/FormInput/FormInput';
 import './ProfileScreen.css';
 import '../../../components/FormInput/FormInput.css';
+import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 
 const ProfileScreen = () => {
   const { user } = useAuth();
@@ -1460,6 +1461,26 @@ const ProfileScreen = () => {
                 </div>
               </div>
             </form>
+          </div>
+
+          {/* Language Settings Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mt-6">
+            <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
+                <Globe className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{t('profile_screen.sections.language.title', 'Language Settings')}</h2>
+                <p className="text-sm text-gray-500">{t('profile_screen.sections.language.subtitle', 'Change application language')}</p>
+              </div>
+            </div>
+
+            <div className="profile-form-grid">
+              <LanguageSwitcher
+                label={t('profile_screen.sections.language.application_language')}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </div>

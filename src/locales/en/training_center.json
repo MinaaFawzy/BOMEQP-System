@@ -182,7 +182,12 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "returned": "Returned",
-    "na": "N/A"
+    "na": "N/A",
+    "acc_logo": "Accreditation Body Logo",
+    "same_as_physical_address": "Same as Physical Address",
+    "receives_communications": "Receives Communications",
+    "terms_accepted": "Terms Accepted",
+    "fax": "Fax"
   },
   "authorization_form": {
     "documents": "Documents",
@@ -308,7 +313,6 @@
     "no_results_found": "No results found",
     "try_adjusting_your_search_or_filters": "Try adjusting your search or filters"
   },
-
   "trainees": {
     "header": {
       "title": "Trainees",

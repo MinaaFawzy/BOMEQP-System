@@ -110,7 +110,7 @@ function AuthScreen() {
         const errors = {};
         const emailError = validateEmail(loginData.email);
         const passwordError = validateRequired(loginData.password, 'Password');
-        
+
         if (emailError) errors.email = emailError;
         if (passwordError) errors.password = passwordError;
 
@@ -140,54 +140,9 @@ function AuthScreen() {
         }
     };
 
-    const handleRegisterSubmit = async (e) => {
+    const handleRegisterSubmit = (e) => {
         e.preventDefault();
-        setRegisterError('');
-        setRegisterErrors({});
-
-        // Validate form
-        const errors = {};
-        const nameError = validateRequired(registerData.fullName, 'Name');
-        const emailError = validateEmail(registerData.email);
-        const passwordError = validatePassword(registerData.password, 8, true); // isNewPassword = true
-        const confirmPasswordError = validatePasswordConfirmation(registerData.password, registerData.confirmPassword);
-        
-        if (nameError) errors.fullName = nameError;
-        if (emailError) errors.email = emailError;
-        if (passwordError) errors.password = passwordError;
-        if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
-
-        if (Object.keys(errors).length > 0) {
-            setRegisterErrors(errors);
-            return;
-        }
-
-        setRegisterLoading(true);
-
-        try {
-            const result = await register(
-                registerData.fullName,
-                registerData.email,
-                registerData.password,
-                registerData.confirmPassword,
-                registerData.role
-            );
-            if (result.success) {
-                // New registrations typically go to pending account screen
-                if (result.userStatus === 'pending' || result.userStatus === 'inactive') {
-                    navigate('/pending-account', { replace: true });
-                } else {
-                    navigate('/dashboard', { replace: true });
-                }
-            } else {
-                setRegisterError(result.error || 'Registration failed. Please try again.');
-            }
-        } catch (err) {
-            console.error('Registration error:', err);
-            setRegisterError('An error occurred. Please try again.');
-        } finally {
-            setRegisterLoading(false);
-        }
+        navigate('/complete-registration', { state: { role: registerData.role } });
     };
 
     const togglePanel = (isRegister) => {
@@ -203,207 +158,144 @@ function AuthScreen() {
                 <div className="form-container sign-up-container">
                     <form onSubmit={handleRegisterSubmit}>
                         <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>Register</Typography>
+                        <Typography variant="body2" sx={{ mb: 3 }}>Select your account type to continue</Typography>
 
-                        <CustomInput
-                            placeholder="Enter your full name"
-                            name="fullName"
-                            value={registerData.fullName}
-                            onChange={handleRegisterChange}
-                            required
-                            error={!!registerErrors.fullName}
-                            helperText={registerErrors.fullName}
-                            startIcon={<PersonIcon />}
-                        />
-                        <CustomInput
-                            placeholder="example@example.com"
-                            name="email"
-                            type="email"
-                            value={registerData.email}
-                            onChange={handleRegisterChange}
-                            required
-                            error={!!registerErrors.email}
-                            helperText={registerErrors.email}
-                            startIcon={<EmailIcon />}
-                        />
-                        <CustomInput
-                            placeholder="Enter your password"
-                            name="password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={registerData.password}
-                            onChange={handleRegisterChange}
-                            required
-                            error={!!registerErrors.password}
-                            helperText={registerErrors.password}
-                            showPasswordHints={true}
-                            passwordHintsComponent={<PasswordHints password={registerData.password} />}
-                            startIcon={<LockIcon />}
-                            endIcon={
-                                <IconButton
-                                    onClick={handleClickShowPassword}
-                                    edge="end"
-                                    size="small"
-                                >
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            }
-                        />
-                        <CustomInput
-                            placeholder="Confirm your password"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            value={registerData.confirmPassword}
-                            onChange={handleRegisterChange}
-                            required
-                            error={!!registerErrors.confirmPassword}
-                            helperText={registerErrors.confirmPassword}
-                            startIcon={<LockIcon />}
-                            endIcon={
-                                <IconButton
-                                    onClick={handleClickShowConfirmPassword}
-                                    edge="end"
-                                    size="small"
-                                >
-                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            }
-                        />
-                        
                         {/* Role Selection */}
-                        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'row', gap: 1, width: '100%' }}>
+                        <Box sx={{ mb: 4, display: 'flex', flexDirection: 'row', gap: 1, width: '100%' }}>
                             <Box sx={{ flex: 1 }}>
                                 <Paper
-                                        onClick={() => setRegisterData({ ...registerData, role: 'training_center_admin' })}
-                                        elevation={registerData.role === 'training_center_admin' ? 2 : 0}
-                                        sx={{
-                                            p: 1.5,
-                                            cursor: 'pointer',
-                                            border: '1.5px solid',
-                                            borderColor: registerData.role === 'training_center_admin' ? 'var(--primary-color)' : 'divider',
-                                            backgroundColor: registerData.role === 'training_center_admin' 
-                                                ? 'rgba(26, 44, 73, 0.08)' 
-                                                : 'background.paper',
-                                            borderRadius: '8px',
-                                            transition: 'all 0.2s ease-in-out',
-                                            width: '100%',
-                                            '&:hover': {
-                                                backgroundColor: registerData.role === 'training_center_admin' 
-                                                    ? 'rgba(26, 44, 73, 0.12)' 
-                                                    : 'action.hover',
-                                                borderColor: 'var(--primary-color)',
-                                                boxShadow: 1
-                                            }
-                                        }}
-                                    >
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
-                                            <Box
+                                    onClick={() => setRegisterData({ ...registerData, role: 'training_center_admin' })}
+                                    elevation={registerData.role === 'training_center_admin' ? 2 : 0}
+                                    sx={{
+                                        p: 1.5,
+                                        cursor: 'pointer',
+                                        border: '1.5px solid',
+                                        borderColor: registerData.role === 'training_center_admin' ? 'var(--primary-color)' : 'divider',
+                                        backgroundColor: registerData.role === 'training_center_admin'
+                                            ? 'rgba(26, 44, 73, 0.08)'
+                                            : 'background.paper',
+                                        borderRadius: '8px',
+                                        transition: 'all 0.2s ease-in-out',
+                                        width: '100%',
+                                        '&:hover': {
+                                            backgroundColor: registerData.role === 'training_center_admin'
+                                                ? 'rgba(26, 44, 73, 0.12)'
+                                                : 'action.hover',
+                                            borderColor: 'var(--primary-color)',
+                                            boxShadow: 1
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
+                                        <Box
+                                            sx={{
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: registerData.role === 'training_center_admin'
+                                                    ? 'rgba(26, 44, 73, 0.1)'
+                                                    : 'rgba(0, 0, 0, 0.04)',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            <SchoolIcon
                                                 sx={{
-                                                    width: 40,
-                                                    height: 40,
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: registerData.role === 'training_center_admin' 
-                                                        ? 'rgba(26, 44, 73, 0.1)' 
-                                                        : 'rgba(0, 0, 0, 0.04)',
-                                                    transition: 'all 0.2s ease'
+                                                    fontSize: 22,
+                                                    color: registerData.role === 'training_center_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.secondary'
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    fontWeight: registerData.role === 'training_center_admin' ? 600 : 500,
+                                                    fontSize: '0.75rem',
+                                                    color: registerData.role === 'training_center_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.primary',
+                                                    display: 'block',
+                                                    lineHeight: 1.2
                                                 }}
                                             >
-                                                <SchoolIcon 
-                                                    sx={{ 
-                                                        fontSize: 22, 
-                                                        color: registerData.role === 'training_center_admin' 
-                                                            ? 'var(--primary-color)' 
-                                                            : 'text.secondary' 
-                                                    }} 
-                                                />
-                                            </Box>
-                                            <Box sx={{ textAlign: 'center' }}>
-                                                <Typography 
-                                                    variant="caption" 
-                                                    sx={{ 
-                                                        fontWeight: registerData.role === 'training_center_admin' ? 600 : 500,
-                                                        fontSize: '0.75rem',
-                                                        color: registerData.role === 'training_center_admin' 
-                                                            ? 'var(--primary-color)' 
-                                                            : 'text.primary',
-                                                        display: 'block',
-                                                        lineHeight: 1.2
-                                                    }}
-                                                >
-                                                    Training Center
-                                                </Typography>
-                                            </Box>
+                                                Training Center
+                                            </Typography>
                                         </Box>
-                                    </Paper>
-                                </Box>
-                                <Box sx={{ flex: 1 }}>
-                                    <Paper
-                                        onClick={() => setRegisterData({ ...registerData, role: 'acc_admin' })}
-                                        elevation={registerData.role === 'acc_admin' ? 2 : 0}
-                                        sx={{
-                                            p: 1.5,
-                                            cursor: 'pointer',
-                                            border: '1.5px solid',
-                                            borderColor: registerData.role === 'acc_admin' ? 'var(--primary-color)' : 'divider',
-                                            backgroundColor: registerData.role === 'acc_admin' 
-                                                ? 'rgba(26, 44, 73, 0.08)' 
-                                                : 'background.paper',
-                                            borderRadius: '8px',
-                                            transition: 'all 0.2s ease-in-out',
-                                            width: '100%',
-                                            '&:hover': {
-                                                backgroundColor: registerData.role === 'acc_admin' 
-                                                    ? 'rgba(26, 44, 73, 0.12)' 
-                                                    : 'action.hover',
-                                                borderColor: 'var(--primary-color)',
-                                                boxShadow: 1
-                                            }
-                                        }}
-                                    >
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
-                                            <Box
+                                    </Box>
+                                </Paper>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Paper
+                                    onClick={() => setRegisterData({ ...registerData, role: 'acc_admin' })}
+                                    elevation={registerData.role === 'acc_admin' ? 2 : 0}
+                                    sx={{
+                                        p: 1.5,
+                                        cursor: 'pointer',
+                                        border: '1.5px solid',
+                                        borderColor: registerData.role === 'acc_admin' ? 'var(--primary-color)' : 'divider',
+                                        backgroundColor: registerData.role === 'acc_admin'
+                                            ? 'rgba(26, 44, 73, 0.08)'
+                                            : 'background.paper',
+                                        borderRadius: '8px',
+                                        transition: 'all 0.2s ease-in-out',
+                                        width: '100%',
+                                        '&:hover': {
+                                            backgroundColor: registerData.role === 'acc_admin'
+                                                ? 'rgba(26, 44, 73, 0.12)'
+                                                : 'action.hover',
+                                            borderColor: 'var(--primary-color)',
+                                            boxShadow: 1
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
+                                        <Box
+                                            sx={{
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: registerData.role === 'acc_admin'
+                                                    ? 'rgba(26, 44, 73, 0.1)'
+                                                    : 'rgba(0, 0, 0, 0.04)',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            <VerifiedUserIcon
                                                 sx={{
-                                                    width: 40,
-                                                    height: 40,
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: registerData.role === 'acc_admin' 
-                                                        ? 'rgba(26, 44, 73, 0.1)' 
-                                                        : 'rgba(0, 0, 0, 0.04)',
-                                                    transition: 'all 0.2s ease'
+                                                    fontSize: 22,
+                                                    color: registerData.role === 'acc_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.secondary'
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    fontWeight: registerData.role === 'acc_admin' ? 600 : 500,
+                                                    fontSize: '0.75rem',
+                                                    color: registerData.role === 'acc_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.primary',
+                                                    display: 'block',
+                                                    lineHeight: 1.2
                                                 }}
                                             >
-                                                <VerifiedUserIcon 
-                                                    sx={{ 
-                                                        fontSize: 22, 
-                                                        color: registerData.role === 'acc_admin' 
-                                                            ? 'var(--primary-color)' 
-                                                            : 'text.secondary' 
-                                                    }} 
-                                                />
-                                            </Box>
-                                            <Box sx={{ textAlign: 'center' }}>
-                                                <Typography 
-                                                    variant="caption" 
-                                                    sx={{ 
-                                                        fontWeight: registerData.role === 'acc_admin' ? 600 : 500,
-                                                        fontSize: '0.75rem',
-                                                        color: registerData.role === 'acc_admin' 
-                                                            ? 'var(--primary-color)' 
-                                                            : 'text.primary',
-                                                        display: 'block',
-                                                        lineHeight: 1.2
-                                                    }}
-                                                >
-                                                    Accreditation
-                                                </Typography>
-                                            </Box>
+                                                Accreditation
+                                            </Typography>
                                         </Box>
-                                    </Paper>
-                                </Box>
+                                    </Box>
+                                </Paper>
+                            </Box>
                         </Box>
 
                         {registerError && (
@@ -413,7 +305,7 @@ function AuthScreen() {
                         )}
 
                         <button type="submit" disabled={registerLoading}>
-                            {registerLoading ? <CircularProgress size={20} color="inherit" /> : 'Register'}
+                            {registerLoading ? <CircularProgress size={20} color="inherit" /> : 'Continue'}
                         </button>
                     </form>
                 </div>
@@ -462,9 +354,9 @@ function AuthScreen() {
                             </Typography>
                         )}
 
-                        <MuiLink 
-                            href="#" 
-                            underline="hover" 
+                        <MuiLink
+                            href="#"
+                            underline="hover"
                             sx={{ mt: 1, mb: 2, cursor: 'pointer' }}
                             onClick={(e) => {
                                 e.preventDefault();
@@ -485,7 +377,7 @@ function AuthScreen() {
                         <div className="overlay-panel overlay-left">
                             <img src={logo} alt="Logo" className="overlay-logo" />
                             <Typography variant="h4" fontWeight="bold" color="white" sx={{ mb: 2 }}>Welcome Back!</Typography>
-                            <p>To keep connected with us please login with your personal info as Training Center Admin</p>
+                            <p>To keep connected with us please login with your info </p>
                             <button className="ghost" id="signIn" onClick={() => togglePanel(false)}>Login</button>
                         </div>
                         <div className="overlay-panel overlay-right">

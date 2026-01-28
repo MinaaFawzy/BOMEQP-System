@@ -48,7 +48,7 @@ const ClassesScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   // Load data when dependencies change
   useEffect(() => {

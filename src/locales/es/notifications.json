@@ -1,0 +1,22 @@
+{
+  "title": "Notificaciones",
+  "empty": "No hay notificaciones",
+  "loading": "Cargando notificaciones...",
+  "sections": {
+    "unread": "No leídas",
+    "read": "Leídas"
+  },
+  "actions": {
+    "mark_all_read": "Marcar todas como leídas",
+    "delete_all_read": "Eliminar todas las leídas",
+    "close": "Cerrar",
+    "mark_as_read": "Marcar como leída",
+    "delete": "Eliminar"
+  },
+  "time": {
+    "just_now": "Justo ahora",
+    "minutes_ago": "Hace {{minutes}} min",
+    "hours_ago": "Hace {{hours}} h",
+    "days_ago": "Hace {{days}} d"
+  }
+}

@@ -58,7 +58,7 @@ const DataTable = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showFilters]);
+  }, [showFilters, t]);
 
   // Toggle expand/collapse for row
   const toggleRowExpand = (rowId, e) => {

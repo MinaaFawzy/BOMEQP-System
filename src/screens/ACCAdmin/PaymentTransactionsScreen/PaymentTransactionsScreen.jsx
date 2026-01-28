@@ -40,7 +40,7 @@ const PaymentTransactionsScreen = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     loadTransactions();

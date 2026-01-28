@@ -117,7 +117,7 @@ const TrainingCenterInstructorsScreen = () => {
       setHeaderSubtitle(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle]);
+  }, [setHeaderActions, setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
     if (requestAuthModalOpen && selectedInstructor) {

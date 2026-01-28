@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useHeader } from '../../context/HeaderContext';
 import { accAPI, instructorAPI } from '../../services/api';
 import NotificationBell from '../NotificationBell/NotificationBell';
+import HeaderLanguageSwitcher from '../LanguageSwitcher/HeaderLanguageSwitcher';
 import { useTranslation } from '../../hooks/useTranslation';
 import {
   LayoutDashboard,
@@ -438,6 +439,7 @@ const Layout = ({ children }) => {
           </Link>
           {/* Notification Icon */}
           <NotificationBell />
+          {user?.role !== 'group_admin' && <HeaderLanguageSwitcher />}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-lg text-white/80 sidebar-hover transition-all duration-200 hover:scale-110"
@@ -534,7 +536,7 @@ const Layout = ({ children }) => {
                           <Link
                             to={item.path}
                             onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center rounded-xl transition-all duration-200 ease-out relative group px-4 py-3 min-w-0 ${isActive
+                            className={`flex items-center gap-3 rounded-xl transition-all duration-200 ease-out relative group px-4 py-3 min-w-0 ${isActive
                               ? 'text-[var(--tertiary-color)]'
                               : 'text-white/80 nav-item-hover hover:scale-105 hover:shadow-md'
                               }`}
@@ -542,15 +544,15 @@ const Layout = ({ children }) => {
                             {Icon && (
                               <Icon
                                 size={20}
-                                className={`transition-all duration-200 flex-shrink-0 mr-3 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
+                                className={`transition-all duration-200 flex-shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
                               />
                             )}
                             <span className="font-medium text-sm whitespace-nowrap truncate flex-1 min-w-0">{item.label}</span>
                             {isActive && (
-                              <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0"></div>
+                              <div className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0 ltr:right-2 rtl:left-2"></div>
                             )}
                             {!isActive && (
-                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/50 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                              <div className="absolute top-0 bottom-0 w-1 bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ltr:left-0 ltr:rounded-r-full rtl:right-0 rtl:rounded-l-full"></div>
                             )}
                           </Link>
                         )}
@@ -584,7 +586,7 @@ const Layout = ({ children }) => {
                             {/* Group header */}
                             <button
                               onClick={() => toggleGroup(item.key)}
-                              className={`w-full flex items-center px-3 py-2 rounded-xl transition-all duration-200 ease-out relative group ${hasActiveChild
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ease-out relative group ${hasActiveChild
                                 ? 'bg-white/10 backdrop-blur-sm'
                                 : 'text-white/80 nav-item-hover hover:bg-white/5'
                                 }`}
@@ -592,14 +594,14 @@ const Layout = ({ children }) => {
                               {GroupIcon && (
                                 <GroupIcon
                                   size={20}
-                                  className="transition-all duration-200 flex-shrink-0 mr-3 group-hover:scale-110 text-white/80"
+                                  className="transition-all duration-200 flex-shrink-0 group-hover:scale-110 text-white/80"
                                 />
                               )}
-                              <span className="font-medium text-sm whitespace-nowrap flex-1 min-w-0 text-left text-white/80">{item.label}</span>
+                              <span className="font-medium text-sm whitespace-nowrap flex-1 min-w-0 text-white/80 ltr:text-left rtl:text-right">{item.label}</span>
                               {isExpanded ? (
-                                <ChevronUp size={16} className="flex-shrink-0 ml-2 transition-transform duration-200 text-white/80" />
+                                <ChevronUp size={16} className="flex-shrink-0 transition-transform duration-200 text-white/80" />
                               ) : (
-                                <ChevronDown size={16} className="flex-shrink-0 ml-2 transition-transform duration-200 text-white/80" />
+                                <ChevronDown size={16} className="flex-shrink-0 transition-transform duration-200 text-white/80" />
                               )}
                             </button>
                             {/* Group items */}
@@ -613,7 +615,7 @@ const Layout = ({ children }) => {
                                       <Link
                                         to={childItem.path}
                                         onClick={() => setSidebarOpen(false)}
-                                        className={`flex items-center px-2 py-1.5 rounded-lg transition-all duration-200 ease-out relative group ${isChildActive
+                                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all duration-200 ease-out relative group ${isChildActive
                                           ? 'text-[var(--tertiary-color)]'
                                           : 'text-white/70 nav-item-hover hover:bg-white/10 hover:text-white'
                                           }`}
@@ -621,12 +623,12 @@ const Layout = ({ children }) => {
                                         {ChildIcon && (
                                           <ChildIcon
                                             size={18}
-                                            className="transition-all duration-200 flex-shrink-0 mr-2.5 group-hover:scale-110"
+                                            className="transition-all duration-200 flex-shrink-0 group-hover:scale-110"
                                           />
                                         )}
                                         <span className="font-medium text-sm whitespace-nowrap truncate flex-1 min-w-0">{childItem.label}</span>
                                         {isChildActive && (
-                                          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0"></div>
+                                          <div className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[var(--tertiary-color)] rounded-full flex-shrink-0 ltr:right-2 rtl:left-2"></div>
                                         )}
                                       </Link>
                                     </li>
@@ -650,23 +652,23 @@ const Layout = ({ children }) => {
             >
               <Link
                 to="/profile"
-                className={`flex items-center px-3 py-2 rounded-lg text-white/80 sidebar-hover mb-1.5 transition-all duration-200 hover:scale-105 group ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-white/80 sidebar-hover mb-1.5 transition-all duration-200 hover:scale-105 group ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title={sidebarCollapsed ? 'Settings' : ''}
               >
                 <Settings
                   size={16}
-                  className={`transition-transform duration-200 group-hover:rotate-90 flex-shrink-0 ${sidebarCollapsed ? '' : 'mr-2'}`}
+                  className={`transition-transform duration-200 group-hover:rotate-90 flex-shrink-0`}
                 />
                 {!sidebarCollapsed && <span className="text-sm font-medium">{t('settings')}</span>}
               </Link>
               <button
                 onClick={handleLogout}
-                className={`w-full flex items-center px-3 py-2 rounded-lg text-red-300 hover:bg-red-500/20 transition-all duration-200 hover:scale-105 group ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-300 hover:bg-red-500/20 transition-all duration-200 hover:scale-105 group ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title={sidebarCollapsed ? 'Logout' : ''}
               >
                 <LogOut
                   size={16}
-                  className={`transition-transform duration-200 group-hover:translate-x-1 flex-shrink-0 ${sidebarCollapsed ? '' : 'mr-2'}`}
+                  className={`transition-transform duration-200 group-hover:translate-x-1 flex-shrink-0`}
                 />
                 {!sidebarCollapsed && <span className="text-sm font-medium">{t('logout')}</span>}
               </button>
@@ -705,6 +707,7 @@ const Layout = ({ children }) => {
                     </Link>
                     {/* Notification Icon */}
                     <NotificationBell />
+                    {user?.role !== 'group_admin' && <HeaderLanguageSwitcher />}
                   </div>
                 </div>
                 {/* Bottom Row: Header Actions (if they exist) */}

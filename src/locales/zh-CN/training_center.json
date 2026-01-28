@@ -182,7 +182,12 @@
     "approved": "已批准",
     "rejected": "已拒绝",
     "returned": "已退回",
-    "na": "不适用"
+    "na": "不适用",
+    "acc_logo": "认证机构标志",
+    "same_as_physical_address": "同实际地址",
+    "receives_communications": "接收通讯",
+    "terms_accepted": "条款已接受",
+    "fax": "传真"
   },
   "authorization_form": {
     "documents": "文件",
