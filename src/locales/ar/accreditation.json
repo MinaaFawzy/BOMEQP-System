@@ -765,7 +765,10 @@
       "template_name": "اسم القالب",
       "category": "التصنيف",
       "select_category": "اختر التصنيف",
-      "status": "الحالة"
+      "status": "الحالة",
+      "scope": "المجال",
+      "category_level": "مستوى التصنيف",
+      "course_specific": "الدورات الخاصة"
     },
 
     "buttons": {

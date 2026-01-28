@@ -1464,7 +1464,7 @@ const ProfileScreen = () => {
           </div>
 
           {/* Language Settings Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mt-6">
+          {/* <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mt-6">
             <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4">
                 <Globe className="text-blue-600" size={24} />
@@ -1481,7 +1481,7 @@ const ProfileScreen = () => {
                 className="w-full"
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

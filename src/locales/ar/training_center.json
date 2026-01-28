@@ -210,7 +210,15 @@
     "same_as_physical_address": "نفس العنوان الفعلي",
     "receives_communications": "يستقبل المراسلات",
     "terms_accepted": "تم قبول الشروط",
-    "fax": "فاكس"
+    "fax": "فاكس",
+    "primary_contact_passport": "رقم جواز السفر للجهة الاتصال",
+    "secondary_contact_passport": "رقم جواز السفر للجهة الاتصال",
+    "secondary_contact": "جهة الاتصال",
+    "secondary_contact_email": "بريد جهة الاتصال",
+    "secondary_contact_mobile": "رقم جهة الاتصال",
+    "secondary_contact_country": "جهة الاتصال",
+    "registration_certificate": "شهادة التسجيل",
+    "agreements": "الاتفاقيات"
   },
   "authorization_form": {
     "documents": "المستندات",
@@ -399,7 +407,12 @@
     },
     "placeholders": {
       "nationality": "أدخل الجنسية",
-      "idNumber": "أدخل رقم الهوية (8 أحرف على الأقل)"
+      "idNumber": "أدخل رقم الهوية (8 أحرف على الأقل)",
+      "firstName": "أدخل الاسم الأول",
+      "lastName": "أدخل اسم العائلة",
+      "email": "أدخل البريد الإلكتروني",
+      "phone": "أدخل رقم الهاتف",
+      "select_nationality": "اختر الجنسية"
     },
     "upload": {
       "idImage": "نسخة جواز السفر/الهوية الوطنية:",

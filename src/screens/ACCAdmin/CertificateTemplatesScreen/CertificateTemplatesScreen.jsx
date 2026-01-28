@@ -21,10 +21,13 @@ const CertificateTemplatesScreen = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [templateType, setTemplateType] = useState('category'); // 'category' or 'course'
 
   // Form state
   const [formData, setFormData] = useState({
     category_id: '',
+    course_id: '',
     name: '',
     status: 'active',
   });
@@ -34,6 +37,7 @@ const CertificateTemplatesScreen = () => {
   useEffect(() => {
     loadTemplates();
     loadCategories();
+    loadCourses();
   }, []);
 
   useEffect(() => {
@@ -100,6 +104,26 @@ const CertificateTemplatesScreen = () => {
     }
   };
 
+  const loadCourses = async () => {
+    try {
+      const data = await accAPI.listCourses({ per_page: 1000 });
+
+      let coursesArray = [];
+      if (data.data) {
+        coursesArray = data.data || [];
+      } else if (data.courses) {
+        coursesArray = data.courses || [];
+      } else {
+        coursesArray = Array.isArray(data) ? data : [];
+      }
+
+      setCourses(coursesArray);
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+      setCourses([]);
+    }
+  };
+
   const handleOpenModal = () => {
     setIsEditMode(false);
     setFormData({
@@ -143,10 +167,15 @@ const CertificateTemplatesScreen = () => {
 
     try {
       const templateData = {
-        category_id: parseInt(formData.category_id),
         name: formData.name.trim(),
         status: formData.status,
       };
+
+      if (templateType === 'category') {
+        templateData.category_id = parseInt(formData.category_id);
+      } else {
+        templateData.course_id = parseInt(formData.course_id);
+      }
 
       let template;
       if (isEditMode) {
@@ -217,8 +246,11 @@ const CertificateTemplatesScreen = () => {
   const handleEdit = (template) => {
     setSelectedTemplate(template);
     setIsEditMode(true);
+    const type = template.course_id ? 'course' : 'category';
+    setTemplateType(type);
     setFormData({
       category_id: template.category_id?.toString() || '',
+      course_id: template.course_id?.toString() || '',
       name: template.name || '',
       status: template.status || 'active',
     });
@@ -238,14 +270,33 @@ const CertificateTemplatesScreen = () => {
       )
     },
     {
-      header: t('certificate_templates_screen.table.category'),
-      accessor: 'category',
-      sortable: true,
+      header: t('certificate_templates_screen.table.target', 'Target'),
+      accessor: 'target',
+      sortable: false,
       render: (value, row) => {
-        const category = typeof value === 'object' ? value : categories.find(c => c.id === row.category_id);
+        if (row.course_id) {
+          const course = row.course || courses.find(c => c.id === row.course_id);
+          return (
+            <div>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2">
+                {t('certificate_templates_screen.common.course', 'Course')}
+              </span>
+              <span className="text-sm text-gray-700">
+                {course?.title || course?.title_en || course?.name || t('certificate_templates_screen.common.na')}
+              </span>
+            </div>
+          );
+        }
+
+        const category = row.category || categories.find(c => c.id === row.category_id);
         return (
-          <div className="text-sm text-gray-700">
-            {category?.name || category?.name_ar || t('certificate_templates_screen.common.na')}
+          <div>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 mr-2">
+              {t('certificate_templates_screen.common.category', 'Category')}
+            </span>
+            <span className="text-sm text-gray-700">
+              {category?.name || category?.name_ar || t('certificate_templates_screen.common.na')}
+            </span>
           </div>
         );
       }
@@ -343,22 +394,71 @@ const CertificateTemplatesScreen = () => {
               error={errors.name}
             />
 
-            <FormInput
-              label={t('certificate_templates_screen.form.category')}
-              name="category_id"
-              type="select"
-              value={formData.category_id}
-              onChange={handleChange}
-              required
-              options={[
-                { value: '', label: t('certificate_templates_screen.form.select_category') },
-                ...categories.map(cat => ({
-                  value: cat.id.toString(),
-                  label: cat.name || cat.name_ar || `Category ${cat.id}`
-                }))
-              ]}
-              error={errors.category_id}
-            />
+            <div className="space-y-2 mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                {t('certificate_templates_screen.form.scope', 'Template Scope')}
+              </label>
+              <div className="flex space-x-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    className="form-radio text-primary-600"
+                    name="templateType"
+                    value="category"
+                    checked={templateType === 'category'}
+                    onChange={() => setTemplateType('category')}
+                  />
+                  <span className="ml-2">{t('certificate_templates_screen.form.category_level', 'Category Level')}</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    className="form-radio text-primary-600"
+                    name="templateType"
+                    value="course"
+                    checked={templateType === 'course'}
+                    onChange={() => setTemplateType('course')}
+                  />
+                  <span className="ml-2">{t('certificate_templates_screen.form.course_specific', 'Course Specific')}</span>
+                </label>
+              </div>
+            </div>
+
+            {templateType === 'category' ? (
+              <FormInput
+                label={t('certificate_templates_screen.form.category')}
+                name="category_id"
+                type="select"
+                value={formData.category_id}
+                onChange={handleChange}
+                required={templateType === 'category'}
+                options={[
+                  { value: '', label: t('certificate_templates_screen.form.select_category') },
+                  ...categories.map(cat => ({
+                    value: cat.id.toString(),
+                    label: cat.name || cat.name_ar || `Category ${cat.id}`
+                  }))
+                ]}
+                error={errors.category_id}
+              />
+            ) : (
+              <FormInput
+                label={t('certificate_templates_screen.form.course', 'Course')}
+                name="course_id"
+                type="select"
+                value={formData.course_id}
+                onChange={handleChange}
+                required={templateType === 'course'}
+                options={[
+                  { value: '', label: t('certificate_templates_screen.form.select_course', 'Select Course') },
+                  ...courses.map(course => ({
+                    value: course.id.toString(),
+                    label: course.title || course.title_en || course.name || `Course ${course.id}`
+                  }))
+                ]}
+                error={errors.course_id}
+              />
+            )}
 
             <FormInput
               label={t('certificate_templates_screen.form.status')}
@@ -417,11 +517,34 @@ const CertificateTemplatesScreen = () => {
             fields={[
               { key: 'name', label: t('certificate_templates_screen.details.template_name') },
               {
-                key: 'category',
-                label: t('certificate_templates_screen.details.category'),
+                key: 'target',
+                label: t('certificate_templates_screen.details.target', 'Target'),
                 render: (value) => {
-                  const category = typeof value === 'object' ? value : categories.find(c => c.id === selectedTemplate.category_id);
-                  return category?.name || category?.name_ar || t('certificate_templates_screen.common.na');
+                  if (selectedTemplate.course_id) {
+                    const course = selectedTemplate.course || courses.find(c => c.id === selectedTemplate.course_id);
+                    return (
+                      <div>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2">
+                          {t('certificate_templates_screen.common.course', 'Course')}
+                        </span>
+                        <span>
+                          {course?.title || course?.title_en || course?.name || t('certificate_templates_screen.common.na')}
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  const category = selectedTemplate.category || categories.find(c => c.id === selectedTemplate.category_id);
+                  return (
+                    <div>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 mr-2">
+                        {t('certificate_templates_screen.common.category', 'Category')}
+                      </span>
+                      <span>
+                        {category?.name || category?.name_ar || t('certificate_templates_screen.common.na')}
+                      </span>
+                    </div>
+                  );
                 }
               },
               { key: 'status', label: t('certificate_templates_screen.details.status') },

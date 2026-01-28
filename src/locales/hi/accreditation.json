@@ -663,7 +663,10 @@
       "template_name": "टेम्पलेट नाम",
       "category": "श्रेणी",
       "select_category": "चुनें श्रेणी",
-      "status": "स्थिति"
+      "status": "स्थिति",
+      "scope": "मान्यता",
+      "category_level": "श्रेणी स्तर",
+      "course_specific": "कोर्स स्पेसिफिक"
     },
     "buttons": {
       "cancel": "रद्द करें",

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { trainingCenterAPI } from '../../../services/api';
+import { trainingCenterAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
 import { validateEmail, validatePhone, validateRequired, validateUKID } from '../../../utils/validation';
@@ -26,6 +26,7 @@ const TraineesScreen = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTrainee, setSelectedTrainee] = useState(null);
   const [trainingClasses, setTrainingClasses] = useState([]);
+  const [nationalities, setNationalities] = useState([]);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -67,6 +68,7 @@ const TraineesScreen = () => {
 
   useEffect(() => {
     loadTrainingClasses();
+    loadNationalities();
   }, []);
 
   useEffect(() => {
@@ -165,6 +167,17 @@ const TraineesScreen = () => {
     } catch (error) {
       console.error('Failed to load training classes:', error);
       setTrainingClasses([]);
+    }
+  };
+
+  const loadNationalities = async () => {
+    try {
+      const data = await publicAPI.getNationalities();
+      const nats = data?.nationalities || [];
+      setNationalities(nats);
+    } catch (error) {
+      console.error('Failed to load nationalities:', error);
+      setNationalities([]);
     }
   };
 
@@ -951,12 +964,16 @@ const TraineesScreen = () => {
             <FormInput
               label={t('trainees.form.nationality')}
               name="nationality"
+              type="select"
               value={formData.nationality}
               onChange={handleChange}
+              options={[
+                { value: '', label: t('trainees.placeholders.select_nationality') || 'Select Nationality' },
+                ...nationalities.map(n => ({ value: n.name, label: n.name }))
+              ]}
               required
               error={errors.nationality}
               disabled={saving}
-              placeholder={t('trainees.placeholders.nationality')}
             />
 
             <FormInput

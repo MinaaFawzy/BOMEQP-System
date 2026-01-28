@@ -653,7 +653,10 @@
       "template_name": "Nombre de la plantilla",
       "category": "Categoría",
       "select_category": "Seleccionar categoría",
-      "status": "Estado"
+      "status": "Estado",
+      "scope": "Ámbito",
+      "category_level": "Nivel de categoría",
+      "course_specific": "Curso específico"
     },
     "buttons": {
       "cancel": "Cancelar",

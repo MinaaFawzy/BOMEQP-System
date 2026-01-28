@@ -187,7 +187,15 @@
     "same_as_physical_address": "भौतिक पते के समान",
     "receives_communications": "संचार प्राप्त करता है",
     "terms_accepted": "शर्तें स्वीकार की गईं",
-    "fax": "फैक्स"
+    "fax": "फैक्स",
+    "primary_contact_passport": "प्रमुख संपर्क पासपोर्ट",
+    "secondary_contact_passport": "दूसरा संपर्क पासपोर्ट",
+    "secondary_contact": "दूसरा संपर्क",
+    "secondary_contact_email": "दूसरा संपर्क ईमेल",
+    "secondary_contact_mobile": "दूसरा संपर्क मोबाइल",
+    "secondary_contact_country": "दूसरा संपर्क देश",
+    "registration_certificate": "नियमन नोंदणी",
+    "agreements": "सहमती"
   },
   "authorization_form": {
     "documents": "दस्तावेज़",
@@ -375,7 +383,12 @@
     },
     "placeholders": {
       "nationality": "राष्ट्रीयता दर्ज करें",
-      "idNumber": "आईडी नंबर दर्ज करें (न्यूनतम 8 अक्षर)"
+      "idNumber": "आईडी नंबर दर्ज करें (न्यूनतम 8 अक्षर)",
+      "firstName": "पहला नाम दर्ज करें",
+      "lastName": "अंतिम नाम दर्ज करें",
+      "email": "ईमेल दर्ज करें",
+      "phone": "फ़ोन नंबर दर्ज करें",
+      "select_nationality": "राष्ट्रीयता चुनें"
     },
     "upload": {
       "idImage": "पासपोर्ट/राष्ट्रीय पहचान पत्र की प्रति:",

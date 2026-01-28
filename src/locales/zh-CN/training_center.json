@@ -187,7 +187,15 @@
     "same_as_physical_address": "同实际地址",
     "receives_communications": "接收通讯",
     "terms_accepted": "条款已接受",
-    "fax": "传真"
+    "fax": "传真",
+    "primary_contact_passport": "主要联系人护照",
+    "secondary_contact_passport": "次要联系人护照",
+    "secondary_contact": "次要联系人",
+    "secondary_contact_email": "次要联系人电子邮件",
+    "secondary_contact_mobile": "次要联系人手机号",
+    "secondary_contact_country": "次要联系人国家",
+    "registration_certificate": "注册证书",
+    "agreements": "协议"
   },
   "authorization_form": {
     "documents": "文件",
@@ -374,7 +382,12 @@
     },
     "placeholders": {
       "nationality": "输入国籍",
-      "idNumber": "输入身份证号（至少 8 个字符）"
+      "idNumber": "输入身份证号（至少 8 个字符）",
+      "firstName": "输入名",
+      "lastName": "输入姓",
+      "email": "输入电子邮件",
+      "phone": "输入电话号码",
+      "select_nationality": "选择国籍"
     },
     "upload": {
       "idImage": "护照/身份证复印件:",

@@ -560,6 +560,7 @@ export const publicAPI = {
   getCountries: () => api.get('/countries'),
   getCities: (countryCode) => api.get('/cities', { params: countryCode ? { country: countryCode } : {} }),
   getLanguages: () => api.get('/languages'),
+  getNationalities: () => api.get('/nationalities'),
   verifyCertificate: (code) => api.get(`/certificates/verify/${code}`),
 };
 

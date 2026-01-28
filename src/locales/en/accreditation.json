@@ -765,7 +765,10 @@
       "template_name": "Template Name",
       "category": "Category",
       "select_category": "Select Category",
-      "status": "Status"
+      "status": "Status",
+      "scope": "Scope",
+      "category_level": "Category Level",
+      "course_specific": "Course Specific"
     },
 
     "buttons": {

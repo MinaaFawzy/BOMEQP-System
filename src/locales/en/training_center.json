@@ -187,7 +187,15 @@
     "same_as_physical_address": "Same as Physical Address",
     "receives_communications": "Receives Communications",
     "terms_accepted": "Terms Accepted",
-    "fax": "Fax"
+    "fax": "Fax",
+    "primary_contact_passport": "Primary Contact Passport",
+    "secondary_contact_passport": "Secondary Contact Passport",
+    "secondary_contact": "Secondary Contact",
+    "secondary_contact_email": "Secondary Contact Email",
+    "secondary_contact_mobile": "Secondary Contact Mobile",
+    "secondary_contact_country": "Secondary Contact Country",
+    "registration_certificate": "Registration Certificate",
+    "agreements": "Agreements"
   },
   "authorization_form": {
     "documents": "Documents",
@@ -384,7 +392,12 @@
     },
     "placeholders": {
       "nationality": "Enter nationality",
-      "idNumber": "Enter ID number (minimum 8 characters)"
+      "idNumber": "Enter ID number (minimum 8 characters)",
+      "firstName": "Enter first name",
+      "lastName": "Enter last name",
+      "email": "Enter email",
+      "phone": "Enter phone",
+      "select_nationality": "Select nationality"
     },
     "upload": {
       "idImage": "Passport/National ID copy:",

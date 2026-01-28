@@ -146,21 +146,21 @@ const TrainingCenterApplicationsScreen = () => {
       sortable: true,
       render: (value) => {
         const statusConfig = {
-          active: { 
+          active: {
             badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-            icon: CheckCircle 
+            icon: CheckCircle
           },
-          inactive: { 
+          inactive: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          rejected: { 
+          rejected: {
             badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-            icon: XCircle 
+            icon: XCircle
           },
-          pending: { 
+          pending: {
             badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-            icon: Clock 
+            icon: Clock
           }
         };
         const config = statusConfig[value] || statusConfig.pending;
@@ -245,39 +245,119 @@ const TrainingCenterApplicationsScreen = () => {
             <>
               <DetailForm
                 data={{
-                  name: selectedApp.training_center?.name || selectedApp.name || selectedApp._normalizedName,
-                  email: selectedApp.training_center?.email || selectedApp.email || selectedApp._normalizedEmail,
-                  legal_name: selectedApp.training_center?.legal_name || selectedApp.legal_name,
-                  registration_number: selectedApp.training_center?.registration_number || selectedApp.registration_number,
-                  phone: selectedApp.training_center?.phone || selectedApp.phone,
-                  website: selectedApp.training_center?.website || selectedApp.website,
-                  address: selectedApp.training_center?.address || selectedApp.address,
-                  city: selectedApp.training_center?.city || selectedApp.city,
-                  country: selectedApp.training_center?.country || selectedApp.country,
-                  postal_code: selectedApp.training_center?.postal_code || selectedApp.postal_code,
-                  description: selectedApp.training_center?.description || selectedApp.description,
-                  status: selectedApp.status,
-                  created_at: selectedApp.created_at,
-                  updated_at: selectedApp.updated_at,
-                  request_date: selectedApp.request_date,
-                  reviewed_at: selectedApp.reviewed_at,
+                  ...selectedApp,
+                  // Company Info
+                  name: selectedApp.name || selectedApp.legal_name,
+
+                  // Address Merging
+                  physical_address_full: [
+                    selectedApp.address, // Payload uses 'address' for physical street
+                    selectedApp.city,
+                    selectedApp.country,
+                    selectedApp.physical_postal_code || selectedApp.postal_code
+                  ].filter(Boolean).join(', '),
+
+                  mailing_address_full: (selectedApp.mailing_same_as_physical)
+                    ? 'Same as Physical Address'
+                    : [
+                      selectedApp.mailing_address,
+                      selectedApp.mailing_city,
+                      selectedApp.mailing_country,
+                      selectedApp.mailing_postal_code
+                    ].filter(Boolean).join(', '),
+
+                  // Primary Contact
+                  primary_contact_full_name: [
+                    selectedApp.primary_contact_title,
+                    selectedApp.primary_contact_first_name,
+                    selectedApp.primary_contact_last_name
+                  ].filter(Boolean).join(' '),
+
+                  // Secondary Contact
+                  secondary_contact_full_name: [
+                    selectedApp.secondary_contact_title,
+                    selectedApp.secondary_contact_first_name,
+                    selectedApp.secondary_contact_last_name
+                  ].filter(Boolean).join(' '),
+
+                  // Arrays
+                  interested_fields_str: Array.isArray(selectedApp.interested_fields)
+                    ? selectedApp.interested_fields.join(', ')
+                    : selectedApp.interested_fields,
+
+                  // Agreements
+                  agreements_summary: [
+                    selectedApp.agreed_to_receive_communications ? 'Receives Comms' : null,
+                    selectedApp.agreed_to_terms_and_conditions ? 'Terms Accepted' : null
+                  ].filter(Boolean).join(', '),
                 }}
                 fields={[
-                  { key: 'name', label: 'Name', icon: Building2 },
-                  { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                  { key: 'name', label: 'Company Name', icon: Building2 },
                   { key: 'legal_name', label: 'Legal Name', showEmpty: false },
-                  { key: 'registration_number', label: 'Registration Number', showEmpty: false },
+                  { key: 'registration_number', label: 'Registration Number', icon: Hash, showEmpty: false },
+                  { key: 'training_provider_type', label: 'Provider Type', showEmpty: false },
+                  { key: 'email', label: 'Company Email', type: 'email', icon: Mail },
                   { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
+                  { key: 'fax', label: 'Fax', showEmpty: false },
                   { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
-                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
-                  { key: 'city', label: 'City', icon: MapPin, showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
-                  { key: 'postal_code', label: 'Postal Code', showEmpty: false },
+
+                  { key: 'physical_address_full', label: 'Physical Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'mailing_address_full', label: 'Mailing Address', icon: MapPin, fullWidth: true, showEmpty: false },
+
+                  // Primary Contact
+                  { key: 'primary_contact_full_name', label: 'Primary Contact Name', showEmpty: false },
+                  { key: 'primary_contact_email', label: 'Primary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'primary_contact_mobile', label: 'Primary Contact Mobile', showEmpty: false },
+                  { key: 'primary_contact_country', label: 'Primary Contact Country', showEmpty: false },
+
+                  // Secondary Contact
+                  { key: 'secondary_contact_full_name', label: 'Secondary Contact Name', showEmpty: false },
+                  { key: 'secondary_contact_email', label: 'Secondary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'secondary_contact_mobile', label: 'Secondary Contact Mobile', showEmpty: false },
+                  { key: 'secondary_contact_country', label: 'Secondary Contact Country', showEmpty: false },
+
+                  { key: 'company_gov_registry_number', label: 'Gov Registry Number', showEmpty: false },
+                  { key: 'interested_fields_str', label: 'Interested Fields', showEmpty: false },
+
+                  // Documents
+                  {
+                    key: 'company_registration_certificate_url',
+                    label: 'Registration Certificate',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Certificate
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'facility_floorplan_url',
+                    label: 'Facility Floorplan',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Floorplan
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  { key: 'how_did_you_hear_about_us', label: 'How did you hear about us?', showEmpty: false },
+                  { key: 'agreements_summary', label: 'Agreements', showEmpty: false },
+
                   { key: 'status', label: 'Status', type: 'status' },
-                  { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
                   { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
                 ]}
               />
               {(selectedApp.training_center?.description || selectedApp.description) && (

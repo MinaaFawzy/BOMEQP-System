@@ -384,34 +384,132 @@ const ACCApplicationsScreen = () => {
             <>
               <DetailForm
                 data={{
-                  name: selectedApp.name,
-                  legal_name: selectedApp.legal_name,
-                  registration_number: selectedApp.registration_number,
-                  email: selectedApp.email,
-                  phone: selectedApp.phone,
-                  website: selectedApp.website,
-                  address: selectedApp.address,
-                  country: selectedApp.country,
-                  status: selectedApp.status,
-                  created_at: selectedApp.created_at,
-                  updated_at: selectedApp.updated_at,
-                  request_date: selectedApp.request_date,
-                  reviewed_at: selectedApp.reviewed_at,
+                  ...selectedApp,
+                  // Company Info
+                  name: selectedApp.legal_name || selectedApp.name,
+
+                  // Address Merging
+                  physical_address_full: [
+                    selectedApp.physical_address?.street || selectedApp.physical_street || selectedApp.address,
+                    selectedApp.physical_address?.city || selectedApp.physical_city,
+                    selectedApp.physical_address?.country || selectedApp.physical_country || selectedApp.country,
+                    selectedApp.physical_address?.postal_code || selectedApp.physical_postal_code
+                  ].filter(Boolean).join(', '),
+
+                  mailing_address_full: (selectedApp.mailing_same_as_physical || selectedApp.mailing_address?.same_as_physical)
+                    ? 'Same as Physical Address'
+                    : [
+                      selectedApp.mailing_address?.street || selectedApp.mailing_street,
+                      selectedApp.mailing_address?.city || selectedApp.mailing_city,
+                      selectedApp.mailing_address?.country || selectedApp.mailing_country,
+                      selectedApp.mailing_address?.postal_code || selectedApp.mailing_postal_code
+                    ].filter(Boolean).join(', '),
+
+                  // Primary Contact
+                  primary_contact_full_name: [
+                    selectedApp.primary_contact?.title || selectedApp.primary_contact_title,
+                    selectedApp.primary_contact?.first_name || selectedApp.primary_contact_first_name,
+                    selectedApp.primary_contact?.last_name || selectedApp.primary_contact_last_name
+                  ].filter(Boolean).join(' '),
+                  primary_contact_email: selectedApp.primary_contact?.email || selectedApp.primary_contact_email,
+                  primary_contact_mobile: selectedApp.primary_contact?.mobile || selectedApp.primary_contact_mobile,
+                  primary_contact_country: selectedApp.primary_contact?.country || selectedApp.primary_contact_country,
+                  primary_contact_passport_url: selectedApp.primary_contact?.passport_url || selectedApp.primary_contact_passport_url,
+
+                  // Secondary Contact
+                  secondary_contact_full_name: [
+                    selectedApp.secondary_contact?.title || selectedApp.secondary_contact_title,
+                    selectedApp.secondary_contact?.first_name || selectedApp.secondary_contact_first_name,
+                    selectedApp.secondary_contact?.last_name || selectedApp.secondary_contact_last_name
+                  ].filter(Boolean).join(' '),
+                  secondary_contact_email: selectedApp.secondary_contact?.email || selectedApp.secondary_contact_email,
+                  secondary_contact_mobile: selectedApp.secondary_contact?.mobile || selectedApp.secondary_contact_mobile,
+                  secondary_contact_country: selectedApp.secondary_contact?.country || selectedApp.secondary_contact_country,
+                  secondary_contact_passport_url: selectedApp.secondary_contact?.passport_url || selectedApp.secondary_contact_passport_url,
+
+                  // Agreements
+                  agreements_summary: [
+                    selectedApp.agreed_to_receive_communications ? 'Receives Comms' : null,
+                    selectedApp.agreed_to_terms_and_conditions ? 'Terms Accepted' : null
+                  ].filter(Boolean).join(', ')
                 }}
                 fields={[
-                  { key: 'name', label: 'Name', icon: Building2 },
+                  { key: 'name', label: 'Company Name', icon: Building2 },
                   { key: 'legal_name', label: 'Legal Name', showEmpty: false },
                   { key: 'registration_number', label: 'Registration Number', icon: Hash, showEmpty: false },
                   { key: 'email', label: 'Email', type: 'email', icon: Mail },
                   { key: 'phone', label: 'Phone', icon: Phone, showEmpty: false },
                   { key: 'website', label: 'Website', type: 'url', icon: Globe, showEmpty: false },
-                  { key: 'address', label: 'Address', icon: MapPin, fullWidth: true, showEmpty: false },
-                  { key: 'country', label: 'Country', icon: MapPin, showEmpty: false },
+                  { key: 'physical_address_full', label: 'Physical Address', icon: MapPin, fullWidth: true, showEmpty: false },
+                  { key: 'mailing_address_full', label: 'Mailing Address', icon: MapPin, fullWidth: true, showEmpty: false },
+
+                  // Primary Contact
+                  { key: 'primary_contact_full_name', label: 'Primary Contact Name', showEmpty: false },
+                  { key: 'primary_contact_email', label: 'Primary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'primary_contact_mobile', label: 'Primary Contact Mobile', showEmpty: false },
+                  { key: 'primary_contact_country', label: 'Primary Contact Country', showEmpty: false },
+                  {
+                    key: 'primary_contact_passport_url',
+                    label: 'Primary Contact Passport',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Passport
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  // Secondary Contact
+                  { key: 'secondary_contact_full_name', label: 'Secondary Contact Name', showEmpty: false },
+                  { key: 'secondary_contact_email', label: 'Secondary Contact Email', type: 'email', showEmpty: false },
+                  { key: 'secondary_contact_mobile', label: 'Secondary Contact Mobile', showEmpty: false },
+                  { key: 'secondary_contact_country', label: 'Secondary Contact Country', showEmpty: false },
+                  {
+                    key: 'secondary_contact_passport_url',
+                    label: 'Secondary Contact Passport',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Passport
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+
+                  { key: 'company_gov_registry_number', label: 'Gov Registry Number', showEmpty: false },
+                  {
+                    key: 'company_registration_certificate_url',
+                    label: 'Registration Certificate',
+                    render: (value) => value ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} className="mr-2" /> View Certificate
+                      </a>
+                    ) : null,
+                    showEmpty: false
+                  },
+                  { key: 'how_did_you_hear_about_us', label: 'How did you hear about us?', showEmpty: false },
+                  { key: 'agreements_summary', label: 'Agreements', showEmpty: false },
+
                   { key: 'status', label: 'Status', type: 'status' },
                   { key: 'request_date', label: 'Request Date', type: 'datetime', icon: Calendar, showEmpty: false },
                   { key: 'created_at', label: 'Created At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'updated_at', label: 'Updated At', type: 'datetime', icon: Calendar, showEmpty: false },
-                  { key: 'reviewed_at', label: 'Reviewed At', type: 'datetime', icon: Calendar, showEmpty: false },
                 ]}
               />
             </>

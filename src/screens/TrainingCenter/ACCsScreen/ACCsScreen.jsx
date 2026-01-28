@@ -263,7 +263,12 @@ const ACCsScreen = () => {
       accessor: 'actions',
       sortable: false,
       render: (value, row) => {
-        const isAuthorized = allAuthorizations.some(auth => auth.acc?.id === row.id);
+        // Check if there is already an active or pending request for this ACC
+        const activeAuth = allAuthorizations.find(auth =>
+          auth.acc?.id === row.id && ['pending', 'approved', 'active'].includes(auth.status)
+        );
+        // Allow request only if there is NO active/pending request
+        const canRequest = !activeAuth;
 
         return (
           <div className="accs-action-buttons" onClick={(e) => e.stopPropagation()}>
@@ -275,7 +280,7 @@ const ACCsScreen = () => {
               <Eye size={16} />
             </button>
             {row.status === 'active' ? (
-              !isAuthorized && (
+              canRequest && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -798,7 +803,94 @@ const ACCsScreen = () => {
                 { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
                 { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
                 { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
+                {
+                  key: 'primary_contact_passport_url',
+                  label: t('accreditations.primary_contact_passport'),
+                  render: (value) => value ? (
+                    <a
+                      href={value}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '6px 12px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontSize: '14px'
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Eye size={16} style={{ marginRight: '8px' }} />
+                      {t('accreditations.view') || 'View'}
+                    </a>
+                  ) : null,
+                  showEmpty: false
+                },
+
+                { key: 'secondary_contact_full_name', label: t('accreditations.secondary_contact'), showEmpty: false },
+                { key: 'secondary_contact_email', label: t('accreditations.secondary_contact_email'), type: 'email', showEmpty: false },
+                { key: 'secondary_contact_mobile', label: t('accreditations.secondary_contact_mobile'), showEmpty: false },
+                { key: 'secondary_contact_country', label: t('accreditations.secondary_contact_country'), showEmpty: false },
+                {
+                  key: 'secondary_contact_passport_url',
+                  label: t('accreditations.secondary_contact_passport'),
+                  render: (value) => value ? (
+                    <a
+                      href={value}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '6px 12px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontSize: '14px'
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Eye size={16} style={{ marginRight: '8px' }} />
+                      {t('accreditations.view') || 'View'}
+                    </a>
+                  ) : null,
+                  showEmpty: false
+                },
+
                 { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
+                {
+                  key: 'company_registration_certificate_url',
+                  label: t('accreditations.registration_certificate'),
+                  render: (value) => value ? (
+                    <a
+                      href={value}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '6px 12px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontSize: '14px'
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Eye size={16} style={{ marginRight: '8px' }} />
+                      {t('accreditations.view') || 'View'}
+                    </a>
+                  ) : null,
+                  showEmpty: false
+                },
+                { key: 'how_did_you_hear_about_us', label: t('accreditations.how_did_you_hear_about_us'), showEmpty: false },
+                { key: 'agreements_summary', label: t('accreditations.agreements'), showEmpty: false },
+
                 { key: 'status', label: t('accreditations.status'), type: 'status' },
                 { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
                 { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },

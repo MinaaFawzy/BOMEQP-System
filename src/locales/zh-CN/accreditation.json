@@ -663,7 +663,10 @@
       "template_name": "模板 名称",
       "category": "分类",
       "select_category": "选择 分类",
-      "status": "状态"
+      "status": "状态",
+      "scope": "范围",
+      "category_level": "分类 级别",
+      "course_specific": "课程 特定"
     },
     "buttons": {
       "cancel": "取消",

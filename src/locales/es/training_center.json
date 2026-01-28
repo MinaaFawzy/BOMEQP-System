@@ -188,7 +188,15 @@
     "same_as_physical_address": "Igual que la dirección física",
     "receives_communications": "Recibe comunicaciones",
     "terms_accepted": "Términos aceptados",
-    "fax": "Fax"
+    "fax": "Fax",
+    "primary_contact_passport": "Passport del contacto principal",
+    "secondary_contact_passport": "Passport del contacto secundario",
+    "secondary_contact": "Contacto secundario",
+    "secondary_contact_email": "Email del contacto secundario",
+    "secondary_contact_mobile": "Movil del contacto secundario",
+    "secondary_contact_country": "Pais del contacto secundario",
+    "registration_certificate": "Certificado de registro",
+    "agreements": "Acuerdos"
   },
   "authorization_form": {
     "documents": "Documentos",
@@ -375,7 +383,12 @@
     },
     "placeholders": {
       "nationality": "Ingresa la nacionalidad",
-      "idNumber": "Ingresa el número de identificación (mínimo 8 caracteres)"
+      "idNumber": "Ingresa el número de identificación (mínimo 8 caracteres)",
+      "firstName": "Ingresa el nombre",
+      "lastName": "Ingresa el apellido",
+      "email": "Ingresa el correo electrónico",
+      "phone": "Ingresa el teléfono",
+      "select_nationality": "Selecciona la nacionalidad"
     },
     "upload": {
       "idImage": "Copia de pasaporte/ID nacional:",

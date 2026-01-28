@@ -5,23 +5,26 @@
 // Email validation - must be in format: example@example.com
 export const validateEmail = (email) => {
   if (!email) return 'Email is required';
+  const trimmedEmail = String(email).trim();
+  if (!trimmedEmail) return 'Email is required';
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(email)) return 'Please enter a valid email address (e.g., example@example.com)';
+  if (!emailRegex.test(trimmedEmail)) return 'Please enter a valid email address (e.g., example@example.com)';
   return '';
 };
 
 // Phone validation - 10 to 13 digits
 export const validatePhone = (phone, minDigits = 10) => {
   if (!phone) return 'Phone number is required';
-  
+
   // Remove all spaces, dashes, parentheses, and plus signs for validation
   const digitsOnly = phone.trim().replace(/\D/g, '');
-  
+
   // Must be between 10 and 13 digits
   if (digitsOnly.length < 10 || digitsOnly.length > 13) {
     return 'Phone number must be between 10 and 13 digits';
   }
-  
+
   return '';
 };
 
@@ -54,15 +57,15 @@ export const validateMaxLength = (value, maxLength, fieldName = 'This field') =>
 // UK ID Number validation - minimum 8 characters (letters or numbers)
 export const validateUKID = (idNumber, fieldName = 'ID number') => {
   if (!idNumber) return `${fieldName} is required`;
-  
+
   // Remove spaces for validation
   const cleaned = idNumber.replace(/\s/g, '');
-  
+
   // Must be at least 8 characters (letters or numbers)
   if (cleaned.length < 8) {
     return `${fieldName} must be at least 8 characters`;
   }
-  
+
   return '';
 };
 
@@ -72,7 +75,7 @@ export const validatePassword = (password, minLength = 8, isNewPassword = false)
   if (password.length < minLength) {
     return `Password must be at least ${minLength} characters`;
   }
-  
+
   // For new passwords, require uppercase, numbers, and special characters
   if (isNewPassword) {
     if (!/(?=.*[A-Z])/.test(password)) {

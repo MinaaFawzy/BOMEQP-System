@@ -17,35 +17,43 @@
   width: 100%;
 }
 
-.custom-input-field .MuiOutlinedInput-root {
-  border-radius: 12px;
-  background-color: #eee;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+/* Main Input Container - Stable State for All Interactions */
+/* Enforcing one solid background color (#f2f2f2) and removing all effects (shadows, borders, transitions) */
+.custom-input-field .MuiOutlinedInput-root,
+.custom-input-field .MuiOutlinedInput-root:hover,
+.custom-input-field .MuiOutlinedInput-root.Mui-focused,
+.custom-input-field .MuiOutlinedInput-root:active {
+  background-color: #f2f2f2 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  transition: none !important;
   font-size: 14px;
   height: 48px;
 }
 
-.custom-input-field .MuiOutlinedInput-input {
-  font-size: 14px;
-  padding: 12px 14px;
-  height: auto;
-}
-
-.custom-input-field .MuiOutlinedInput-root fieldset,
-.custom-input-field .MuiOutlinedInput-root.Mui-focused fieldset {
+/* Remove MUI Default Border (fieldset) */
+.custom-input-field .MuiOutlinedInput-root fieldset {
   border: none !important;
   border-width: 0 !important;
 }
 
-.custom-input-field .MuiOutlinedInput-root:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+/* Input Element Reset */
+/* Forces transparency to let container background show, and resets global input styles */
+.custom-input-field .MuiOutlinedInput-input,
+.custom-input-field .MuiOutlinedInput-input:focus {
+  font-size: 14px;
+  padding: 12px 14px;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  height: auto;
 }
 
-.custom-input-field .MuiOutlinedInput-root.Mui-focused {
-  box-shadow: 0 4px 16px rgba(92, 107, 192, 0.25);
-}
-
+/* Icons */
 .custom-input-icon {
   color: var(--primary-color, #1a2c49);
   font-size: 20px;
@@ -64,8 +72,6 @@
 .custom-input-field .MuiInputAdornment-positionEnd .MuiIconButton-root:focus {
   background-color: transparent !important;
   color: var(--primary-color, #1a2c49) !important;
-  box-shadow: none !important;
-  outline: none !important;
 }
 
 /* Hide browser's default password reveal button - Chrome/Edge/Safari */
@@ -122,4 +128,18 @@ input[type="password"]::-ms-reveal {
   height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* Autofill Fix - MUST BE LAST */
+/* Overrides browser defaults to keep background #f2f2f2 */
+.custom-input-field input:-webkit-autofill,
+.custom-input-field input:-webkit-autofill:hover, 
+.custom-input-field input:-webkit-autofill:focus, 
+.custom-input-field input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  background-color: #f2f2f2 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: inherit !important;
+  caret-color: inherit !important;
 }

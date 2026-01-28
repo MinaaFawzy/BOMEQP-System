@@ -581,6 +581,11 @@ const TrainingCentersScreen = () => {
                   interested_fields: selectedRequest.training_center?.interested_fields || selectedRequest.interested_fields,
                   how_did_you_hear_about_us: selectedRequest.training_center?.how_did_you_hear_about_us || selectedRequest.how_did_you_hear_about_us,
 
+                  agreements_summary: [
+                    (selectedRequest.training_center?.agreed_to_receive_communications || selectedRequest.agreed_to_receive_communications) ? 'Communcations Accepted' : null,
+                    (selectedRequest.training_center?.agreed_to_terms_and_conditions || selectedRequest.agreed_to_terms_and_conditions) ? 'Terms Accepted' : null
+                  ].filter(Boolean).join(', '),
+
                   // Legacy fields
                   legal_name: selectedRequest.training_center?.legal_name || selectedRequest.legal_name,
                   registration_number: selectedRequest.training_center?.registration_number || selectedRequest.registration_number,
@@ -668,6 +673,7 @@ const TrainingCentersScreen = () => {
                     showEmpty: false
                   },
                   { key: 'how_did_you_hear_about_us', label: t('training_centers_screen.company.how_did_you_hear'), showEmpty: false },
+                  { key: 'agreements_summary', label: 'Agreements', showEmpty: false },
 
                   // Legacy fields
                   { key: 'legal_name', label: t('training_centers_screen.company.company_name'), showEmpty: false },
