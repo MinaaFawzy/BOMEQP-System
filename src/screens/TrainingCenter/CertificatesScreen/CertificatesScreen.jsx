@@ -821,7 +821,7 @@ const TrainingCenterCertificatesScreen = () => {
                     { value: '', label: t('certificates_screen.form.select_class') },
                     ...completedClasses.map(cls => ({
                       value: cls.id.toString(),
-                      label: cls.course?.name || cls.name || `${t('certificates_screen.form.class')} ${cls.id} `
+                      label: cls.name || cls.course?.name || `${t('certificates_screen.form.class')} ${cls.id} `
                     }))
                   ]
                   : [{ value: '', label: t('certificates_screen.form.no_classes') }]
