@@ -121,7 +121,7 @@ const PaymentTransactionsScreen = () => {
       render: (value, row) => {
         const received = isReceived(row);
         return (
-          <div className="type-column">
+          <div className="type-column gap-3">
             <div className={`type-icon-container ${received ? 'received' : 'sent'}`}>
               {received ? (
                 <ArrowDownCircle className="type-icon received" size={20} />
@@ -144,7 +144,7 @@ const PaymentTransactionsScreen = () => {
       sortable: true,
       render: (value, row) => (
         row.payer ? (
-          <div className="payer-payee-column">
+          <div className="payer-payee-column gap-3">
             <div className="payer-payee-avatar payer">
               {row.payer.type === 'acc' || row.payer.type === 'training_center' ? (
                 <Building2 className="payer-payee-icon payer" size={16} />
@@ -168,7 +168,7 @@ const PaymentTransactionsScreen = () => {
       sortable: true,
       render: (value, row) => (
         row.payee ? (
-          <div className="payer-payee-column">
+          <div className="payer-payee-column gap-3">
             <div className="payer-payee-avatar payee">
               {row.payee.type === 'acc' || row.payee.type === 'training_center' ? (
                 <Building2 className="payer-payee-icon payee" size={16} />

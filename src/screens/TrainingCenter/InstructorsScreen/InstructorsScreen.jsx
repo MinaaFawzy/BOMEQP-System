@@ -906,7 +906,7 @@ const TrainingCenterInstructorsScreen = () => {
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
-        <div className="instructors-column-instructor">
+        <div className="instructors-column-instructor gap-3">
           <div className="instructors-column-icon-wrapper" style={{ position: 'relative' }}>
             {row.photo_url ? (
               <>
@@ -958,7 +958,7 @@ const TrainingCenterInstructorsScreen = () => {
       accessor: 'email',
       sortable: true,
       render: (value) => (
-        <div className="instructors-column-email">
+        <div className="instructors-column-email gap-3">
           <Mail className="instructors-column-email-icon" />
           {value}
         </div>
@@ -970,7 +970,7 @@ const TrainingCenterInstructorsScreen = () => {
       sortable: true,
       render: (value) => (
         value ? (
-          <div className="instructors-column-phone">
+          <div className="instructors-column-phone gap-3">
             <Phone className="instructors-column-phone-icon" />
             {value}
           </div>

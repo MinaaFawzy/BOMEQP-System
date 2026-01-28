@@ -142,7 +142,7 @@ const ClassesScreen = () => {
       accessor: 'course',
       sortable: true,
       render: (value, row) => (
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
             <BookOpen className="h-5 w-5 text-primary-600" />
           </div>
@@ -162,7 +162,7 @@ const ClassesScreen = () => {
       accessor: 'training_center',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
             <Building2 className="h-4 w-4 text-blue-600" />
           </div>
@@ -179,7 +179,7 @@ const ClassesScreen = () => {
       render: (value) => {
         if (!value) return <span className="text-sm text-gray-400">{t('classes_screen.common.na')}</span>;
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
               <User className="h-4 w-4 text-green-600" />
             </div>

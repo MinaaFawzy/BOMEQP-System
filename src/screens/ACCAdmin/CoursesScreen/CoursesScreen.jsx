@@ -560,7 +560,7 @@ const CoursesScreen = () => {
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
             <GraduationCap className="h-5 w-5 text-primary-600" />
           </div>
@@ -586,7 +586,7 @@ const CoursesScreen = () => {
       accessor: 'duration_hours',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center text-sm text-gray-600">
+        <div className="flex items-center text-sm text-gray-600 gap-2">
           <Clock className="h-4 w-4 mr-2 text-gray-400" />
           {value ? `${value} ${t('courses_screen.common.hours')}` : t('courses_screen.common.na')}
         </div>
@@ -614,7 +614,7 @@ const CoursesScreen = () => {
             ? row.certificate_pricing[0]
             : null);
         return pricing ? (
-          <div className="flex items-center text-sm font-semibold text-gray-900">
+          <div className="flex items-center text-sm font-semibold text-gray-900 gap-2">
             <DollarSign className="h-4 w-4 mr-1 text-primary-600" />
             {parseFloat(pricing.base_price || 0).toFixed(2)} {pricing.currency || 'USD'}
           </div>

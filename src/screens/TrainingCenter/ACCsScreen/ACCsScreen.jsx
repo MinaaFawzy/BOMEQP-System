@@ -186,7 +186,7 @@ const ACCsScreen = () => {
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="gap-3" style={{ display: 'flex', alignItems: 'center' }}>
           <div className="accs-table-row-icon-wrapper" style={{ position: 'relative' }}>
             {row.logo_url ? (
               <>
@@ -233,7 +233,7 @@ const ACCsScreen = () => {
       accessor: 'email',
       sortable: true,
       render: (value) => (
-        <div className="accs-table-row-email">
+        <div className="accs-table-row-email gap-3">
           <Mail className="accs-table-row-email-icon" />
           {value || t('accreditations.na')}
         </div>

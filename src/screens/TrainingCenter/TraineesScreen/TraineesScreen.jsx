@@ -650,7 +650,7 @@ const TraineesScreen = () => {
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
-        <div className="trainees-column-trainee">
+        <div className="trainees-column-trainee gap-3">
           <div className="trainees-column-icon-wrapper" style={{ position: 'relative' }}>
             {row.id_image_url ? (
               <>
@@ -699,7 +699,7 @@ const TraineesScreen = () => {
       accessor: 'email',
       sortable: true,
       render: (value) => (
-        <div className="trainees-column-email">
+        <div className="trainees-column-email gap-2">
           <Mail className="trainees-column-email-icon" />
           {value}
         </div>
@@ -711,7 +711,7 @@ const TraineesScreen = () => {
       sortable: true,
       render: (value) => (
         value ? (
-          <div className="trainees-column-phone">
+          <div className="trainees-column-phone gap-2">
             <Phone className="trainees-column-phone-icon" />
             {value}
           </div>

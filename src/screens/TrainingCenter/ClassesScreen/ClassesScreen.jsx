@@ -750,7 +750,7 @@ const ClassesScreen = () => {
             ? `${row.instructor.first_name} ${row.instructor.last_name}`
             : t('classes_screen.common.na'));
         return (
-          <div className="instructor-container">
+          <div className="instructor-container gap-2">
             <Users className="instructor-icon" />
             {instructorName}
           </div>
@@ -762,7 +762,7 @@ const ClassesScreen = () => {
       accessor: 'start_date',
       sortable: true,
       render: (value, row) => (
-        <div className="date-container">
+        <div className="date-container gap-2  ">
           <Calendar className="date-icon" />
           {row.start_date ? new Date(row.start_date).toLocaleDateString() : t('classes_screen.common.na')}
         </div>
@@ -773,7 +773,7 @@ const ClassesScreen = () => {
       accessor: 'end_date',
       sortable: true,
       render: (value, row) => (
-        <div className="date-container">
+        <div className="date-container gap-2  ">
           <Calendar className="date-icon" />
           {row.end_date ? new Date(row.end_date).toLocaleDateString() : t('classes_screen.common.na')}
         </div>
@@ -784,7 +784,7 @@ const ClassesScreen = () => {
       accessor: 'exam_date',
       sortable: true,
       render: (value) => (
-        <div className="date-container">
+        <div className="date-container gap-2  ">
           <Calendar className="date-icon" style={{ color: '#9333ea' }} />
           {value ? new Date(value).toLocaleDateString() : t('classes_screen.common.not_set')}
         </div>

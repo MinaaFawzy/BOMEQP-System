@@ -214,7 +214,7 @@ const TrainingCentersScreen = () => {
       render: (value, row) => {
         const logoUrl = row.logo_url || row.training_center?.logo_url;
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 mr-3 relative">
               {logoUrl ? (
                 <>
@@ -257,7 +257,7 @@ const TrainingCentersScreen = () => {
       accessor: '_normalizedEmail',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center text-sm text-gray-600">
+        <div className="flex items-center text-sm text-gray-600 gap-3">
           <Mail className="h-4 w-4 mr-2 text-gray-400" />
           {value || 'N/A'}
         </div>

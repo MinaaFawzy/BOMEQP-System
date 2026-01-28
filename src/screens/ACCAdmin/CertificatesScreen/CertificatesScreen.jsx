@@ -138,8 +138,8 @@ const CertificatesScreen = () => {
       accessor: 'certificate_number',
       sortable: true,
       render: (value, row) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center mr-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
             <Award className="h-5 w-5 text-primary-600" />
           </div>
           <div>

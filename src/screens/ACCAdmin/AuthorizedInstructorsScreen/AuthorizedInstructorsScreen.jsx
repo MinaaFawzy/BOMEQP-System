@@ -116,7 +116,7 @@ const AuthorizedInstructorsScreen = () => {
                 const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim();
                 const photoUrl = row.photo_url;
                 return (
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-3">
                         <div className="w-10 h-10 mr-3 relative">
                             {photoUrl ? (
                                 <>
@@ -159,7 +159,7 @@ const AuthorizedInstructorsScreen = () => {
             accessor: 'email',
             sortable: true,
             render: (value) => (
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 gap-2">
                     <Mail className="h-4 w-4 mr-2 text-gray-400" />
                     {value || t('authorized_instructors_screen.common.na')}
                 </div>
@@ -170,7 +170,7 @@ const AuthorizedInstructorsScreen = () => {
             accessor: 'training_center',
             sortable: true,
             render: (value) => (
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 gap-2">
                     <Building2 className="h-4 w-4 mr-2 text-gray-400" />
                     {value?.name || value?.legal_name || t('authorized_instructors_screen.common.na')}
                 </div>

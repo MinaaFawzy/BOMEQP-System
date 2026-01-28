@@ -231,7 +231,7 @@ const InstructorsScreen = () => {
       render: (value, row) => {
         const photoUrl = row.photo_url || row.instructor?.photo_url;
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <div className="w-10 h-10 mr-3 relative">
               {photoUrl ? (
                 <>
@@ -274,7 +274,7 @@ const InstructorsScreen = () => {
       accessor: '_normalizedEmail',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center text-sm text-gray-600">
+        <div className="flex items-center text-sm text-gray-600 gap-2">
           <Mail className="h-4 w-4 mr-2 text-gray-400" />
           {value || t('instructors_screen.common.na')}
         </div>

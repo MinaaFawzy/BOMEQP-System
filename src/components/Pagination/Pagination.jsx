@@ -14,6 +14,9 @@ const Pagination = ({
   className = '',
 }) => {
   const { t } = useTranslation('common');
+  const isRTL =
+    typeof document !== 'undefined' &&
+    (document.documentElement.getAttribute('dir') === 'rtl' || document.dir === 'rtl');
 
   if (totalPages <= 1 && !showPerPageSelector) {
     return null;
@@ -100,7 +103,7 @@ const Pagination = ({
 
           {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="flex items-center gap-1">
+            <div className="pagination-controls flex items-center gap-1">
               {/* First page */}
               <button
                 onClick={() => handlePageChange(1)}

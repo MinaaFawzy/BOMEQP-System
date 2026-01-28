@@ -25,3 +25,14 @@
   }
 }
 
+
+/* RTL Support for Pagination Icons */
+[dir="rtl"] .pagination-container button svg {
+  transform: rotate(180deg);
+}
+
+/* Fix select Arrow in RTL - Force LTR */
+[dir="rtl"] .pagination-select {
+  direction: ltr;
+  text-align: left;
+}

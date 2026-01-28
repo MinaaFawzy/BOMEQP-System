@@ -464,7 +464,7 @@ const InstructorAuthorizationsScreen = () => {
       accessor: 'instructor',
       sortable: true,
       render: (value, row) => (
-        <div className="instructor-container">
+        <div className="instructor-container gap-2">
           <div className="instructor-icon-container">
             <Users className="h-5 w-5 text-primary-600" />
           </div>
@@ -484,7 +484,7 @@ const InstructorAuthorizationsScreen = () => {
       accessor: 'acc',
       sortable: true,
       render: (value, row) => (
-        <div className="acc-container">
+        <div className="acc-container gap-2">
           <Building2 className="acc-icon" />
           {row.acc?.name || 'N/A'}
         </div>
@@ -495,7 +495,7 @@ const InstructorAuthorizationsScreen = () => {
       accessor: 'authorization_price',
       sortable: true,
       render: (value, row) => (
-        <div className="price-container">
+        <div className="price-container gap-2">
           <DollarSign className="price-icon" />
           {parseFloat(row.authorization_price || 0).toFixed(2)}
         </div>

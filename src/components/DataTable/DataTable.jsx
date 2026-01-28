@@ -416,7 +416,7 @@ const DataTable = ({
                           })}
                           {(onEdit || onDelete || onView) && (
                             <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center gap-2">
                                 {(() => {
                                   // Always show exactly 2 buttons
                                   // Priority: Edit + Delete > View + Edit > View + Delete > View + View (fallback)
