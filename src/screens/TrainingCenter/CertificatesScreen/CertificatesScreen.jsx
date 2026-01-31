@@ -427,6 +427,11 @@ const TrainingCenterCertificatesScreen = () => {
       setGenerating(false);
       return;
     }
+    if (!formData.expiry_date) {
+      setErrors({ expiry_date: t('certificates_screen.errors.expiry_date_required') });
+      setGenerating(false);
+      return;
+    }
     if (formData.expiry_date && formData.expiry_date < formData.issue_date) {
       setErrors({ expiry_date: t('certificates_screen.errors.expiry_after_issue') });
       setGenerating(false);
@@ -879,6 +884,7 @@ const TrainingCenterCertificatesScreen = () => {
               type="date"
               value={formData.expiry_date}
               onChange={handleChange}
+              required
               error={errors.expiry_date}
               helpText={t('certificates_screen.form.expiry_help')}
             />
@@ -899,7 +905,7 @@ const TrainingCenterCertificatesScreen = () => {
             </button>
             <button
               type="submit"
-              disabled={generating || !formData.class_id || !formData.trainee_id || !formData.issue_date}
+              disabled={generating || !formData.class_id || !formData.trainee_id || !formData.issue_date || !formData.expiry_date}
               className="form-btn form-btn-submit"
             >
               {generating ? t('certificates_screen.buttons.generating') : t('certificates_screen.buttons.issue')}

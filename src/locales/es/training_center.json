@@ -662,7 +662,7 @@
       "no_trainees": "No hay participantes en esta clase",
       "trainee_help": "Selecciona un participante de esta clase",
       "issue_date": "Fecha de emisión",
-      "expiry_date": "Fecha de vencimiento (opcional)",
+      "expiry_date": "Fecha de vencimiento",
       "expiry_help": "Debe ser posterior a la fecha de emisión"
     },
     "buttons": {

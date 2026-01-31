@@ -661,7 +661,7 @@
       "no_trainees": "该班级暂无学员",
       "trainee_help": "从该班级选择学员",
       "issue_date": "签发日期",
-      "expiry_date": "到期日期（可选）",
+      "expiry_date": "到期日期",
       "expiry_help": "必须晚于签发日期"
     },
     "buttons": {

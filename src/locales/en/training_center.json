@@ -704,7 +704,7 @@
       "trainee_help": "Select a trainee from this class",
 
       "issue_date": "Issue Date",
-      "expiry_date": "Expiry Date (Optional)",
+      "expiry_date": "Expiry Date",
       "expiry_help": "Must be after issue date"
     },
 
@@ -746,6 +746,7 @@
       "select_course": "Please select a course",
       "select_trainee": "Please select a trainee",
       "issue_date_required": "Issue date is required",
+      "expiry_date_required": "Expiry date is required",
       "expiry_after_issue": "Expiry date must be after issue date",
       "duplicate_submit": "Cannot issue certificate: Duplicate record found for this class and trainee.",
       "download_failed": "Failed to download certificate. Please try again.",
