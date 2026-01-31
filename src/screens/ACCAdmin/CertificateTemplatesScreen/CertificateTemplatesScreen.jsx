@@ -8,6 +8,8 @@ import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
+import useDebounce from '../../../hooks/useDebounce';
 import './CertificateTemplatesScreen.css';
 
 const CertificateTemplatesScreen = () => {
@@ -29,6 +31,16 @@ const CertificateTemplatesScreen = () => {
   const [expandedSubCategories, setExpandedSubCategories] = useState(new Set());
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
 
+  // Pagination & Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    last_page: 1
+  });
+
   // Form state
   const [formData, setFormData] = useState({
     course_ids: [],
@@ -41,6 +53,19 @@ const CertificateTemplatesScreen = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    loadTemplates(pagination.current_page, debouncedSearch);
+  }, [pagination.current_page, debouncedSearch]);
+
+  const handlePageChange = (page) => {
+    setPagination(prev => ({ ...prev, current_page: page }));
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
 
   useEffect(() => {
     setHeaderTitle(t('certificate_templates_screen.header.title'));
@@ -65,23 +90,14 @@ const CertificateTemplatesScreen = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [templatesData, categoriesData, subCategoriesData, coursesData] = await Promise.all([
-        accAPI.listCertificateTemplates({ per_page: 1000 }),
+      const [categoriesData, subCategoriesData, coursesData] = await Promise.all([
         accAPI.listCategories({ per_page: 1000 }),
         accAPI.listSubCategories({ per_page: 1000 }),
         accAPI.listCourses({ per_page: 1000 })
       ]);
 
-      // Process Templates
-      let templatesArray = [];
-      if (templatesData.data) {
-        templatesArray = templatesData.data || [];
-      } else if (templatesData.templates) {
-        templatesArray = templatesData.templates || [];
-      } else {
-        templatesArray = Array.isArray(templatesData) ? templatesData : [];
-      }
-      setTemplates(templatesArray);
+      // Templates loaded separately in useEffect
+
 
       // Process Categories
       let categoriesArray = [];
@@ -129,16 +145,34 @@ const CertificateTemplatesScreen = () => {
     }
   };
 
-  const loadTemplates = async () => {
+  const loadTemplates = async (page = 1, search = '') => {
     setLoading(true);
     try {
-      const params = { per_page: 1000 };
+      const params = {
+        page,
+        per_page: pagination.per_page,
+        ...(search && { search })
+      };
+
       const data = await accAPI.listCertificateTemplates(params);
       let templatesArray = [];
       if (data.data) templatesArray = data.data;
       else if (data.templates) templatesArray = data.templates;
       else templatesArray = Array.isArray(data) ? data : [];
+
       setTemplates(templatesArray);
+
+      // handle pagination
+      if (data) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || data.meta?.current_page || page,
+          total: data.total || data.meta?.total || templatesArray.length,
+          last_page: data.last_page || data.meta?.last_page || 1,
+          per_page: data.per_page || data.meta?.per_page || prev.per_page
+        }));
+      }
+
     } catch (error) {
       console.error('Failed to load templates:', error);
       setTemplates([]);
@@ -304,7 +338,8 @@ const CertificateTemplatesScreen = () => {
       }
 
       handleCloseModal();
-      loadTemplates();
+      handleCloseModal();
+      loadTemplates(pagination.current_page, debouncedSearch);
 
       // Open designer if creating new template
       if (!isEditMode && template.template) {
@@ -336,7 +371,8 @@ const CertificateTemplatesScreen = () => {
 
     try {
       await accAPI.deleteTemplate(template.id, force);
-      loadTemplates();
+      await accAPI.deleteTemplate(template.id, force);
+      loadTemplates(pagination.current_page, debouncedSearch);
     } catch (error) {
       console.error('Failed to delete template:', error);
 
@@ -521,6 +557,8 @@ const CertificateTemplatesScreen = () => {
         data={templates}
         isLoading={loading}
         searchable={true}
+        searchValue={searchTerm}
+        onSearch={handleSearch}
         searchPlaceholder={t('certificate_templates_screen.search.placeholder')}
         filterable={true}
         // filterOptions={filterOptions}
@@ -528,6 +566,16 @@ const CertificateTemplatesScreen = () => {
         sortable={true}
         onRowClick={handleViewDetails}
       />
+
+      <div className="p-4 border-t border-gray-100">
+        <Pagination
+          currentPage={pagination.current_page}
+          totalPages={pagination.last_page}
+          totalItems={pagination.total}
+          perPage={pagination.per_page}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       {/* Create/Edit Modal */}
       <Modal

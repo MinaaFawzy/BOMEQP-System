@@ -11,6 +11,7 @@ import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
 import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
+import useDebounce from '../../../hooks/useDebounce';
 
 const TrainingCenterCertificatesScreen = () => {
   const { t } = useTranslation('training_center');
@@ -30,6 +31,8 @@ const TrainingCenterCertificatesScreen = () => {
 
   // Status filter
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [completedClasses, setCompletedClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,9 +55,20 @@ const TrainingCenterCertificatesScreen = () => {
   const [loadingCourses, setLoadingCourses] = useState(false);
 
   // Load data when pagination changes
+  // Load data when pagination, search or filter changes
   useEffect(() => {
     loadData();
-  }, [currentPage, perPage]);
+  }, [currentPage, perPage, debouncedSearch, statusFilter]);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+    setCurrentPage(1);
+  };
 
   const loadData = async () => {
     try {
@@ -64,6 +78,8 @@ const TrainingCenterCertificatesScreen = () => {
       const params = {
         page: currentPage,
         per_page: perPage,
+        ...(debouncedSearch && { search: debouncedSearch }),
+        ...(statusFilter !== 'all' && { status: statusFilter })
       };
 
       const certData = await trainingCenterAPI.listCertificates(params);
@@ -737,10 +753,6 @@ const TrainingCenterCertificatesScreen = () => {
     { value: 'revoked', label: t('certificates_screen.filters.revoked'), filterFn: (cert) => cert.status === 'revoked' },
   ], [t]);
 
-  const handleStatusFilterChange = (e) => {
-    setStatusFilter(e.target.value);
-  };
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -755,12 +767,11 @@ const TrainingCenterCertificatesScreen = () => {
     <div>
       <DataTable
         columns={columns}
-        data={certificates.filter(cert => {
-          if (statusFilter === 'all') return true;
-          return cert.status === statusFilter;
-        })}
+        data={certificates}
         isLoading={loading}
         searchable={true}
+        searchValue={searchTerm}
+        onSearch={handleSearch}
         searchPlaceholder={t('certificates_screen.table.search_placeholder')}
         filterable={false}
         sortable={false}

@@ -10,6 +10,8 @@ import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import './TrainingCenterApplicationsScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
+import Pagination from '../../../components/Pagination/Pagination';
+import useDebounce from '../../../hooks/useDebounce';
 
 const TrainingCenterApplicationsScreen = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeader();
@@ -20,6 +22,19 @@ const TrainingCenterApplicationsScreen = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    last_page: 1
+  });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    rejected: 0
+  });
 
   useEffect(() => {
     setHeaderTitle('Training Center Applications');
@@ -30,22 +45,78 @@ const TrainingCenterApplicationsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  const loadApplications = async () => {
+  const loadApplications = async (page = 1, search = '', status = 'all') => {
     try {
       setLoading(true);
-      const data = await adminAPI.getTrainingCenterApplications();
-      setAllApplications(data.applications || []);
+      const params = {
+        page,
+        per_page: pagination.per_page,
+        ...(search && { search }),
+        ...(status !== 'all' && { status })
+      };
+
+      const data = await adminAPI.getTrainingCenterApplications(params);
+
+      let apps = [];
+      if (data.data) apps = data.data;
+      else if (data.applications) apps = data.applications;
+      else if (Array.isArray(data)) apps = data;
+
+      setAllApplications(apps);
+
+      // Update pagination
+      if (data.meta || data.pagination) {
+        const meta = data.meta || data.pagination;
+        setPagination(prev => ({
+          ...prev,
+          current_page: meta.current_page || page,
+          total: meta.total || 0,
+          last_page: meta.last_page || 1,
+          per_page: meta.per_page || prev.per_page
+        }));
+      } else if (data.total !== undefined) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: data.current_page || page,
+          total: data.total || apps.length,
+          last_page: data.last_page || 1
+        }));
+      }
+
+      // Update stats if available
+      if (data.statistics) {
+        setStats({
+          total: data.statistics.total || 0,
+          pending: data.statistics.pending || 0,
+          rejected: data.statistics.rejected || 0
+        });
+      }
     } catch (error) {
       console.error('Failed to load applications:', error);
       alert('Failed to load applications: ' + (error.message || 'Unknown error'));
+      setAllApplications([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadApplications();
-  }, []);
+    loadApplications(pagination.current_page, debouncedSearch, statusFilter);
+  }, [pagination.current_page, debouncedSearch, statusFilter]);
+
+  const handlePageChange = (page) => {
+    setPagination(prev => ({ ...prev, current_page: page }));
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleStatusChange = (status) => {
+    setStatusFilter(status);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
 
   const handleApprove = async (id) => {
     if (!confirm('Are you sure you want to approve this Training Center application?')) {
@@ -88,28 +159,11 @@ const TrainingCenterApplicationsScreen = () => {
     }
   };
 
-  // Client-side filtering
-  const filteredApplications = useMemo(() => {
-    let filtered = [...allApplications];
-
-    // Apply status filter (handle both 'inactive' and 'rejected' as rejected)
-    if (statusFilter === 'rejected') {
-      filtered = filtered.filter(app => app.status === 'inactive' || app.status === 'rejected');
-    } else if (statusFilter !== 'all') {
-      filtered = filtered.filter(app => app.status === statusFilter);
-    }
-
-    // Add search text for DataTable search
-    return filtered.map(app => ({
-      ...app,
-      _searchText: `${app.name || ''} ${app.email || ''} ${app.legal_name || ''}`.toLowerCase()
-    }));
-  }, [allApplications, statusFilter]);
-
-  // Calculate stats from all applications
-  const totalCount = allApplications.length;
-  const pendingCount = allApplications.filter(app => app.status === 'pending').length;
-  const rejectedCount = allApplications.filter(app => app.status === 'inactive' || app.status === 'rejected').length;
+  // Calculate stats from all applications - fallback if API doesn't return statistics
+  // Or use state stats
+  const totalCount = stats.total || (statusFilter === 'all' ? pagination.total : 0);
+  const pendingCount = stats.pending || 0;
+  const rejectedCount = stats.rejected || 0;
 
   // DataTable columns
   const columns = useMemo(() => [
@@ -195,7 +249,7 @@ const TrainingCenterApplicationsScreen = () => {
           icon={ClipboardList}
           colorType="indigo"
           isActive={statusFilter === 'all'}
-          onClick={() => setStatusFilter('all')}
+          onClick={() => handleStatusChange('all')}
         />
         <TabCard
           name="Pending"
@@ -203,7 +257,7 @@ const TrainingCenterApplicationsScreen = () => {
           icon={Clock}
           colorType="yellow"
           isActive={statusFilter === 'pending'}
-          onClick={() => setStatusFilter('pending')}
+          onClick={() => handleStatusChange('pending')}
         />
         <TabCard
           name="Rejected"
@@ -211,7 +265,7 @@ const TrainingCenterApplicationsScreen = () => {
           icon={XCircle}
           colorType="red"
           isActive={statusFilter === 'rejected'}
-          onClick={() => setStatusFilter('rejected')}
+          onClick={() => handleStatusChange('rejected')}
         />
       </TabCardsGrid>
 
@@ -219,15 +273,26 @@ const TrainingCenterApplicationsScreen = () => {
       <div className="bg-white rounded-xl shadow-lg border border-gray-100">
         <DataTable
           columns={columns}
-          data={filteredApplications}
+          data={allApplications}
           onView={handleViewDetails}
           onRowClick={handleViewDetails}
           isLoading={loading}
           emptyMessage="No applications found"
           searchable={true}
+          searchValue={searchTerm}
+          onSearch={handleSearch}
           filterable={false}
           searchPlaceholder="Search by training center name, email, or legal name..."
         />
+        <div className="p-4 border-t border-gray-100">
+          <Pagination
+            currentPage={pagination.current_page}
+            totalPages={pagination.last_page}
+            totalItems={pagination.total}
+            perPage={pagination.per_page}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
 
       {/* Detail View Modal */}

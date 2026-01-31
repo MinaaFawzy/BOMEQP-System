@@ -871,16 +871,9 @@ const TraineesScreen = () => {
           }}
           searchable={true}
           sortable={true}
-          filterable={true}
+          filterable={false}
           searchPlaceholder={t('trainees.table.searchPlaceholder')}
           emptyMessage={t('trainees.table.emptyMessage')}
-          filterOptions={[
-            { value: 'all', label: t('trainees.filters.allStatus'), filterFn: null },
-            { value: 'active', label: t('trainees.status.active'), filterFn: (row) => row.status === 'active' },
-            { value: 'inactive', label: t('trainees.status.inactive'), filterFn: (row) => row.status === 'inactive' },
-            { value: 'suspended', label: t('trainees.status.suspended'), filterFn: (row) => row.status === 'suspended' },
-          ]}
-          defaultFilter={statusFilter}
           onRowClick={(trainee) => handleViewDetails(trainee)}
         />
         <Pagination

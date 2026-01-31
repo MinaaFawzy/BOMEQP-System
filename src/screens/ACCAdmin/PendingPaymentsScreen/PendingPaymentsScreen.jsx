@@ -8,6 +8,8 @@ import Button from '../../../components/Button/Button';
 import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
+import Pagination from '../../../components/Pagination/Pagination';
+import useDebounce from '../../../hooks/useDebounce';
 import './PendingPaymentsScreen.css';
 
 const PendingPaymentsScreen = () => {
@@ -25,6 +27,16 @@ const PendingPaymentsScreen = () => {
   const [rejectForm, setRejectForm] = useState({ rejection_reason: '' });
   const [errors, setErrors] = useState({});
 
+  // Pagination & Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    last_page: 1
+  });
+
   useEffect(() => {
     setHeaderTitle(t('pending_payments_screen.header.title'));
     setHeaderSubtitle(t('pending_payments_screen.header.subtitle'));
@@ -35,29 +47,43 @@ const PendingPaymentsScreen = () => {
   }, [setHeaderTitle, setHeaderSubtitle, t]);
 
   useEffect(() => {
-    loadPendingPayments();
-  }, []);
+    loadPendingPayments(pagination.current_page, debouncedSearch);
+  }, [pagination.current_page, debouncedSearch]);
 
-  const loadPendingPayments = async () => {
+  const handlePageChange = (page) => {
+    setPagination(prev => ({ ...prev, current_page: page }));
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const loadPendingPayments = async (page = 1, search = '') => {
     setLoading(true);
     try {
-      const response = await accAPI.getPendingPayments();
+      const params = {
+        page,
+        per_page: pagination.per_page,
+        ...(search && { search })
+      };
+
+      const response = await accAPI.getPendingPayments(params);
       const batchesList = response?.batches || response?.data || [];
 
-      const enrichedBatches = batchesList.map(batch => ({
-        ...batch,
-        _searchText: [
-          batch.training_center?.name,
-          batch.training_center?.email,
-          batch.course?.name,
-          batch.quantity,
-          batch.total_amount,
-          batch.payment_amount,
-          batch.payment_status,
-        ].filter(Boolean).join(' ').toLowerCase()
-      }));
+      setBatches(batchesList);
 
-      setBatches(enrichedBatches);
+      // handle pagination
+      if (response) {
+        setPagination(prev => ({
+          ...prev,
+          current_page: response.current_page || response.meta?.current_page || page,
+          total: response.total || response.meta?.total || batchesList.length,
+          last_page: response.last_page || response.meta?.last_page || 1,
+          per_page: response.per_page || response.meta?.per_page || prev.per_page
+        }));
+      }
+
     } catch (error) {
       console.error('Failed to load pending payments:', error);
       setBatches([]);
@@ -299,10 +325,21 @@ const PendingPaymentsScreen = () => {
           ) : t('pending_payments_screen.table.empty')
         }
         searchable={true}
+        searchValue={searchTerm}
+        onSearch={handleSearch}
         filterable={false}
         searchPlaceholder={t('pending_payments_screen.search.placeholder')}
         sortable={true}
       />
+      <div className="p-4 border-t border-gray-100">
+        <Pagination
+          currentPage={pagination.current_page}
+          totalPages={pagination.last_page}
+          totalItems={pagination.total}
+          perPage={pagination.per_page}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       {/* Detail Modal */}
       <Modal

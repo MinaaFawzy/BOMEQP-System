@@ -9,6 +9,8 @@ import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
+import Pagination from '../../../components/Pagination/Pagination';
+import useDebounce from '../../../hooks/useDebounce';
 import DataTable from '../../../components/DataTable/DataTable';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import './CodesScreen.css';
@@ -34,6 +36,14 @@ const CodesScreen = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    last_page: 1
+  });
   const [purchaseForm, setPurchaseForm] = useState({
     acc_id: '',
     category_id: '',
@@ -62,59 +72,17 @@ const CodesScreen = () => {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]); // Load all data once, search and filtering are handled client-side
+  }, [activeTab, pagination.current_page, debouncedSearch, statusFilter]);
+
+  // Reset pagination when tab or filter changes
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  }, [activeTab, statusFilter]); // We don't include debouncedSearch here as handleSearch handles the reset
 
   // Load batches on initial mount and when searchTerm changes (to show count in Purchase History tab)
   // NOTE: This is only for showing the count in the tab button, not for the main data display
-  useEffect(() => {
-    // Don't load batches if activeTab is 'batches' - loadData will handle it
-    if (activeTab === 'batches') {
-      return;
-    }
-
-    // Only load batches if we don't have any yet (to show count in tab)
-    // This prevents duplicate loading when switching tabs
-    if (batches.length > 0) {
-      return;
-    }
-
-    const loadBatches = async () => {
-      try {
-        // Ensure ACCs are loaded
-        let currentAccsMap = accsMap;
-        if (currentAccsMap.size === 0) {
-          currentAccsMap = await loadACCs();
-        }
-
-        const params = {};
-        if (searchTerm) {
-          params.search = searchTerm;
-        }
-
-        const data = await trainingCenterAPI.getCodeBatches(params);
-
-        let batchesList = [];
-        if (data.data) {
-          batchesList = data.data || [];
-        } else if (data.batches) {
-          batchesList = data.batches || [];
-        } else {
-          batchesList = Array.isArray(data) ? data : [];
-        }
-
-        // Enrich batches with ACC data
-        const enrichedBatches = await enrichCodesWithACCData(batchesList, currentAccsMap);
-        setBatches(enrichedBatches);
-      } catch (error) {
-        console.error('Failed to load batches:', error);
-        // Don't set empty array here to avoid clearing existing data
-      }
-    };
-
-    loadBatches();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]); // Run on mount and when searchTerm changes (but not when activeTab is 'batches')
+  // Removed the useEffect for loading batches count separately as it might conflict.
+  // We will rely on loadData to populate counts if possible, or accept that count shows current page count or total if available.
 
   useEffect(() => {
     if (purchaseModalOpen) {
@@ -639,11 +607,15 @@ const CodesScreen = () => {
         currentAccsMap = await loadACCs();
       }
 
-      const params = {};
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+        ...(debouncedSearch && { search: debouncedSearch }),
+        ...(statusFilter !== 'all' && { status: statusFilter })
+      };
 
       if (activeTab === 'inventory') {
-        // Note: search and statusFilter are now handled client-side
-        const data = await trainingCenterAPI.getCodeInventory({});
+        const data = await trainingCenterAPI.getCodeInventory(params);
 
         let codesList = [];
         if (data.data) {
@@ -657,9 +629,20 @@ const CodesScreen = () => {
         // Enrich codes with ACC data
         const enrichedCodes = await enrichCodesWithACCData(codesList, currentAccsMap);
         setInventory(enrichedCodes);
+
+        // Update pagination
+        if (data) {
+          setPagination(prev => ({
+            ...prev,
+            current_page: data.current_page || data.meta?.current_page || pagination.current_page,
+            total: data.total || data.meta?.total || codesList.length,
+            last_page: data.last_page || data.meta?.last_page || 1,
+            per_page: data.per_page || data.meta?.per_page || prev.per_page
+          }));
+        }
+
       } else {
-        // Note: search and filtering for batches are now handled client-side by DataTable
-        const data = await trainingCenterAPI.getCodeBatches({});
+        const data = await trainingCenterAPI.getCodeBatches(params);
 
         let batchesList = [];
         if (data.data) {
@@ -673,6 +656,17 @@ const CodesScreen = () => {
         // Enrich batches with ACC data
         const enrichedBatches = await enrichCodesWithACCData(batchesList, currentAccsMap);
         setBatches(enrichedBatches);
+
+        // Update pagination
+        if (data) {
+          setPagination(prev => ({
+            ...prev,
+            current_page: data.current_page || data.meta?.current_page || pagination.current_page,
+            total: data.total || data.meta?.total || batchesList.length,
+            last_page: data.last_page || data.meta?.last_page || 1,
+            per_page: data.per_page || data.meta?.per_page || prev.per_page
+          }));
+        }
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -686,6 +680,20 @@ const CodesScreen = () => {
     }
   };
 
+  const handlePageChange = (page) => {
+    setPagination(prev => ({ ...prev, current_page: page }));
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -694,63 +702,8 @@ const CodesScreen = () => {
     setSortConfig({ key, direction });
   };
 
-  // Filter and sort inventory data
-  const filteredAndSortedInventory = useMemo(() => {
-    let filtered = [...inventory];
+  // Removed filteredAndSortedInventory useMemo as it is now handled server-side
 
-    // Apply search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(code => {
-        const codeValue = code.code || '';
-        const accName = typeof code.acc === 'object' ? code.acc?.name || '' : code.acc || '';
-        const courseName = typeof code.course === 'object' ? code.course?.name || '' : code.course || '';
-        const status = code.status || '';
-
-        const searchText = [
-          codeValue,
-          accName,
-          courseName,
-          status,
-        ].filter(Boolean).join(' ').toLowerCase();
-
-        return searchText.includes(searchLower);
-      });
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(code => code.status === statusFilter);
-    }
-
-    // Apply sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        let aValue, bValue;
-
-        if (typeof a[sortConfig.key] === 'object' && a[sortConfig.key] !== null) {
-          aValue = a[sortConfig.key]?.name || '';
-        } else {
-          aValue = a[sortConfig.key] || '';
-        }
-
-        if (typeof b[sortConfig.key] === 'object' && b[sortConfig.key] !== null) {
-          bValue = b[sortConfig.key]?.name || '';
-        } else {
-          bValue = b[sortConfig.key] || '';
-        }
-
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [inventory, searchTerm, statusFilter, sortConfig]);
 
   const applySort = () => {
     // Sorting is now handled in filteredAndSortedInventory useMemo
@@ -1271,26 +1224,7 @@ const CodesScreen = () => {
     },
   ], []);
 
-  // Add searchable text to each batch for better search functionality
-  const batchesWithSearchText = useMemo(() => {
-    return batches.map(batch => {
-      const accName = typeof batch.acc === 'object' ? batch.acc?.name || '' : batch.acc || '';
-      const courseName = typeof batch.course === 'object' ? batch.course?.name || '' : batch.course || '';
-      const searchText = [
-        accName,
-        courseName,
-        batch.quantity || '',
-        batch.total_amount || '',
-        batch.purchase_date ? new Date(batch.purchase_date).toLocaleDateString() : '',
-        batch.payment_method || '',
-      ].filter(Boolean).join(' ').toLowerCase();
-
-      return {
-        ...batch,
-        _searchText: searchText,
-      };
-    });
-  }, [batches]);
+  // Removed batchesWithSearchText useMemo as it is not needed for server-side search
 
   // Group codes by ACC and Course
   const groupCodesByACCCourse = (codes) => {
@@ -1352,7 +1286,7 @@ const CodesScreen = () => {
     return `${accId || 'unknown'}_${courseId || 'unknown'}`;
   };
 
-  const currentData = activeTab === 'inventory' ? filteredAndSortedInventory : batchesWithSearchText;
+  const currentData = activeTab === 'inventory' ? inventory : batches;
   const columns = activeTab === 'inventory' ? 6 : 6;
 
   return (
@@ -1368,7 +1302,7 @@ const CodesScreen = () => {
             className={`tab-button ${activeTab === 'inventory' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
             <Package size={20} className={activeTab === 'inventory' ? 'tab-icon-active' : 'tab-icon-inactive'} />
-            {t('codes_screen.tabs.inventory')} ({inventory.length})
+            {t('codes_screen.tabs.inventory')}
           </button>
           <button
             onClick={() => {
@@ -1377,7 +1311,7 @@ const CodesScreen = () => {
             className={`tab-button ${activeTab === 'batches' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
             <ShoppingCart size={20} className={activeTab === 'batches' ? 'tab-icon-active' : 'tab-icon-inactive'} />
-            {t('codes_screen.tabs.purchase_history')} ({batches.length})
+            {t('codes_screen.tabs.purchase_history')}
           </button>
         </div>
       </div>
@@ -1492,6 +1426,15 @@ const CodesScreen = () => {
                 </div>
               );
             })}
+            <div className="col-span-full mt-4 flex justify-center">
+              <Pagination
+                currentPage={pagination.current_page}
+                totalPages={pagination.last_page}
+                totalItems={pagination.total}
+                perPage={pagination.per_page}
+                onPageChange={handlePageChange}
+              />
+            </div>
           </div>
         )
       ) : (
@@ -1499,7 +1442,7 @@ const CodesScreen = () => {
         <div className="datatable-container">
           <DataTable
             columns={batchesColumns}
-            data={batchesWithSearchText}
+            data={batches}
             isLoading={loading}
             emptyMessage={
               batches.length === 0 && !loading ? (
@@ -1513,10 +1456,21 @@ const CodesScreen = () => {
               ) : t('codes_screen.history.empty_subtitle_filtered')
             }
             searchable={true}
+            searchValue={searchTerm}
+            onSearch={handleSearch}
             filterable={false}
             searchPlaceholder={t('codes_screen.search.history_placeholder')}
             sortable={true}
           />
+          <div className="p-4 border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.last_page}
+              totalItems={pagination.total}
+              perPage={pagination.per_page}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </div>
       )}
 

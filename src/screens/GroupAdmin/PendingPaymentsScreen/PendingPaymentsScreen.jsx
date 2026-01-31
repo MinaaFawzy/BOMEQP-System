@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import useDebounce from '../../../hooks/useDebounce';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { DollarSign, Clock, Building2, BookOpen, CheckCircle, XCircle, Eye, FileText, Calendar, Hash, ClipboardList } from 'lucide-react';
@@ -38,7 +39,7 @@ const PendingPaymentsScreen = () => {
 
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
   // Stats State
   const [stats, setStats] = useState({
@@ -47,15 +48,6 @@ const PendingPaymentsScreen = () => {
 
   // Track if data has been loaded before
   const hasDataRef = useRef(false);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPagination(prev => ({ ...prev, current_page: 1 }));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   useEffect(() => {
     setHeaderTitle('Pending Manual Payments');
@@ -393,10 +385,23 @@ const PendingPaymentsScreen = () => {
           ) : 'No pending payments found'
         }
         searchable={true}
+        searchValue={searchQuery}
+        onSearch={setSearchQuery}
         filterable={false}
         searchPlaceholder="Search by ACC, training center, course, amount, or date..."
         sortable={true}
       />
+      <div className="p-4 border-t border-gray-100">
+        <Pagination
+          currentPage={pagination.current_page}
+          totalPages={pagination.last_page}
+          totalItems={pagination.total}
+          perPage={pagination.per_page}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+          showPerPageSelector={true}
+        />
+      </div>
 
       {/* Detail Modal */}
       <Modal
