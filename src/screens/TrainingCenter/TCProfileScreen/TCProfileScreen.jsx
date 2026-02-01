@@ -378,8 +378,10 @@ const TCProfileScreen = () => {
       if (formData.facility_floorplan instanceof File) {
         submitData.append('facility_floorplan', formData.facility_floorplan);
       }
-      if (formData.interested_fields.length > 0) {
-        submitData.append('interested_fields', JSON.stringify(formData.interested_fields));
+      if (formData.interested_fields && formData.interested_fields.length > 0) {
+        formData.interested_fields.forEach((field, index) => {
+          submitData.append(`interested_fields[${index}]`, field);
+        });
       }
       if (formData.how_did_you_hear_about_us) {
         submitData.append('how_did_you_hear_about_us', formData.how_did_you_hear_about_us);

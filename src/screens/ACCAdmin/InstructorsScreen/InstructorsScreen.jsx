@@ -274,7 +274,8 @@ const InstructorsScreen = () => {
       accessor: '_normalizedEmail',
       sortable: true,
       render: (value) => (
-        <div className="flex items-center text-sm text-gray-600 gap-2">
+        <div className="flex items-center text-sm text-gray-600 gap-2
+        ">
           <Mail className="h-4 w-4 mr-2 text-gray-400" />
           {value || t('instructors_screen.common.na')}
         </div>
@@ -536,27 +537,8 @@ const InstructorsScreen = () => {
       >
         {selectedRequest && (
           <div className="space-y-6">
-            {/* Request Information - Only for requests */}
-            {selectedRequest._isRequest && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="mr-2" size={20} />
-                  {t('instructors_screen.details.request_info')}
-                </h3>
-                <DetailForm
-                  data={selectedRequest}
-                  fields={[
-                    { key: 'request_date', label: t('instructors_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'status', label: t('instructors_screen.table.status'), type: 'status', icon: Clock },
-                    { key: 'payment_status', label: t('instructors_screen.details.payment_status'), render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? (value === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}</span>, icon: CreditCard },
-                    { key: 'created_at', label: t('instructors_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
-                    { key: 'updated_at', label: t('instructors_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
-                  ]}
-                />
-              </div>
-            )}
 
-            {/* Instructor Information */}
+            {/* Instructor Information - Moved to top */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <User className="mr-2" size={20} />
@@ -584,8 +566,13 @@ const InstructorsScreen = () => {
                   email: selectedRequest.email || (selectedRequest.instructor?.email),
                   phone: selectedRequest.phone || (selectedRequest.instructor?.phone),
                   date_of_birth: selectedRequest.date_of_birth || (selectedRequest.instructor?.date_of_birth),
-                  nationality: selectedRequest.nationality || (selectedRequest.instructor?.nationality),
-                  specialization: selectedRequest.specialization || (selectedRequest.instructor?.specialization),
+                  id_number: selectedRequest.id_number || (selectedRequest.instructor?.id_number),
+                  country: selectedRequest.instructor?.country,
+                  city: selectedRequest.instructor?.city,
+                  specializations: Array.isArray(selectedRequest.instructor?.specializations)
+                    ? selectedRequest.instructor.specializations.join(', ')
+                    : (selectedRequest.specialization || selectedRequest.instructor?.specialization),
+                  _normalizedTrainingCenter: selectedRequest.training_center?.name || selectedRequest.training_center?.legal_name || t('instructors_screen.common.na')
                 }}
                 fields={[
                   { key: 'first_name', label: t('instructors_screen.fields.first_name'), icon: UserCircle },
@@ -593,12 +580,79 @@ const InstructorsScreen = () => {
                   { key: 'email', label: t('instructors_screen.fields.email'), type: 'email', icon: Mail },
                   { key: 'phone', label: t('instructors_screen.fields.phone'), icon: Phone },
                   { key: 'date_of_birth', label: t('instructors_screen.fields.date_of_birth'), type: 'date', icon: Calendar, showEmpty: false },
-                  { key: 'nationality', label: t('instructors_screen.fields.nationality'), icon: Globe },
-                  { key: 'specialization', label: t('instructors_screen.fields.specialization'), icon: Award },
+                  { key: 'id_number', label: 'ID Number', icon: Hash },
+                  { key: 'country', label: t('classes_screen.fields.country') || 'Country', icon: Globe },
+                  { key: 'city', label: t('classes_screen.fields.city') || 'City', icon: MapPin },
+                  { key: 'specializations', label: t('instructors_screen.fields.specialization'), icon: Award },
+                  { key: 'is_assessor', label: t('authorized_instructors_screen.details.is_assessor'), render: (val) => val ? t('instructors_screen.common.yes') : t('instructors_screen.common.no'), icon: Award },
                   { key: '_normalizedTrainingCenter', label: t('instructors_screen.fields.training_center'), icon: Building2 },
                 ]}
               />
+
+              {/* Instructor Documents */}
+              {(selectedRequest.instructor?.cv_url || selectedRequest.instructor?.passport_image_url) && (
+                <div className="mt-6">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                    <FileText className="mr-2" size={18} />
+                    {t('instructors_screen.details.documents')}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedRequest.instructor?.cv_url && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FileText className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-sm font-medium text-gray-900">CV / Resume</span>
+                        </div>
+                        <a
+                          href={selectedRequest.instructor.cv_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:underline"
+                        >
+                          {t('instructors_screen.documents.view_document')}
+                        </a>
+                      </div>
+                    )}
+                    {selectedRequest.instructor?.passport_image_url && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FileText className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-sm font-medium text-gray-900">Passport</span>
+                        </div>
+                        <a
+                          href={selectedRequest.instructor.passport_image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:underline"
+                        >
+                          {t('instructors_screen.documents.view_document')}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Request Information - Only for requests */}
+            {selectedRequest._isRequest && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2" size={20} />
+                  {t('instructors_screen.details.request_info')}
+                </h3>
+                <DetailForm
+                  data={selectedRequest}
+                  fields={[
+                    { key: 'request_date', label: t('instructors_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'status', label: t('instructors_screen.table.status'), type: 'status', icon: Clock },
+                    { key: 'payment_status', label: t('instructors_screen.details.payment_status'), render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? (value === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}</span>, icon: CreditCard },
+                    { key: 'created_at', label: t('instructors_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'updated_at', label: t('instructors_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
+                  ]}
+                />
+              </div>
+            )}
 
             {/* Category and Sub-Category */}
             {selectedRequest._isRequest && (selectedRequest.category || selectedRequest.sub_category) && (
@@ -657,7 +711,7 @@ const InstructorsScreen = () => {
               </div>
             )}
 
-            {/* Documents */}
+            {/* Documents - Review existing documents from request if any */}
             {selectedRequest._isRequest && selectedRequest.documents_json && Array.isArray(selectedRequest.documents_json) && selectedRequest.documents_json.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">

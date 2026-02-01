@@ -275,7 +275,7 @@ const AllACCsScreen = () => {
       setSelectedACC(accData);
       setDetailModalOpen(true);
     } catch (error) {
-      console.error('Failed to load ACC details:', error);
+      console.error('Failed to load Accreditations details:', error);
       // Fallback if API fails, though details might be missing
       const accData = {
         ...acc,
@@ -343,8 +343,8 @@ const AllACCsScreen = () => {
       setAccErrors({});
       setEditModalOpen(true);
     } catch (error) {
-      console.error('Failed to load ACC details:', error);
-      alert('Failed to load ACC details');
+      console.error('Failed to load Accreditation details:', error);
+      alert('Failed to load Accreditation details');
     }
   };
 
@@ -420,7 +420,7 @@ const AllACCsScreen = () => {
         setSelectedACC(accData);
         setCategoryModalOpen(true);
       } catch (fallbackError) {
-        console.error('Failed to load ACC details:', fallbackError);
+        console.error('Failed to load Accreditation details:', fallbackError);
         const accData = {
           ...acc,
           categories: acc.categories || []
@@ -716,12 +716,27 @@ const AllACCsScreen = () => {
           setDetailModalOpen(false);
           setSelectedACC(null);
         }}
-        title="ACC Details"
+        title="Accreditation Details"
         size="lg"
       >
         <div className="space-y-6">
           {selectedACC && (
             <>
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  {selectedACC.logo_url ? (
+                    <img
+                      src={selectedACC.logo_url}
+                      alt={selectedACC.name || 'ACC Logo'}
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center border-4 border-white shadow-lg">
+                      <Building2 size={48} className="text-blue-600" />
+                    </div>
+                  )}
+                </div>
+              </div>
               <DetailForm
                 data={selectedACC}
                 fields={[
@@ -987,21 +1002,7 @@ const AllACCsScreen = () => {
               onChange={handleAccFormChange}
               error={accErrors.website}
             />
-            <FormInput
-              label="Status"
-              name="status"
-              type="select"
-              value={accFormData.status}
-              onChange={handleAccFormChange}
-              options={[
-                { value: 'pending', label: 'Pending' },
-                { value: 'active', label: 'Active' },
-                { value: 'suspended', label: 'Suspended' },
-                { value: 'expired', label: 'Expired' },
-                { value: 'rejected', label: 'Rejected' },
-              ]}
-              error={accErrors.status}
-            />
+
             <FormInput
               label="Registration Fee Amount"
               name="registration_fee_amount"

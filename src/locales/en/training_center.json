@@ -319,7 +319,8 @@
     "instructor_details": "Instructor Details",
     "at_least_one_language_required": "At least one language is required",
     "no_results_found": "No results found",
-    "try_adjusting_your_search_or_filters": "Try adjusting your search or filters"
+    "try_adjusting_your_search_or_filters": "Try adjusting your search or filters",
+    "request_authorization": "Request Authorization"
   },
   "trainees": {
     "header": {
