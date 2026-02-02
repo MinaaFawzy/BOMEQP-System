@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
 // Get auth token from sessionStorage (for pending users) or localStorage
 const getAuthToken = () => {
