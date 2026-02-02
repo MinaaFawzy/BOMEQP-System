@@ -116,7 +116,8 @@
       "total": "Total",
       "pending": "Pending",
       "active": "Active",
-      "returned": "Returned"
+      "returned": "Returned",
+      "rejected": "Rejected"
     },
 
     "search": {
@@ -161,7 +162,9 @@
       "request_date": "Request Date",
       "created_at": "Created At",
       "updated_at": "Updated At",
-      "reviewed_at": "Reviewed At"
+      "reviewed_at": "Reviewed At",
+      "request_history": "Request History",
+      "total_requests": "Total Requests"
     },
 
     "company": {

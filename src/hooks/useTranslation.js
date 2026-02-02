@@ -32,7 +32,7 @@ export const useTranslation = (namespace = 'common') => {
         try {
             // Check if user is logged in
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
             if (token) {
                 // Determine header key

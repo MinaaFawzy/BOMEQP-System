@@ -96,7 +96,8 @@
       "total": "Total",
       "pending": "Pendientes",
       "active": "Activos",
-      "returned": "Devueltos"
+      "returned": "Devueltos",
+      "rejected": "Rechazados"
     },
     "search": {
       "placeholder": "Buscar centros de formación..."
@@ -134,7 +135,9 @@
       "request_date": "Fecha de solicitud",
       "created_at": "Creado el",
       "updated_at": "Actualizado el",
-      "reviewed_at": "Revisado el"
+      "reviewed_at": "Revisado el",
+      "request_history": "Historial de solicitudes",
+      "total_requests": "Total de solicitudes"
     },
     "company": {
       "company_name": "Nombre de la empresa",

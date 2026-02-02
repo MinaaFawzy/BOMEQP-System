@@ -21,7 +21,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
   // Helper function to render a field
   const renderField = (label, value, icon = null, className = '') => {
     if (!value && value !== 0 && value !== false) return null;
-    
+
     return (
       <div className={`p-4 bg-gray-50 rounded-lg ${className}`}>
         <p className="text-sm text-gray-500 mb-1 flex items-center">
@@ -36,33 +36,33 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
   // Helper function to render status badge
   const renderStatusBadge = (status) => {
     const statusConfig = {
-      active: { 
+      active: {
         badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-        icon: CheckCircle 
+        icon: CheckCircle
       },
-      approved: { 
+      approved: {
         badgeClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300',
-        icon: CheckCircle 
+        icon: CheckCircle
       },
-      pending: { 
+      pending: {
         badgeClass: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300',
-        icon: Clock 
+        icon: Clock
       },
-      rejected: { 
+      rejected: {
         badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-        icon: XCircle 
+        icon: XCircle
       },
-      inactive: { 
+      inactive: {
         badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-        icon: Clock 
+        icon: Clock
       },
-      suspended: { 
+      suspended: {
         badgeClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300',
-        icon: XCircle 
+        icon: XCircle
       },
-      archived: { 
+      archived: {
         badgeClass: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300',
-        icon: Clock 
+        icon: Clock
       }
     };
     const config = statusConfig[status] || statusConfig.pending;
@@ -96,19 +96,19 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
         {data.first_name && renderField('First Name', data.first_name)}
         {data.last_name && renderField('Last Name', data.last_name)}
         {data.full_name && renderField('Full Name', data.full_name)}
-        
+
         {/* Contact fields */}
         {data.email && renderField('Email', data.email, <Mail size={16} />)}
         {data.phone && renderField('Phone', data.phone, <Phone size={16} />)}
         {data.country && renderField('Country', data.country, <MapPin size={16} />)}
         {data.city && renderField('City', data.city, <MapPin size={16} />)}
         {data.address && renderField('Address', data.address, <MapPin size={16} />, 'md:col-span-2')}
-        
+
         {/* Identification fields */}
         {data.registration_number && renderField('Registration Number', data.registration_number)}
         {data.id_number && renderField('ID Number', data.id_number)}
         {data.code && renderField(data.code.includes('Course') ? 'Course Code' : 'Code', data.code)}
-        
+
         {/* Course-specific fields */}
         {data.level && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -129,7 +129,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             </p>
           </div>
         )}
-        
+
         {/* Status field */}
         {data.status && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -137,7 +137,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             {renderStatusBadge(data.status)}
           </div>
         )}
-        
+
         {/* Financial fields */}
         {data.commission_percentage !== undefined && data.commission_percentage !== null && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -158,7 +158,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             </p>
           </div>
         )}
-        
+
         {/* Stripe Account */}
         {data.stripe_account_configured !== undefined && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -181,7 +181,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             </div>
           </div>
         )}
-        
+
         {/* Website */}
         {data.website && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -191,7 +191,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             </a>
           </div>
         )}
-        
+
         {/* Date fields */}
         {data.created_at && (
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -261,9 +261,8 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
             {data.acc.status && (
               <div>
                 <p className="text-xs text-purple-700 mb-1">Status</p>
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                  data.acc.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${data.acc.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
                   {data.acc.status}
                 </span>
               </div>
@@ -449,9 +448,9 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                 </div>
                 {(doc.document_url || doc.url) && (
                   <a
-                    href={(doc.document_url || doc.url).startsWith('http') 
+                    href={(doc.document_url || doc.url).startsWith('http')
                       ? (doc.document_url || doc.url)
-                      : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.document_url || doc.url}`}
+                      : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${doc.document_url || doc.url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium"
@@ -499,11 +498,10 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                 <div key={categoryId || index} className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                   <span className="font-medium text-gray-900">{categoryName}</span>
                   {typeof category === 'object' && category.status && (
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      category.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${category.status === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {category.status}
                     </span>
                   )}
@@ -560,7 +558,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
               const certName = typeof cert === 'object' ? (cert.name || cert.title || cert.certificate_name || `Certificate ${index + 1}`) : cert;
               const certDate = typeof cert === 'object' && cert.date ? cert.date : null;
               const certUrl = typeof cert === 'object' && cert.url ? cert.url : (typeof cert === 'object' && cert.file_url ? cert.file_url : null);
-              
+
               return (
                 <div key={index} className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   <div className="flex items-center justify-between">
@@ -586,9 +584,9 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                     </div>
                     {certUrl && (
                       <a
-                        href={certUrl.startsWith('http') 
+                        href={certUrl.startsWith('http')
                           ? certUrl
-                          : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${certUrl}`}
+                          : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${certUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -624,9 +622,9 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                 </div>
               </div>
               <a
-                href={data.cv_url.startsWith('http') 
+                href={data.cv_url.startsWith('http')
                   ? data.cv_url
-                  : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${data.cv_url}`}
+                  : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${data.cv_url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -648,9 +646,8 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
               <div key={classItem.id} className="bg-white rounded-lg p-3 border border-gray-200">
                 <p className="text-sm font-medium text-gray-900">{classItem.name || `Class ${classItem.id}`}</p>
                 {classItem.status && (
-                  <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${
-                    classItem.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${classItem.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {classItem.status}
                   </span>
                 )}

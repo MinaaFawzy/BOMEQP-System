@@ -116,7 +116,8 @@
       "total": "الكل",
       "pending": "قيد المراجعة",
       "active": "نشطة",
-      "returned": "معادة"
+      "returned": "معادة",
+      "rejected": "مرفوض"
     },
 
     "search": {
@@ -161,7 +162,9 @@
       "request_date": "تاريخ الطلب",
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث",
-      "reviewed_at": "تاريخ المراجعة"
+      "reviewed_at": "تاريخ المراجعة",
+      "request_history": "تاريخ الطلبات",
+      "total_requests": "إجمالي الطلبات"
     },
 
     "company": {

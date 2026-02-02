@@ -525,15 +525,25 @@ const InstructorAuthorizationsScreen = () => {
       accessor: 'payment_status',
       sortable: true,
       render: (value, row) => {
+        const isPaymentPending = !row.payment_status || row.payment_status === 'pending';
+
+        // Hide pending payment status if request is returned or rejected
+        if (isPaymentPending && ['returned', 'rejected'].includes(row.status)) {
+          return <span className="text-gray-400 font-medium">-</span>;
+        }
+
         const paymentStatusClass = row.payment_status === 'paid' ? 'paid' :
           row.payment_status === 'failed' ? 'failed' : 'pending';
+
+        const effectiveStatus = row.payment_status || 'pending';
+
         return (
           <div className="payment-status-container">
             <span className={`payment-status-badge ${paymentStatusClass}`}>
-              {row.payment_status === 'pending' && <Clock size={12} className="payment-status-icon" />}
-              {row.payment_status === 'paid' && <CheckCircle size={12} className="payment-status-icon" />}
-              {row.payment_status === 'failed' && <AlertCircle size={12} className="payment-status-icon" />}
-              {row.payment_status ? t(`instructor_authorizations.status.${row.payment_status}`) : t('instructor_authorizations.status.pending')}
+              {effectiveStatus === 'pending' && <Clock size={12} className="payment-status-icon" />}
+              {effectiveStatus === 'paid' && <CheckCircle size={12} className="payment-status-icon" />}
+              {effectiveStatus === 'failed' && <AlertCircle size={12} className="payment-status-icon" />}
+              {t(`instructor_authorizations.status.${effectiveStatus}`)}
             </span>
           </div>
         );
@@ -813,17 +823,35 @@ const InstructorAuthorizationsScreen = () => {
                     return t('instructor_authorizations.status.na');
                   }
                 },
-                {
-                  key: 'authorization_price',
-                  label: t('instructor_authorizations.payment.authorization_price'),
-                  icon: DollarSign,
-                  render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
-                },
+                { key: 'authorization_price', label: t('instructor_authorizations.payment.authorization_price'), icon: DollarSign, render: (value) => `$${parseFloat(value || 0).toFixed(2)}` },
                 { key: 'status', label: t('instructor_authorizations.table.status'), type: 'status' },
-                { key: 'payment_status', label: t('instructor_authorizations.table.payment_status'), type: 'status' },
+                ...(!['returned', 'rejected'].includes(selectedAuthorization.status) ? [{ key: 'payment_status', label: t('instructor_authorizations.table.payment_status'), type: 'status' }] : []),
               ]}
             />
-            {selectedAuthorization.group_admin_status && (
+
+            {/* Rejection Reason */}
+            {selectedAuthorization.status === 'rejected' && selectedAuthorization.rejection_reason && (
+              <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-center mb-2">
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-red-900">{t('instructor_authorizations.details.reason_label') || 'Rejection Reason'}</h3>
+                </div>
+                <p className="text-base text-gray-900">{selectedAuthorization.rejection_reason}</p>
+              </div>
+            )}
+
+            {/* Return Comment */}
+            {selectedAuthorization.status === 'returned' && selectedAuthorization.return_comment && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center mb-2">
+                  <RefreshCw className="h-5 w-5 text-blue-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-blue-900">{t('instructor_authorizations.details.comment_label') || 'Return Comment'}</h3>
+                </div>
+                <p className="text-base text-gray-900">{selectedAuthorization.return_comment}</p>
+              </div>
+            )}
+
+            {selectedAuthorization.group_admin_status && !['returned', 'rejected'].includes(selectedAuthorization.status) && (
               <div className="detail-modal-group-admin">
                 <p className="detail-modal-group-admin-title">{t('instructor_authorizations.details.group_admin_status')}</p>
                 <p className="detail-modal-group-admin-text">

@@ -506,7 +506,9 @@
       "waiting_admin": "Waiting for Group Admin approval",
       "ready_for_payment": "Ready for payment",
       "completed": "Authorization completed",
-      "pay_authorization": "Pay Authorization"
+      "pay_authorization": "Pay Authorization",
+      "comment_label": "Return Comment",
+      "reason_label": "Rejection Reason"
     },
 
     "status": {
@@ -770,8 +772,8 @@
     },
 
     "search": {
-      "inventory_placeholder": "Search by code, Accreditation, course, or status...",
-      "history_placeholder": "Search by Accreditation, course, quantity, amount, date, or payment method..."
+      "inventory_placeholder": "Search by code, course...",
+      "history_placeholder": "Search by course, quantity, amount..."
     },
 
     "filter": {

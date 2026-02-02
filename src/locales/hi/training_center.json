@@ -492,7 +492,9 @@
       "waiting_admin": "ग्रुप एडमिन की स्वीकृति की प्रतीक्षा",
       "ready_for_payment": "भुगतान के लिए तैयार",
       "completed": "प्राधिकरण पूर्ण",
-      "pay_authorization": "प्राधिकरण का भुगतान करें"
+      "pay_authorization": "प्राधिकरण का भुगतान करें",
+      "comment_label": "वापसी टिप्पणी",
+      "reason_label": "अस्वीकृति का कारण"
     },
     "status": {
       "pending": "लंबित",
@@ -720,8 +722,8 @@
       "purchase_history": "खरीद इतिहास"
     },
     "search": {
-      "inventory_placeholder": "कोड, मान्यता, पाठ्यक्रम या स्थिति से खोजें...",
-      "history_placeholder": "मान्यता, पाठ्यक्रम, मात्रा, राशि, तिथि या भुगतान विधि से खोजें..."
+      "inventory_placeholder": "कोड, पाठ्यक्रम से खोजें...",
+      "history_placeholder": "पाठ्यक्रम, मात्रा, राशि, तिथि से खोजें..."
     },
     "filter": {
       "all": "सभी स्थितियाँ",

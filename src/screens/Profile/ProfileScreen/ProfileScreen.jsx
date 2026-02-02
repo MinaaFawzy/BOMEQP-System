@@ -565,7 +565,7 @@ const ProfileScreen = () => {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token') ||
         sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
       const response = await axios.put(`${API_BASE_URL}/instructor/profile`, formDataToSend, {
         headers: {
@@ -620,7 +620,7 @@ const ProfileScreen = () => {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token') ||
         sessionStorage.getItem('auth_token') || sessionStorage.getItem('token');
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
       // Send request to remove CV (set cv to null)
       const formDataToSend = new FormData();

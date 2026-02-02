@@ -96,7 +96,8 @@
       "total": "总计",
       "pending": "待处理",
       "active": "启用",
-      "returned": "已退回"
+      "returned": "已退回",
+      "rejected": "已拒绝"
     },
     "search": {
       "placeholder": "搜索 培训 中心..."
@@ -134,7 +135,9 @@
       "request_date": "申请 日期",
       "created_at": "已创建 在",
       "updated_at": "已更新 在",
-      "reviewed_at": "已审核 在"
+      "reviewed_at": "已审核 在",
+      "request_history": "申请 历史",
+      "total_requests": "总计 申请"
     },
     "company": {
       "company_name": "公司 名称",

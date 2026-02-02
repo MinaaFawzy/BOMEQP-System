@@ -9,7 +9,7 @@ import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
-import Pagination from '../../../components/Pagination/Pagination';
+
 import useDebounce from '../../../hooks/useDebounce';
 import DataTable from '../../../components/DataTable/DataTable';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -38,12 +38,7 @@ const CodesScreen = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    per_page: 10,
-    total: 0,
-    last_page: 1
-  });
+
   const [purchaseForm, setPurchaseForm] = useState({
     acc_id: '',
     category_id: '',
@@ -72,12 +67,9 @@ const CodesScreen = () => {
 
   useEffect(() => {
     loadData();
-  }, [activeTab, pagination.current_page, debouncedSearch, statusFilter]);
+  }, [activeTab, debouncedSearch, statusFilter]);
 
-  // Reset pagination when tab or filter changes
-  useEffect(() => {
-    setPagination(prev => ({ ...prev, current_page: 1 }));
-  }, [activeTab, statusFilter]); // We don't include debouncedSearch here as handleSearch handles the reset
+
 
   // Load batches on initial mount and when searchTerm changes (to show count in Purchase History tab)
   // NOTE: This is only for showing the count in the tab button, not for the main data display
@@ -293,7 +285,7 @@ const CodesScreen = () => {
       const finalAccId = typeof accId === 'string' ? parseInt(accId) : accId;
       const finalCourseId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
       const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
       console.log(`Loading discount codes for Accreditation ID: ${finalAccId} and Course ID: ${finalCourseId}`);
 
@@ -451,7 +443,7 @@ const CodesScreen = () => {
 
     try {
       const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api';
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
       // Try different endpoints to get ACC details
       const endpoints = [
@@ -608,8 +600,8 @@ const CodesScreen = () => {
       }
 
       const params = {
-        page: pagination.current_page,
-        per_page: pagination.per_page,
+        page: 1,
+        per_page: 9999,
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(statusFilter !== 'all' && { status: statusFilter })
       };
@@ -631,15 +623,10 @@ const CodesScreen = () => {
         setInventory(enrichedCodes);
 
         // Update pagination
-        if (data) {
-          setPagination(prev => ({
-            ...prev,
-            current_page: data.current_page || data.meta?.current_page || pagination.current_page,
-            total: data.total || data.meta?.total || codesList.length,
-            last_page: data.last_page || data.meta?.last_page || 1,
-            per_page: data.per_page || data.meta?.per_page || prev.per_page
-          }));
-        }
+        // Pagination removed
+        /* if (data) {
+           setPagination ...
+        } */
 
       } else {
         const data = await trainingCenterAPI.getCodeBatches(params);
@@ -658,15 +645,10 @@ const CodesScreen = () => {
         setBatches(enrichedBatches);
 
         // Update pagination
-        if (data) {
-          setPagination(prev => ({
-            ...prev,
-            current_page: data.current_page || data.meta?.current_page || pagination.current_page,
-            total: data.total || data.meta?.total || batchesList.length,
-            last_page: data.last_page || data.meta?.last_page || 1,
-            per_page: data.per_page || data.meta?.per_page || prev.per_page
-          }));
-        }
+        // Pagination removed
+        /* if (data) {
+           setPagination ...
+        } */
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -680,18 +662,14 @@ const CodesScreen = () => {
     }
   };
 
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, current_page: page }));
-  };
+
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-    setPagination(prev => ({ ...prev, current_page: 1 }));
   };
 
   const handleStatusChange = (e) => {
     setStatusFilter(e.target.value);
-    setPagination(prev => ({ ...prev, current_page: 1 }));
   };
 
   const handleSort = (key) => {
@@ -1426,15 +1404,7 @@ const CodesScreen = () => {
                 </div>
               );
             })}
-            <div className="col-span-full mt-4 flex justify-center">
-              <Pagination
-                currentPage={pagination.current_page}
-                totalPages={pagination.last_page}
-                totalItems={pagination.total}
-                perPage={pagination.per_page}
-                onPageChange={handlePageChange}
-              />
-            </div>
+
           </div>
         )
       ) : (
@@ -1462,15 +1432,7 @@ const CodesScreen = () => {
             searchPlaceholder={t('codes_screen.search.history_placeholder')}
             sortable={true}
           />
-          <div className="p-4 border-t border-gray-100">
-            <Pagination
-              currentPage={pagination.current_page}
-              totalPages={pagination.last_page}
-              totalItems={pagination.total}
-              perPage={pagination.per_page}
-              onPageChange={handlePageChange}
-            />
-          </div>
+
         </div>
       )}
 

@@ -520,7 +520,9 @@
       "waiting_admin": "بانتظار موافقة مسؤول المجموعة",
       "ready_for_payment": "جاهز للدفع",
       "completed": "اكتمل الاعتماد",
-      "pay_authorization": "دفع الاعتماد"
+      "pay_authorization": "دفع الاعتماد",
+      "comment_label": "تعليق الإرجاع",
+      "reason_label": "سبب الرفض"
     },
 
     "status": {
@@ -781,8 +783,8 @@
     },
 
     "search": {
-      "inventory_placeholder": "ابحث بالكود أو جهة الاعتماد أو الدورة أو الحالة...",
-      "history_placeholder": "ابحث بجهة الاعتماد أو الدورة أو الكمية أو المبلغ أو التاريخ أو طريقة الدفع..."
+      "inventory_placeholder": "ابحث بالكود أو الدورة...",
+      "history_placeholder": "ابحث بالكود أو الدورة..."
     },
 
     "filter": {

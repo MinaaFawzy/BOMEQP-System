@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Building2, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Phone, MapPin, Globe, FileText, Hash, Calendar, Search, ExternalLink, User } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Eye, Clock, ArrowLeft, Mail, Phone, MapPin, Globe, FileText, Hash, Calendar, Search, ExternalLink, User, History } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import TabCard from '../../../components/TabCard/TabCard';
@@ -32,7 +32,8 @@ const TrainingCentersScreen = () => {
     total: 0,
     active: 0,
     pending: 0,
-    returned: 0
+    returned: 0,
+    rejected: 0
   });
 
   // UI State
@@ -61,7 +62,7 @@ const TrainingCentersScreen = () => {
   // Read filter from URL params on mount
   useEffect(() => {
     const filterParam = searchParams.get('filter');
-    if (filterParam && ['pending', 'active', 'returned', 'all'].includes(filterParam)) {
+    if (filterParam && ['pending', 'active', 'returned', 'rejected', 'all'].includes(filterParam)) {
       setStatusFilter(filterParam);
     }
   }, [searchParams]);
@@ -85,18 +86,17 @@ const TrainingCentersScreen = () => {
   // Fetch stats for tabs
   const fetchStats = async () => {
     try {
-      const [activeRes, pendingRes, returnedRes] = await Promise.all([
-        accAPI.listAuthorizedTrainingCenters({ per_page: 1 }),
-        accAPI.getTrainingCenterRequests({ status: 'pending', per_page: 1 }),
-        accAPI.getTrainingCenterRequests({ status: 'returned', per_page: 1 })
-      ]);
+      const response = await accAPI.getTrainingCenterRequests({ per_page: 1 });
 
-      setStats({
-        active: activeRes?.total || 0,
-        pending: pendingRes?.total || 0,
-        returned: returnedRes?.total || 0,
-        total: (activeRes?.total || 0) + (pendingRes?.total || 0) + (returnedRes?.total || 0)
-      });
+      if (response?.statistics) {
+        setStats({
+          total: response.statistics.total || 0,
+          active: response.statistics.approved || 0,
+          pending: response.statistics.pending || 0,
+          returned: response.statistics.returned || 0,
+          rejected: response.statistics.rejected || 0
+        });
+      }
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
@@ -303,10 +303,17 @@ const TrainingCentersScreen = () => {
         const config = statusConfig[value] || statusConfig.pending;
         const Icon = config.icon;
         return (
-          <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${config.badgeClass}`}>
-            <Icon size={12} className="mr-1" />
-            {value ? t(`training_centers_screen.status.${value}`) : t('training_centers_screen.common.na')}
-          </span>
+          <div className="flex flex-col gap-1">
+            <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm w-fit ${config.badgeClass}`}>
+              <Icon size={12} className="mr-1" />
+              {value ? t(`training_centers_screen.status.${value}`) : t('training_centers_screen.common.na')}
+            </span>
+            {row._isRequest && row.total_requests_count > 1 && (
+              <span className="text-xs text-gray-500 px-1">
+                {row.total_requests_count} requests
+              </span>
+            )}
+          </div>
         );
       }
     },
@@ -392,7 +399,7 @@ const TrainingCentersScreen = () => {
     <div>
       {/* Tab Cards */}
       <div className="mb-6">
-        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 4 }}>
+        <TabCardsGrid columns={{ mobile: 1, tablet: 2, desktop: 5 }}>
           <TabCard
             name={t('training_centers_screen.tabs.total')}
             value={stats.total}
@@ -434,6 +441,17 @@ const TrainingCentersScreen = () => {
             isActive={statusFilter === 'returned'}
             onClick={() => {
               setStatusFilter('returned');
+              setPagination(prev => ({ ...prev, current_page: 1 }));
+            }}
+          />
+          <TabCard
+            name={t('training_centers_screen.tabs.rejected')}
+            value={stats.rejected}
+            icon={XCircle}
+            colorType="red"
+            isActive={statusFilter === 'rejected'}
+            onClick={() => {
+              setStatusFilter('rejected');
               setPagination(prev => ({ ...prev, current_page: 1 }));
             }}
           />
@@ -710,7 +728,7 @@ const TrainingCentersScreen = () => {
                         </div>
                         {doc.url && (
                           <a
-                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
+                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${doc.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium"
@@ -744,6 +762,86 @@ const TrainingCentersScreen = () => {
                   <h3 className="text-lg font-semibold text-blue-900">{t('training_centers_screen.return.comment_label')}</h3>
                 </div>
                 <p className="text-base text-gray-900">{selectedRequest.return_comment}</p>
+              </div>
+            )}
+
+            {/* Request History */}
+            {selectedRequest._isRequest && (
+              <div className="pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <History className="mr-2" size={20} />
+                    {t('training_centers_screen.details.request_history') || 'Request History'}
+                  </h3>
+                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium border border-gray-200">
+                    {t('training_centers_screen.details.total_requests', { count: selectedRequest.total_requests_count || 1 }) || `Total Requests: ${selectedRequest.total_requests_count || 1}`}
+                  </span>
+                </div>
+
+                {selectedRequest.previous_requests && selectedRequest.previous_requests.length > 0 ? (
+                  <div className="relative border-l-2 border-gray-200 ml-3 space-y-8">
+                    {selectedRequest.previous_requests.map((req, index) => {
+                      const statusStyles = {
+                        approved: 'bg-green-100 text-green-600 border-green-200',
+                        rejected: 'bg-red-100 text-red-600 border-red-200',
+                        returned: 'bg-blue-100 text-blue-600 border-blue-200',
+                        pending: 'bg-yellow-100 text-yellow-600 border-yellow-200'
+                      };
+                      const statusStyle = statusStyles[req.status] || 'bg-gray-100 text-gray-600 border-gray-200';
+
+                      return (
+                        <div key={req.id} className="relative ml-6">
+                          <span className={`absolute -left-[33px] flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white ${req.status === 'approved' ? 'bg-green-100 text-green-600' :
+                            req.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                              req.status === 'returned' ? 'bg-blue-100 text-blue-600' :
+                                'bg-yellow-100 text-yellow-600'
+                            }`}>
+                            {req.status === 'approved' && <CheckCircle size={14} />}
+                            {req.status === 'rejected' && <XCircle size={14} />}
+                            {req.status === 'returned' && <ArrowLeft size={14} />}
+                            {req.status === 'pending' && <Clock size={14} />}
+                          </span>
+
+                          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusStyle}`}>
+                                {t(`training_centers_screen.status.${req.status}`)}
+                              </span>
+                              <span className="text-xs text-gray-500 flex items-center">
+                                <Calendar size={12} className="mr-1" />
+                                {new Date(req.request_date).toLocaleString()}
+                              </span>
+                            </div>
+
+                            {req.reviewed_by && (
+                              <div className="text-xs text-gray-500 mb-2 pb-2 border-b border-gray-100">
+                                {t('training_centers_screen.details.reviewed_at')}: {new Date(req.reviewed_at).toLocaleDateString()}
+                              </div>
+                            )}
+
+                            {req.rejection_reason && (
+                              <div className="mt-2 text-sm bg-red-50 text-red-700 p-3 rounded-lg border border-red-100">
+                                <strong className="block text-xs uppercase tracking-wide opacity-75 mb-1">{t('training_centers_screen.rejection.reason_label')}</strong>
+                                {req.rejection_reason}
+                              </div>
+                            )}
+
+                            {req.return_comment && (
+                              <div className="mt-2 text-sm bg-blue-50 text-blue-700 p-3 rounded-lg border border-blue-100">
+                                <strong className="block text-xs uppercase tracking-wide opacity-75 mb-1">{t('training_centers_screen.return.comment_label')}</strong>
+                                {req.return_comment}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic ml-4 text-sm bg-gray-50 p-4 rounded-lg text-center">
+                    {t('training_centers_screen.details.no_history') || 'No previous requests found.'}
+                  </p>
+                )}
               </div>
             )}
             {/* Only show action buttons for requests */}

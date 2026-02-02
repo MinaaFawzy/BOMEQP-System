@@ -491,7 +491,9 @@
       "waiting_admin": "等待集团管理员批准",
       "ready_for_payment": "可支付",
       "completed": "授权已完成",
-      "pay_authorization": "支付授权费"
+      "pay_authorization": "支付授权费",
+      "comment_label": "返回评论",
+      "reason_label": "拒绝原因"
     },
     "status": {
       "pending": "待处理",
@@ -719,8 +721,8 @@
       "purchase_history": "购买记录"
     },
     "search": {
-      "inventory_placeholder": "按代码、认证、课程或状态搜索...",
-      "history_placeholder": "按认证、课程、数量、金额、日期或支付方式搜索..."
+      "inventory_placeholder": "按代码、课程搜索...",
+      "history_placeholder": "按课程、数量、金额搜索..."
     },
     "filter": {
       "all": "所有状态",

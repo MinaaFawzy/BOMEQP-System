@@ -730,7 +730,7 @@ const InstructorsScreen = () => {
                         </div>
                         {doc.url && (
                           <a
-                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://aeroenix.com/v1/api'}${doc.url}`}
+                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${doc.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium"

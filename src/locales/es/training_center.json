@@ -492,7 +492,9 @@
       "waiting_admin": "Esperando la aprobación del Administrador del Grupo",
       "ready_for_payment": "Listo para el pago",
       "completed": "Autorización completada",
-      "pay_authorization": "Pagar autorización"
+      "pay_authorization": "Pagar autorización",
+      "comment_label": "Comentario de devolución",
+      "reason_label": "Razón del rechazo"
     },
     "status": {
       "pending": "Pendiente",
@@ -720,8 +722,8 @@
       "purchase_history": "Historial de compras"
     },
     "search": {
-      "inventory_placeholder": "Buscar por código, acreditación, curso o estado...",
-      "history_placeholder": "Buscar por acreditación, curso, cantidad, monto, fecha o método de pago..."
+      "inventory_placeholder": "Buscar por código, curso...",
+      "history_placeholder": "Buscar por curso, cantidad, monto..."
     },
     "filter": {
       "all": "Todos los estados",

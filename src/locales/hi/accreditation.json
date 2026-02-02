@@ -96,7 +96,8 @@
       "total": "कुल",
       "pending": "लंबित",
       "active": "सक्रिय",
-      "returned": "वापस किया गया"
+      "returned": "वापस किया गया",
+      "rejected": "मुख्यालय"
     },
     "search": {
       "placeholder": "खोजें प्रशिक्षण केंद्र..."
@@ -134,7 +135,9 @@
       "request_date": "अनुरोध तिथि",
       "created_at": "बनाया गया पर",
       "updated_at": "अपडेट किया गया पर",
-      "reviewed_at": "समीक्षित पर"
+      "reviewed_at": "समीक्षित पर",
+      "request_history": "अनुरोध इतिहास",
+      "total_requests": "कुल अनुरोध"
     },
     "company": {
       "company_name": "कंपनी नाम",
