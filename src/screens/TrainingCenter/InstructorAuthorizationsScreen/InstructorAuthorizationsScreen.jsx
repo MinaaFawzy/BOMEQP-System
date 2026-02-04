@@ -460,6 +460,12 @@ const InstructorAuthorizationsScreen = () => {
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
+      header: t('instructor_authorizations.table.request_id') || 'Request ID',
+      accessor: 'id',
+      sortable: true,
+      render: (value) => <span className="text-gray-900 font-medium">#{value}</span>,
+    },
+    {
       header: t('instructor_authorizations.table.instructor'),
       accessor: 'instructor',
       sortable: true,
@@ -612,6 +618,7 @@ const InstructorAuthorizationsScreen = () => {
 
       // Combine all searchable text
       const searchText = [
+        auth.id || '',
         instructorName,
         instructorEmail,
         accName,
@@ -787,47 +794,216 @@ const InstructorAuthorizationsScreen = () => {
         size="lg"
       >
         {selectedAuthorization && (
-          <div className="detail-modal-container">
-            <DetailForm
-              data={selectedAuthorization}
-              fields={[
-                {
-                  key: 'instructor',
-                  label: t('instructor_authorizations.payment.instructor'),
-                  icon: Users,
-                  render: (value) => {
-                    if (!value) return t('instructor_authorizations.status.na');
-                    return `${value.first_name || ''} ${value.last_name || ''}`.trim() || t('instructor_authorizations.status.na');
-                  }
-                },
-                {
-                  key: 'acc',
-                  label: t('instructor_authorizations.payment.accreditation'),
-                  icon: Building2,
-                  render: (value) => value?.name || t('instructor_authorizations.status.na')
-                },
-                {
-                  key: 'courses',
-                  label: t('instructors_screen.languages'),
-                  icon: BookOpen,
-                  render: (value, data) => {
-                    if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
-                      return data.courses.map((course, idx) =>
-                        typeof course === 'object' ? course?.name || course?.course_name || t('instructor_authorizations.status.na') : course || t('instructor_authorizations.status.na')
-                      ).join(', ');
-                    } else if (data.course) {
-                      return typeof data.course === 'object'
-                        ? data.course?.name || data.course?.course_name || t('instructor_authorizations.status.na')
-                        : data.course || t('instructor_authorizations.status.na');
-                    }
-                    return t('instructor_authorizations.status.na');
-                  }
-                },
-                { key: 'authorization_price', label: t('instructor_authorizations.payment.authorization_price'), icon: DollarSign, render: (value) => `$${parseFloat(value || 0).toFixed(2)}` },
-                { key: 'status', label: t('instructor_authorizations.table.status'), type: 'status' },
-                ...(!['returned', 'rejected'].includes(selectedAuthorization.status) ? [{ key: 'payment_status', label: t('instructor_authorizations.table.payment_status'), type: 'status' }] : []),
-              ]}
-            />
+          <div className="detail-modal-container space-y-6">
+
+            {/* Instructor Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Users className="mr-2" size={20} />
+                {t('instructor_authorizations.details.instructor_info') || 'Instructor Information'}
+              </h3>
+              <DetailForm
+                data={selectedAuthorization.instructor || {}}
+                fields={[
+                  {
+                    key: 'first_name',
+                    label: t('instructor_authorizations.details.first_name') || 'First Name',
+                    icon: Users
+                  },
+                  {
+                    key: 'last_name',
+                    label: t('instructor_authorizations.details.last_name') || 'Last Name',
+                    icon: Users
+                  },
+                  {
+                    key: 'email',
+                    label: t('instructor_authorizations.details.email') || 'Email',
+                    type: 'email',
+                    icon: Mail
+                  },
+                  {
+                    key: 'phone',
+                    label: t('instructor_authorizations.details.phone') || 'Phone',
+                    icon: Phone
+                  },
+                  {
+                    key: 'country',
+                    label: t('instructor_authorizations.details.country') || 'Country',
+                    icon: Building2,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'city',
+                    label: t('instructor_authorizations.details.city') || 'City',
+                    icon: Building2,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'status',
+                    label: t('instructor_authorizations.details.instructor_status') || 'Status',
+                    render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{value || 'N/A'}</span>,
+                    icon: CheckCircle,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'is_assessor',
+                    label: t('instructor_authorizations.details.is_assessor') || 'Is Assessor',
+                    render: (val) => val ? 'Yes' : 'No',
+                    icon: CheckCircle,
+                    showEmpty: false
+                  },
+                ]}
+              />
+            </div>
+
+            {/* Accreditation Body Information */}
+            {selectedAuthorization.acc && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Building2 className="mr-2" size={20} />
+                  {t('instructor_authorizations.details.accreditation_body') || 'Accreditation Body'}
+                </h3>
+                <DetailForm
+                  data={selectedAuthorization.acc}
+                  fields={[
+                    {
+                      key: 'name',
+                      label: t('instructor_authorizations.details.acc_name') || 'Name',
+                      icon: Building2
+                    },
+                  ]}
+                />
+              </div>
+            )}
+
+            {/* Category and Sub-Category */}
+            {(selectedAuthorization.category || selectedAuthorization.sub_category) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  {t('instructor_authorizations.details.category_info') || 'Category Information'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedAuthorization.category && (
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                      <p className="text-sm text-indigo-600 font-medium mb-1">Category</p>
+                      <p className="text-lg font-semibold text-gray-900">{selectedAuthorization.category.name}</p>
+                      {selectedAuthorization.category.name_ar && (
+                        <p className="text-sm text-gray-600 mt-1">{selectedAuthorization.category.name_ar}</p>
+                      )}
+                    </div>
+                  )}
+                  {selectedAuthorization.sub_category && (
+                    <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                      <p className="text-sm text-purple-600 font-medium mb-1">Sub-Category</p>
+                      <p className="text-lg font-semibold text-gray-900">{selectedAuthorization.sub_category.name}</p>
+                      {selectedAuthorization.sub_category.name_ar && (
+                        <p className="text-sm text-gray-600 mt-1">{selectedAuthorization.sub_category.name_ar}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Requested Courses */}
+            {selectedAuthorization.requested_courses && Array.isArray(selectedAuthorization.requested_courses) && selectedAuthorization.requested_courses.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <BookOpen className="mr-2" size={20} />
+                  {t('instructor_authorizations.details.requested_courses') || 'Requested Courses'} ({selectedAuthorization.requested_courses.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedAuthorization.requested_courses.map((course, index) => (
+                    <div key={course.id || index} className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded">{course.code}</span>
+                          </div>
+                          <p className="font-semibold text-gray-900 text-base">{course.name}</p>
+                          {course.name_ar && (
+                            <p className="text-sm text-gray-600 mt-1">{course.name_ar}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Authorization Details */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <DollarSign className="mr-2" size={20} />
+                {t('instructor_authorizations.details.authorization_details') || 'Authorization Details'}
+              </h3>
+              <DetailForm
+                data={selectedAuthorization}
+                fields={[
+                  {
+                    key: 'authorization_price',
+                    label: t('instructor_authorizations.payment.authorization_price'),
+                    icon: DollarSign,
+                    render: (value) => `$${parseFloat(value || 0).toFixed(2)}`
+                  },
+                  {
+                    key: 'status',
+                    label: t('instructor_authorizations.table.status'),
+                    type: 'status'
+                  },
+                  {
+                    key: 'group_admin_status',
+                    label: t('instructor_authorizations.details.group_admin_status') || 'Group Admin Status',
+                    render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'commission_set' ? 'bg-green-100 text-green-800' : value === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>{value || 'pending'}</span>,
+                    icon: Clock,
+                    showEmpty: false
+                  },
+                  ...(!['returned', 'rejected'].includes(selectedAuthorization.status) ? [
+                    {
+                      key: 'payment_status',
+                      label: t('instructor_authorizations.table.payment_status'),
+                      type: 'status'
+                    },
+                    {
+                      key: 'payment_date',
+                      label: t('instructor_authorizations.details.payment_date') || 'Payment Date',
+                      type: 'datetime',
+                      icon: Clock,
+                      showEmpty: false
+                    },
+                    {
+                      key: 'payment_transaction_id',
+                      label: t('instructor_authorizations.details.transaction_id') || 'Transaction ID',
+                      icon: CreditCard,
+                      showEmpty: false
+                    },
+                  ] : []),
+                  {
+                    key: 'request_date',
+                    label: t('instructor_authorizations.details.request_date') || 'Request Date',
+                    type: 'datetime',
+                    icon: Clock,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'created_at',
+                    label: t('instructor_authorizations.details.created_at') || 'Created At',
+                    type: 'datetime',
+                    icon: Clock,
+                    showEmpty: false
+                  },
+                  {
+                    key: 'updated_at',
+                    label: t('instructor_authorizations.details.updated_at') || 'Updated At',
+                    type: 'datetime',
+                    icon: Clock,
+                    showEmpty: false
+                  },
+                ]}
+              />
+            </div>
 
             {/* Rejection Reason */}
             {selectedAuthorization.status === 'rejected' && selectedAuthorization.rejection_reason && (

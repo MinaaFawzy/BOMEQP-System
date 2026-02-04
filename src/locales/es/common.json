@@ -70,5 +70,19 @@
     }
   },
   "no_results_found": "No se encontraron resultados",
-  "try_adjusting_your_search_or_filters": "Intenta ajustar tu búsqueda o filtros"
+  "try_adjusting_your_search_or_filters": "Intenta ajustar tu búsqueda o filtros",
+  "filter_menu": {
+    "button": "Filtrar",
+    "title": "Filtros",
+    "country_label": "País",
+    "country_placeholder": "Ingrese un país",
+    "city_label": "Ciudad",
+    "city_placeholder": "Ingrese una ciudad",
+    "assessor_status_label": "Estado del evaluador",
+    "status_all": "Todos",
+    "status_assessor": "Solo evaluador",
+    "status_instructor": "Solo instructor",
+    "clear_button": "Limpiar",
+    "apply_button": "Aplicar"
+  }
 }

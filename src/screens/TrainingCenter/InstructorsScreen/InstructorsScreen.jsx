@@ -17,6 +17,7 @@ import LanguageSelector from '../../../components/LanguageSelector/LanguageSelec
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
 import { useTranslation } from '../../../hooks/useTranslation';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
 
 const TrainingCenterInstructorsScreen = () => {
   const { t } = useTranslation('training_center');
@@ -69,6 +70,11 @@ const TrainingCenterInstructorsScreen = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activeFilters, setActiveFilters] = useState({
+    country: '',
+    city: '',
+    is_assessor: ''
+  });
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -97,7 +103,7 @@ const TrainingCenterInstructorsScreen = () => {
     }
 
     loadInstructors(page, perPage, debouncedSearchTerm, statusFilter, showLoading);
-  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
+  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm, activeFilters]);
 
   useEffect(() => {
     setHeaderTitle(t('instructors_screen.title'));
@@ -140,7 +146,10 @@ const TrainingCenterInstructorsScreen = () => {
         page: pageArg,
         per_page: limitArg,
         ...(search && { search }),
-        ...(status !== 'all' && { status })
+        ...(status !== 'all' && { status }),
+        ...(activeFilters.country && { country: activeFilters.country }),
+        ...(activeFilters.city && { city: activeFilters.city }),
+        ...(activeFilters.is_assessor !== '' && activeFilters.is_assessor !== undefined && { is_assessor: activeFilters.is_assessor })
       });
 
       let instructorsArray = [];
@@ -1068,6 +1077,16 @@ const TrainingCenterInstructorsScreen = () => {
   const suspendedCount = statistics.suspended;
   const inactiveCount = statistics.inactive;
 
+  const handleFilterApply = (filters) => {
+    setActiveFilters(filters);
+    setPage(1);
+  };
+
+  const handleFilterClear = (emptyFilters) => {
+    setActiveFilters(emptyFilters);
+    setPage(1);
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -1131,7 +1150,7 @@ const TrainingCenterInstructorsScreen = () => {
           isLoading={loading}
           searchable={true}
           sortable={true}
-          filterable={true}
+          filterable={false}
           searchPlaceholder={t('instructors_screen.search_instructors_placeholder')}
           emptyMessage={t('instructors_screen.no_instructors_found')}
           defaultFilter={statusFilter}
@@ -1140,13 +1159,13 @@ const TrainingCenterInstructorsScreen = () => {
             setSearchTerm(value);
             setPage(1);
           }}
-          filterOptions={[
-            { value: 'all', label: t('instructors_screen.all_status'), filterFn: null },
-            { value: 'active', label: t('instructors_screen.active'), filterFn: (row) => row.status === 'active' },
-            { value: 'pending', label: t('instructors_screen.pending'), filterFn: (row) => row.status === 'pending' },
-            { value: 'suspended', label: t('instructors_screen.suspended'), filterFn: (row) => row.status === 'suspended' },
-            { value: 'inactive', label: t('instructors_screen.inactive'), filterFn: (row) => row.status === 'inactive' },
-          ]}
+          customFilters={
+            <FilterMenu
+              filters={activeFilters}
+              onApply={handleFilterApply}
+              onClear={handleFilterClear}
+            />
+          }
           onRowClick={(instructor) => handleViewDetails(instructor)}
         />
         <Pagination

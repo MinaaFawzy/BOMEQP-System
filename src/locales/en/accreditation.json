@@ -258,7 +258,8 @@
       "date": "Date",
       "status": "Status",
       "actions": "Actions",
-      "empty": "No instructors found"
+      "empty": "No instructors found",
+      "requests_count": "Total Requests"
     },
 
     "actions": {

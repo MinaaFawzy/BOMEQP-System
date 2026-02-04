@@ -12,6 +12,7 @@ import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import Pagination from '../../../components/Pagination/Pagination';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
 import './AllInstructorsScreen.css';
 
 const AllInstructorsScreen = () => {
@@ -62,6 +63,12 @@ const AllInstructorsScreen = () => {
     inactive: 0
   });
 
+  const [activeFilters, setActiveFilters] = useState({
+    country: '',
+    city: '',
+    is_assessor: ''
+  });
+
   // Track if data has been loaded before
   const hasDataRef = useRef(false);
 
@@ -94,7 +101,7 @@ const AllInstructorsScreen = () => {
 
     loadInstructors(showLoading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery]);
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, searchQuery, activeFilters]);
 
   const loadInstructors = async (showLoading = true) => {
     if (showLoading) {
@@ -115,6 +122,13 @@ const AllInstructorsScreen = () => {
       // Add status filter if not 'all'
       if (statusFilter !== 'all') {
         params.status = statusFilter;
+      }
+
+      // Add filters
+      if (activeFilters.country) params.country = activeFilters.country;
+      if (activeFilters.city) params.city = activeFilters.city;
+      if (activeFilters.is_assessor !== '' && activeFilters.is_assessor !== undefined) {
+        params.is_assessor = activeFilters.is_assessor;
       }
 
       const data = await adminAPI.listInstructors(params);
@@ -424,6 +438,16 @@ const AllInstructorsScreen = () => {
   const pendingCount = stats.pending;
   const suspendedCount = stats.suspended;
 
+  const handleFilterApply = (filters) => {
+    setActiveFilters(filters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleFilterClear = (emptyFilters) => {
+    setActiveFilters(emptyFilters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
   // DataTable columns
   const columns = useMemo(() => [
     {
@@ -609,6 +633,13 @@ const AllInstructorsScreen = () => {
             setSearchQuery(value);
           }}
           filterable={false}
+          customFilters={
+            <FilterMenu
+              filters={activeFilters}
+              onApply={handleFilterApply}
+              onClear={handleFilterClear}
+            />
+          }
         />
 
         {/* Pagination */}

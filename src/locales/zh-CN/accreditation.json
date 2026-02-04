@@ -218,7 +218,8 @@
       "date": "日期",
       "status": "状态",
       "actions": "操作",
-      "empty": "否 讲师 找到"
+      "empty": "否 讲师 找到",
+      "requests_count": "总计 申请"
     },
     "actions": {
       "view_details": "查看 详情",

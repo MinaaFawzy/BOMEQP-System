@@ -7,6 +7,7 @@ import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
 import './AuthorizedInstructorsScreen.css';
 
 const AuthorizedInstructorsScreen = () => {
@@ -19,7 +20,7 @@ const AuthorizedInstructorsScreen = () => {
         current_page: 1,
         last_page: 1,
         total: 0,
-        per_page: 15,
+        per_page: 10,
     });
 
     // UI State
@@ -30,6 +31,11 @@ const AuthorizedInstructorsScreen = () => {
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [activeFilters, setActiveFilters] = useState({
+        country: '',
+        city: '',
+        is_assessor: ''
+    });
 
     // Debounce search
     useEffect(() => {
@@ -44,7 +50,7 @@ const AuthorizedInstructorsScreen = () => {
     useEffect(() => {
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.current_page, pagination.per_page, debouncedSearch]);
+    }, [pagination.current_page, pagination.per_page, debouncedSearch, activeFilters]);
 
     useEffect(() => {
         setHeaderTitle(t('authorized_instructors_screen.header.title'));
@@ -65,6 +71,13 @@ const AuthorizedInstructorsScreen = () => {
 
             if (debouncedSearch) {
                 params.search = debouncedSearch;
+            }
+
+            // Add filters
+            if (activeFilters.country) params.country = activeFilters.country;
+            if (activeFilters.city) params.city = activeFilters.city;
+            if (activeFilters.is_assessor !== '' && activeFilters.is_assessor !== undefined) {
+                params.is_assessor = activeFilters.is_assessor;
             }
 
             const response = await accAPI.listAuthorizedInstructors(params);
@@ -104,6 +117,16 @@ const AuthorizedInstructorsScreen = () => {
     const handleViewDetails = (instructor) => {
         setSelectedInstructor(instructor);
         setDetailModalOpen(true);
+    };
+
+    const handleFilterApply = (filters) => {
+        setActiveFilters(filters);
+        setPagination(prev => ({ ...prev, current_page: 1 }));
+    };
+
+    const handleFilterClear = (emptyFilters) => {
+        setActiveFilters(emptyFilters);
+        setPagination(prev => ({ ...prev, current_page: 1 }));
     };
 
     // Define columns for DataTable
@@ -178,7 +201,7 @@ const AuthorizedInstructorsScreen = () => {
         },
         {
             header: t('authorized_instructors_screen.table.commission'),
-            accessor: 'authorization',
+            accessor: 'latest_authorization',
             sortable: true,
             render: (value) => (
                 <span className="text-sm font-medium text-gray-900">
@@ -188,7 +211,7 @@ const AuthorizedInstructorsScreen = () => {
         },
         {
             header: t('authorized_instructors_screen.table.payment_status'),
-            accessor: 'authorization',
+            accessor: 'latest_authorization',
             sortable: true,
             render: (value) => {
                 const status = value?.payment_status || 'pending';
@@ -232,9 +255,9 @@ const AuthorizedInstructorsScreen = () => {
 
     return (
         <div>
-            {/* Search Input */}
-            <div className="mb-4">
-                <div className="relative">
+            {/* Search Input & Filters */}
+            <div className="mb-4 flex gap-4">
+                <div className="relative flex-1">
                     <input
                         type="text"
                         placeholder={t('authorized_instructors_screen.search.placeholder')}
@@ -246,6 +269,11 @@ const AuthorizedInstructorsScreen = () => {
                         <Search size={20} />
                     </div>
                 </div>
+                <FilterMenu
+                    filters={activeFilters}
+                    onApply={handleFilterApply}
+                    onClear={handleFilterClear}
+                />
             </div>
 
             {/* DataTable */}
@@ -315,8 +343,11 @@ const AuthorizedInstructorsScreen = () => {
                                     { key: 'first_name', label: t('authorized_instructors_screen.details.first_name') },
                                     { key: 'last_name', label: t('authorized_instructors_screen.details.last_name') },
                                     { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
-                                    { key: 'date_of_birth', label: t('instructors_screen.fields.date_of_birth') },
                                     { key: 'phone', label: t('authorized_instructors_screen.details.phone') },
+                                    { key: 'date_of_birth', label: t('instructors_screen.fields.date_of_birth') },
+                                    { key: 'id_number', label: 'ID Number', showEmpty: false },
+                                    { key: 'country', label: 'Country', showEmpty: false },
+                                    { key: 'city', label: 'City', showEmpty: false },
                                     {
                                         key: 'is_assessor',
                                         label: t('authorized_instructors_screen.details.is_assessor'),
@@ -325,7 +356,7 @@ const AuthorizedInstructorsScreen = () => {
                                 ]}
                             />
 
-                            {/* Languages */}
+                            {/* Languages/Specializations */}
                             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
                                 <div className="mt-4">
                                     <h4 className="text-sm font-medium text-gray-500 mb-2">{t('authorized_instructors_screen.details.languages')}</h4>
@@ -398,8 +429,8 @@ const AuthorizedInstructorsScreen = () => {
                             </div>
                         )}
 
-                        {/* Authorization Details */}
-                        {selectedInstructor.authorization && (
+                        {/* Current Authorization Details */}
+                        {selectedInstructor.latest_authorization && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Award className="mr-2" size={20} />
@@ -409,15 +440,51 @@ const AuthorizedInstructorsScreen = () => {
                                     <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
                                         <p className="text-sm text-green-600 font-medium mb-1">{t('authorized_instructors_screen.cards.commission_percentage')}</p>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            {selectedInstructor.authorization.commission_percentage}%
+                                            {selectedInstructor.latest_authorization.commission_percentage}%
                                         </p>
                                     </div>
                                     <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                                         <p className="text-sm text-blue-600 font-medium mb-1">{t('authorized_instructors_screen.cards.authorization_price')}</p>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            ${parseFloat(selectedInstructor.authorization.authorization_price || 0).toFixed(2)}
+                                            ${parseFloat(selectedInstructor.latest_authorization.authorization_price || 0).toFixed(2)}
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Authorizations History */}
+                        {selectedInstructor.authorizations && selectedInstructor.authorizations.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <Award className="mr-2" size={20} />
+                                    Authorization History ({selectedInstructor.authorizations.length})
+                                </h3>
+                                <div className="space-y-3">
+                                    {selectedInstructor.authorizations.map((auth, index) => (
+                                        <div key={auth.id || index} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                                <div>
+                                                    <p className="text-gray-500 font-medium mb-1">Request Date</p>
+                                                    <p className="text-gray-900">{new Date(auth.request_date).toLocaleDateString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 font-medium mb-1">Commission</p>
+                                                    <p className="text-gray-900 font-semibold">{auth.commission_percentage}%</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 font-medium mb-1">Price</p>
+                                                    <p className="text-gray-900 font-semibold">${parseFloat(auth.authorization_price || 0).toFixed(2)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 font-medium mb-1">Payment Status</p>
+                                                    <span className={`px-2 py-1 text-xs font-bold rounded ${auth.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                        {auth.payment_status || 'pending'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}

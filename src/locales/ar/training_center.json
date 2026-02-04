@@ -522,7 +522,27 @@
       "completed": "اكتمل الاعتماد",
       "pay_authorization": "دفع الاعتماد",
       "comment_label": "تعليق الإرجاع",
-      "reason_label": "سبب الرفض"
+      "reason_label": "سبب الرفض",
+      "instructor_info": "معلومات المدرب",
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "country": "الدولة",
+      "city": "المدينة",
+      "instructor_status": "الحالة",
+      "is_assessor": "هل هو مقيم",
+      "accreditation_body": "جهة الاعتماد",
+      "acc_name": "الاسم",
+      "category_info": "معلومات الفئة",
+      "requested_courses": "الدورات المطلوبة",
+      "authorization_details": "تفاصيل التفويض",
+      "commission": "نسبة العمولة",
+      "payment_date": "تاريخ الدفع",
+      "transaction_id": "رقم المعاملة",
+      "request_date": "تاريخ الطلب",
+      "created_at": "تاريخ الإنشاء",
+      "updated_at": "تاريخ التحديث"
     },
 
     "status": {

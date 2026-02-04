@@ -12,6 +12,7 @@ import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
 import './InstructorsScreen.css';
 
 const InstructorsScreen = () => {
@@ -51,6 +52,11 @@ const InstructorsScreen = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [activeFilters, setActiveFilters] = useState({
+    country: '',
+    city: '',
+    is_assessor: ''
+  });
   const [trainingCenters, setTrainingCenters] = useState({}); // Map of TC ID to TC name
 
   // Debounce search
@@ -73,9 +79,8 @@ const InstructorsScreen = () => {
   // Load data when dependencies change
   useEffect(() => {
     loadData();
-    fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
+  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch, activeFilters]);
 
   useEffect(() => {
     setHeaderTitle(t('instructors_screen.header.title'));
@@ -86,37 +91,7 @@ const InstructorsScreen = () => {
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
-  // Fetch stats for tabs
-  const fetchStats = async () => {
-    try {
-      const [activeRes, pendingRes, returnedRes] = await Promise.all([
-        accAPI.listAuthorizedTrainingCenters({ per_page: 1 }), // Using TC endpoint for active counts approximation or another logic if available
-        accAPI.getInstructorRequests({ status: 'pending', per_page: 1 }),
-        accAPI.getInstructorRequests({ status: 'returned', per_page: 1 })
-      ]);
 
-      // Note: For 'active' instructors, we might need a specific endpoint count or sum up approved requests
-      // Assuming 'listAuthorizedTrainingCenters' was a mistake in previous code for instructors stats? 
-      // Re-checking previous code: it used listAuthorizedTrainingCenters which returns TCs, not instructors.
-      // Correcting logic: Active instructors are those in authorized list or approved requests.
-      // accAPI.listAuthorizedInstructors? If not exists, maybe default to 0 or use a different call.
-      // Based on available endpoints in context, we'll try to get counts from requests where status=approved for 'active',
-      // or if there is a specific 'listAuthorizedInstructors' endpoint (not listed in prompt, but implied).
-      // If no specific endpoint, we rely on requests status.
-
-      const approvedRes = await accAPI.getInstructorRequests({ status: 'approved', per_page: 1 });
-
-      setStats({
-        active: approvedRes?.total || 0,
-        pending: pendingRes?.total || 0,
-        returned: returnedRes?.total || 0,
-        total: (approvedRes?.total || 0) + (pendingRes?.total || 0) + (returnedRes?.total || 0)
-      });
-
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    }
-  };
 
   const loadData = async () => {
     setLoading(true);
@@ -129,6 +104,13 @@ const InstructorsScreen = () => {
       // Only add search if there's a value
       if (debouncedSearch) {
         params.search = debouncedSearch;
+      }
+
+      // Add filters
+      if (activeFilters.country) params.country = activeFilters.country;
+      if (activeFilters.city) params.city = activeFilters.city;
+      if (activeFilters.is_assessor !== '' && activeFilters.is_assessor !== undefined) {
+        params.is_assessor = activeFilters.is_assessor;
       }
 
       let response;
@@ -173,7 +155,7 @@ const InstructorsScreen = () => {
 
       setTableData(normalizedData);
 
-      // Update pagination
+      // Update pagination and stats
       if (response) {
         setPagination(prev => ({
           ...prev,
@@ -183,6 +165,16 @@ const InstructorsScreen = () => {
           from: response.from || 0,
           to: response.to || 0
         }));
+
+        if (response.statistics) {
+          setStats({
+            active: response.statistics.approved || 0,
+            pending: response.statistics.pending || 0,
+            returned: response.statistics.returned || 0,
+            total: response.statistics.total ||
+              ((response.statistics.approved || 0) + (response.statistics.pending || 0) + (response.statistics.returned || 0))
+          });
+        }
       }
 
     } catch (error) {
@@ -219,6 +211,17 @@ const InstructorsScreen = () => {
   const handleRowClick = (item) => {
     // Allow clicking on both requests and authorized instructors to view details
     handleViewDetails(item);
+    handleViewDetails(item);
+  };
+
+  const handleFilterApply = (filters) => {
+    setActiveFilters(filters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleFilterClear = (emptyFilters) => {
+    setActiveFilters(emptyFilters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
   };
 
   // Define columns for DataTable
@@ -370,7 +373,6 @@ const InstructorsScreen = () => {
         authorization_price: parseFloat(authorizationPrice),
       });
       await loadData();
-      await fetchStats(); // Update stats after approval
       setApproveModalOpen(false);
       setSelectedRequest(null);
       setAuthorizationPrice('');
@@ -394,7 +396,6 @@ const InstructorsScreen = () => {
     try {
       await accAPI.rejectInstructorRequest(selectedRequest.id, { rejection_reason: rejectionReason });
       await loadData();
-      await fetchStats(); // Update stats after rejection
       setRejectModalOpen(false);
       setSelectedRequest(null);
       setRejectionReason('');
@@ -418,7 +419,6 @@ const InstructorsScreen = () => {
     try {
       await accAPI.returnInstructorRequest(selectedRequest.id, { return_comment: returnComment });
       await loadData();
-      await fetchStats(); // Update stats after return
       setReturnModalOpen(false);
       setSelectedRequest(null);
       setReturnComment('');
@@ -481,9 +481,9 @@ const InstructorsScreen = () => {
         </TabCardsGrid>
       </div>
 
-      {/* Server-side Search Input */}
-      <div className="mb-4">
-        <div className="relative">
+      {/* Server-side Search Input & Filters */}
+      <div className="mb-4 flex gap-4">
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder={t('instructors_screen.search.placeholder')}
@@ -495,6 +495,11 @@ const InstructorsScreen = () => {
             <Search size={20} />
           </div>
         </div>
+        <FilterMenu
+          filters={activeFilters}
+          onApply={handleFilterApply}
+          onClear={handleFilterClear}
+        />
       </div>
 
       {/* DataTable */}
@@ -634,6 +639,62 @@ const InstructorsScreen = () => {
               )}
             </div>
 
+            {/* Training Center Information */}
+            {selectedRequest.training_center && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Building2 className="mr-2" size={20} />
+                  Training Center Information
+                </h3>
+
+                {/* TC Logo */}
+                {selectedRequest.training_center.logo_url && (
+                  <div className="mb-4 flex justify-center">
+                    <img
+                      src={selectedRequest.training_center.logo_url}
+                      alt={selectedRequest.training_center.name}
+                      className="h-20 w-auto object-contain rounded-lg border border-gray-200 p-2 bg-white"
+                    />
+                  </div>
+                )}
+
+                <DetailForm
+                  data={selectedRequest.training_center}
+                  fields={[
+                    { key: 'name', label: 'Name', icon: Building2 },
+                    { key: 'legal_name', label: 'Legal Name', icon: FileText, showEmpty: false },
+                    { key: 'registration_number', label: 'Registration Number', icon: Hash },
+                    { key: 'email', label: 'Email', type: 'email', icon: Mail },
+                    { key: 'phone', label: 'Phone', icon: Phone },
+                    { key: 'country', label: 'Country', icon: Globe },
+                    { key: 'city', label: 'City', icon: MapPin },
+                    { key: 'address', label: 'Address', icon: MapPin, showEmpty: false },
+                    { key: 'training_provider_type', label: 'Provider Type', icon: Building2, showEmpty: false },
+                    { key: 'status', label: 'Status', render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{value || 'N/A'}</span>, icon: Clock },
+                  ]}
+                />
+
+                {/* Primary Contact */}
+                <div className="mt-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                    <UserCircle className="mr-2" size={18} />
+                    Primary Contact
+                  </h4>
+                  <DetailForm
+                    data={selectedRequest.training_center}
+                    fields={[
+                      { key: 'primary_contact_title', label: 'Title', icon: User, showEmpty: false },
+                      { key: 'primary_contact_first_name', label: 'First Name', icon: User },
+                      { key: 'primary_contact_last_name', label: 'Last Name', icon: User },
+                      { key: 'primary_contact_email', label: 'Email', type: 'email', icon: Mail },
+                      { key: 'primary_contact_mobile', label: 'Mobile', icon: Phone },
+                      { key: 'primary_contact_country', label: 'Country', icon: Globe, showEmpty: false },
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Request Information - Only for requests */}
             {selectedRequest._isRequest && (
               <div>
@@ -646,7 +707,11 @@ const InstructorsScreen = () => {
                   fields={[
                     { key: 'request_date', label: t('instructors_screen.details.request_date'), type: 'datetime', icon: Calendar, showEmpty: false },
                     { key: 'status', label: t('instructors_screen.table.status'), type: 'status', icon: Clock },
+                    { key: 'group_admin_status', label: 'Group Admin Status', render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'approved' ? 'bg-green-100 text-green-800' : value === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{value || 'pending'}</span>, icon: Clock, showEmpty: false },
+                    { key: 'commission_percentage', label: 'Commission %', render: (value) => value ? `${value}%` : 'N/A', icon: CreditCard, showEmpty: false },
                     { key: 'payment_status', label: t('instructors_screen.details.payment_status'), render: (value) => <span className={`px-2 py-1 text-xs font-bold rounded-full ${value === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{value ? (value === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}</span>, icon: CreditCard },
+                    { key: 'payment_date', label: 'Payment Date', type: 'datetime', icon: Calendar, showEmpty: false },
+                    { key: 'payment_transaction_id', label: 'Transaction ID', icon: Hash, showEmpty: false },
                     { key: 'created_at', label: t('instructors_screen.details.created_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                     { key: 'updated_at', label: t('instructors_screen.details.updated_at'), type: 'datetime', icon: Calendar, showEmpty: false },
                   ]}
@@ -779,6 +844,112 @@ const InstructorsScreen = () => {
                   <h3 className="text-lg font-semibold text-blue-900">{t('instructors_screen.return.comment_label')}</h3>
                 </div>
                 <p className="text-base text-gray-900">{selectedRequest.return_comment}</p>
+              </div>
+            )}
+
+            {/* Request History */}
+            {selectedRequest.previous_requests && selectedRequest.previous_requests.length > 0 && (
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Clock className="mr-2" size={20} />
+                  {t('instructors_screen.details.history') || 'Request History'} ({selectedRequest.previous_requests.length})
+                </h3>
+                <div className="space-y-4">
+                  {selectedRequest.previous_requests.map((historyItem) => (
+                    <div key={historyItem.id} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-full shadow-sm ${historyItem.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-300' :
+                            historyItem.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-300' :
+                              historyItem.status === 'returned' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                                'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                            }`}>
+                            {t(`instructors_screen.status.${historyItem.status}`) || historyItem.status}
+                          </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {new Date(historyItem.request_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="text-xs font-semibold text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
+                          ID: {historyItem.id}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mt-3">
+                        <div className="bg-white p-2 rounded border border-gray-200">
+                          <span className="text-gray-500 block text-xs mb-1">Payment Status:</span>
+                          <span className={`font-bold ${historyItem.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                            {historyItem.payment_status || 'Pending'}
+                          </span>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-gray-200">
+                          <span className="text-gray-500 block text-xs mb-1">Authorization Price:</span>
+                          <span className="font-bold text-gray-900">
+                            {historyItem.authorization_price ? `$${parseFloat(historyItem.authorization_price).toFixed(2)}` : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-gray-200">
+                          <span className="text-gray-500 block text-xs mb-1">Requested Courses:</span>
+                          <span className="font-bold text-indigo-600">
+                            {historyItem.requested_courses_count || 0}
+                          </span>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-gray-200">
+                          <span className="text-gray-500 block text-xs mb-1">Documents:</span>
+                          <span className="font-bold text-purple-600">
+                            {historyItem.documents_count || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Reviewed Information */}
+                      {historyItem.reviewed_by && (
+                        <div className="mt-3 bg-white p-2 rounded border border-gray-200">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-500 block text-xs">Reviewed By:</span>
+                              <span className="font-medium text-gray-900">Admin ID: {historyItem.reviewed_by}</span>
+                            </div>
+                            {historyItem.reviewed_at && (
+                              <div>
+                                <span className="text-gray-500 block text-xs">Reviewed At:</span>
+                                <span className="font-medium text-gray-900">
+                                  {new Date(historyItem.reviewed_at).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Return Comment */}
+                      {historyItem.return_comment && (
+                        <div className="col-span-2 mt-3 bg-blue-50 p-3 rounded border border-blue-200">
+                          <div className="flex items-start gap-2">
+                            <ArrowLeft className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <span className="text-blue-700 font-semibold block text-xs mb-1">Return Comment:</span>
+                              <span className="text-gray-900">{historyItem.return_comment}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Rejection Reason */}
+                      {historyItem.rejection_reason && (
+                        <div className="col-span-2 mt-3 bg-red-50 p-3 rounded border border-red-200">
+                          <div className="flex items-start gap-2">
+                            <XCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <span className="text-red-700 font-semibold block text-xs mb-1">Rejection Reason:</span>
+                              <span className="text-gray-900">{historyItem.rejection_reason}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             {selectedRequest._isRequest && selectedRequest.status === 'pending' && (

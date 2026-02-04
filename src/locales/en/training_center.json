@@ -457,6 +457,7 @@
     },
 
     "table": {
+      "request_id": "Request ID",
       "instructor": "Instructor",
       "accreditation": "Accreditation",
       "authorization_price": "Authorization Price",
@@ -508,7 +509,27 @@
       "completed": "Authorization completed",
       "pay_authorization": "Pay Authorization",
       "comment_label": "Return Comment",
-      "reason_label": "Rejection Reason"
+      "reason_label": "Rejection Reason",
+      "instructor_info": "Instructor Information",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "country": "Country",
+      "city": "City",
+      "instructor_status": "Status",
+      "is_assessor": "Is Assessor",
+      "accreditation_body": "Accreditation Body",
+      "acc_name": "Name",
+      "category_info": "Category Information",
+      "requested_courses": "Requested Courses",
+      "authorization_details": "Authorization Details",
+      "commission": "Commission %",
+      "payment_date": "Payment Date",
+      "transaction_id": "Transaction ID",
+      "request_date": "Request Date",
+      "created_at": "Created At",
+      "updated_at": "Updated At"
     },
 
     "status": {

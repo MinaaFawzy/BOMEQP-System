@@ -70,5 +70,19 @@
     }
   },
   "no_results_found": "कोई फ़िल्टर से मेल खाने वाला नहीं मिला",
-  "try_adjusting_your_search_or_filters": "आपके फ़िल्टर से मेल खाने वाला नहीं मिला"
+  "try_adjusting_your_search_or_filters": "आपके फ़िल्टर से मेल खाने वाला नहीं मिला",
+  "filter_menu": {
+    "button": "फ़िल्टर",
+    "title": "फ़िल्टर",
+    "country_label": "देश",
+    "country_placeholder": "देश दर्ज करें",
+    "city_label": "शहर",
+    "city_placeholder": "शहर दर्ज करें",
+    "assessor_status_label": "मूल्यांकनकर्ता की स्थिति",
+    "status_all": "सभी",
+    "status_assessor": "केवल मूल्यांकनकर्ता",
+    "status_instructor": "केवल प्रशिक्षक",
+    "clear_button": "साफ़ करें",
+    "apply_button": "लागू करें"
+  }
 }

@@ -218,7 +218,8 @@
       "date": "Fecha",
       "status": "Estado",
       "actions": "Acciones",
-      "empty": "No se encontraron instructores"
+      "empty": "No se encontraron instructores",
+      "requests_count": "Total de solicitudes"
     },
     "actions": {
       "view_details": "Ver detalles",
