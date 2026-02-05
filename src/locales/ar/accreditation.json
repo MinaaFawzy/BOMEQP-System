@@ -740,10 +740,23 @@
 
     "table": {
       "name": "الاسم",
+      "type": "النوع",
+      "target": "الهدف",
       "category": "التصنيف",
       "status": "الحالة",
       "actions": "الإجراءات",
       "empty": "لا توجد قوالب"
+    },
+    "types": {
+      "course": "الدورة",
+      "training_center": "مركز التدريب",
+      "instructor": "المدرب"
+    },
+
+    "type_descriptions": {
+      "course": "لإكمال الدورة",
+      "training_center": "لإعتماد مركز التدريب",
+      "instructor": "لإعتماد المدرب"
     },
 
     "actions": {
@@ -772,7 +785,8 @@
       "status": "الحالة",
       "scope": "المجال",
       "category_level": "مستوى التصنيف",
-      "course_specific": "الدورات الخاصة"
+      "course_specific": "الدورات الخاصة",
+      "select_courses": "اختر الدورات"
     },
 
     "buttons": {

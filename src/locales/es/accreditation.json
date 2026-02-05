@@ -632,10 +632,22 @@
     },
     "table": {
       "name": "Nombre",
+      "type": "Tipo",
+      "target": "Objetivo",
       "category": "Categoría",
       "status": "Estado",
       "actions": "Acciones",
       "empty": "No se encontraron plantillas"
+    },
+    "types": {
+      "course": "Curso",
+      "training_center": "Centro de formación",
+      "instructor": "Instructor"
+    },
+    "type_descriptions": {
+      "course": "Para la finalización del curso",
+      "training_center": "Para la autorización del centro de formación",
+      "instructor": "Para la autorización del instructor"
     },
     "actions": {
       "view_details": "Ver detalles",
@@ -660,7 +672,8 @@
       "status": "Estado",
       "scope": "Ámbito",
       "category_level": "Nivel de categoría",
-      "course_specific": "Curso específico"
+      "course_specific": "Curso específico",
+      "select_courses": "Seleccionar cursos"
     },
     "buttons": {
       "cancel": "Cancelar",

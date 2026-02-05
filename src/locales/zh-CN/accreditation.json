@@ -642,10 +642,22 @@
     },
     "table": {
       "name": "名称",
+      "type": "类型",
+      "type_descriptions": "类型 描述",
       "category": "分类",
       "status": "状态",
       "actions": "操作",
       "empty": "否 模板 找到"
+    },
+    "types": {
+      "course": "课程",
+      "training_center": "培训 中心",
+      "instructor": "培训师"
+    },
+    "type_descriptions": {
+      "course": "课程 完成",
+      "training_center": "培训 中心 授权",
+      "instructor": "培训师 授权"
     },
     "actions": {
       "view_details": "查看 详情",
@@ -670,7 +682,8 @@
       "status": "状态",
       "scope": "范围",
       "category_level": "分类 级别",
-      "course_specific": "课程 特定"
+      "course_specific": "课程 特定",
+      "select_courses": "选择 课程"
     },
     "buttons": {
       "cancel": "取消",

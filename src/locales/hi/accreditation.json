@@ -642,10 +642,23 @@
     },
     "table": {
       "name": "नाम",
+      "type": "प्रकार",
+      "type_descriptions": "प्रकार विवरण",
       "category": "श्रेणी",
       "status": "स्थिति",
       "actions": "क्रियाएं",
       "empty": "नहीं टेम्पलेट्स मिला"
+    },
+    "types": {
+      "course": "पाठ्यक्रम",
+      "training_center": "प्रशिक्षण केंद्र",
+      "instructor": "प्रशिक्षक"
+    },
+
+    "type_descriptions": {
+      "course": "पाठ्यक्रम पूर्णता के लिए",
+      "training_center": "प्रशिक्षण केंद्र प्राधिकरण के लिए",
+      "instructor": "प्रशिक्षक प्राधिकरण के लिए"
     },
     "actions": {
       "view_details": "देखें विवरण",
@@ -670,7 +683,8 @@
       "status": "स्थिति",
       "scope": "मान्यता",
       "category_level": "श्रेणी स्तर",
-      "course_specific": "कोर्स स्पेसिफिक"
+      "course_specific": "कोर्स स्पेसिफिक",
+      "select_courses": "कोर्स चुनें"
     },
     "buttons": {
       "cancel": "रद्द करें",

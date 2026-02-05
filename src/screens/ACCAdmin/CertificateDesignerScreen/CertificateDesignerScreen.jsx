@@ -41,25 +41,133 @@ const CertificateDesignerScreen = () => {
     const [selectedPlaceholder, setSelectedPlaceholder] = useState(null);
     const [error, setError] = useState(null);
 
-    // Constants
-    const availablePlaceholders = useMemo(() => [
-        { variable: 'student_name', label: 'Student Name' },
-        { variable: 'course_name', label: 'Course Name' },
-        { variable: 'date', label: 'Issue Date' },
-        { variable: 'expiry_date', label: 'Expiry Date' },
-        { variable: 'cert_id', label: 'Certificate ID' },
-        { variable: 'verification_code', label: 'Verification Code' },
-    ], []);
+    // Dynamic Constants based on template type
+    const availablePlaceholders = useMemo(() => {
+        const templateType = template?.template_type || 'course';
+
+        // Course Certificate Variables
+        if (templateType === 'course') {
+            return [
+                { variable: 'student_name', label: 'Student Name' },
+                { variable: 'course_name', label: 'Course Name' },
+                { variable: 'date', label: 'Issue Date' },
+                { variable: 'expiry_date', label: 'Expiry Date' },
+                { variable: 'cert_id', label: 'Certificate ID' },
+                { variable: 'verification_code', label: 'Verification Code' },
+            ];
+        }
+
+        // Training Center Template Variables
+        if (templateType === 'training_center') {
+            return [
+                { variable: 'training_center_name', label: 'Training Center Name' },
+                { variable: 'training_center_legal_name', label: 'Training Center Legal Name' },
+                { variable: 'training_center_email', label: 'Training Center Email' },
+                { variable: 'training_center_country', label: 'Training Center Country' },
+                { variable: 'training_center_city', label: 'Training Center City' },
+                { variable: 'training_center_registration_number', label: 'Registration Number' },
+                { variable: 'acc_name', label: 'ACC Name' },
+                { variable: 'acc_legal_name', label: 'ACC Legal Name' },
+                { variable: 'acc_registration_number', label: 'ACC Registration Number' },
+                { variable: 'acc_country', label: 'ACC Country' },
+                { variable: 'issue_date', label: 'Issue Date' },
+                { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
+            ];
+        }
+
+        // Instructor Template Variables
+        if (templateType === 'instructor') {
+            return [
+                { variable: 'instructor_name', label: 'Instructor Full Name' },
+                { variable: 'instructor_first_name', label: 'Instructor First Name' },
+                { variable: 'instructor_last_name', label: 'Instructor Last Name' },
+                { variable: 'instructor_email', label: 'Instructor Email' },
+                { variable: 'instructor_id_number', label: 'Instructor ID Number' },
+                { variable: 'instructor_country', label: 'Instructor Country' },
+                { variable: 'instructor_city', label: 'Instructor City' },
+                { variable: 'course_name', label: 'Course Name' },
+                { variable: 'course_name_ar', label: 'Course Name (Arabic)' },
+                { variable: 'course_code', label: 'Course Code' },
+                { variable: 'acc_name', label: 'ACC Name' },
+                { variable: 'acc_legal_name', label: 'ACC Legal Name' },
+                { variable: 'acc_registration_number', label: 'ACC Registration Number' },
+                { variable: 'acc_country', label: 'ACC Country' },
+                { variable: 'issue_date', label: 'Issue Date' },
+                { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
+            ];
+        }
+
+        // Default to course
+        return [
+            { variable: 'student_name', label: 'Student Name' },
+            { variable: 'course_name', label: 'Course Name' },
+            { variable: 'date', label: 'Issue Date' },
+        ];
+    }, [template?.template_type]);
 
     // Example data for preview - shows actual data length and format
-    const exampleData = useMemo(() => ({
-        student_name: 'John Smith',
-        course_name: 'Advanced Business Management',
-        date: 'January 15, 2026',
-        expiry_date: 'January 15, 2027',
-        cert_id: 'CERT-2026-EDOBM2KN',
-        verification_code: 'ABC123XYZ789',
-    }), []);
+    const exampleData = useMemo(() => {
+        const templateType = template?.template_type || 'course';
+
+        // Course Certificate Example Data
+        if (templateType === 'course') {
+            return {
+                student_name: 'John Smith',
+                course_name: 'Advanced Business Management',
+                date: 'January 15, 2026',
+                expiry_date: 'January 15, 2027',
+                cert_id: 'CERT-2026-EDOBM2KN',
+                verification_code: 'ABC123XYZ789',
+            };
+        }
+
+        // Training Center Example Data
+        if (templateType === 'training_center') {
+            return {
+                training_center_name: 'Excellence Training Center',
+                training_center_legal_name: 'Excellence Training Center LLC',
+                training_center_email: 'info@excellencetraining.com',
+                training_center_country: 'United States',
+                training_center_city: 'New York',
+                training_center_registration_number: 'TC-2024-001234',
+                acc_name: 'Global Accreditation Council',
+                acc_legal_name: 'Global Accreditation Council Inc.',
+                acc_registration_number: 'ACC-2020-5678',
+                acc_country: 'United States',
+                issue_date: '2026-01-15',
+                issue_date_formatted: 'January 15, 2026',
+            };
+        }
+
+        // Instructor Example Data
+        if (templateType === 'instructor') {
+            return {
+                instructor_name: 'Dr. Sarah Johnson',
+                instructor_first_name: 'Sarah',
+                instructor_last_name: 'Johnson',
+                instructor_email: 'sarah.johnson@example.com',
+                instructor_id_number: 'ID-987654321',
+                instructor_country: 'United Kingdom',
+                instructor_city: 'London',
+                course_name: 'Advanced Project Management',
+                course_name_ar: 'إدارة المشاريع المتقدمة',
+                course_code: 'APM-301',
+                acc_name: 'Global Accreditation Council',
+                acc_legal_name: 'Global Accreditation Council Inc.',
+                acc_registration_number: 'ACC-2020-5678',
+                acc_country: 'United States',
+                issue_date: '2026-01-15',
+                issue_date_formatted: 'January 15, 2026',
+            };
+        }
+
+        // Default
+        return {
+            student_name: 'John Smith',
+            course_name: 'Sample Course',
+            date: 'January 15, 2026',
+        };
+    }, [template?.template_type]);
 
     const fontFamilies = [
         'Arial', 'Helvetica', 'Times New Roman', 'Courier New',

@@ -378,7 +378,9 @@ const InstructorsScreen = () => {
       setAuthorizationPrice('');
       alert(t('instructors_screen.approval.success'));
     } catch (error) {
-      alert(t('instructors_screen.messages.approve_failed') + ': ' + (error.message || 'Unknown error'));
+      // Extract error message from API response
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert(t('instructors_screen.messages.approve_failed') + ': ' + errorMessage);
     }
   };
 

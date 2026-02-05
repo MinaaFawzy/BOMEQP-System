@@ -740,10 +740,24 @@
 
     "table": {
       "name": "Name",
+      "type": "Type",
+      "target": "Target",
       "category": "Category",
       "status": "Status",
       "actions": "Actions",
       "empty": "No templates found"
+    },
+
+    "types": {
+      "course": "Course",
+      "training_center": "Training Center",
+      "instructor": "Instructor"
+    },
+
+    "type_descriptions": {
+      "course": "For course completion",
+      "training_center": "For TC authorization",
+      "instructor": "For instructor authorization"
     },
 
     "actions": {
@@ -766,7 +780,9 @@
     },
 
     "form": {
+      "template_type": "Template Type",
       "template_name": "Template Name",
+      "select_courses": "Select Courses",
       "category": "Category",
       "select_category": "Select Category",
       "status": "Status",
@@ -784,6 +800,8 @@
 
     "details": {
       "template_name": "Template Name",
+      "template_type": "Template Type",
+      "assigned_courses": "Assigned Courses",
       "category": "Category",
       "status": "Status",
       "configuration": "Configuration",
@@ -795,7 +813,8 @@
     "errors": {
       "save_failed": "Failed to save template. Please try again.",
       "delete_failed": "Failed to delete template. Please try again.",
-      "delete_in_use": "This template is being used by {{count}} certificate(s). Deleting it will also delete all associated certificates."
+      "delete_in_use": "This template is being used by {{count}} certificate(s). Deleting it will also delete all associated certificates.",
+      "no_courses_selected": "Please select at least one course"
     },
 
     "confirmations": {
@@ -803,7 +822,16 @@
     },
 
     "common": {
-      "na": "N/A"
+      "na": "N/A",
+      "course": "Course",
+      "category": "Category",
+      "multiple_courses": "Multiple Courses",
+      "courses": "Courses",
+      "all_training_centers": "All Training Centers",
+      "all_instructors": "All Instructors",
+      "cannot_change_type": "(Cannot be changed)",
+      "applies_to_all_training_centers": "Applies to all approved training centers",
+      "applies_to_all_instructors": "Applies to all authorized instructors"
     }
   },
   "discount_codes_screen": {
