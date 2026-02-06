@@ -427,8 +427,8 @@ const Layout = ({ children }) => {
             to="/profile"
             className="flex items-center gap-2 transition-all duration-200 hover:opacity-80"
           >
-            <span className="text-white font-bold text-sm">
-              {user?.name || 'User'}
+            <span className="text-white font-bold text-sm" title={user?.name || 'User'}>
+              {user?.name && user.name.length > 20 ? `${user.name.substring(0, 35)}...` : (user?.name || 'User')}
             </span>
             <div
               className="p-1 transition-all duration-200"
@@ -695,8 +695,8 @@ const Layout = ({ children }) => {
                       to="/profile"
                       className="flex items-center gap-2 transition-all duration-200 cursor-pointer group hover:opacity-80"
                     >
-                      <span className="text-white font-bold text-base">
-                        {user?.name || 'User'}
+                      <span className="text-white font-bold text-base" title={user?.name || 'User'}>
+                        {user?.name && user.name.length > 20 ? `${user.name.substring(0, 35)}...` : (user?.name || 'User')}
                       </span>
                       <div
                         className="p-1.5 transition-all duration-200 group-hover:scale-110"

@@ -1072,6 +1072,7 @@
       }
     },
     "form": {
+      "name": "Nombre",
       "legal_name": "Nombre legal",
       "email": "Correo electrónico",
       "phone": "Teléfono",

@@ -814,20 +814,12 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label={t('categories_screen.form.category_name_en')}
+            label={t('categories_screen.form.sub_category_name')}
             name="name"
             value={subCategoryFormData.name}
             onChange={handleSubCategoryChange}
             required
             error={subCategoryErrors.name}
-          />
-
-          <FormInput
-            label={t('categories_screen.form.category_name_ar')}
-            name="name_ar"
-            value={subCategoryFormData.name_ar}
-            onChange={handleSubCategoryChange}
-            error={subCategoryErrors.name_ar}
           />
 
           <FormInput

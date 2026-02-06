@@ -153,25 +153,25 @@ const StripeSettingsScreen = () => {
                   </div>
                 </div>
 
-                {/* Status Toggle */}
-                <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-                  <span className={`text-sm font-semibold ${form.is_active ? 'text-green-600' : 'text-gray-500'}`}>
-                    {form.is_active ? 'Live Mode Active' : 'Payments Disabled'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleChange('is_active', !form.is_active)}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${form.is_active
+                {/* Status Toggle 
+                  <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                    <span className={`text-sm font-semibold ${form.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                      {form.is_active ? 'Live Mode Active' : 'Payments Disabled'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleChange('is_active', !form.is_active)}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${form.is_active
                         ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-md shadow-green-200'
                         : 'bg-gray-300'
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${form.is_active ? 'translate-x-6' : 'translate-x-1'
                         }`}
-                    />
-                  </button>
-                </div>
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${form.is_active ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                  </div>*/}
               </div>
             </div>
 

@@ -191,7 +191,9 @@ const TrainingCentersScreen = () => {
         await fetchStats();
         alert(t('training_centers_screen.messages.approve_success'));
       } catch (error) {
-        alert(t('training_centers_screen.messages.approve_failed') + ': ' + (error.message || 'Unknown error'));
+        // Extract error message from API response
+        const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+        alert(t('training_centers_screen.messages.approve_failed') + ': ' + errorMessage);
       }
     }
   };
@@ -367,7 +369,9 @@ const TrainingCentersScreen = () => {
       setRejectionReason('');
       alert(t('training_centers_screen.rejection.success'));
     } catch (error) {
-      alert('Failed to reject: ' + (error.message || 'Unknown error'));
+      // Extract error message from API response
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert('Failed to reject: ' + errorMessage);
     }
   };
 
@@ -391,7 +395,9 @@ const TrainingCentersScreen = () => {
       setReturnComment('');
       alert(t('training_centers_screen.return.success'));
     } catch (error) {
-      alert('Failed to return request: ' + (error.message || 'Unknown error'));
+      // Extract error message from API response
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert('Failed to return request: ' + errorMessage);
     }
   };
 

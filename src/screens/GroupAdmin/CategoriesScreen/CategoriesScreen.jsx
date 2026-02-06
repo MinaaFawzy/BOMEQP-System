@@ -741,20 +741,12 @@ const CategoriesScreen = () => {
           />
 
           <FormInput
-            label="Sub Category Name (English)"
+            label="Sub-Category Name"
             name="name"
             value={subCategoryFormData.name}
             onChange={handleSubCategoryChange}
             required
             error={subCategoryErrors.name}
-          />
-
-          <FormInput
-            label="Sub Category Name (Arabic)"
-            name="name_ar"
-            value={subCategoryFormData.name_ar}
-            onChange={handleSubCategoryChange}
-            error={subCategoryErrors.name_ar}
           />
 
           <FormInput

@@ -85,6 +85,7 @@ const CompleteRegistrationScreen = () => {
     const [formData, setFormData] = useState({
         // Auth & Organization
         company_name: '',
+        name: '', // ACC Admin Name
         website: '',
         primary_email: '', // Company/Body Email
         password: '',
@@ -212,6 +213,8 @@ const CompleteRegistrationScreen = () => {
 
         // 1. Company Info
         if (!formData.company_name) newErrors.company_name = 'Required';
+        if (role === 'acc_admin' && !formData.name) newErrors.name = 'Required';
+        if (role === 'training_center' && !formData.name) newErrors.name = 'Required';
 
         // Company Email
         if (!formData.primary_email) newErrors.primary_email = 'Required';
@@ -311,8 +314,9 @@ const CompleteRegistrationScreen = () => {
                 const submissionData = new FormData();
 
                 // --- User Account Fields ---
-                // Name: Spec says "User's full name". Using Primary Contact Name.
-                submissionData.append('name', `${formData.company_name}`);
+                // Name: Use the name field for both ACC and TC
+                const userName = formData.name || `${formData.primary_first_name} ${formData.primary_last_name}`.trim();
+                submissionData.append('name', userName);
                 // Email: Spec says "User's email". Using Primary Contact Email (User Account email).
                 submissionData.append('email', formData.primary_email);
                 submissionData.append('password', formData.password);
@@ -487,6 +491,30 @@ const CompleteRegistrationScreen = () => {
                                     helperText={errors.company_name}
                                 />
                             </div>
+                            {isAcc && (
+                                <div className="field">
+                                    <label>Name <span className="req">*</span></label>
+                                    <CustomInput
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        error={!!errors.name}
+                                        helperText={errors.name}
+                                    />
+                                </div>
+                            )}
+                            {isTraining && (
+                                <div className="field">
+                                    <label>Name <span className="req">*</span></label>
+                                    <CustomInput
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        error={!!errors.name}
+                                        helperText={errors.name}
+                                    />
+                                </div>
+                            )}
                             <div className="field">
                                 <label>Website</label>
                                 <CustomInput

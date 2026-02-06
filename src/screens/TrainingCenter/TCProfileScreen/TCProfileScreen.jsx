@@ -29,6 +29,7 @@ const TCProfileScreen = () => {
 
   const [formData, setFormData] = useState({
     // Company Information
+    user_name: '', // User's personal name
     name: '',
     website: '',
     email: '',
@@ -128,6 +129,7 @@ const TCProfileScreen = () => {
         setProfile(data);
         setFormData({
           // Company Information
+          user_name: data.user_name || '',
           name: data.name || '',
           website: data.website || '',
           email: data.email || '',
@@ -277,6 +279,7 @@ const TCProfileScreen = () => {
     const validationErrors = {};
 
     // Company Information
+    if (!formData.user_name) validationErrors.user_name = 'User name is required';
     if (!formData.name) validationErrors.name = 'Company name is required';
     if (!formData.email) validationErrors.email = 'Email is required';
     else if (validateEmail(formData.email)) validationErrors.email = validateEmail(formData.email);
@@ -331,6 +334,7 @@ const TCProfileScreen = () => {
       const submitData = new FormData();
 
       // Company Information
+      submitData.append('user_name', formData.user_name);
       submitData.append('name', formData.name);
       if (formData.website) submitData.append('website', formData.website);
       submitData.append('email', formData.email);
@@ -574,6 +578,15 @@ const TCProfileScreen = () => {
               </div>
             </div>
             <div className="profile-form-grid">
+              <FormInput
+                label={t('tc_profile_screen.sections.company_info.user_name')}
+                name="user_name"
+                value={formData.user_name}
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                error={errors.user_name}
+              />
               <FormInput
                 label={t('tc_profile_screen.sections.company_info.company_name')}
                 name="name"

@@ -320,7 +320,8 @@
     "at_least_one_language_required": "At least one language is required",
     "no_results_found": "No results found",
     "try_adjusting_your_search_or_filters": "Try adjusting your search or filters",
-    "request_authorization": "Request Authorization"
+    "request_authorization": "Request Authorization",
+    "date_of_birth_must_be_before_today": "Date of birth must be before today"
   },
   "trainees": {
     "header": {
@@ -1048,6 +1049,7 @@
         "title": "Company Information",
         "subtitle": "Basic details about your training center",
 
+        "user_name": "Name",
         "company_name": "Company Name",
         "website": "Website",
         "email": "Company Email Address",

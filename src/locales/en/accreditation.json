@@ -999,6 +999,7 @@
     "form": {
       "category_name_en": "Category Name (English)",
       "category_name_ar": "Category Name (Arabic)",
+      "sub_category_name": "Sub-Category Name",
       "description": "Description",
       "status": "Status",
       "active": "Active",
@@ -1266,6 +1267,7 @@
     },
 
     "form": {
+      "name": "Name",
       "legal_name": "Legal Name",
       "email": "Email",
       "phone": "Phone",

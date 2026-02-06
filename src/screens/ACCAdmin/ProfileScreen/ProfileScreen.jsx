@@ -474,6 +474,7 @@ const ProfileScreen = () => {
     const validationErrors = {};
 
     // 1. Acc Info
+    if (!formData.name) validationErrors.name = t('profile_screen.validation.required');
     if (!formData.legal_name) validationErrors.legal_name = t('profile_screen.validation.required');
     if (!formData.email) validationErrors.email = t('profile_screen.validation.required');
     else if (validateEmail(formData.email)) validationErrors.email = t('profile_screen.validation.invalid_email');
@@ -979,6 +980,7 @@ const ProfileScreen = () => {
               </div>
             </div>
             <div className="profile-form-grid">
+              <FormInput label={t('profile_screen.form.name')} name="name" value={formData.name} onChange={handleChange} disabled={!isEditing} error={errors.name} required />
               <FormInput label={t('profile_screen.form.legal_name')} name="legal_name" value={formData.legal_name} onChange={handleChange} disabled={!isEditing} error={errors.legal_name} required />
               <FormInput label={t('profile_screen.form.email')} name="email" type="email" value={formData.email} onChange={handleChange} disabled={!isEditing} error={errors.email} required />
               <FormInput label={t('profile_screen.form.phone')} name="phone" type="tel" value={formData.phone} onChange={handleChange} disabled={!isEditing} error={errors.phone} required />
