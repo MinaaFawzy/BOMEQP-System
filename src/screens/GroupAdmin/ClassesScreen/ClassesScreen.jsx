@@ -215,8 +215,8 @@ const ClassesScreen = () => {
             sortable: true,
             render: (value) => {
                 const statusConfig = {
-                    scheduled: { color: 'blue', icon: Clock },
-                    in_progress: { color: 'yellow', icon: Clock },
+                    scheduled: { color: 'yellow', icon: Clock },
+                    in_progress: { color: 'blue', icon: Clock },
                     completed: { color: 'green', icon: CheckCircle },
                     cancelled: { color: 'red', icon: XCircle }
                 };

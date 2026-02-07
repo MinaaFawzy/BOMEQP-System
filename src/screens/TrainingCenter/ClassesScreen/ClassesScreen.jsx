@@ -11,6 +11,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -810,15 +811,16 @@ const ClassesScreen = () => {
       sortable: true,
       render: (value, row) => {
         const statusConfig = {
-          scheduled: { bg: 'from-blue-100 to-blue-200', text: 'text-blue-800', border: 'border-blue-300', icon: Clock },
+          scheduled: { bg: 'from-yellow-100 to-yellow-200', text: 'text-yellow-800', border: 'border-yellow-300', icon: Clock },
           completed: { bg: 'from-green-100 to-green-200', text: 'text-green-800', border: 'border-green-300', icon: CheckCircle },
           cancelled: { bg: 'from-red-100 to-red-200', text: 'text-red-800', border: 'border-red-300', icon: XCircle },
+          in_progress: { bg: 'from-blue-100 to-blue-200', text: 'text-blue-800', border: 'border-blue-300', icon: Clock },
         };
         const config = statusConfig[row.status] || { bg: 'from-gray-100 to-gray-200', text: 'text-gray-800', border: 'border-gray-300', icon: Clock };
         const StatusIcon = config.icon;
         const statusClass = row.status === 'scheduled' ? 'scheduled' :
           row.status === 'completed' ? 'completed' :
-            row.status === 'cancelled' ? 'cancelled' : 'default';
+            row.status === 'cancelled' ? 'cancelled' : row.status === 'in_progress' ? 'in_progress' : 'default';
         return (
           <div className="status-container">
             <span className={`status-badge ${statusClass}`}>
@@ -945,7 +947,7 @@ const ClassesScreen = () => {
   return (
     <div className="main-container">
       {/* Stats Cards using TabCard */}
-      <div className="stats-cards-grid">
+      <div className="stats-cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         <TabCard
           name={t('classes_screen.stats.total')}
@@ -962,10 +964,21 @@ const ClassesScreen = () => {
           name={t('classes_screen.stats.scheduled')}
           value={scheduledCount}
           icon={Calendar}
-          colorType="blue"
+          colorType="yellow"
           isActive={statusFilter === 'scheduled'}
           onClick={() => {
             setStatusFilter('scheduled');
+            setPage(1);
+          }}
+        />
+        <TabCard
+          name={t('classes_screen.stats.in_progress')}
+          value={stats.in_progress}
+          icon={Clock}
+          colorType="blue"
+          isActive={statusFilter === 'in_progress'}
+          onClick={() => {
+            setStatusFilter('in_progress');
             setPage(1);
           }}
         />
@@ -1380,8 +1393,16 @@ const ClassesScreen = () => {
               type="submit"
               disabled={saving}
               className="form-btn form-btn-submit"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
-              {saving ? t('classes_screen.actions.saving') : selectedClass ? t('classes_screen.header.update') : t('classes_screen.actions.save')}
+              {saving ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  {t('classes_screen.actions.saving')}
+                </>
+              ) : (
+                selectedClass ? t('classes_screen.header.update') : t('classes_screen.actions.save')
+              )}
             </button>
           </div>
         </form>

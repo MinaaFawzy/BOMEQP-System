@@ -734,3 +734,40 @@
   font-size: 0.75rem;
   color: #6b7280;
 }
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.status-rejected {
+  background-color: rgb(254, 242, 242);
+  color: rgb(220, 38, 38);
+  border: 1px solid rgb(254, 202, 202);
+}
+
+.status-badge.status-pending {
+  background-color: rgb(255, 251, 235);
+  color: rgb(217, 119, 6);
+  border: 1px solid rgb(253, 230, 138);
+}
+
+.status-badge.status-paid, 
+.status-badge.status-completed,
+.status-badge.status-approved {
+  background-color: rgb(240, 253, 244);
+  color: rgb(22, 101, 52);
+  border: 1px solid rgb(187, 247, 208);
+}
+
+.status-badge.status-failed {
+  background-color: rgb(254, 242, 242);
+  color: rgb(220, 38, 38);
+  border: 1px solid rgb(254, 202, 202);
+}

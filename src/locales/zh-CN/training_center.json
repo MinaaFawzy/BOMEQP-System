@@ -545,7 +545,9 @@
     "stats": {
       "total": "课程总数",
       "scheduled": "已安排",
-      "completed": "已完成"
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "in_progress": "进行中"
     },
     "table": {
       "class_name": "班级名称",
@@ -813,7 +815,13 @@
     "status": {
       "available": "可用",
       "used": "已使用",
-      "na": "不适用"
+      "na": "不适用",
+      "rejected": "已拒绝",
+      "pending": "待处理",
+      "paid": "已支付",
+      "failed": "失败",
+      "completed": "已完成",
+      "approved": "已批准"
     },
     "errors": {
       "select_acc": "请选择认证",

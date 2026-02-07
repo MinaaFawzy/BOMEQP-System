@@ -564,7 +564,9 @@
     "stats": {
       "total": "Total Classes",
       "scheduled": "Scheduled",
-      "completed": "Completed"
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "in_progress": "In Progress"
     },
 
     "table": {
@@ -587,7 +589,8 @@
       "all": "All Status",
       "scheduled": "Scheduled",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "in_progress": "In Progress"
     },
 
     "form": {
@@ -823,7 +826,8 @@
       "quantity": "Quantity",
       "amount": "Amount",
       "purchase_date": "Purchase Date",
-      "payment_method": "Payment Method"
+      "payment_method": "Payment Method",
+      "payment_status": "Payment Status"
     },
 
     "purchase_modal": {
@@ -884,7 +888,13 @@
     "status": {
       "available": "Available",
       "used": "Used",
-      "na": "N/A"
+      "na": "N/A",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed",
+      "completed": "Completed",
+      "approved": "Approved"
     },
 
     "errors": {

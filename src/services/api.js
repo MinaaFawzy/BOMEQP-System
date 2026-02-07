@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getApiTimeout } from '../config/firebase';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
 
@@ -8,6 +9,18 @@ const getAuthToken = () => {
     sessionStorage.getItem('token') ||
     localStorage.getItem('auth_token') ||
     localStorage.getItem('token');
+};
+
+// Loading state management
+let loadingCallbacks = {
+  showLoading: null,
+  hideLoading: null,
+};
+
+// Setup loading interceptors - called from App.jsx after LoadingContext is available
+export const setupLoadingInterceptors = (showLoading, hideLoading) => {
+  loadingCallbacks.showLoading = showLoading;
+  loadingCallbacks.hideLoading = hideLoading;
 };
 
 // Request deduplication: track pending requests to prevent duplicate calls
@@ -20,14 +33,28 @@ const getRequestKey = (method, url, params) => {
   return `${methodUpper}:${url}:${paramsStr}`;
 };
 
-// Create axios instance
+// Create axios instance with Remote Config timeout
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: getApiTimeout(), // Use Firebase Remote Config timeout
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
+
+// Function to update axios timeout dynamically
+export const updateApiTimeout = () => {
+  const newTimeout = getApiTimeout();
+  api.defaults.timeout = newTimeout;
+  console.log(`⚙️ API timeout updated to: ${newTimeout}ms`);
+};
+
+// Helper to check if API is disabled
+const isApiDisabled = () => {
+  const timeout = getApiTimeout();
+  return timeout === 0;
+};
 
 // Helper to check if data is FormData
 const isFormData = (data) => {
@@ -40,8 +67,14 @@ const originalPost = api.post.bind(api);
 const originalPut = api.put.bind(api);
 const originalDelete = api.delete.bind(api);
 
-// Wrap GET requests with deduplication
+// Wrap GET requests with deduplication and API blocking
 api.get = function (url, config = {}) {
+  // Check if APIs are disabled
+  if (isApiDisabled()) {
+    console.error('🚫 API requests are disabled (timeout = 0)');
+    return Promise.reject(new Error('API requests are currently disabled'));
+  }
+
   const requestKey = getRequestKey('GET', url, config.params);
 
   // If there's a pending request with the same key, return its promise
@@ -65,9 +98,41 @@ api.get = function (url, config = {}) {
   return requestPromise;
 };
 
+// Wrap POST requests with API blocking
+api.post = function (url, data, config) {
+  if (isApiDisabled()) {
+    console.error('🚫 API requests are disabled (timeout = 0)');
+    return Promise.reject(new Error('API requests are currently disabled'));
+  }
+  return originalPost(url, data, config);
+};
+
+// Wrap PUT requests with API blocking
+api.put = function (url, data, config) {
+  if (isApiDisabled()) {
+    console.error('🚫 API requests are disabled (timeout = 0)');
+    return Promise.reject(new Error('API requests are currently disabled'));
+  }
+  return originalPut(url, data, config);
+};
+
+// Wrap DELETE requests with API blocking
+api.delete = function (url, config) {
+  if (isApiDisabled()) {
+    console.error('🚫 API requests are disabled (timeout = 0)');
+    return Promise.reject(new Error('API requests are currently disabled'));
+  }
+  return originalDelete(url, config);
+};
+
 // Request interceptor to add auth token and log requests
 api.interceptors.request.use(
   (config) => {
+    // Show loading indicator
+    if (loadingCallbacks.showLoading) {
+      loadingCallbacks.showLoading();
+    }
+
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -111,6 +176,10 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    // Hide loading on request error
+    if (loadingCallbacks.hideLoading) {
+      loadingCallbacks.hideLoading();
+    }
     return Promise.reject(error);
   }
 );
@@ -118,6 +187,11 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    // Hide loading indicator on success
+    if (loadingCallbacks.hideLoading) {
+      loadingCallbacks.hideLoading();
+    }
+
     // Log API response details
     const responseLog = {
       status: response.status,
@@ -164,6 +238,11 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    // Hide loading indicator on error
+    if (loadingCallbacks.hideLoading) {
+      loadingCallbacks.hideLoading();
+    }
+
     // Log API error details
     console.error('❌ API Error:', {
       status: error.response?.status,

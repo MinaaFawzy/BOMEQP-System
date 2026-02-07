@@ -546,7 +546,9 @@
     "stats": {
       "total": "Total de clases",
       "scheduled": "Programadas",
-      "completed": "Completadas"
+      "completed": "Completadas",
+      "cancelled": "Canceladas",
+      "in_progress": "En progreso"
     },
     "table": {
       "class_name": "Nombre de la clase",
@@ -814,7 +816,13 @@
     "status": {
       "available": "Disponible",
       "used": "Usado",
-      "na": "N/D"
+      "na": "N/D",
+      "rejected": "Rechazado",
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "failed": "Fallido",
+      "completed": "Completado",
+      "approved": "Aprobado"
     },
     "errors": {
       "select_acc": "Por favor, selecciona una acreditación",

@@ -1200,6 +1200,16 @@ const CodesScreen = () => {
         </span>
       ),
     },
+    {
+      header: t('codes_screen.history.payment_status'),
+      accessor: 'payment_status',
+      sortable: true,
+      render: (value, row) => (
+        <span className={`status-badge status-${row.payment_status}`}>
+          {t(`codes_screen.status.${row.payment_status}`) || row.payment_status || t('codes_screen.status.na')}
+        </span>
+      ),
+    },
   ], []);
 
   // Removed batchesWithSearchText useMemo as it is not needed for server-side search

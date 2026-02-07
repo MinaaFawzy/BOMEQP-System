@@ -135,13 +135,14 @@ select:focus {
 /* Stats Cards Grid */
 .stats-cards-grid {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
 }
 
-@media (min-width: 768px) {
+/* Force 4 columns on large screens if media queries were interfering, though removing them is cleaner */
+@media (min-width: 1024px) {
   .stats-cards-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -279,10 +280,10 @@ select:focus {
 }
 
 .status-badge.scheduled {
-  --bg-start: rgb(219, 234, 254);
-  --bg-end: rgb(191, 219, 254);
-  --text-color: rgb(30, 64, 175);
-  --border-color: rgb(147, 197, 253);
+  --bg-start: rgb(254, 252, 232);
+  --bg-end: rgb(254, 249, 195);
+  --text-color: rgb(133, 77, 14);
+  --border-color: rgb(253, 224, 71);
 }
 
 .status-badge.completed {
@@ -297,6 +298,13 @@ select:focus {
   --bg-end: rgb(254, 202, 202);
   --text-color: rgb(153, 27, 27);
   --border-color: rgb(252, 165, 165);
+}
+
+.status-badge.in_progress {
+  --bg-start: rgb(219, 234, 254);
+  --bg-end: rgb(191, 219, 254);
+  --text-color: rgb(30, 64, 175);
+  --border-color: rgb(147, 197, 253);
 }
 
 .status-badge.default {

@@ -546,7 +546,9 @@
     "stats": {
       "total": "कुल कक्षाएँ",
       "scheduled": "निर्धारित",
-      "completed": "पूर्ण"
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "in_progress": "चल रहा है"
     },
     "table": {
       "class_name": "कक्षा नाम",
@@ -814,7 +816,13 @@
     "status": {
       "available": "उपलब्ध",
       "used": "उपयोग किया गया",
-      "na": "लागू नहीं"
+      "na": "लागू नहीं",
+      "rejected": "अस्वीकृत",
+      "pending": "लंबित",
+      "paid": "भुगतान किया गया",
+      "failed": "विफल",
+      "completed": "पूर्ण",
+      "approved": "स्वीकृत"
     },
     "errors": {
       "select_acc": "कृपया एक मान्यता चुनें",

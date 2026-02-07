@@ -576,7 +576,9 @@
     "stats": {
       "total": "إجمالي الدورات",
       "scheduled": "مجدولة",
-      "completed": "مكتملة"
+      "completed": "مكتملة",
+      "cancelled": "ملغاة",
+      "in_progress": "قيد التنفيذ"
     },
 
     "table": {
@@ -893,7 +895,13 @@
     "status": {
       "available": "متاح",
       "used": "مستخدم",
-      "na": "غير متاح"
+      "na": "غير متاح",
+      "rejected": "مرفوض",
+      "pending": "قيد المراجعة",
+      "paid": "مدفوع",
+      "failed": "فشل",
+      "completed": "مكتمل",
+      "approved": "معتمد"
     },
 
     "errors": {

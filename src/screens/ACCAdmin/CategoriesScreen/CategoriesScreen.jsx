@@ -23,7 +23,6 @@ const CategoriesScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    name_ar: '',
     description: '',
     status: 'active',
   });
@@ -38,7 +37,6 @@ const CategoriesScreen = () => {
   const [subCategoryFormData, setSubCategoryFormData] = useState({
     category_id: '',
     name: '',
-    name_ar: '',
     description: '',
     status: 'active',
   });
@@ -86,7 +84,6 @@ const CategoriesScreen = () => {
         ...cat,
         _searchText: [
           cat.name,
-          cat.name_ar,
           cat.description,
           cat.status
         ].filter(Boolean).join(' ').toLowerCase()
@@ -111,7 +108,6 @@ const CategoriesScreen = () => {
           ...subCat,
           _searchText: [
             subCat.name,
-            subCat.name_ar,
             subCat.description,
             subCat.status
           ].filter(Boolean).join(' ').toLowerCase()
@@ -134,7 +130,6 @@ const CategoriesScreen = () => {
       setSelectedCategory(category);
       setFormData({
         name: category.name || '',
-        name_ar: category.name_ar || '',
         description: category.description || '',
         status: category.status || 'active',
       });
@@ -156,7 +151,6 @@ const CategoriesScreen = () => {
     setSelectedCategory(null);
     setFormData({
       name: '',
-      name_ar: '',
       description: '',
       status: 'active',
     });
@@ -242,7 +236,6 @@ const CategoriesScreen = () => {
           ...subCat,
           _searchText: [
             subCat.name,
-            subCat.name_ar,
             subCat.description,
             subCat.status,
             category?.name || ''
@@ -273,7 +266,6 @@ const CategoriesScreen = () => {
       setSubCategoryFormData({
         category_id: subCategory.category_id || '',
         name: subCategory.name || '',
-        name_ar: subCategory.name_ar || '',
         description: subCategory.description || '',
         status: subCategory.status || 'active',
       });
@@ -282,7 +274,6 @@ const CategoriesScreen = () => {
       setSubCategoryFormData({
         category_id: '',
         name: '',
-        name_ar: '',
         description: '',
         status: 'active',
       });
@@ -297,7 +288,6 @@ const CategoriesScreen = () => {
     setSubCategoryFormData({
       category_id: '',
       name: '',
-      name_ar: '',
       description: '',
       status: 'active',
     });
@@ -384,7 +374,7 @@ const CategoriesScreen = () => {
   const categoriesData = useMemo(() => {
     return categories.map(category => ({
       ...category,
-      _searchText: `${category.name || ''} ${category.name_ar || ''} ${category.description || ''} ${category.status || ''}`.toLowerCase()
+      _searchText: `${category.name || ''} ${category.description || ''} ${category.status || ''}`.toLowerCase()
     }));
   }, [categories]);
 
@@ -418,9 +408,6 @@ const CategoriesScreen = () => {
               <div className="text-sm font-semibold text-gray-900">
                 {row.name || t('categories_screen.common.na')}
               </div>
-              {row.name_ar && (
-                <div className="text-xs text-gray-500">{row.name_ar}</div>
-              )}
               {categorySubCats.length > 0 && (
                 <div className="text-xs text-gray-400 mt-0.5">
                   {categorySubCats.length} {t('categories_screen.stats.sub_categories')}
@@ -550,9 +537,6 @@ const CategoriesScreen = () => {
                       <div className="text-sm font-semibold text-gray-900">
                         {subCat.name || t('categories_screen.common.na')}
                       </div>
-                      {subCat.name_ar && (
-                        <div className="text-xs text-gray-500">{subCat.name_ar}</div>
-                      )}
                       {subCat.description && (
                         <div className="text-xs text-gray-400 mt-1">{subCat.description}</div>
                       )}
@@ -599,7 +583,6 @@ const CategoriesScreen = () => {
               setSubCategoryFormData({
                 category_id: category.id,
                 name: '',
-                name_ar: '',
                 description: '',
                 status: 'active',
               });
@@ -717,14 +700,6 @@ const CategoriesScreen = () => {
             onChange={handleChange}
             required
             error={errors.name}
-          />
-
-          <FormInput
-            label={t('categories_screen.form.category_name_ar')}
-            name="name_ar"
-            value={formData.name_ar}
-            onChange={handleChange}
-            error={errors.name_ar}
           />
 
           <FormInput
