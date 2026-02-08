@@ -262,22 +262,22 @@ const InstructorAuthorizationsScreen = () => {
         </span>
       )
     },
-    {
-      header: 'Actions',
-      accessor: 'actions',
-      sortable: false,
-      render: (value, row) => (
-        <div onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => handleSetCommission(row)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md font-medium flex items-center gap-2"
-          >
-            <Percent size={16} />
-            Set Commission
-          </button>
-        </div>
-      )
-    }
+    // {
+    //   header: 'Actions',
+    //   accessor: 'actions',
+    //   sortable: false,
+    //   render: (value, row) => (
+    //     <div onClick={(e) => e.stopPropagation()}>
+    //       <button
+    //         onClick={() => handleSetCommission(row)}
+    //         className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md font-medium flex items-center gap-2"
+    //       >
+    //         <Percent size={16} />
+    //         Set Commission
+    //       </button>
+    //     </div>
+    //   )
+    // }
   ], []);
 
   return (
