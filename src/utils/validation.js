@@ -13,16 +13,16 @@ export const validateEmail = (email) => {
   return '';
 };
 
-// Phone validation - 10 to 13 digits
-export const validatePhone = (phone, minDigits = 10) => {
+// Phone validation - 8 to 15 digits
+export const validatePhone = (phone, minDigits = 8) => {
   if (!phone) return 'Phone number is required';
 
   // Remove all spaces, dashes, parentheses, and plus signs for validation
   const digitsOnly = phone.trim().replace(/\D/g, '');
 
-  // Must be between 10 and 13 digits
-  if (digitsOnly.length < 10 || digitsOnly.length > 13) {
-    return 'Phone number must be between 10 and 13 digits';
+  // Must be between 8 and 15 digits
+  if (digitsOnly.length < 8 || digitsOnly.length > 15) {
+    return 'Phone number must be between 8 and 15 digits';
   }
 
   return '';
