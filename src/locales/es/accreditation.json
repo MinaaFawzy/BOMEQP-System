@@ -137,7 +137,8 @@
       "updated_at": "Actualizado el",
       "reviewed_at": "Revisado el",
       "request_history": "Historial de solicitudes",
-      "total_requests": "Total de solicitudes"
+      "total_requests": "Total de solicitudes",
+      "no_history": "No hay historial"
     },
     "company": {
       "company_name": "Nombre de la empresa",

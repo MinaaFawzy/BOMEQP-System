@@ -72,6 +72,7 @@ const CertificateDesignerScreen = () => {
                 { variable: 'acc_country', label: 'ACC Country' },
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
+                { variable: 'verification_code', label: 'Verification Code' },
             ];
         }
 
@@ -94,6 +95,7 @@ const CertificateDesignerScreen = () => {
                 { variable: 'acc_country', label: 'ACC Country' },
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
+                { variable: 'verification_code', label: 'Verification Code' },
             ];
         }
 
@@ -136,6 +138,7 @@ const CertificateDesignerScreen = () => {
                 acc_country: 'United States',
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
+                verification_code: 'TC-VER-ABC123XYZ',
             };
         }
 
@@ -158,6 +161,7 @@ const CertificateDesignerScreen = () => {
                 acc_country: 'United States',
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
+                verification_code: 'INS-VER-XYZ789ABC',
             };
         }
 

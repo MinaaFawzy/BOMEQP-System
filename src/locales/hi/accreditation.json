@@ -137,7 +137,8 @@
       "updated_at": "अपडेट किया गया पर",
       "reviewed_at": "समीक्षित पर",
       "request_history": "अनुरोध इतिहास",
-      "total_requests": "कुल अनुरोध"
+      "total_requests": "कुल अनुरोध",
+      "no_history": "कोई इतिहास नहीं"
     },
     "company": {
       "company_name": "कंपनी नाम",

@@ -164,7 +164,8 @@
       "updated_at": "تاريخ التحديث",
       "reviewed_at": "تاريخ المراجعة",
       "request_history": "تاريخ الطلبات",
-      "total_requests": "إجمالي الطلبات"
+      "total_requests": "إجمالي الطلبات",
+      "no_history": "لا يوجد تاريخ"
     },
 
     "company": {

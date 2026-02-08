@@ -164,7 +164,8 @@
       "updated_at": "Updated At",
       "reviewed_at": "Reviewed At",
       "request_history": "Request History",
-      "total_requests": "Total Requests"
+      "total_requests": "Total Requests",
+      "no_history": "No history"
     },
 
     "company": {

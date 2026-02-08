@@ -44,7 +44,6 @@ const CoursesScreen = () => {
     category_id: '',
     sub_category_id: '',
     name: '',
-    name_ar: '',
     code: '',
     description: '',
     duration_hours: '',
@@ -224,7 +223,6 @@ const CoursesScreen = () => {
         category_id: categoryId,
         sub_category_id: course.sub_category_id || '',
         name: course.name || '',
-        name_ar: course.name_ar || '',
         code: course.code || '',
         description: course.description || '',
         duration_hours: course.duration_hours || '',
@@ -261,7 +259,6 @@ const CoursesScreen = () => {
         category_id: '',
         sub_category_id: '',
         name: '',
-        name_ar: '',
         code: '',
         description: '',
         duration_hours: '',
@@ -292,7 +289,6 @@ const CoursesScreen = () => {
       category_id: '',
       sub_category_id: '',
       name: '',
-      name_ar: '',
       code: '',
       description: '',
       duration_hours: '',
@@ -363,14 +359,17 @@ const CoursesScreen = () => {
       newErrors.name = t('courses_screen.validation.course_name_max');
     }
 
-    if (formData.name_ar && formData.name_ar.length > 255) {
-      newErrors.name_ar = 'Arabic name must be at most 255 characters';
-    }
+
 
     if (!formData.code || formData.code.trim() === '') {
       newErrors.code = t('courses_screen.validation.course_code_required');
     } else if (formData.code.length > 255) {
       newErrors.code = t('courses_screen.validation.course_code_max');
+    }
+
+    // Description is now required
+    if (!formData.description || formData.description.trim() === '') {
+      newErrors.description = 'Description is required';
     }
 
     if (!formData.category_id) {
@@ -413,19 +412,20 @@ const CoursesScreen = () => {
       newErrors.status = t('courses_screen.validation.invalid_status');
     }
 
-    // Validate pricing if base_price is provided (pricing is completely optional)
-    if (pricingData.base_price) {
-      // If pricing is provided, base_price and currency are required
+    // Validate pricing - base_price is now required
+    if (!pricingData.base_price || pricingData.base_price.toString().trim() === '') {
+      newErrors.base_price = 'Price is required';
+    } else {
       const basePriceError = validateNumber(pricingData.base_price, 'Base Price', 0);
       if (basePriceError) {
         newErrors.base_price = basePriceError;
       }
+    }
 
-      if (!pricingData.currency || pricingData.currency.trim() === '') {
-        newErrors.currency = t('courses_screen.validation.currency_required');
-      } else if (pricingData.currency.length !== 3) {
-        newErrors.currency = 'Currency must be a 3-character code (e.g., USD)';
-      }
+    if (!pricingData.currency || pricingData.currency.trim() === '') {
+      newErrors.currency = t('courses_screen.validation.currency_required');
+    } else if (pricingData.currency.length !== 3) {
+      newErrors.currency = 'Currency must be a 3-character code (e.g., USD)';
     }
 
     return newErrors;
@@ -453,25 +453,13 @@ const CoursesScreen = () => {
         max_capacity: parseInt(formData.max_capacity),
       };
 
-      // Remove empty optional fields
-      if (!formData.name_ar || formData.name_ar.trim() === '') {
-        delete payload.name_ar;
-      }
-      if (!formData.description || formData.description.trim() === '') {
-        delete payload.description;
-      }
+      // Pricing is now required - always include it
+      const pricing = {
+        base_price: parseFloat(pricingData.base_price),
+        currency: pricingData.currency,
+      };
 
-      // Check if pricing data should be included (pricing is completely optional)
-      // According to API docs: if pricing is provided, only base_price and currency are required
-      if (pricingData.base_price) {
-        // Build pricing object with only base_price and currency
-        const pricing = {
-          base_price: parseFloat(pricingData.base_price),
-          currency: pricingData.currency,
-        };
-
-        payload.pricing = pricing;
-      }
+      payload.pricing = pricing;
 
       let response;
       if (selectedCourse) {
@@ -747,16 +735,6 @@ const CoursesScreen = () => {
             />
 
             <FormInput
-              label={t('courses_screen.form.course_name_ar')}
-              name="name_ar"
-              value={formData.name_ar}
-              onChange={handleChange}
-              error={errors.name_ar}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput
               label={t('courses_screen.form.course_code')}
               name="code"
               value={formData.code}
@@ -765,7 +743,9 @@ const CoursesScreen = () => {
               placeholder="e.g., AST-101"
               error={errors.code}
             />
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label={t('courses_screen.form.category')}
               name="category_id"
@@ -779,9 +759,7 @@ const CoursesScreen = () => {
               }))}
               error={errors.category_id}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label={t('courses_screen.form.sub_category')}
               name="sub_category_id"
@@ -804,6 +782,7 @@ const CoursesScreen = () => {
             name="description"
             value={formData.description}
             onChange={handleChange}
+            required
             textarea
             rows={4}
             error={errors.description}
@@ -889,8 +868,8 @@ const CoursesScreen = () => {
               <DollarSign size={20} className="text-primary-600" />
               {t('courses_screen.pricing.information_title')}
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              {t('courses_screen.pricing.optional_note')}
+            <p className="text-sm text-red-600 mb-4 font-medium">
+              * Price is required
             </p>
 
             {/* Base Price and Currency */}
@@ -901,6 +880,7 @@ const CoursesScreen = () => {
                 type="number"
                 value={pricingData.base_price}
                 onChange={handlePricingChange}
+                required
                 placeholder="0.00"
                 step="0.01"
                 min="0"
@@ -913,6 +893,7 @@ const CoursesScreen = () => {
                 type="select"
                 value={pricingData.currency}
                 onChange={handlePricingChange}
+                required
                 options={[
                   { value: 'USD', label: 'USD' },
                   { value: 'EUR', label: 'EUR' },
@@ -970,7 +951,6 @@ const CoursesScreen = () => {
                 fields={[
                   { key: 'id', label: t('courses_screen.details.course_id'), icon: Hash, render: (value) => value ? `#${value}` : t('courses_screen.common.na'), showEmpty: false },
                   { key: 'name', label: t('courses_screen.details.course_name'), icon: BookOpen },
-                  { key: 'name_ar', label: t('courses_screen.form.course_name_ar'), showEmpty: false },
                   { key: 'code', label: t('courses_screen.details.course_code'), icon: Hash },
                   { key: 'level', label: t('courses_screen.form.level'), render: (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : t('courses_screen.common.na') },
                   { key: 'duration_hours', label: t('courses_screen.details.duration'), icon: Clock, render: (value) => value ? `${value} ${t('courses_screen.common.hours')}` : t('courses_screen.common.na') },

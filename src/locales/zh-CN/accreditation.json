@@ -137,7 +137,8 @@
       "updated_at": "已更新 在",
       "reviewed_at": "已审核 在",
       "request_history": "申请 历史",
-      "total_requests": "总计 申请"
+      "total_requests": "总计 申请",
+      "no_history": "否 历史"
     },
     "company": {
       "company_name": "公司 名称",
