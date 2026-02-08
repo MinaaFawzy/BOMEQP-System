@@ -7,12 +7,12 @@ import { getRemoteConfig, fetchAndActivate, getValue } from "firebase/remote-con
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyD7MsfIdv21ebc0DLr9rkWlrIXgmPcTTXw",
-    authDomain: "bomeqp.firebaseapp.com",
-    projectId: "bomeqp",
-    storageBucket: "bomeqp.firebasestorage.app",
-    messagingSenderId: "707338829663",
-    appId: "1:707338829663:web:9f7b967d0a68d9743840ea"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
