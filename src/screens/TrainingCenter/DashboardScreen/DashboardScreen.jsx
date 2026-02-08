@@ -174,7 +174,9 @@ const TrainingCenterDashboardScreen = () => {
                   <ResponsiveContainer width="100%" height={350}>
                     <PieChart>
                       <Pie
-                        data={dashboardData.charts.classes_status_distribution}
+                        data={dashboardData.charts.classes_status_distribution.filter(
+                          item => item.name?.toLowerCase() !== 'cancelled' && item.label?.toLowerCase() !== 'cancelled'
+                        )}
                         cx="50%"
                         cy="50%"
                         labelLine={true}
@@ -185,7 +187,9 @@ const TrainingCenterDashboardScreen = () => {
                         stroke="#fff"
                         strokeWidth={2}
                       >
-                        {dashboardData.charts.classes_status_distribution.map((entry, index) => {
+                        {dashboardData.charts.classes_status_distribution.filter(
+                          item => item.name?.toLowerCase() !== 'cancelled' && item.label?.toLowerCase() !== 'cancelled'
+                        ).map((entry, index) => {
                           const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
                           return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
                         })}
