@@ -212,94 +212,94 @@ const CompleteRegistrationScreen = () => {
         const isTrainingCenter = role === 'training_center';
 
         // 1. Company Info
-        if (!formData.company_name) newErrors.company_name = 'Required';
-        if (role === 'acc_admin' && !formData.name) newErrors.name = 'Required';
-        if (role === 'training_center' && !formData.name) newErrors.name = 'Required';
+        if (!formData.company_name) newErrors.company_name = 'This field is required';
+        if (role === 'acc_admin' && !formData.name) newErrors.name = 'This field is required';
+        if (role === 'training_center' && !formData.name) newErrors.name = 'This field is required';
 
         // Company Email
-        if (!formData.primary_email) newErrors.primary_email = 'Required';
+        if (!formData.primary_email) newErrors.primary_email = 'This field is required';
         else if (validateEmail(formData.primary_email)) newErrors.primary_email = 'Invalid email';
 
         // Password
         const passErr = validatePassword(formData.password, 8, true);
         if (passErr) newErrors.password = passErr;
-        if (formData.password !== formData.confirm_password) newErrors.confirm_password = 'Passwords mismatch';
+        if (formData.password !== formData.confirm_password) newErrors.confirm_password = 'Passwords do not match';
 
         // Telephone
-        if (!formData.telephone) newErrors.telephone = 'Required';
+        if (!formData.telephone) newErrors.telephone = 'This field is required';
 
         // Training Provider Type
-        if (isTrainingCenter && !formData.provider_type) newErrors.provider_type = 'Required';
+        if (isTrainingCenter && !formData.provider_type) newErrors.provider_type = 'This field is required';
 
         // 2. Physical Address
-        if (!formData.physical_address) newErrors.physical_address = 'Required';
-        if (!formData.physical_city) newErrors.physical_city = 'Required';
-        if (!formData.physical_country) newErrors.physical_country = 'Required';
-        if (!formData.physical_postal) newErrors.physical_postal = 'Required';
+        if (!formData.physical_address) newErrors.physical_address = 'This field is required';
+        if (!formData.physical_city) newErrors.physical_city = 'This field is required';
+        if (!formData.physical_country) newErrors.physical_country = 'This field is required';
+        if (!formData.physical_postal) newErrors.physical_postal = 'This field is required';
 
         // 3. Mailing Address
         if (!formData.mailing_same_as_physical) {
             // For Training Center, conditional requiring. For Acc Admin, usually required.
             // Based on API doc: "If 'Same as Physical Address' is Unchecked: The following fields become required" for TC.
-            if (!formData.mailing_address) newErrors.mailing_address = 'Required';
-            if (!formData.mailing_city) newErrors.mailing_city = 'Required';
-            if (!formData.mailing_country) newErrors.mailing_country = 'Required';
-            if (!formData.mailing_postal) newErrors.mailing_postal = 'Required';
+            if (!formData.mailing_address) newErrors.mailing_address = 'This field is required';
+            if (!formData.mailing_city) newErrors.mailing_city = 'This field is required';
+            if (!formData.mailing_country) newErrors.mailing_country = 'This field is required';
+            if (!formData.mailing_postal) newErrors.mailing_postal = 'This field is required';
         }
 
         // 4. Primary Contact
-        if (!formData.primary_title) newErrors.primary_title = 'Required';
-        if (!formData.primary_first_name) newErrors.primary_first_name = 'Required';
-        if (!formData.primary_last_name) newErrors.primary_last_name = 'Required';
-        if (!formData.primary_email_contact) newErrors.primary_email_contact = 'Required';
+        if (!formData.primary_title) newErrors.primary_title = 'This field is required';
+        if (!formData.primary_first_name) newErrors.primary_first_name = 'This field is required';
+        if (!formData.primary_last_name) newErrors.primary_last_name = 'This field is required';
+        if (!formData.primary_email_contact) newErrors.primary_email_contact = 'This field is required';
         else if (validateEmail(formData.primary_email_contact)) newErrors.primary_email_contact = 'Invalid email';
-        if (!formData.primary_country) newErrors.primary_country = 'Required';
-        if (!formData.primary_mobile) newErrors.primary_mobile = 'Required';
+        if (!formData.primary_country) newErrors.primary_country = 'This field is required';
+        if (!formData.primary_mobile) newErrors.primary_mobile = 'This field is required';
 
         // 5. Secondary Contact
         // Logic: "Secondary Contact (Required for ACC)" vs "Optional for Training Center"
         if (role === 'acc_admin') {
             // For ACC, check all fields regardless of has_secondary_contact flag (it should be forced true or UI should imply it)
-            if (!formData.secondary_title) newErrors.secondary_title = 'Required';
-            if (!formData.secondary_first_name) newErrors.secondary_first_name = 'Required';
-            if (!formData.secondary_last_name) newErrors.secondary_last_name = 'Required';
-            if (!formData.secondary_email) newErrors.secondary_email = 'Required';
+            if (!formData.secondary_title) newErrors.secondary_title = 'This field is required';
+            if (!formData.secondary_first_name) newErrors.secondary_first_name = 'This field is required';
+            if (!formData.secondary_last_name) newErrors.secondary_last_name = 'This field is required';
+            if (!formData.secondary_email) newErrors.secondary_email = 'This field is required';
             else if (validateEmail(formData.secondary_email)) newErrors.secondary_email = 'Invalid email';
-            if (!formData.secondary_country) newErrors.secondary_country = 'Required';
-            if (!formData.secondary_mobile) newErrors.secondary_mobile = 'Required';
+            if (!formData.secondary_country) newErrors.secondary_country = 'This field is required';
+            if (!formData.secondary_mobile) newErrors.secondary_mobile = 'This field is required';
         } else if (formData.has_secondary_contact) {
             // For Training Center, only if checked
-            if (!formData.secondary_title) newErrors.secondary_title = 'Required';
-            if (!formData.secondary_first_name) newErrors.secondary_first_name = 'Required';
-            if (!formData.secondary_last_name) newErrors.secondary_last_name = 'Required';
-            if (!formData.secondary_email) newErrors.secondary_email = 'Required';
+            if (!formData.secondary_title) newErrors.secondary_title = 'This field is required';
+            if (!formData.secondary_first_name) newErrors.secondary_first_name = 'This field is required';
+            if (!formData.secondary_last_name) newErrors.secondary_last_name = 'This field is required';
+            if (!formData.secondary_email) newErrors.secondary_email = 'This field is required';
             else if (validateEmail(formData.secondary_email)) newErrors.secondary_email = 'Invalid email';
-            if (!formData.secondary_country) newErrors.secondary_country = 'Required';
-            if (!formData.secondary_mobile) newErrors.secondary_mobile = 'Required';
+            if (!formData.secondary_country) newErrors.secondary_country = 'This field is required';
+            if (!formData.secondary_mobile) newErrors.secondary_mobile = 'This field is required';
         }
 
         // 6. Additional Info
         // Gov Registry Number is Required for TC and ACC
-        // The input name is 'gov_registry_number' so we must validate that key.
-        if (!formData.gov_registry_number) newErrors.gov_registry_number = 'Required';
+        // The input name is 'gov_registry_number' but form state uses 'company_gov_registry_number'
+        if (!formData.company_gov_registry_number) newErrors.company_gov_registry_number = 'This field is required';
 
         // Files
         // Company Registration Certificate: Required
-        if (!formData.company_registration_certificate) newErrors.company_registration_certificate = 'Required';
+        if (!formData.company_registration_certificate) newErrors.company_registration_certificate = 'This file is required';
 
         // Passport Uploads (Required for ACC)
         if (role === 'acc_admin') {
-            if (!formData.primary_contact_passport) newErrors.primary_contact_passport = 'Required';
-            if (!formData.secondary_contact_passport) newErrors.secondary_contact_passport = 'Required';
+            if (!formData.primary_contact_passport) newErrors.primary_contact_passport = 'This file is required';
+            if (!formData.secondary_contact_passport) newErrors.secondary_contact_passport = 'This file is required';
         }
 
         // Facility Floorplan required for Training Center
-        if (isTrainingCenter && !formData.facility_floorplan) newErrors.facility_floorplan = 'Required';
+        if (isTrainingCenter && !formData.facility_floorplan) newErrors.facility_floorplan = 'This file is required';
 
 
         // 7. Consents - Both must be true
-        if (!formData.agree_communications) newErrors.agree_communications = 'Required';
-        if (!formData.agree_terms) newErrors.agree_terms = 'Required';
+        if (!formData.agree_communications) newErrors.agree_communications = 'You must agree to receive communications';
+        if (!formData.agree_terms) newErrors.agree_terms = 'You must agree to the terms and conditions';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -431,8 +431,7 @@ const CompleteRegistrationScreen = () => {
                 console.error("Registration validation failed:", error);
                 if (error.response?.data?.errors) {
                     setErrors(error.response.data.errors);
-                    // Scroll to top to see errors
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    alert('Please complete all required fields correctly.');
                 } else {
                     alert('Registration failed. Please try again.');
                 }
@@ -441,7 +440,7 @@ const CompleteRegistrationScreen = () => {
             }
         } else {
             console.log("Form validation failed", errors);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            alert('Please complete all required fields.');
         }
     };
 
@@ -910,11 +909,11 @@ const CompleteRegistrationScreen = () => {
                             <div className="field">
                                 <label>Company GOV Registry Number <span className="req">*</span></label>
                                 <CustomInput
-                                    name="gov_registry_number"
-                                    value={formData.gov_registry_number}
+                                    name="company_gov_registry_number"
+                                    value={formData.company_gov_registry_number}
                                     onChange={handleChange}
-                                    error={!!errors.company_gov_registry_number || !!errors.gov_registry_number} // Check both keys
-                                    helperText={errors.company_gov_registry_number || errors.gov_registry_number}
+                                    error={!!errors.company_gov_registry_number}
+                                    helperText={errors.company_gov_registry_number}
                                 />
                             </div>
                             <FileUploadField

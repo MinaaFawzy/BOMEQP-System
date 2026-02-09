@@ -386,7 +386,7 @@ const ACCApplicationsScreen = () => {
                 data={{
                   ...selectedApp,
                   // Company Info
-                  name: selectedApp.legal_name || selectedApp.name,
+                  name: selectedApp.name || selectedApp.legal_name,
 
                   // Address Merging
                   physical_address_full: [
