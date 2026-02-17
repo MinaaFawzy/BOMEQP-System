@@ -65,6 +65,7 @@ const ProfileScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   useEffect(() => {
     loadCountries();
@@ -493,7 +494,7 @@ const ProfileScreen = () => {
     e.preventDefault();
     setSaving(true);
     setErrors({});
-    setSuccess('');
+    setPasswordSuccess('');
 
     // Validation
     const passwordErrors = {};
@@ -513,15 +514,20 @@ const ProfileScreen = () => {
 
     try {
       await authAPI.changePassword(passwordData);
-      setSuccess('Password changed successfully!');
+      setPasswordSuccess('Password changed successfully!');
       setPasswordData({
         current_password: '',
         password: '',
         password_confirmation: '',
       });
+      // Clear success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (error) {
-      if (error.errors) {
-        setErrors(error.errors);
+      console.error('Failed to change password:', error);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ password: error.response.data.message });
       } else {
         setErrors({ password: error.message || 'Failed to change password' });
       }
@@ -1171,6 +1177,12 @@ const ProfileScreen = () => {
                 </Button>
               </div>
             </form>
+            {passwordSuccess && (
+              <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
+                <CheckCircle size={18} />
+                <span>{passwordSuccess}</span>
+              </div>
+            )}
           </div>
 
 

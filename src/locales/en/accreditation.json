@@ -297,7 +297,31 @@
       "updated_at": "Updated At",
       "reviewed_at": "Reviewed At",
       "payment_status": "Payment Status",
-      "authorization_price": "Authorization Price"
+      "authorization_price": "Authorization Price",
+      "id_number": "ID Number",
+      "country": "Country",
+      "city": "City",
+      "address": "Address",
+      "assessor": "Assessor",
+      "instructor": "Instructor",
+      "languages": "Languages",
+      "cv": "CV / Resume",
+      "passport": "Passport",
+      "legal_name": "Legal Name",
+      "registration_number": "Registration Number",
+      "provider_type": "Provider Type",
+      "primary_contact": "Primary Contact",
+      "title": "Title",
+      "mobile": "Mobile",
+      "group_admin_status": "Group Admin Status",
+      "commission": "Commission",
+      "payment_date": "Payment Date",
+      "transaction_id": "Transaction ID",
+      "category_info": "Category Information",
+      "category": "Category",
+      "sub_category": "Sub-Category",
+      "requested_courses": "Requested Courses",
+      "authorization_history": "Authorization History"
     },
 
     "fields": {
@@ -312,7 +336,7 @@
     },
 
     "documents": {
-      "view_document": "View Document",
+      "view_document": "View",
       "document": "Document"
     },
 
@@ -632,6 +656,8 @@
       "sub_category": "Sub Category",
       "category": "Category",
 
+      "first_name": "First Name",
+      "last_name": "Last Name",
       "name": "Name",
       "email": "Email",
       "phone": "Phone",
@@ -680,7 +706,8 @@
 
     "table": {
       "certificate_number": "Certificate Number",
-      "trainee": "Trainee",
+      "name": "Name",
+      "type": "Type",
       "course": "Course",
       "issue_date": "Issue Date",
       "status": "Status",
@@ -703,7 +730,7 @@
       "modal_title": "Certificate Details",
 
       "certificate_number": "Certificate Number",
-      "trainee_name": "Trainee Name",
+      "trainee_name": "Name",
       "course": "Course",
       "template": "Template",
       "issue_date": "Issue Date",
@@ -782,6 +809,7 @@
 
     "form": {
       "template_type": "Template Type",
+      "assigned_courses": "Assigned Courses",
       "template_name": "Template Name",
       "select_courses": "Select Courses",
       "category": "Category",

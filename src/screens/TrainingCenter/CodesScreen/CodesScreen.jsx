@@ -1627,6 +1627,8 @@ const CodesScreen = () => {
             required
             min="1"
             error={errors.quantity}
+            inputClassName="no-spinner"
+            onWheel={(e) => e.target.blur()}
           />
 
           <div>
@@ -1771,6 +1773,8 @@ const CodesScreen = () => {
                 min="0"
                 step="0.01"
                 error={errors.payment_amount}
+                inputClassName="no-spinner"
+                onWheel={(e) => e.target.blur()}
                 helpText={manualPaymentInfo?.final_amount ? `${t('codes_screen.purchase_modal.payment_amount_hint')} (should match: $${manualPaymentInfo.final_amount})` : t('codes_screen.purchase_modal.payment_amount_hint')}
               />
 

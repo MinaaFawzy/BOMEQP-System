@@ -4,7 +4,15 @@ import { Filter, X, Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { publicAPI } from '../../services/api';
 
-const FilterMenu = ({ filters, onApply, onClear }) => {
+const FilterMenu = ({
+    filters,
+    onApply,
+    onClear,
+    showLocation = true,
+    showAssessorStatus = true,
+    showCertificateType = false,
+    showStatus = false,
+}) => {
     const { t, isRTL } = useTranslation('common');
     const [isOpen, setIsOpen] = useState(false);
     const [localFilters, setLocalFilters] = useState(filters);
@@ -26,6 +34,8 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
 
     // Fetch Countries
     useEffect(() => {
+        if (!showLocation) return;
+
         const fetchCountries = async () => {
             setLoadingCountries(true);
             try {
@@ -38,10 +48,12 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
             }
         };
         fetchCountries();
-    }, []);
+    }, [showLocation]);
 
     // Fetch Cities when country changes
     useEffect(() => {
+        if (!showLocation) return;
+
         const fetchCities = async () => {
             if (!localFilters.country) {
                 setCities([]);
@@ -61,7 +73,7 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
 
         // Debounce or just fetch? API likely fast enough.
         fetchCities();
-    }, [localFilters.country]);
+    }, [localFilters.country, showLocation]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -124,11 +136,20 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
     };
 
     const handleClear = () => {
-        const cleared = {
-            country: '',
-            city: '',
-            is_assessor: ''
-        };
+        const cleared = { ...filters }; // Start with current filters to preserve unmanaged keys if any, or just empty?
+        // Better to clear only managed fields
+
+        if (showLocation) {
+            cleared.country = '';
+            cleared.city = '';
+        }
+        if (showAssessorStatus) {
+            cleared.is_assessor = '';
+        }
+        if (showCertificateType) {
+            cleared.type = '';
+        }
+
         setLocalFilters(cleared);
         onClear(cleared);
         setIsOpen(false);
@@ -176,89 +197,187 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
 
                     <div className="space-y-4">
                         {/* Country */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('filter_menu.country_label')}
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={localFilters.country || ''}
-                                    onChange={(e) => handleChange('country', e.target.value)}
-                                    disabled={loadingCountries}
-                                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm bg-white appearance-none ${isRTL ? 'pl-8' : 'pr-8'}`}
-                                >
-                                    <option value="">{t('filter_menu.country_placeholder') || 'Select Country'}</option>
-                                    {countries.map((c) => (
-                                        <option key={c.code} value={c.code}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`} />
+                        {showLocation && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('filter_menu.country_label')}
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={localFilters.country || ''}
+                                        onChange={(e) => handleChange('country', e.target.value)}
+                                        disabled={loadingCountries}
+                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm bg-white appearance-none ${isRTL ? 'pl-8' : 'pr-8'}`}
+                                    >
+                                        <option value="">{t('filter_menu.country_placeholder') || 'Select Country'}</option>
+                                        {countries.map((c) => (
+                                            <option key={c.code} value={c.code}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`} />
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* City */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('filter_menu.city_label')}
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={localFilters.city || ''}
-                                    onChange={(e) => handleChange('city', e.target.value)}
-                                    disabled={!localFilters.country || loadingCities}
-                                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm bg-white appearance-none ${isRTL ? 'pl-8' : 'pr-8'}`}
-                                >
-                                    <option value="">{t('filter_menu.city_placeholder') || 'Select City'}</option>
-                                    {cities.map((c) => (
-                                        <option key={c.id || c.name} value={c.name}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`} />
+                        {showLocation && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('filter_menu.city_label')}
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={localFilters.city || ''}
+                                        onChange={(e) => handleChange('city', e.target.value)}
+                                        disabled={!localFilters.country || loadingCities}
+                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm bg-white appearance-none ${isRTL ? 'pl-8' : 'pr-8'}`}
+                                    >
+                                        <option value="">{t('filter_menu.city_placeholder') || 'Select City'}</option>
+                                        {cities.map((c) => (
+                                            <option key={c.id || c.name} value={c.name}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`} />
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Assessor Status */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('filter_menu.assessor_status_label')}
-                            </label>
-                            <div className="flex flex-col gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="is_assessor"
-                                        checked={localFilters.is_assessor === '' || localFilters.is_assessor === undefined}
-                                        onChange={() => handleChange('is_assessor', '')}
-                                        className="text-primary-600 focus:ring-primary-500"
-                                    />
-                                    <span className="text-sm text-gray-600">{t('filter_menu.status_all')}</span>
+                        {showAssessorStatus && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('filter_menu.assessor_status_label')}
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="is_assessor"
-                                        checked={localFilters.is_assessor === 'true'}
-                                        onChange={() => handleChange('is_assessor', 'true')}
-                                        className="text-primary-600 focus:ring-primary-500"
-                                    />
-                                    <span className="text-sm text-gray-600">{t('filter_menu.status_assessor')}</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="is_assessor"
-                                        checked={localFilters.is_assessor === 'false'}
-                                        onChange={() => handleChange('is_assessor', 'false')}
-                                        className="text-primary-600 focus:ring-primary-500"
-                                    />
-                                    <span className="text-sm text-gray-600">{t('filter_menu.status_instructor')}</span>
-                                </label>
+                                <div className="flex flex-col gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="is_assessor"
+                                            checked={localFilters.is_assessor === '' || localFilters.is_assessor === undefined}
+                                            onChange={() => handleChange('is_assessor', '')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_all')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="is_assessor"
+                                            checked={localFilters.is_assessor === 'true'}
+                                            onChange={() => handleChange('is_assessor', 'true')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_assessor')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="is_assessor"
+                                            checked={localFilters.is_assessor === 'false'}
+                                            onChange={() => handleChange('is_assessor', 'false')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_instructor')}</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Certificate Type */}
+                        {showCertificateType && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('filter_menu.type_label')}
+                                </label>
+                                <div className="flex flex-col gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            checked={localFilters.type === '' || localFilters.type === undefined || localFilters.type === 'all'}
+                                            onChange={() => handleChange('type', '')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.type_all')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            checked={localFilters.type === 'instructor'}
+                                            onChange={() => handleChange('type', 'instructor')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.type_instructor')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            checked={localFilters.type === 'trainee'}
+                                            onChange={() => handleChange('type', 'trainee')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.type_trainee')}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Status */}
+                        {showStatus && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('filter_menu.status_label')}
+                                </label>
+                                <div className="flex flex-col gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            checked={localFilters.status === '' || localFilters.status === undefined || localFilters.status === 'all'}
+                                            onChange={() => handleChange('status', '')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_all')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            checked={localFilters.status === 'valid'}
+                                            onChange={() => handleChange('status', 'valid')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_valid')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            checked={localFilters.status === 'expired'}
+                                            onChange={() => handleChange('status', 'expired')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_expired')}</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            checked={localFilters.status === 'revoked'}
+                                            onChange={() => handleChange('status', 'revoked')}
+                                            className="text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-600">{t('filter_menu.status_revoked')}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-2 mt-6 pt-4 border-t border-gray-100">
@@ -276,7 +395,7 @@ const FilterMenu = ({ filters, onApply, onClear }) => {
                             {t('filter_menu.apply_button')}
                         </button>
                     </div>
-                </div>,
+                </div >,
                 document.body
             )}
         </>

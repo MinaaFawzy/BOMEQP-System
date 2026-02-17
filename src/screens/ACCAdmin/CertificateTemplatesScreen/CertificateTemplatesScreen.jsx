@@ -1004,7 +1004,7 @@ const CertificateTemplatesScreen = () => {
               { key: 'name', label: t('certificate_templates_screen.details.template_name') },
               {
                 key: 'template_type',
-                label: t('certificate_templates_screen.details.template_type', 'Template Type'),
+                label: t('certificate_templates_screen.form.template_type', 'Template Type'),
                 render: (value) => {
                   const typeConfig = {
                     course: { icon: BookOpen, label: t('certificate_templates_screen.types.course', 'Course'), color: 'blue' },
@@ -1025,7 +1025,7 @@ const CertificateTemplatesScreen = () => {
               { key: 'status', label: t('certificate_templates_screen.details.status') },
               {
                 key: 'courses',
-                label: t('certificate_templates_screen.details.assigned_courses', 'Assigned Courses'),
+                label: t('certificate_templates_screen.form.assigned_courses', 'Assigned Courses'),
                 showEmpty: true,
                 render: (_, row) => {
                   // For training_center and instructor types, show applicable message

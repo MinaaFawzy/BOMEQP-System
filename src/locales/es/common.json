@@ -83,6 +83,14 @@
     "status_assessor": "Solo evaluador",
     "status_instructor": "Solo instructor",
     "clear_button": "Limpiar",
-    "apply_button": "Aplicar"
+    "apply_button": "Aplicar",
+    "type_label": "Tipo de certificado",
+    "type_all": "Todos",
+    "type_instructor": "Instructor",
+    "type_trainee": "Participante",
+    "status_label": "Estado",
+    "status_valid": "Válido",
+    "status_expired": "Expirado",
+    "status_revoked": "Revocado"
   }
 }

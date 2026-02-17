@@ -252,7 +252,31 @@
       "updated_at": "Actualizado el",
       "reviewed_at": "Revisado el",
       "payment_status": "Estado del pago",
-      "authorization_price": "Precio de autorización"
+      "authorization_price": "Precio de autorización",
+      "id_number": "Número de Identificación",
+      "assessor": "Evaluador",
+      "instructor": "Instructor",
+      "languages": "Idiomas",
+      "cv": "CV / Currículum",
+      "passport": "Pasaporte",
+      "legal_name": "Nombre Legal",
+      "registration_number": "Número de Registro",
+      "provider_type": "Tipo de Proveedor",
+      "primary_contact": "Contacto Principal",
+      "title": "Título",
+      "mobile": "Móvil",
+      "group_admin_status": "Estado de Admin de Grupo",
+      "commission": "Comisión",
+      "payment_date": "Fecha de Pago",
+      "transaction_id": "ID de Transacción",
+      "category_info": "Información de Categoría",
+      "category": "Categoría",
+      "sub_category": "Subcategoría",
+      "requested_courses": "Cursos Solicitados",
+      "authorization_history": "Historial de Autorización",
+      "country": "País",
+      "city": "Ciudad",
+      "address": "Dirección"
     },
     "fields": {
       "first_name": "Nombre:",
@@ -265,7 +289,7 @@
       "training_center": "Centro de formación"
     },
     "documents": {
-      "view_document": "Ver documento",
+      "view_document": "Ver",
       "document": "Documento"
     },
     "approval": {
@@ -540,6 +564,8 @@
       "description": "Descripción",
       "sub_category": "Subcategoría",
       "category": "Categoría",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
       "name": "Nombre",
       "email": "Correo electrónico",
       "phone": "Teléfono",
@@ -581,6 +607,8 @@
     },
     "table": {
       "certificate_number": "Número de certificado",
+      "name": "Nombre",
+      "type": "Tipo",
       "trainee": "Participante",
       "course": "Curso",
       "issue_date": "Fecha de emisión",
@@ -667,6 +695,8 @@
       "details_title": "Detalles de la plantilla"
     },
     "form": {
+      "template_type": "Tipo de plantilla",
+      "assigned_courses": "Cursos asignados",
       "template_name": "Nombre de la plantilla",
       "category": "Categoría",
       "select_category": "Seleccionar categoría",

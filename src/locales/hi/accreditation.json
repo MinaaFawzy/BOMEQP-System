@@ -252,7 +252,31 @@
       "updated_at": "अपडेट किया गया पर",
       "reviewed_at": "समीक्षित पर",
       "payment_status": "भुगतान स्थिति",
-      "authorization_price": "प्राधिकरण शुल्क"
+      "authorization_price": "प्राधिकरण शुल्क",
+      "id_number": "आईडी नंबर",
+      "assessor": "मूल्यांकनकर्ता",
+      "instructor": "प्रशिक्षक",
+      "languages": "भाषाएँ",
+      "cv": "सीवी / रिज्यूमे",
+      "passport": "पासपोर्ट",
+      "legal_name": "कानूनी नाम",
+      "registration_number": "पंजीकरण संख्या",
+      "provider_type": "प्रदाता प्रकार",
+      "primary_contact": "प्राथमिक संपर्क",
+      "title": "शीर्षक",
+      "mobile": "मोबाइल",
+      "group_admin_status": "समूह व्यवस्थापक स्थिति",
+      "commission": "कमीशन",
+      "payment_date": "भुगतान तिथि",
+      "transaction_id": "लेनदेन आईडी",
+      "category_info": "श्रेणी जानकारी",
+      "category": "श्रेणी",
+      "sub_category": "उप-श्रेणी",
+      "requested_courses": "अनुरोधित पाठ्यक्रम",
+      "authorization_history": "प्राधिकरण इतिहास",
+      "country": "देश",
+      "city": "शहर",
+      "address": "पता"
     },
     "fields": {
       "first_name": "पहला नाम",
@@ -265,7 +289,7 @@
       "training_center": "प्रशिक्षण केंद्र"
     },
     "documents": {
-      "view_document": "देखें दस्तावेज़",
+      "view_document": "देखें",
       "document": "दस्तावेज़"
     },
     "approval": {
@@ -550,6 +574,8 @@
       "description": "विवरण",
       "sub_category": "उप श्रेणी",
       "category": "श्रेणी",
+      "first_name": "पहला नाम",
+      "last_name": "अंतिम नाम",
       "name": "नाम",
       "email": "ईमेल",
       "phone": "फ़ोन",
@@ -591,6 +617,8 @@
     },
     "table": {
       "certificate_number": "प्रमाणपत्र नंबर",
+      "name": "नाम",
+      "type": "प्रकार",
       "trainee": "प्रशिक्षार्थी",
       "course": "पाठ्यक्रम",
       "issue_date": "जारी करें तिथि",
@@ -678,6 +706,8 @@
       "details_title": "टेम्पलेट विवरण"
     },
     "form": {
+      "template_type": "टेम्पलेट प्रकार",
+      "assigned_courses": "असाइन किए गए कोर्स",
       "template_name": "टेम्पलेट नाम",
       "category": "श्रेणी",
       "select_category": "चुनें श्रेणी",

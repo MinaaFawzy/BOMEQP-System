@@ -262,6 +262,7 @@
     "upload_cv": "上传简历",
     "update_cv": "更新简历",
     "view_cv": "查看简历",
+    "view": "查看",
     "click_to_select_pdf": "点击选择 PDF",
     "pdf_only_max_10mb": "仅 PDF（最大 10MB）",
     "only_pdf_files_allowed": "仅允许 PDF 文件",

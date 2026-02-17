@@ -22,6 +22,7 @@ const TCProfileScreen = () => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   // Countries list
   const [countries, setCountries] = useState([]);
@@ -29,8 +30,8 @@ const TCProfileScreen = () => {
 
   const [formData, setFormData] = useState({
     // Company Information
-    user_name: '', // User's personal name
     name: '',
+    legal_name: '',
     website: '',
     email: '',
     phone: '',
@@ -129,8 +130,8 @@ const TCProfileScreen = () => {
         setProfile(data);
         setFormData({
           // Company Information
-          user_name: data.user_name || '',
           name: data.name || '',
+          legal_name: data.legal_name || '',
           website: data.website || '',
           email: data.email || '',
           phone: data.phone || '',
@@ -279,8 +280,7 @@ const TCProfileScreen = () => {
     const validationErrors = {};
 
     // Company Information
-    if (!formData.user_name) validationErrors.user_name = 'User name is required';
-    if (!formData.name) validationErrors.name = 'Company name is required';
+    if (!formData.name) validationErrors.name = 'Name is required';
     if (!formData.email) validationErrors.email = 'Email is required';
     else if (validateEmail(formData.email)) validationErrors.email = validateEmail(formData.email);
     if (!formData.phone) validationErrors.phone = 'Phone is required';
@@ -334,8 +334,8 @@ const TCProfileScreen = () => {
       const submitData = new FormData();
 
       // Company Information
-      submitData.append('user_name', formData.user_name);
       submitData.append('name', formData.name);
+      if (formData.legal_name) submitData.append('legal_name', formData.legal_name);
       if (formData.website) submitData.append('website', formData.website);
       submitData.append('email', formData.email);
       submitData.append('phone', formData.phone);
@@ -444,7 +444,7 @@ const TCProfileScreen = () => {
     e.preventDefault();
     setSaving(true);
     setErrors({});
-    setSuccessMessage('');
+    setPasswordSuccess('');
 
     // Validation
     const passwordErrors = {};
@@ -465,17 +465,20 @@ const TCProfileScreen = () => {
     try {
       const { authAPI } = await import('../../../services/api');
       await authAPI.changePassword(passwordData);
-      setSuccessMessage(t('tc_profile_screen.messages.password_changed'));
+      setPasswordSuccess(t('tc_profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
         password_confirmation: '',
       });
-      // Scroll to top to show success message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Clear success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (error) {
-      if (error.errors) {
-        setErrors(error.errors);
+      console.error('Failed to change password:', error);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ password: error.response.data.message });
       } else {
         setErrors({ password: error.message || t('tc_profile_screen.errors.password_change_failed') });
       }
@@ -579,22 +582,21 @@ const TCProfileScreen = () => {
             </div>
             <div className="profile-form-grid">
               <FormInput
-                label={t('tc_profile_screen.sections.company_info.user_name')}
-                name="user_name"
-                value={formData.user_name}
-                onChange={handleChange}
-                required
-                disabled={!isEditing}
-                error={errors.user_name}
-              />
-              <FormInput
-                label={t('tc_profile_screen.sections.company_info.company_name')}
+                label={t('tc_profile_screen.sections.company_info.name')}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
                 disabled={!isEditing}
                 error={errors.name}
+              />
+              <FormInput
+                label={t('tc_profile_screen.sections.company_info.legal_name')}
+                name="legal_name"
+                value={formData.legal_name}
+                onChange={handleChange}
+                disabled={!isEditing}
+                error={errors.legal_name}
               />
               <FormInput
                 label={t('tc_profile_screen.sections.company_info.website')}
@@ -1184,6 +1186,12 @@ const TCProfileScreen = () => {
               </Button>
             </div>
           </form>
+          {passwordSuccess && (
+            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
+              <CheckCircle size={18} />
+              <span>{passwordSuccess}</span>
+            </div>
+          )}
         </div>
 
         {/* Language Settings Section */}

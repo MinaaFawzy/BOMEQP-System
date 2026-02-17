@@ -265,6 +265,7 @@
     "upload_cv": "CV / Resume (PDF)",
     "update_cv": "Update CV",
     "view_cv": "View CV",
+    "view": "View",
     "click_to_select_pdf": "Click to select PDF",
     "pdf_only_max_10mb": "PDF only (Max 10MB)",
     "only_pdf_files_allowed": "Only PDF files are allowed",
@@ -692,7 +693,8 @@
 
     "table": {
       "certificate_number": "Certificate Number",
-      "trainee": "Trainee",
+      "name": "Name",
+      "type": "Type",
       "course": "Course",
       "accreditation": "Accreditation",
       "issue_date": "Issue Date",
@@ -745,7 +747,7 @@
     "details": {
       "certificate_number": "Certificate Number",
       "verification_code": "Verification Code",
-      "trainee_name": "Trainee Name",
+      "trainee_name": "Name",
       "accreditation": "Accreditation",
       "course": "Course",
       "issue_date": "Issue Date",
@@ -1059,8 +1061,8 @@
         "title": "Company Information",
         "subtitle": "Basic details about your training center",
 
-        "user_name": "Name",
-        "company_name": "Company Name",
+        "name": "Name",
+        "legal_name": "Legal Name",
         "website": "Website",
         "email": "Company Email Address",
         "phone": "Telephone Number",

@@ -12,6 +12,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import './CertificatesScreen.css';
 import '../../../components/FormInput/FormInput.css';
 import useDebounce from '../../../hooks/useDebounce';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
 
 const TrainingCenterCertificatesScreen = () => {
   const { t } = useTranslation('training_center');
@@ -29,8 +30,8 @@ const TrainingCenterCertificatesScreen = () => {
   const [totalCertificates, setTotalCertificates] = useState(0);
   const [paginationInfo, setPaginationInfo] = useState({ from: 0, to: 0 });
 
-  // Status filter
-  const [statusFilter, setStatusFilter] = useState('all');
+  // Filters
+  const [filters, setFilters] = useState({ type: '', status: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [completedClasses, setCompletedClasses] = useState([]);
@@ -54,19 +55,23 @@ const TrainingCenterCertificatesScreen = () => {
   const [loadingACCs, setLoadingACCs] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
 
-  // Load data when pagination changes
   // Load data when pagination, search or filter changes
   useEffect(() => {
     loadData();
-  }, [currentPage, perPage, debouncedSearch, statusFilter]);
+  }, [currentPage, perPage, debouncedSearch, filters]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
     setCurrentPage(1);
   };
 
-  const handleStatusFilterChange = (e) => {
-    setStatusFilter(e.target.value);
+  const handleFilterApply = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const handleFilterClear = (clearedFilters) => {
+    setFilters(clearedFilters);
     setCurrentPage(1);
   };
 
@@ -74,12 +79,12 @@ const TrainingCenterCertificatesScreen = () => {
     try {
       setLoading(true);
 
-      // Build query parameters
       const params = {
         page: currentPage,
         per_page: perPage,
         ...(debouncedSearch && { search: debouncedSearch }),
-        ...(statusFilter !== 'all' && { status: statusFilter })
+        ...(filters.status && filters.status !== 'all' && { status: filters.status }),
+        ...(filters.type && filters.type !== 'all' && { type: filters.type })
       };
 
       const certData = await trainingCenterAPI.listCertificates(params);
@@ -631,11 +636,21 @@ const TrainingCenterCertificatesScreen = () => {
       )
     },
     {
-      header: t('certificates_screen.table.trainee'),
-      accessor: 'trainee_name',
+      header: t('certificates_screen.table.name'),
+      accessor: 'name',
       sortable: true,
       render: (value) => (
         <div className="text-sm font-semibold text-gray-900">
+          {value || t('certificates_screen.status.na')}
+        </div>
+      )
+    },
+    {
+      header: t('certificates_screen.table.type'),
+      accessor: 'type',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-700 capitalize">
           {value || t('certificates_screen.status.na')}
         </div>
       )
@@ -777,17 +792,15 @@ const TrainingCenterCertificatesScreen = () => {
         sortable={false}
         onRowClick={handleRowClick}
         customFilters={
-          <select
-            id="statusFilter"
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            className="pagination-select border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white min-w-[140px] cursor-pointer hover:border-gray-400 transition-colors"
-          >
-            <option value="all">{t('certificates_screen.filters.all_status')}</option>
-            <option value="valid">{t('certificates_screen.filters.valid')}</option>
-            <option value="expired">{t('certificates_screen.filters.expired')}</option>
-            <option value="revoked">{t('certificates_screen.filters.revoked')}</option>
-          </select>
+          <FilterMenu
+            filters={filters}
+            onApply={handleFilterApply}
+            onClear={handleFilterClear}
+            showLocation={false}
+            showAssessorStatus={false}
+            showCertificateType={true}
+            showStatus={true}
+          />
         }
       />
 
@@ -942,7 +955,8 @@ const TrainingCenterCertificatesScreen = () => {
               fields={[
                 { key: 'certificate_number', label: t('certificates_screen.details.certificate_number'), icon: FileText },
                 { key: 'verification_code', label: t('certificates_screen.details.verification_code'), icon: FileText },
-                { key: 'trainee_name', label: t('certificates_screen.details.trainee_name'), icon: User },
+                { key: 'name', label: t('certificates_screen.details.trainee_name'), icon: User, render: (value, row) => value || row.trainee_name || t('certificates_screen.status.na') },
+                { key: 'type', label: t('certificates_screen.table.type'), icon: User, render: (value) => <span className="capitalize">{value || t('certificates_screen.status.na')}</span> },
                 { key: 'acc', label: t('certificates_screen.details.accreditation'), icon: Building2, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.status.na') : value || t('certificates_screen.status.na') },
                 { key: 'course', label: t('certificates_screen.details.course'), icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.status.na') : value || t('certificates_screen.status.na') },
                 { key: 'issue_date', label: t('certificates_screen.details.issue_date'), icon: Calendar, render: (value) => formatDate(value) },

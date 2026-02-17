@@ -1306,7 +1306,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-link"
                   >
                     <FileText size={14} className="instructors-cv-link-icon" />
-                    {t('instructors_screen.view_cv')}
+                    {t('instructors_screen.view')}
                   </a>
                 </div>
               </div>
@@ -1394,7 +1394,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-link"
                   >
                     <FileText size={14} className="instructors-cv-link-icon" />
-                    {t('instructors_screen.view_passport')}
+                    {t('instructors_screen.view')}
                   </a>
                 </div>
               </div>
@@ -1611,7 +1611,7 @@ const TrainingCenterInstructorsScreen = () => {
                               className="instructors-certificate-link"
                             >
                               <FileText size={14} className="instructors-certificate-link-icon" />
-                              {t('instructors_screen.view_cv')}
+                              {t('instructors_screen.view')}
                             </a>
                           )}
                         </div>
@@ -1683,7 +1683,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-box-link"
                   >
                     <FileText size={18} className="instructors-cv-box-link-icon" />
-                    {t('instructors_screen.view_cv')}
+                    {t('instructors_screen.view')}
                   </a>
                 </div>
               </div>
@@ -1709,7 +1709,7 @@ const TrainingCenterInstructorsScreen = () => {
                     className="instructors-cv-box-link"
                   >
                     <FileText size={18} className="instructors-cv-box-link-icon" />
-                    {t('instructors_screen.view_passport')}
+                    {t('instructors_screen.view')}
                   </a>
                 </div>
               </div>

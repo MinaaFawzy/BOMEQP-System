@@ -297,7 +297,31 @@
       "updated_at": "تاريخ التحديث",
       "reviewed_at": "تاريخ المراجعة",
       "payment_status": "حالة الدفع",
-      "authorization_price": "سعر الاعتماد"
+      "authorization_price": "سعر الاعتماد",
+      "id_number": "رقم الهوية",
+      "assessor": "مقيم",
+      "instructor": "مدرب",
+      "languages": "اللغات",
+      "cv": "السيرة الذاتية",
+      "passport": "جواز السفر",
+      "legal_name": "الاسم القانوني",
+      "registration_number": "رقم التسجيل",
+      "provider_type": "نوع مقدم التدريب",
+      "primary_contact": "جهة الاتصال الرئيسية",
+      "title": "اللقب",
+      "mobile": "رقم الموبايل",
+      "group_admin_status": "حالة مدير المجموعة",
+      "commission": "العمولة",
+      "payment_date": "تاريخ الدفع",
+      "transaction_id": "رقم المعاملة",
+      "category_info": "معلومات الفئة",
+      "category": "الفئة",
+      "sub_category": "الفئة الفرعية",
+      "requested_courses": "الدورات المطلوبة",
+      "authorization_history": "سجل التصاريح",
+      "country": "الدولة",
+      "city": "المدينة",
+      "address": "العنوان"
     },
 
     "fields": {
@@ -312,7 +336,7 @@
     },
 
     "documents": {
-      "view_document": "عرض المستند",
+      "view_document": "عرض",
       "document": "مستند"
     },
 
@@ -632,6 +656,8 @@
       "sub_category": "التصنيف الفرعي",
       "category": "التصنيف",
 
+      "first_name": "الاسم الاول",
+      "last_name": "الاسم الاخير",
       "name": "الاسم",
       "email": "البريد الإلكتروني",
       "phone": "رقم الهاتف",
@@ -680,6 +706,8 @@
 
     "table": {
       "certificate_number": "رقم الشهادة",
+      "name": "الاسم",
+      "type": "النوع",
       "trainee": "المتدرب",
       "course": "الدورة",
       "issue_date": "تاريخ الإصدار",
@@ -780,6 +808,8 @@
     },
 
     "form": {
+      "template_type": "نوع القالب",
+      "assigned_courses": "الدورات المعينة",
       "template_name": "اسم القالب",
       "category": "التصنيف",
       "select_category": "اختر التصنيف",

@@ -83,6 +83,14 @@
     "status_assessor": "केवल मूल्यांकनकर्ता",
     "status_instructor": "केवल प्रशिक्षक",
     "clear_button": "साफ़ करें",
-    "apply_button": "लागू करें"
+    "apply_button": "लागू करें",
+    "type_label": "प्रमाणपत्र का प्रकार",
+    "type_all": "सभी",
+    "type_instructor": "प्रशिक्षक",
+    "type_trainee": "प्रशिक्षार्थी",
+    "status_label": "स्थिति",
+    "status_valid": "वैध",
+    "status_expired": "समाप्त",
+    "status_revoked": "रद्द"
   }
 }

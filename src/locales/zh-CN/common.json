@@ -83,6 +83,14 @@
     "status_assessor": "仅评估员",
     "status_instructor": "仅讲师",
     "clear_button": "清除",
-    "apply_button": "应用"
+    "apply_button": "应用",
+    "type_label": "证书类型",
+    "type_all": "全部",
+    "type_instructor": "讲师",
+    "type_trainee": "学员",
+    "status_label": "状态",
+    "status_valid": "有效",
+    "status_expired": "已过期",
+    "status_revoked": "已撤销"
   }
 }

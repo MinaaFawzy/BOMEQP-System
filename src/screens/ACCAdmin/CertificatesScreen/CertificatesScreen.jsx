@@ -2,11 +2,13 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle, Search } from 'lucide-react';
+import { Award, Eye, FileText, User, BookOpen, Calendar, Hash, Download, CheckCircle } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import FilterMenu from '../../../components/FilterMenu/FilterMenu';
+import useDebounce from '../../../hooks/useDebounce';
 import './CertificatesScreen.css';
 
 const CertificatesScreen = () => {
@@ -16,7 +18,7 @@ const CertificatesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [filters, setFilters] = useState({ type: '', status: '' });
 
   // Pagination State
   const [pagination, setPagination] = useState({
@@ -29,23 +31,19 @@ const CertificatesScreen = () => {
   });
 
   // Search State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPagination(prev => ({ ...prev, current_page: 1 }));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   // Load data when dependencies change
   useEffect(() => {
     loadCertificates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, pagination.current_page, pagination.per_page, debouncedSearch]);
+  }, [pagination.current_page, pagination.per_page, debouncedSearch, filters]);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
 
   useEffect(() => {
     setHeaderTitle(t('certificates_screen.header.title'));
@@ -73,9 +71,14 @@ const CertificatesScreen = () => {
         params.search = debouncedSearch;
       }
 
-      // Add status filter if not 'all'
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
+      // Add status filter if not empty or 'all'
+      if (filters.status && filters.status !== 'all') {
+        params.status = filters.status;
+      }
+
+      // Add type filter if not empty or 'all'
+      if (filters.type && filters.type !== 'all') {
+        params.type = filters.type;
       }
 
       const data = await accAPI.listCertificates(params);
@@ -116,6 +119,16 @@ const CertificatesScreen = () => {
     }));
   };
 
+  const handleFilterApply = (newFilters) => {
+    setFilters(newFilters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleFilterClear = (clearedFilters) => {
+    setFilters(clearedFilters);
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
   // Format date helper
   const formatDate = (dateString) => {
     if (!dateString) return t('certificates_screen.common.na');
@@ -151,12 +164,22 @@ const CertificatesScreen = () => {
       )
     },
     {
-      header: t('certificates_screen.table.trainee'),
-      accessor: 'trainee_name',
+      header: t('certificates_screen.table.name'),
+      accessor: 'name',
       sortable: true,
       render: (value, row) => (
         <div className="text-sm font-semibold text-gray-900">
           {value || row.student_name || t('certificates_screen.common.na')}
+        </div>
+      )
+    },
+    {
+      header: t('certificates_screen.table.type'),
+      accessor: 'type',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm text-gray-700 capitalize">
+          {value || t('certificates_screen.common.na')}
         </div>
       )
     },
@@ -229,51 +252,30 @@ const CertificatesScreen = () => {
 
   return (
     <div>
-      {/* Search and Filters */}
-      <div className="mb-4">
-        <div className="flex gap-4">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder={t('certificates_screen.search.placeholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-            />
-            <div className="absolute left-3 top-2.5 text-gray-400">
-              <Search size={20} />
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div className="w-48">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPagination(prev => ({ ...prev, current_page: 1 }));
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10"
-            >
-              <option value="all">{t('certificates_screen.filters.all')}</option>
-              <option value="valid">{t('certificates_screen.filters.valid')}</option>
-              <option value="invalid">{t('certificates_screen.filters.invalid')}</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* DataTable */}
+      {/* DataTable with Search & Filters */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
           data={certificates}
           isLoading={loading}
-          searchable={false}
+          searchable={true}
+          searchValue={searchTerm}
+          onSearch={handleSearch}
+          searchPlaceholder={t('certificates_screen.search.placeholder')}
           filterable={false}
           sortable={true}
           onRowClick={handleRowClick}
+          customFilters={
+            <FilterMenu
+              filters={filters}
+              onApply={handleFilterApply}
+              onClear={handleFilterClear}
+              showLocation={false}
+              showAssessorStatus={false}
+              showCertificateType={true}
+              showStatus={true}
+            />
+          }
         />
 
         {/* Pagination */}
@@ -307,7 +309,8 @@ const CertificatesScreen = () => {
               data={selectedCertificate}
               fields={[
                 { key: 'certificate_number', label: t('certificates_screen.details.certificate_number'), icon: FileText },
-                { key: 'trainee_name', label: t('certificates_screen.details.trainee_name'), icon: User, render: (value, row) => value || row.student_name || t('certificates_screen.common.na') },
+                { key: 'name', label: t('certificates_screen.details.trainee_name'), icon: User, render: (value, row) => value || row.student_name || row.trainee_name || t('certificates_screen.common.na') },
+                { key: 'type', label: t('certificates_screen.table.type'), icon: User, render: (value) => <span className="capitalize">{value || t('certificates_screen.common.na')}</span> },
                 { key: 'course', label: t('certificates_screen.details.course'), icon: BookOpen, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.common.na') : value || t('certificates_screen.common.na') },
                 { key: 'template', label: t('certificates_screen.details.template'), icon: FileText, render: (value) => typeof value === 'object' ? value?.name || t('certificates_screen.common.na') : value || t('certificates_screen.common.na') },
                 { key: 'issue_date', label: t('certificates_screen.details.issue_date'), icon: Calendar, render: (value) => formatDate(value) },

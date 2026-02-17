@@ -60,6 +60,7 @@ const InstructorProfileScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   useEffect(() => {
     setHeaderTitle(t('profile_screen.header.title'));
@@ -385,7 +386,7 @@ const InstructorProfileScreen = () => {
     e.preventDefault();
     setSaving(true);
     setErrors({});
-    setSuccess('');
+    setPasswordSuccess('');
 
     // Validation
     const passwordErrors = {};
@@ -406,15 +407,20 @@ const InstructorProfileScreen = () => {
     try {
       const { authAPI } = await import('../../../services/api');
       await authAPI.changePassword(passwordData);
-      setSuccess(t('profile_screen.messages.password_changed'));
+      setPasswordSuccess(t('profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
         password_confirmation: '',
       });
+      // Clear success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (error) {
-      if (error.errors) {
-        setErrors(error.errors);
+      console.error('Failed to change password:', error);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ password: error.response.data.message });
       } else {
         setErrors({ password: error.message || t('profile_screen.validation.password_failed') });
       }
@@ -894,15 +900,6 @@ const InstructorProfileScreen = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <FormInput
-                label={t('profile_screen.form.id_number')}
-                name="id_number"
-                value={formData.id_number}
-                onChange={handleProfileChange}
-                disabled={!isEditingProfile}
-                error={errors.id_number}
-                placeholder={t('profile_screen.form.id_placeholder')}
-              />
 
               {/* Assessor Status (Read-only) */}
               {/* Assessor Status (Read-only) */}
@@ -1493,6 +1490,12 @@ const InstructorProfileScreen = () => {
               </Button>
             </div>
           </form>
+          {passwordSuccess && (
+            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
+              <CheckCircle size={18} />
+              <span>{passwordSuccess}</span>
+            </div>
+          )}
         </div>
 
         {/* Language Settings Section */}

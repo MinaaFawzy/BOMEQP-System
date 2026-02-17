@@ -345,13 +345,13 @@ const AuthorizedInstructorsScreen = () => {
                                     { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
                                     { key: 'phone', label: t('authorized_instructors_screen.details.phone') },
                                     { key: 'date_of_birth', label: t('instructors_screen.fields.date_of_birth') },
-                                    { key: 'id_number', label: 'ID Number', showEmpty: false },
-                                    { key: 'country', label: 'Country', showEmpty: false },
-                                    { key: 'city', label: 'City', showEmpty: false },
+                                    { key: 'id_number', label: t('instructors_screen.details.id_number'), showEmpty: false },
+                                    { key: 'country', label: t('instructors_screen.details.country'), showEmpty: false },
+                                    { key: 'city', label: t('instructors_screen.details.city'), showEmpty: false },
                                     {
                                         key: 'is_assessor',
                                         label: t('authorized_instructors_screen.details.is_assessor'),
-                                        render: (value) => value ? 'Assessor' : 'Instructor'
+                                        render: (value) => value ? t('instructors_screen.details.assessor') : t('instructors_screen.details.instructor')
                                     }
                                 ]}
                             />
@@ -359,7 +359,7 @@ const AuthorizedInstructorsScreen = () => {
                             {/* Languages/Specializations */}
                             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
                                 <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-500 mb-2">{t('authorized_instructors_screen.details.languages')}</h4>
+                                    <h4 className="text-sm font-medium text-gray-500 mb-2">{t('instructors_screen.details.languages')}</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {selectedInstructor.specializations.map((lang, index) => (
                                             <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
@@ -378,7 +378,7 @@ const AuthorizedInstructorsScreen = () => {
                                             <Building2 className="text-primary-600" size={20} />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium text-gray-900">{t('authorized_instructors_screen.details.cv')}</p>
+                                            <p className="font-medium text-gray-900">{t('instructors_screen.details.cv')}</p>
                                         </div>
                                         <a
                                             href={selectedInstructor.cv_url}
@@ -386,7 +386,7 @@ const AuthorizedInstructorsScreen = () => {
                                             rel="noopener noreferrer"
                                             className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
                                         >
-                                            {t('authorized_instructors_screen.actions.view_details')}
+                                            {t('instructors_screen.documents.view_document')}
                                         </a>
                                     </div>
                                 )}
@@ -397,7 +397,7 @@ const AuthorizedInstructorsScreen = () => {
                                             <Building2 className="text-primary-600" size={20} />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium text-gray-900">{t('authorized_instructors_screen.details.passport')}</p>
+                                            <p className="font-medium text-gray-900">{t('instructors_screen.details.passport')}</p>
                                         </div>
                                         <a
                                             href={selectedInstructor.passport_image_url || selectedInstructor.passport_url}
@@ -405,7 +405,7 @@ const AuthorizedInstructorsScreen = () => {
                                             rel="noopener noreferrer"
                                             className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
                                         >
-                                            {t('authorized_instructors_screen.actions.view_details')}
+                                            {t('instructors_screen.documents.view_document')}
                                         </a>
                                     </div>
                                 )}
@@ -458,28 +458,28 @@ const AuthorizedInstructorsScreen = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Award className="mr-2" size={20} />
-                                    Authorization History ({selectedInstructor.authorizations.length})
+                                    {t('instructors_screen.details.authorization_history')} ({selectedInstructor.authorizations.length})
                                 </h3>
                                 <div className="space-y-3">
                                     {selectedInstructor.authorizations.map((auth, index) => (
                                         <div key={auth.id || index} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                                 <div>
-                                                    <p className="text-gray-500 font-medium mb-1">Request Date</p>
+                                                    <p className="text-gray-500 font-medium mb-1">{t('instructors_screen.details.request_date')}</p>
                                                     <p className="text-gray-900">{new Date(auth.request_date).toLocaleDateString()}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-gray-500 font-medium mb-1">Commission</p>
+                                                    <p className="text-gray-500 font-medium mb-1">{t('instructors_screen.details.commission')}</p>
                                                     <p className="text-gray-900 font-semibold">{auth.commission_percentage}%</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-gray-500 font-medium mb-1">Price</p>
+                                                    <p className="text-gray-500 font-medium mb-1">{t('instructors_screen.details.authorization_price')}</p>
                                                     <p className="text-gray-900 font-semibold">${parseFloat(auth.authorization_price || 0).toFixed(2)}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-gray-500 font-medium mb-1">Payment Status</p>
+                                                    <p className="text-gray-500 font-medium mb-1">{t('instructors_screen.details.payment_status')}</p>
                                                     <span className={`px-2 py-1 text-xs font-bold rounded ${auth.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                        {auth.payment_status || 'pending'}
+                                                        {auth.payment_status ? (auth.payment_status === 'paid' ? t('instructors_screen.status.paid') : t('instructors_screen.status.unpaid')) : t('instructors_screen.status.pending')}
                                                     </span>
                                                 </div>
                                             </div>

@@ -85,6 +85,14 @@
     "status_assessor": "المُقيِّم فقط",
     "status_instructor": "المدرّب فقط",
     "clear_button": "مسح",
-    "apply_button": "تطبيق"
+    "apply_button": "تطبيق",
+    "type_label": "نوع الشهادة",
+    "type_all": "الكل",
+    "type_instructor": "المدرّب",
+    "type_trainee": "المتدرب",
+    "status_label": "الحالة",
+    "status_valid": "صالح",
+    "status_expired": "منتهي",
+    "status_revoked": "ملغى"
   }
 }

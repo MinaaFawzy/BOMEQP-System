@@ -252,7 +252,31 @@
       "updated_at": "已更新 在",
       "reviewed_at": "已审核 在",
       "payment_status": "付款 状态",
-      "authorization_price": "授权 价格"
+      "authorization_price": "授权 价格",
+      "id_number": "证件号码",
+      "assessor": "评估员",
+      "instructor": "讲师",
+      "languages": "语言",
+      "cv": "简历",
+      "passport": "护照",
+      "legal_name": "法定名称",
+      "registration_number": "注册号",
+      "provider_type": "提供商类型",
+      "primary_contact": "主要联系人",
+      "title": "头衔",
+      "mobile": "手机",
+      "group_admin_status": "群组管理员状态",
+      "commission": "佣金",
+      "payment_date": "付款日期",
+      "transaction_id": "交易ID",
+      "category_info": "分类信息",
+      "category": "分类",
+      "sub_category": "子分类",
+      "requested_courses": "申请课程",
+      "authorization_history": "授权历史",
+      "country": "国家",
+      "city": "城市",
+      "address": "地址"
     },
     "fields": {
       "first_name": "名 名称",
@@ -265,7 +289,7 @@
       "training_center": "培训 中心"
     },
     "documents": {
-      "view_document": "查看 文件",
+      "view_document": "查看",
       "document": "文件"
     },
     "approval": {
@@ -550,6 +574,8 @@
       "description": "描述",
       "sub_category": "子 分类",
       "category": "分类",
+      "first_name": "名字",
+      "last_name": "姓",
       "name": "名称",
       "email": "电子邮件",
       "phone": "电话",
@@ -591,6 +617,8 @@
     },
     "table": {
       "certificate_number": "证书 编号",
+      "name": "名称",
+      "type": "类型",
       "trainee": "学员",
       "course": "课程",
       "issue_date": "签发 日期",
@@ -677,6 +705,8 @@
       "details_title": "模板 详情"
     },
     "form": {
+      "template_type": "模板 类型",
+      "assigned_courses": "已分配 课程",
       "template_name": "模板 名称",
       "category": "分类",
       "select_category": "选择 分类",

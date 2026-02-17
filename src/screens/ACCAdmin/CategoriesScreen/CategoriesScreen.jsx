@@ -355,7 +355,7 @@ const CategoriesScreen = () => {
   const isCategoryCreatedByMe = (category) => {
     // If created_by = 1, it's assigned by Admin
     // If created_by != 1 (and not null), it's created by this ACC
-    return category.created_by != null && category.created_by !== undefined && category.created_by !== 1;
+    return category.created_by != null && category.created_by !== undefined && category.created_by !== 8;
   };
 
   // Check if sub category was created by current ACC (for UI display)

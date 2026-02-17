@@ -19,3 +19,15 @@
 
 /* Additional custom styles can be added here if needed */
 /* Most styles are handled by Tailwind classes */
+/* Chrome, Safari, Edge, Opera */
+input.no-spinner::-webkit-outer-spin-button,
+input.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input.no-spinner[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

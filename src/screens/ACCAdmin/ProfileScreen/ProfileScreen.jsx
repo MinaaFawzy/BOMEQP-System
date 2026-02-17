@@ -82,6 +82,7 @@ const ProfileScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     password: '',
@@ -771,18 +772,18 @@ const ProfileScreen = () => {
 
     setChangingPassword(true);
     setErrors({});
-    setSuccessMessage('');
+    setPasswordSuccess('');
 
     try {
       await authAPI.changePassword(passwordData);
-      setSuccessMessage(t('profile_screen.messages.password_changed'));
+      setPasswordSuccess(t('profile_screen.messages.password_changed'));
       setPasswordData({
         current_password: '',
         password: '',
         password_confirmation: '',
       });
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (error) {
       console.error('Failed to change password:', error);
       if (error.response?.data?.errors) {
@@ -1463,6 +1464,12 @@ const ProfileScreen = () => {
                 </div>
               </div>
             </form>
+            {passwordSuccess && (
+              <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
+                <CheckCircle size={18} />
+                <span>{passwordSuccess}</span>
+              </div>
+            )}
           </div>
 
           {/* Language Settings Section */}

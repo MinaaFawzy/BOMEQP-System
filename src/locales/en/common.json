@@ -85,6 +85,14 @@
     "status_assessor": "Assessor Only",
     "status_instructor": "Instructor Only",
     "clear_button": "Clear",
-    "apply_button": "Apply"
+    "apply_button": "Apply",
+    "type_label": "Certificate Type",
+    "type_all": "All",
+    "type_instructor": "Instructor",
+    "type_trainee": "Trainee",
+    "status_label": "Status",
+    "status_valid": "Valid",
+    "status_expired": "Expired",
+    "status_revoked": "Revoked"
   }
 }
