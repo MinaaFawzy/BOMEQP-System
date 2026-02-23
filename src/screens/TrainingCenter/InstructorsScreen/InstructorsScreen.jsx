@@ -1030,6 +1030,27 @@ const TrainingCenterInstructorsScreen = () => {
       )
     },
     {
+      header: t('instructors_screen.accreditations'),
+      accessor: 'accs',
+      sortable: false,
+      render: (value) => (
+        <div className="instructors-column-accreditations">
+          {Array.isArray(value) && value.length > 0 ? (
+            <div className="instructors-accs-list">
+              <span className="instructors-acc-badge">
+                {value[0].name || `ACC ${value[0].id}`}
+              </span>
+              {value.length > 1 && (
+                <span className="instructors-acc-more">+{value.length - 1}</span>
+              )}
+            </div>
+          ) : (
+            <span className="instructors-column-na">{t('instructors_screen.na')}</span>
+          )}
+        </div>
+      )
+    },
+    {
       header: t('instructors_screen.actions'),
       accessor: 'actions',
       sortable: false,
@@ -1535,6 +1556,31 @@ const TrainingCenterInstructorsScreen = () => {
                 { key: 'status', label: t('instructors_screen.status'), type: 'status' },
               ]}
             />
+            {selectedInstructor.accs && Array.isArray(selectedInstructor.accs) && selectedInstructor.accs.length > 0 && (
+              <div>
+                <h3 className="instructors-specializations-title">{t('instructors_screen.accreditations')}</h3>
+                <div className="instructors-accs-detail-list">
+                  {selectedInstructor.accs.map((acc, index) => (
+                    <div key={index} className="instructors-acc-detail-item">
+                      <div className="instructors-acc-detail-header">
+                        <Building2 size={16} className="instructors-acc-detail-icon" />
+                        <span className="instructors-acc-detail-name">{acc.name || `ACC ${acc.id}`}</span>
+                      </div>
+                      <div className="instructors-acc-detail-info">
+                        <div className="instructors-acc-detail-row">
+                          <span className="instructors-acc-detail-label">{t('instructors_screen.email')}:</span>
+                          <span className="instructors-acc-detail-value">{acc.email || t('instructors_screen.na')}</span>
+                        </div>
+                        <div className="instructors-acc-detail-row">
+                          <span className="instructors-acc-detail-label">{t('instructors_screen.id')}:</span>
+                          <span className="instructors-acc-detail-value">#{acc.id}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
               <div>
                 <h3 className="instructors-specializations-title">{t('instructors_screen.specializations_languages')}</h3>

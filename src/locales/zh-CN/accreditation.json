@@ -343,6 +343,7 @@
       "instructor": "讲师",
       "email": "电子邮件",
       "training_center": "培训中心",
+      "training_centers": "培训中心",
       "commission": "佣金 %",
       "payment_status": "付款状态",
       "actions": "操作",
@@ -364,6 +365,7 @@
 
       "instructor_info": "讲师信息",
       "training_center_info": "培训中心",
+      "training_centers_info": "培训中心",
       "authorization_details": "授权详情",
       "authorized_courses": "已授权课程",
 

@@ -1,0 +1,221 @@
+/* Fixed bottom-right (LTR) / bottom-left (RTL) - stays visible on scroll */
+.support-button-wrapper {
+  position: fixed;
+  bottom: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 1000;
+}
+
+.support-button-fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, var(--secondary-color, #2563eb) 100%);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.support-button-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.support-button-fab:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+/* Popup: above the button, aligned to inline-end (right in LTR, left in RTL) */
+.support-button-popup {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  inset-inline-end: 0;
+  min-width: 300px;
+  max-width: 350px;
+  padding: 1.25rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgb(243, 244, 246);
+  animation: support-popup-in 0.2s ease;
+}
+
+@keyframes support-popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL: popup stays aligned to the button; text alignment follows dir */
+[dir="rtl"] .support-button-popup {
+  text-align: right;
+}
+
+.support-button-popup-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: rgb(17, 24, 39);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
+}
+
+/* Contact Info Display */
+.support-button-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgb(249, 250, 251);
+  border-radius: 8px;
+}
+
+.support-button-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(55, 65, 81);
+}
+
+.support-button-contact-icon {
+  flex-shrink: 0;
+  color: var(--primary-color, #3b82f6);
+}
+
+.support-button-contact-text {
+  word-break: break-all;
+}
+
+/* Contact Method Selection */
+.support-button-method-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.support-button-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.support-button-radio-label:hover {
+  border-color: var(--primary-color, #3b82f6);
+  background: rgb(249, 250, 251);
+}
+
+.support-button-radio-label input[type="radio"]:checked + .support-button-radio-text {
+  color: var(--primary-color, #3b82f6);
+}
+
+.support-button-radio-input {
+  margin: 0;
+  accent-color: var(--primary-color, #3b82f6);
+}
+
+.support-button-radio-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(55, 65, 81);
+  transition: color 0.2s ease;
+}
+
+/* Message Input */
+.support-button-message-container {
+  margin-bottom: 1rem;
+}
+
+.support-button-message-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(107, 114, 128);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.support-button-message-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.support-button-message-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.support-button-message-input::placeholder {
+  color: rgb(156, 163, 175);
+}
+
+/* Send Button */
+.support-button-send-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, var(--secondary-color, #2563eb) 100%);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.support-button-send-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.support-button-send-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.support-button-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ensure popup doesn't overflow viewport on small screens */
+@media (max-width: 380px) {
+  .support-button-popup {
+    min-width: 260px;
+    max-width: 280px;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+  }
+
+  [dir="rtl"] .support-button-popup {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
+}

@@ -92,5 +92,16 @@
     "status_valid": "Válido",
     "status_expired": "Expirado",
     "status_revoked": "Revocado"
+  }, 
+  "support": {
+    "title": "Soporte",
+    "subtitle": "Información de contacto de soporte",
+    "email": "Correo electrónico",
+    "emailSubject": "Solicitud de soporte",
+    "phone": "Teléfono",
+    "phone_placeholder": "Ingrese el número de teléfono",
+    "message": "Mensaje",
+    "messagePlaceholder": "Escribe tu mensaje aquí...",
+    "send": "Enviar"
   }
 }

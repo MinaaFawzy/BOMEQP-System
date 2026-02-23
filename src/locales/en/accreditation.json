@@ -395,6 +395,7 @@
       "instructor": "Instructor",
       "email": "Email",
       "training_center": "Training Center",
+      "training_centers": "Training Centers",
       "commission": "Commission %",
       "payment_status": "Payment Status",
       "actions": "Actions",
@@ -416,6 +417,7 @@
 
       "instructor_info": "Instructor Information",
       "training_center_info": "Training Center",
+      "training_centers_info": "Training Centers",
       "authorization_details": "Authorization Details",
       "authorized_courses": "Authorized Courses",
 

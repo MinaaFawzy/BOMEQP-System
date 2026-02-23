@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
+import SupportButton from '../../../components/SupportButton/SupportButton';
 import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
 import './TCProfileScreen.css';
 import '../../../components/FormInput/FormInput.css';
@@ -1214,6 +1215,7 @@ const TCProfileScreen = () => {
           </div>
         </div>
       </div>
+      <SupportButton />
     </div>
   );
 };

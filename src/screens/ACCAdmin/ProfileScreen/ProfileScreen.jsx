@@ -6,6 +6,7 @@ import { accAPI, authAPI, publicAPI } from '../../../services/api';
 import { validateEmail, validatePhone, validateRequired, validateMinLength, validatePassword, validatePasswordConfirmation } from '../../../utils/validation';
 import { User, Mail, Phone, MapPin, CheckCircle, AlertCircle, Globe, Building2, FileText, Edit, X, Save, Lock, KeyRound, Upload, File, Trash2, Eye, Image as ImageIcon, Shield, Calendar, Clock, CreditCard } from 'lucide-react';
 import FormInput from '../../../components/FormInput/FormInput';
+import SupportButton from '../../../components/SupportButton/SupportButton';
 import './ProfileScreen.css';
 import '../../../components/FormInput/FormInput.css';
 import LanguageSwitcher from '../../../components/LanguageSwitcher/LanguageSwitcher';
@@ -1493,6 +1494,7 @@ const ProfileScreen = () => {
           </div> */}
         </div>
       </div>
+      <SupportButton />
     </div>
   );
 };

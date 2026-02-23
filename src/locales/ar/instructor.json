@@ -3,27 +3,25 @@
     "errors": {
       "load_failed": "فشل تحميل بيانات لوحة التحكم"
     },
-
     "stats": {
       "total_classes": "إجمالي الدورات",
       "scheduled": "مجدولة",
+      "in_progress": "قيد التنفيذ",
+      "suspended": "معلقة",
       "completed": "مكتملة",
       "click_to_view_all": "اضغط لعرض الكل",
       "scheduled_classes": "دورات مجدولة",
       "finished_classes": "دورات منتهية"
     },
-
     "charts": {
       "earnings_over_time": "الأرباح بمرور الوقت",
       "earnings": "الأرباح",
       "classes_status_distribution": "توزيع حالات الدورات",
       "count": "العدد"
     },
-
     "recent_classes": {
       "title": "أحدث الدورات",
       "view_all": "عرض الكل",
-
       "table": {
         "course": "الدورة",
         "training_center": "مركز التدريب",
@@ -32,45 +30,39 @@
         "students": "المتدربون",
         "code_prefix": "الكود:"
       },
-
       "empty": {
         "title": "لا توجد دورات",
         "subtitle": "لا توجد لديك دورات حتى الآن"
       }
     },
-
     "profile_summary": {
       "title": "ملخص الملف الشخصي",
       "name": "الاسم",
       "email": "البريد الإلكتروني",
       "view_full_profile": "عرض الملف بالكامل"
     },
-
     "training_centers": {
       "title": "مراكز التدريب",
       "view_all_with_count": "عرض الكل ({{count}})",
       "empty": "لا توجد مراكز تدريب"
     },
-
     "accs": {
       "title": "جهات الاعتماد",
       "authorized": "معتمد",
       "view_all_with_count": "عرض الكل ({{count}})",
       "empty": "لا توجد جهات اعتماد"
     },
-
     "status": {
       "active": "نشطة",
       "scheduled": "مجدولة",
       "in_progress": "قيد التنفيذ",
+      "suspended": "معلقة",
       "completed": "مكتملة",
       "cancelled": "ملغاة"
     },
-
     "location": {
       "online": "أونلاين"
     },
-
     "common": {
       "na": "غير متاح",
       "to": "إلى",
@@ -83,17 +75,14 @@
       "title": "دوراتي",
       "subtitle": "عرض وإدارة الدورات المكلّف بها"
     },
-
     "search": {
       "placeholder": "ابحث عن دورة..."
     },
-
     "filters": {
       "all": "كل الدورات",
       "scheduled": "مجدولة",
       "completed": "مكتملة"
     },
-
     "table": {
       "course": "الدورة",
       "training_center": "مركز التدريب",
@@ -105,7 +94,6 @@
       "enrolled": "المسجلون",
       "empty": "لا توجد دورات مخصصة لك حتى الآن."
     },
-
     "status": {
       "scheduled": "مجدولة",
       "completed": "مكتملة",
@@ -113,15 +101,12 @@
       "not_set": "غير محدد",
       "na": "غير متاح"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "mark_complete": "تحديد كمكتملة"
     },
-
     "details": {
       "modal_title": "تفاصيل الدورة",
-
       "course": "الدورة",
       "training_center": "مركز التدريب",
       "start_date": "تاريخ البداية",
@@ -131,33 +116,25 @@
       "enrollment": "عدد المسجلين",
       "status": "الحالة",
       "location": "الموقع",
-
       "materials_title": "مواد الدورة",
       "download": "تحميل"
     },
-
     "complete": {
       "modal_title": "تحديد الدورة كمكتملة",
-
       "completion_rate": "نسبة الإكمال (%)",
       "completion_rate_placeholder": "مثال: 95",
-
       "notes": "ملاحظات (اختياري)",
       "notes_placeholder": "أضف أي ملاحظات حول إكمال الدورة...",
-
       "cancel": "إلغاء",
       "confirm": "تأكيد الإكمال"
     },
-
     "validation": {
       "completion_rate_required": "يرجى إدخال نسبة الإكمال"
     },
-
     "messages": {
       "marked_complete_success": "تم تحديد الدورة كمكتملة بنجاح!",
       "mark_complete_failed": "فشل تحديد الدورة كمكتملة"
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -168,7 +145,6 @@
       "subtitle": "إدارة إعدادات الحساب والتفضيلات",
       "edit": "تعديل الملف الشخصي"
     },
-
     "sections": {
       "profile_info": {
         "title": "معلومات الملف الشخصي",
@@ -196,7 +172,6 @@
         "application_language": "لغة التطبيق"
       }
     },
-
     "form": {
       "first_name": "الاسم الأول",
       "last_name": "اسم العائلة",
@@ -206,26 +181,21 @@
       "date_of_birth": "تاريخ الميلاد",
       "id_number": "رقم الهوية",
       "id_placeholder": "أدخل رقم الهوية (8 أحرف على الأقل)",
-
       "country": "الدولة",
       "city": "المدينة",
       "select_country": "اختر الدولة",
       "select_city": "اختر المدينة",
-
       "type": "النوع",
       "account_status": "حالة الحساب",
       "training_center": "مركز التدريب",
-
       "specializations": "التخصصات"
     },
-
     "profile_photo": {
       "label": "الصورة الشخصية",
       "select": "اختيار صورة",
       "change": "تغيير الصورة",
       "hint": "JPG أو PNG فقط، بحد أقصى 5 ميجابايت"
     },
-
     "status": {
       "active": "نشط",
       "pending": "قيد الانتظار",
@@ -234,7 +204,6 @@
       "assessor": "مقيّم",
       "instructor": "مدرب"
     },
-
     "cv": {
       "current": "السيرة الذاتية الحالية",
       "view": "عرض السيرة الذاتية",
@@ -247,7 +216,6 @@
       "remove_confirm": "هل أنت متأكد من حذف السيرة الذاتية؟ لا يمكن التراجع عن هذا الإجراء.",
       "hint": "PDF فقط، بحد أقصى 10 ميجابايت"
     },
-
     "passport": {
       "current": "جواز السفر الحالي",
       "view": "عرض جواز السفر",
@@ -258,7 +226,6 @@
       "processing": "جاري معالجة جواز السفر...",
       "hint": "JPG أو PNG أو PDF، بحد أقصى 10 ميجابايت"
     },
-
     "certificates": {
       "add": "إضافة شهادة",
       "new_title": "شهادات جديدة للإضافة",
@@ -269,7 +236,6 @@
       "none": "لم تتم إضافة شهادات بعد",
       "selected": "تم اختيار:"
     },
-
     "password": {
       "current": "كلمة المرور الحالية",
       "new": "كلمة المرور الجديدة",
@@ -279,18 +245,15 @@
       "confirm_placeholder": "تأكيد كلمة المرور الجديدة",
       "submit": "تغيير كلمة المرور"
     },
-
     "buttons": {
       "save": "حفظ التغييرات",
       "saving": "جاري الحفظ...",
       "cancel": "إلغاء"
     },
-
     "messages": {
       "profile_updated": "تم تحديث الملف الشخصي بنجاح!",
       "password_changed": "تم تغيير كلمة المرور بنجاح!"
     },
-
     "validation": {
       "required": "هذا الحقل مطلوب",
       "invalid_email": "بريد إلكتروني غير صالح",
@@ -305,7 +268,6 @@
       "you_are_registered_under_this_training_center": "أنت مسجل تحت هذا المركز التدريبي",
       "click_to_view": "اضغط على الرابط أعلاه لعرض سيرتك الذاتية الحالية في علامة تبويب جديدة"
     },
-
     "common": {
       "na": "غير متاح"
     }

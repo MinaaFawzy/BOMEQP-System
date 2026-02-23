@@ -343,6 +343,7 @@
       "instructor": "प्रशिक्षक",
       "email": "ईमेल",
       "training_center": "प्रशिक्षण केंद्र",
+      "training_centers": "प्रशिक्षण केंद्र",
       "commission": "कमीशन %",
       "payment_status": "भुगतान स्थिति",
       "actions": "क्रियाएं",
@@ -364,6 +365,7 @@
 
       "instructor_info": "प्रशिक्षक जानकारी",
       "training_center_info": "प्रशिक्षण केंद्र",
+      "training_centers_info": "प्रशिक्षण केंद्र",
       "authorization_details": "प्राधिकरण विवरण",
       "authorized_courses": "अधिकृत पाठ्यक्रम",
 

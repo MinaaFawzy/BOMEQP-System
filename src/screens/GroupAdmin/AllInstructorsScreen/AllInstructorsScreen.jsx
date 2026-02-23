@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength, validateUKID } from '../../../utils/validation';
-import { Users, Mail, Phone, Building2, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User, Calendar } from 'lucide-react';
+import { Users, Mail, Phone, Building2, Award, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User, Calendar } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -27,6 +27,8 @@ const AllInstructorsScreen = () => {
   const [saving, setSaving] = useState(false);
   const [cvFile, setCvFile] = useState(null);
   const [cvPreview, setCvPreview] = useState(null);
+  const [trainingCenters, setTrainingCenters] = useState([]);
+  const [accreditations, setAccreditations] = useState([]);
   const [instructorFormData, setInstructorFormData] = useState({
     first_name: '',
     last_name: '',
@@ -37,6 +39,8 @@ const AllInstructorsScreen = () => {
     specializations: [],
     languages: [],
     status: 'active',
+    training_centers: [],
+    accreditations: [],
   });
   const [instructorErrors, setInstructorErrors] = useState({});
 
@@ -84,11 +88,31 @@ const AllInstructorsScreen = () => {
   useEffect(() => {
     setHeaderTitle('Instructors');
     setHeaderSubtitle('View and manage all instructors across all ACCs');
+    
+    // Load training centers and accreditations data
+    loadTrainingCentersAndAccreditations();
+    
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
   }, [setHeaderTitle, setHeaderSubtitle]);
+
+  const loadTrainingCentersAndAccreditations = async () => {
+    try {
+      // Fetch training centers
+      const centersResponse = await adminAPI.listTrainingCenters({ per_page: 1000 });
+      const centersList = centersResponse.data || centersResponse.training_centers || [];
+      setTrainingCenters(centersList);
+      
+      // Fetch accreditations (ACCs)
+      const accsResponse = await adminAPI.listACCs({ per_page: 1000 });
+      const accsList = accsResponse.data || accsResponse.accs || [];
+      setAccreditations(accsList);
+    } catch (error) {
+      console.error('Failed to load training centers and accreditations:', error);
+    }
+  };
 
   // Load data when dependencies change
   useEffect(() => {
@@ -230,6 +254,8 @@ const AllInstructorsScreen = () => {
         specializations: instData.specializations || [],
         languages: instData.specializations || instData.languages || [], // Use specializations as languages
         status: instData.status || 'active',
+        training_centers: instData.training_centers || [],
+        accreditations: instData.accs || instData.accreditations || [],
       });
       setCvFile(null);
       setCvPreview(instData.cv_url || null);
@@ -351,6 +377,20 @@ const AllInstructorsScreen = () => {
         if (dataToSend.phone) formData.append('phone', dataToSend.phone);
         if (dataToSend.id_number) formData.append('id_number', dataToSend.id_number);
         if (dataToSend.status) formData.append('status', dataToSend.status);
+        
+        // Append training centers
+        if (dataToSend.training_centers && Array.isArray(dataToSend.training_centers)) {
+          dataToSend.training_centers.forEach(center => {
+            formData.append('training_centers[]', center);
+          });
+        }
+        
+        // Append accreditations
+        if (dataToSend.accreditations && Array.isArray(dataToSend.accreditations)) {
+          dataToSend.accreditations.forEach(acc => {
+            formData.append('accreditations[]', acc);
+          });
+        }
 
         // Append certificates_json as JSON string (only if not empty)
         if (dataToSend.certificates_json && Array.isArray(dataToSend.certificates_json) && dataToSend.certificates_json.length > 0) {
@@ -389,6 +429,8 @@ const AllInstructorsScreen = () => {
           id_number: dataToSend.id_number || null,
           status: dataToSend.status,
           specializations: specializationsArray, // Send as array, not JSON string
+          training_centers: dataToSend.training_centers || [],
+          accreditations: dataToSend.accreditations || [],
         };
 
         // Only include certificates_json if it's not empty
@@ -524,17 +566,35 @@ const AllInstructorsScreen = () => {
       )
     },
     {
-      header: 'Training Center',
-      accessor: 'training_center',
+      header: 'Training Centers',
+      accessor: 'training_centers',
       sortable: true,
-      render: (value) => {
-        const trainingCenterName = value
-          ? (typeof value === 'string' ? value : value.name)
-          : 'N/A';
+      render: (value, row) => {
+        const centers = row.training_centers || [];
+        const first = centers[0];
+        const name = first?.name || 'N/A';
+        const extra = centers.length > 1 ? ` +${centers.length - 1}` : '';
         return (
           <div className="flex items-center text-sm text-gray-600">
-            <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-            {trainingCenterName}
+            <Building2 className="h-4 w-4 mr-2 text-gray-400 shrink-0" />
+            <span>{name}{extra}</span>
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Accreditations',
+      accessor: 'accs',
+      sortable: true,
+      render: (value, row) => {
+        const accs = row.accs || [];
+        const first = accs[0];
+        const name = first?.name || 'N/A';
+        const extra = accs.length > 1 ? ` +${accs.length - 1}` : '';
+        return (
+          <div className="flex items-center text-sm text-gray-600">
+            <Award className="h-4 w-4 mr-2 text-gray-400 shrink-0" />
+            <span>{name}{extra}</span>
           </div>
         );
       }
@@ -708,6 +768,43 @@ const AllInstructorsScreen = () => {
                 </div>
               )}
 
+              {/* Training Centers */}
+              {selectedInstructor && selectedInstructor.training_centers && selectedInstructor.training_centers.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Training Centers:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedInstructor.training_centers.map((center, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm flex items-center">
+                        <Building2 className="h-3 w-3 mr-1" />
+                        {typeof center === 'object' ? center.name : center}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Accreditations */}
+              {selectedInstructor && (selectedInstructor.accs || selectedInstructor.accreditations) &&
+               (selectedInstructor.accs || selectedInstructor.accreditations).length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                    <Award className="h-4 w-4 mr-2" />
+                    Accreditations:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedInstructor.accs || selectedInstructor.accreditations).map((acc, index) => (
+                      <span key={index} className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center">
+                        <Award className="h-3 w-3 mr-1" />
+                        {typeof acc === 'object' ? acc.name : acc}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* CV & Passport */}
               {selectedInstructor && (
                 <div className="mt-6 flex flex-col gap-4">
@@ -786,6 +883,8 @@ const AllInstructorsScreen = () => {
             specializations: [],
             languages: [],
             status: 'active',
+            training_centers: [],
+            accreditations: [],
           });
           setCvFile(null);
           setCvPreview(null);
@@ -933,6 +1032,76 @@ const AllInstructorsScreen = () => {
                 placeholder="Select a language..."
                 useAPI={false}
               />
+            </div>
+            
+            {/* Training Centers Selector */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Training Centers
+              </label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                {trainingCenters.length > 0 ? (
+                  trainingCenters.map(center => (
+                    <label key={center.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={instructorFormData.training_centers?.includes(center.id.toString()) || false}
+                        onChange={(e) => {
+                          const updatedCenters = e.target.checked
+                            ? [...(instructorFormData.training_centers || []), center.id.toString()]
+                            : instructorFormData.training_centers?.filter(id => id !== center.id.toString()) || [];
+                          setInstructorFormData({
+                            ...instructorFormData,
+                            training_centers: updatedCenters
+                          });
+                        }}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">{center.name}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No training centers available</p>
+                )}
+              </div>
+              {instructorErrors.training_centers && (
+                <p className="mt-1 text-sm text-red-600">{instructorErrors.training_centers}</p>
+              )}
+            </div>
+            
+            {/* Accreditations (ACCs) Selector */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Accreditations
+              </label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                {accreditations.length > 0 ? (
+                  accreditations.map(acc => (
+                    <label key={acc.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={instructorFormData.accreditations?.includes(acc.id.toString()) || false}
+                        onChange={(e) => {
+                          const updatedAccreditations = e.target.checked
+                            ? [...(instructorFormData.accreditations || []), acc.id.toString()]
+                            : instructorFormData.accreditations?.filter(id => id !== acc.id.toString()) || [];
+                          setInstructorFormData({
+                            ...instructorFormData,
+                            accreditations: updatedAccreditations
+                          });
+                        }}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">{acc.name}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No accreditations available</p>
+                )}
+              </div>
+              {instructorErrors.accreditations && (
+                <p className="mt-1 text-sm text-red-600">{instructorErrors.accreditations}</p>
+              )}
             </div>
           </div>
 

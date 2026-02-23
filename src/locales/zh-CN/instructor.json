@@ -7,6 +7,8 @@
       "total_classes": "课程总数",
       "scheduled": "已安排",
       "completed": "已完成",
+      "in_progress": "进行中",
+      "suspended": "已暂停",
       "click_to_view_all": "点击查看全部",
       "scheduled_classes": "已安排课程",
       "finished_classes": "已完成课程"
@@ -54,6 +56,7 @@
       "active": "活跃",
       "scheduled": "已安排",
       "in_progress": "进行中",
+      "suspended": "已暂停",
       "completed": "已完成",
       "cancelled": "已取消"
     },

@@ -7,6 +7,8 @@
       "total_classes": "कुल कक्षाएँ",
       "scheduled": "निर्धारित",
       "completed": "पूर्ण",
+      "in_progress": "प्रगति में",
+      "suspended": "निलंबित",
       "click_to_view_all": "सभी देखने के लिए क्लिक करें",
       "scheduled_classes": "निर्धारित कक्षाएँ",
       "finished_classes": "पूर्ण कक्षाएँ"
@@ -54,6 +56,7 @@
       "active": "सक्रिय",
       "scheduled": "निर्धारित",
       "in_progress": "प्रगति में",
+      "suspended": "निलंबित",
       "completed": "पूर्ण",
       "cancelled": "रद्द"
     },

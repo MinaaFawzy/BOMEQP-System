@@ -92,5 +92,16 @@
     "status_valid": "有效",
     "status_expired": "已过期",
     "status_revoked": "已撤销"
+  }, 
+  "support": {
+    "title": "支持",
+    "subtitle": "支持联系信息",
+    "email": "电子邮件",
+    "emailSubject": "支持请求",
+    "phone": "电话",
+    "phone_placeholder": "输入电话号码",
+    "message": "消息",
+    "messagePlaceholder": "在此输入您的消息...",
+    "send": "发送"
   }
 }

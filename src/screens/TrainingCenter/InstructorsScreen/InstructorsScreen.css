@@ -500,6 +500,96 @@ select:focus {
   color: var(--primary-800);
   border-radius: 9999px;
   font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Accreditations Column Styles */
+.instructors-column-accreditations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.instructors-accs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.instructors-acc-badge {
+  padding: 0.125rem 0.5rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #93c5fd;
+}
+
+.instructors-acc-more {
+  padding: 0.125rem 0.5rem;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Accreditations Detail Styles */
+.instructors-accs-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructors-acc-detail-item {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.instructors-acc-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.instructors-acc-detail-icon {
+  color: #6b7280;
+}
+
+.instructors-acc-detail-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.instructors-acc-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 1.5rem;
+}
+
+.instructors-acc-detail-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.instructors-acc-detail-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.instructors-acc-detail-value {
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 9999px;
+  font-size: 0.875rem;
 }
 
 .instructors-cv-box {

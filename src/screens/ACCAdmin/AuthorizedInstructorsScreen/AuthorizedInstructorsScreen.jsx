@@ -189,15 +189,21 @@ const AuthorizedInstructorsScreen = () => {
             )
         },
         {
-            header: t('authorized_instructors_screen.table.training_center'),
-            accessor: 'training_center',
+            header: t('authorized_instructors_screen.table.training_centers'),
+            accessor: 'training_centers',
             sortable: true,
-            render: (value) => (
-                <div className="flex items-center text-sm text-gray-600 gap-2">
-                    <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                    {value?.name || value?.legal_name || t('authorized_instructors_screen.common.na')}
-                </div>
-            )
+            render: (value, row) => {
+                const centers = row.training_centers || [];
+                const first = centers[0];
+                const name = first?.name || first?.legal_name || t('authorized_instructors_screen.common.na');
+                const extra = centers.length > 1 ? ` +${centers.length - 1}` : '';
+                return (
+                    <div className="flex items-center text-sm text-gray-600 gap-2">
+                        <Building2 className="h-4 w-4 mr-2 text-gray-400 shrink-0" />
+                        <span>{name}{extra}</span>
+                    </div>
+                );
+            }
         },
         {
             header: t('authorized_instructors_screen.table.commission'),
@@ -412,20 +418,26 @@ const AuthorizedInstructorsScreen = () => {
                             </div>
                         </div>
 
-                        {/* Training Center */}
-                        {selectedInstructor.training_center && (
+                        {/* Training Centers */}
+                        {selectedInstructor.training_centers && selectedInstructor.training_centers.length > 0 && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Building2 className="mr-2" size={20} />
-                                    {t('authorized_instructors_screen.details.training_center_info')}
+                                    {t('authorized_instructors_screen.details.training_centers_info')}
                                 </h3>
-                                <DetailForm
-                                    data={selectedInstructor.training_center}
-                                    fields={[
-                                        { key: 'name', label: t('authorized_instructors_screen.details.name'), icon: Building2 },
-                                        { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
-                                    ]}
-                                />
+                                <div className="space-y-3">
+                                    {selectedInstructor.training_centers.map((tc, index) => (
+                                        <div key={tc.id || index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                            <DetailForm
+                                                data={tc}
+                                                fields={[
+                                                    { key: 'name', label: t('authorized_instructors_screen.details.name'), icon: Building2 },
+                                                    { key: 'email', label: t('authorized_instructors_screen.details.email'), type: 'email', icon: Mail },
+                                                ]}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
 

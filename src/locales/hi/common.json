@@ -92,5 +92,16 @@
     "status_valid": "वैध",
     "status_expired": "समाप्त",
     "status_revoked": "रद्द"
+  },
+  "support": {
+    "title": "सहायता",
+    "subtitle": "सहायता संपर्क जानकारी",
+    "email": "ईमेल",
+    "emailSubject": "सहायता अनुरोध",
+    "phone": "फ़ोन",
+    "phone_placeholder": "फ़ोन नंबर दर्ज करें",
+    "message": "संदेश",
+    "messagePlaceholder": "अपना संदेश यहाँ टाइप करें...",
+    "send": "भेजें"
   }
 }

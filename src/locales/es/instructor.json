@@ -7,6 +7,8 @@
       "total_classes": "Total de clases",
       "scheduled": "Programadas",
       "completed": "Completadas",
+      "in_progress": "En progreso",
+      "suspended": "Suspendidas",
       "click_to_view_all": "Haz clic para ver todas",
       "scheduled_classes": "Clases programadas",
       "finished_classes": "Clases finalizadas"
@@ -54,6 +56,7 @@
       "active": "Activas",
       "scheduled": "Programada",
       "in_progress": "En progreso",
+      "suspended": "Suspendidas",
       "completed": "Completada",
       "cancelled": "Cancelada"
     },

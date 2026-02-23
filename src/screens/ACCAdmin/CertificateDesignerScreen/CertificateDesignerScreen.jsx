@@ -2,8 +2,13 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import fabric from '../../../utils/fabric-wrapper.js';
 import { accAPI } from '../../../services/api';
-import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import './CertificateDesignerScreen.css';
+
+// Import images from src/assets
+import trainingCenterLogo from '../../../assets/training_center_logo.png';
+import accLogo from '../../../assets/accretidation_logo.png';
+import qrCode from '../../../assets/QRcode.png';
 
 const SidebarSection = ({ title, children, defaultOpen = true }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -40,6 +45,16 @@ const CertificateDesignerScreen = () => {
     const [placeholders, setPlaceholders] = useState([]);
     const [selectedPlaceholder, setSelectedPlaceholder] = useState(null);
     const [error, setError] = useState(null);
+    const [orientation, setOrientation] = useState('landscape'); // 'landscape' | 'portrait'
+
+    const getPageDimensions = () => {
+        return orientation === 'portrait'
+            ? { width: 848, height: 1200 } // A4 portrait approx
+            : { width: 1200, height: 848 }; // A4 landscape approx
+    };
+
+    // Image-type variables: rendered as image placeholders on canvas and as <img> in HTML
+    const IMAGE_PLACEHOLDER_VARS = ['training_center_logo', 'acc_logo', 'qr_code'];
 
     // Dynamic Constants based on template type
     const availablePlaceholders = useMemo(() => {
@@ -54,6 +69,9 @@ const CertificateDesignerScreen = () => {
                 { variable: 'expiry_date', label: 'Expiry Date' },
                 { variable: 'cert_id', label: 'Certificate ID' },
                 { variable: 'verification_code', label: 'Verification Code' },
+                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'acc_logo', label: 'ACC Logo (Image)' },
+                { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
         }
 
@@ -73,6 +91,9 @@ const CertificateDesignerScreen = () => {
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
+                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'acc_logo', label: 'ACC Logo (Image)' },
+                { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
         }
 
@@ -96,6 +117,10 @@ const CertificateDesignerScreen = () => {
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
+                { variable: 'expiry_date', label: 'Expiry Date' },
+                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'acc_logo', label: 'ACC Logo (Image)' },
+                { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
         }
 
@@ -120,6 +145,9 @@ const CertificateDesignerScreen = () => {
                 expiry_date: 'January 15, 2027',
                 cert_id: 'CERT-2026-EDOBM2KN',
                 verification_code: 'ABC123XYZ789',
+                training_center_logo: trainingCenterLogo,
+                acc_logo: accLogo,
+                qr_code: qrCode,
             };
         }
 
@@ -139,6 +167,9 @@ const CertificateDesignerScreen = () => {
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
                 verification_code: 'TC-VER-ABC123XYZ',
+                training_center_logo: trainingCenterLogo,
+                acc_logo: accLogo,
+                qr_code: qrCode,
             };
         }
 
@@ -162,6 +193,10 @@ const CertificateDesignerScreen = () => {
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
                 verification_code: 'INS-VER-XYZ789ABC',
+                expiry_date: '2027-01-15',
+                training_center_logo: trainingCenterLogo,
+                acc_logo: accLogo,
+                qr_code: qrCode,
             };
         }
 
@@ -205,6 +240,9 @@ const CertificateDesignerScreen = () => {
             // Handle different response structures
             const templateData = data.template || data.data || data;
             setTemplate(templateData);
+            if (templateData.orientation === 'portrait' || templateData.orientation === 'landscape') {
+                setOrientation(templateData.orientation);
+            }
 
             if (templateData.name) {
                 // Title handled in local state/UI now
@@ -225,13 +263,23 @@ const CertificateDesignerScreen = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, template]);
 
+    // Re-initialize canvas when orientation changes
+    useEffect(() => {
+        if (!loading && template && canvasRef.current) {
+            if (canvas.current) {
+                canvas.current.dispose();
+                canvas.current = null;
+            }
+            initializeCanvas();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orientation]);
+
     const initializeCanvas = () => {
         if (!wrapperRef.current) return;
 
-        // Calculate dimensions to fit in view
-        // A4 Landscape Ratio: 1200 x 848 (approx)
-        const targetWidth = 1200;
-        const targetHeight = 848;
+        // Calculate dimensions to fit in view based on orientation
+        const { width: targetWidth, height: targetHeight } = getPageDimensions();
 
         // Get available space in wrapper
         const padding = 64; // 2rem padding on each side
@@ -241,7 +289,9 @@ const CertificateDesignerScreen = () => {
         // Calculate scale
         const scaleX = availableWidth / targetWidth;
         const scaleY = availableHeight / targetHeight;
-        const scale = Math.min(scaleX, scaleY, 0.9); // Limit max scale to 90% of available space
+        // Use different max scale for portrait vs landscape to provide better zoom
+        const maxScale = orientation === 'portrait' ? 1.0 : 0.9;
+        const scale = Math.min(scaleX, scaleY, maxScale); // Limit max scale based on orientation
 
         // Create Canvas
         canvas.current = new fabric.Canvas(canvasRef.current, {
@@ -302,9 +352,8 @@ const CertificateDesignerScreen = () => {
                     return;
                 }
 
-                // Scale image to fit canvas (A4 size)
-                const canvasWidth = 1200;
-                const canvasHeight = 848;
+                // Scale image to fit canvas (page size based on orientation)
+                const { width: canvasWidth, height: canvasHeight } = getPageDimensions();
 
                 // Calculate scale to cover the canvas or fit? Usually fit for certificate background
                 // If the image is exactly A4 ratio, it should match perfectly.
@@ -357,9 +406,11 @@ const CertificateDesignerScreen = () => {
     // Refresh all variable displays to show example data
     const refreshVariableDisplays = () => {
         if (!canvas.current) return;
-        const objects = canvas.current.getObjects().filter(obj => obj.type === 'text');
+        const objects = canvas.current.getObjects();
 
-        objects.forEach(obj => {
+        // Handle text elements
+        const textObjects = objects.filter(obj => obj.type === 'text');
+        textObjects.forEach(obj => {
             if (obj.variable && !obj.isStatic) {
                 // Update display text to show example data
                 const exampleText = exampleData[obj.variable] || `{{${obj.variable}}}`;
@@ -369,40 +420,141 @@ const CertificateDesignerScreen = () => {
             }
         });
 
+        // Handle image elements (placeholders)
+        const imageObjects = objects.filter(obj => obj.elementType === 'image' && obj.variable);
+
+        // Group image objects by variable
+        const imageObjectsByVariable = {};
+        imageObjects.forEach(obj => {
+            if (obj.variable) {
+                if (!imageObjectsByVariable[obj.variable]) {
+                    imageObjectsByVariable[obj.variable] = [];
+                }
+                imageObjectsByVariable[obj.variable].push(obj);
+            }
+        });
+
+        // Process each variable
+        Object.keys(imageObjectsByVariable).forEach(variable => {
+            const objectsForVariable = imageObjectsByVariable[variable];
+            const exampleImagePath = exampleData[variable];
+
+            if (!exampleImagePath) return;
+
+            // Find the first placeholder rectangle to get position/dimensions
+            const placeholderRect = objectsForVariable.find(obj => obj.type === 'rect');
+
+            if (placeholderRect) {
+                // Remove ALL objects for this variable (both rects and images)
+                objectsForVariable.forEach(obj => {
+                    canvas.current.remove(obj);
+                });
+
+                // Create and add the actual image
+                fabric.Image.fromURL(exampleImagePath, (img) => {
+                    if (!img) {
+                        console.error('Failed to load image:', exampleImagePath);
+                        return;
+                    }
+
+                    // Get the existing placeholder's dimensions and position
+                    const existingWidth = placeholderRect.getScaledWidth();
+                    const existingHeight = placeholderRect.getScaledHeight();
+                    const existingLeft = placeholderRect.left;
+                    const existingTop = placeholderRect.top;
+
+                    // Set the new image with the same dimensions and position
+                    img.set({
+                        scaleX: existingWidth / img.width,
+                        scaleY: existingHeight / img.height,
+                        originX: 'left',
+                        originY: 'top',
+                        left: existingLeft,
+                        top: existingTop,
+                        selectable: true,
+                        evented: true,
+                    });
+                    img.variable = variable;
+                    img.elementType = 'image';
+                    img.setControlsVisibility({
+                        mt: true, mb: true, ml: true, mr: true,
+                        bl: true, br: true, tl: true, tr: true
+                    });
+
+                    // Add the image
+                    canvas.current.add(img);
+                    canvas.current.setActiveObject(img);
+                    canvas.current.renderAll();
+                    updatePlaceholdersList();
+                });
+            }
+        });
+
         canvas.current.renderAll();
     };
 
     const loadTemplateConfig = (config) => {
         if (!canvas.current) return;
 
-        config.forEach(item => {
-            // Extract variable name if it's in {{variable}} format
-            const variableName = extractVariableName(item.variable || item.text);
-            const isStatic = !variableName;
+        const { width: pageWidth, height: pageHeight } = getPageDimensions();
 
-            // Get display text (example data for variables)
+        // Track processed variables to prevent duplicates
+        const processedVariables = new Set();
+
+        config.forEach(item => {
+            const variableName = extractVariableName(item.variable || item.text);
+            const isImageItem = item.element_type === 'image' || (variableName && IMAGE_PLACEHOLDER_VARS.includes(variableName));
+
+            if (isImageItem && variableName) {
+                // Skip if this variable has already been processed
+                if (processedVariables.has(variableName)) {
+                    return;
+                }
+                processedVariables.add(variableName);
+
+                // Image placeholder: position and size (width/height can be normalized 0-1 or pixels)
+                const w = item.width != null ? (item.width <= 2 ? item.width * pageWidth : item.width) : 120;
+                const h = item.height != null ? (item.height <= 2 ? item.height * pageHeight : item.height) : 80;
+                const leftPos = (item.x || 0) * pageWidth;
+                const topPos = (item.y || 0) * pageHeight;
+                const rect = new fabric.Rect({
+                    left: leftPos,
+                    top: topPos,
+                    width: w,
+                    height: h,
+                    fill: '#f0f4f8',
+                    stroke: '#94a3b8',
+                    strokeWidth: 2,
+                    strokeDashArray: [6, 4],
+                    originX: 'left',
+                    originY: 'top',
+                });
+                rect.variable = variableName;
+                rect.elementType = 'image';
+                rect.setControlsVisibility({
+                    mt: true, mb: true, ml: true, mr: true,
+                    bl: true, br: true, tl: true, tr: true
+                });
+                canvas.current.add(rect);
+                return;
+            }
+
+            // Text element
+            const isStatic = !variableName;
             const displayText = isStatic
                 ? (item.variable || item.text || '')
                 : (exampleData[variableName] || `{{${variableName}}}`);
 
-            // Get text alignment from config, default to 'left'
             const textAlign = item.text_align || 'left';
-            // Set originX based on alignment for proper positioning
             const originX = textAlign === 'center' ? 'center' : textAlign === 'right' ? 'right' : 'left';
 
-            // Calculate left position based on alignment
-            let leftPos = (item.x || 0) * 1200;
-            if (textAlign === 'center') {
-                // For center alignment, the x position represents the center point
-                leftPos = (item.x || 0) * 1200;
-            } else if (textAlign === 'right') {
-                // For right alignment, the x position represents the right edge
-                leftPos = (item.x || 0) * 1200;
-            }
+            let leftPos = (item.x || 0) * pageWidth;
+            if (textAlign === 'center') leftPos = (item.x || 0) * pageWidth;
+            else if (textAlign === 'right') leftPos = (item.x || 0) * pageWidth;
 
             const text = new fabric.Text(displayText, {
                 left: leftPos,
-                top: (item.y || 0) * 848,
+                top: (item.y || 0) * pageHeight,
                 fontSize: item.font_size || 24,
                 fill: item.color || '#000000',
                 fontFamily: item.font_family || 'Arial',
@@ -414,25 +566,17 @@ const CertificateDesignerScreen = () => {
                 lockScalingY: true,
             });
 
-            // Disable scaling controls
             text.setControlsVisibility({
                 mt: false, mb: false, ml: false, mr: false,
                 bl: false, br: false, tl: false, tr: false
             });
 
-            // Store variable name and static flag
             if (variableName) {
                 text.variable = variableName;
                 text.isStatic = false;
             } else {
                 text.isStatic = true;
             }
-
-            // Disable scaling controls
-            text.setControlsVisibility({
-                mt: false, mb: false, ml: false, mr: false,
-                bl: false, br: false, tl: false, tr: false
-            });
 
             canvas.current.add(text);
         });
@@ -445,14 +589,84 @@ const CertificateDesignerScreen = () => {
     const addPlaceholder = (variableName, isCustomText = false, customTextContent = 'Custom Text') => {
         if (!canvas.current) return;
 
+        const { width: pageWidth, height: pageHeight } = getPageDimensions();
+
+        // Image placeholders (logo, QR): load and display actual image, not placeholder rect
+        if (variableName && IMAGE_PLACEHOLDER_VARS.includes(variableName)) {
+            // Get the image path from exampleData (which has the actual asset paths)
+            const imagePath = exampleData[variableName];
+            
+            if (imagePath) {
+                // Load and add the actual image from assets
+                fabric.Image.fromURL(imagePath, (img) => {
+                    if (!img) {
+                        console.error('Failed to load image:', imagePath);
+                        return;
+                    }
+
+                    const defaultWidth = 120;
+                    const defaultHeight = 80;
+                    
+                    img.set({
+                        scaleX: defaultWidth / img.width,
+                        scaleY: defaultHeight / img.height,
+                        originX: 'left',
+                        originY: 'top',
+                        left: pageWidth / 2 - defaultWidth / 2,
+                        top: pageHeight / 2 - defaultHeight / 2,
+                        selectable: true,
+                        evented: true,
+                    });
+                    img.variable = variableName;
+                    img.elementType = 'image';
+                    img.setControlsVisibility({
+                        mt: true, mb: true, ml: true, mr: true,
+                        bl: true, br: true, tl: true, tr: true
+                    });
+                    canvas.current.add(img);
+                    canvas.current.setActiveObject(img);
+                    canvas.current.renderAll();
+                    updatePlaceholdersList();
+                });
+                return;
+            }
+            
+            // If no image path, add placeholder rectangle
+            const defaultWidth = 120;
+            const defaultHeight = 80;
+            const rect = new fabric.Rect({
+                left: pageWidth / 2 - defaultWidth / 2,
+                top: pageHeight / 2 - defaultHeight / 2,
+                width: defaultWidth,
+                height: defaultHeight,
+                fill: '#f0f4f8',
+                stroke: '#94a3b8',
+                strokeWidth: 2,
+                strokeDashArray: [6, 4],
+                originX: 'left',
+                originY: 'top',
+            });
+            rect.variable = variableName;
+            rect.elementType = 'image';
+            rect.setControlsVisibility({
+                mt: true, mb: true, ml: true, mr: true,
+                bl: true, br: true, tl: true, tr: true
+            });
+            canvas.current.add(rect);
+            canvas.current.setActiveObject(rect);
+            canvas.current.renderAll();
+            updatePlaceholdersList();
+            return;
+        }
+
         // Use example data for display if it's a variable, otherwise use custom text
         const displayContent = isCustomText
             ? customTextContent
             : (exampleData[variableName] || `{{${variableName}}}`);
 
         const text = new fabric.Text(displayContent, {
-            left: 1200 / 2,
-            top: 848 / 2,
+            left: pageWidth / 2,
+            top: pageHeight / 2,
             fontSize: 24,
             fill: '#000000',
             fontFamily: 'Arial',
@@ -486,16 +700,31 @@ const CertificateDesignerScreen = () => {
 
     const updatePlaceholdersList = () => {
         if (!canvas.current) return;
-        const objects = canvas.current.getObjects().filter(obj => obj.type === 'text');
+        const { width: pageWidth, height: pageHeight } = getPageDimensions();
+        const objects = canvas.current.getObjects();
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
         const list = objects.map(obj => {
-            // Calculate Top-Left coordinates regardless of origin/alignment
-            const tl = obj.getPointByOrigin('left', 'top');
+            if (obj.elementType === 'image' && obj.variable) {
+                const tl = obj.getPointByOrigin('left', 'top');
+                const w = obj.getScaledWidth();
+                const h = obj.getScaledHeight();
+                return {
+                    element_type: 'image',
+                    variable: `{{${obj.variable}}}`,
+                    text: `{{${obj.variable}}}`,
+                    x: clamp(tl.x / pageWidth, 0, 1),
+                    y: clamp(tl.y / pageHeight, 0, 1),
+                    width: clamp(w / pageWidth, 0.01, 1),
+                    height: clamp(h / pageHeight, 0.01, 1),
+                };
+            }
 
-            // Ensure color is Hex for backend
+            if (obj.type !== 'text') return null;
+
+            const tl = obj.getPointByOrigin('left', 'top');
             let fill = obj.fill || '#000000';
             try {
-                // Check if it is not a hex string (simple check)
                 if (typeof fill === 'string' && !fill.startsWith('#')) {
                     const c = new fabric.Color(fill);
                     fill = '#' + c.toHex();
@@ -504,38 +733,31 @@ const CertificateDesignerScreen = () => {
                 console.warn('Color conversion failed', e);
             }
 
-            // For saving, convert variable back to {{variable}} format
             let textForSave = obj.text;
             if (obj.variable && !obj.isStatic) {
                 textForSave = `{{${obj.variable}}}`;
             }
 
-            // Get the actual position based on alignment
-            let xPos = tl.x / 1200;
-            // If centered, we need to get the center point
+            let xPos = tl.x / pageWidth;
             if (obj.textAlign === 'center' && obj.originX === 'center') {
-                xPos = obj.left / 1200;
+                xPos = obj.left / pageWidth;
             } else if (obj.textAlign === 'right' && obj.originX === 'right') {
-                xPos = obj.left / 1200;
+                xPos = obj.left / pageWidth;
             }
-
-            // Clamp values to ensure they are within 0-1 range and definitely not negative
-            // Backend validation requires x >= 0
-            const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
             return {
                 variable: obj.variable || null,
-                text: textForSave, // Save in {{variable}} format for variables
+                text: textForSave,
                 isStatic: !!obj.isStatic,
                 x: clamp(xPos, 0, 1),
-                y: clamp(tl.y / 848, 0, 1),
+                y: clamp(tl.y / pageHeight, 0, 1),
                 fontFamily: obj.fontFamily || 'Arial',
                 fontSize: obj.fontSize || 24,
                 color: fill,
                 fontWeight: obj.fontWeight || 'normal',
                 text_align: obj.textAlign || 'left',
             };
-        });
+        }).filter(Boolean);
 
         setPlaceholders(list);
     };
@@ -592,7 +814,11 @@ const CertificateDesignerScreen = () => {
         } else if (prop === 'fontWeight') {
             activeObj.set('fontWeight', value);
         } else if (prop === 'fontSize') {
-            // Validations for fontSize
+            const val = Number(value);
+            if (!isNaN(val) && val > 0) {
+                activeObj.set(prop, val);
+            }
+        } else if (activeObj.elementType === 'image' && (prop === 'width' || prop === 'height')) {
             const val = Number(value);
             if (!isNaN(val) && val > 0) {
                 activeObj.set(prop, val);
@@ -644,8 +870,7 @@ const CertificateDesignerScreen = () => {
     const generateTemplateHTML = () => {
         if (!canvas.current) return '';
 
-        const canvasWidth = 1200;
-        const canvasHeight = 848;
+        const { width: canvasWidth, height: canvasHeight } = getPageDimensions();
 
         // Get background image URL - try multiple sources
         let bgImageUrl = template?.background_image_url || '';
@@ -667,8 +892,9 @@ const CertificateDesignerScreen = () => {
             }
         }
 
-        // Get all text objects
-        const textObjects = canvas.current.getObjects().filter(obj => obj.type === 'text');
+        const allObjects = canvas.current.getObjects();
+        const textObjects = allObjects.filter(obj => obj.type === 'text');
+        const imageObjects = allObjects.filter(obj => obj.elementType === 'image' && obj.variable);
 
         // Generate HTML
         let html = `<!DOCTYPE html>
@@ -704,10 +930,25 @@ const CertificateDesignerScreen = () => {
             position: absolute;
             white-space: nowrap;
         }
+        .image-element {
+            position: absolute;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
     <div class="certificate-container">`;
+
+        // Add image elements (logo, QR placeholders) — backend replaces {{variable}} with image URL
+        imageObjects.forEach(obj => {
+            const left = obj.left;
+            const top = obj.top;
+            const w = obj.getScaledWidth();
+            const h = obj.getScaledHeight();
+            const variable = `{{${obj.variable}}}`;
+            html += `
+        <img class="image-element" src="${variable}" alt="" style="left:${Math.round(left)}px;top:${Math.round(top)}px;width:${Math.round(w)}px;height:${Math.round(h)}px;" data-variable="${variable}" />`;
+        });
 
         // Add text elements
         textObjects.forEach(obj => {
@@ -789,18 +1030,20 @@ const CertificateDesignerScreen = () => {
     const handleSave = async () => {
         setSavingConfig(true);
         try {
-            const config = placeholders.map(p => ({
-                // Send the exact text content as 'variable'
-                // This covers both "{{student_name}}" and "Custom Text"
-                variable: p.text,
-                x: p.x,
-                y: p.y,
-                font_family: p.fontFamily,
-                font_size: p.fontSize,
-                color: p.color,
-                font_weight: p.fontWeight || 'normal',
-                text_align: p.text_align || 'left',
-            }));
+            const config = placeholders.map(p => {
+                const base = { variable: p.text, x: p.x, y: p.y };
+                if (p.element_type === 'image') {
+                    return { ...base, element_type: 'image', width: p.width, height: p.height };
+                }
+                return {
+                    ...base,
+                    font_family: p.fontFamily,
+                    font_size: p.fontSize,
+                    color: p.color,
+                    font_weight: p.fontWeight || 'normal',
+                    text_align: p.text_align || 'left',
+                };
+            });
 
             // Generate HTML template
             const templateHtml = generateTemplateHTML();
@@ -815,7 +1058,8 @@ const CertificateDesignerScreen = () => {
             // Update template configuration with fonts
             await accAPI.updateTemplate(template.id, {
                 config_json: config,
-                template_html: templateHtml
+                template_html: templateHtml,
+                orientation,
             });
 
             alert('Configuration saved successfully!');
@@ -825,6 +1069,12 @@ const CertificateDesignerScreen = () => {
             alert('Failed to save configuration');
         } finally {
             setSavingConfig(false);
+        }
+    };
+
+    const handleOrientationChange = (value) => {
+        if (value === 'landscape' || value === 'portrait') {
+            setOrientation(value);
         }
     };
 
@@ -839,7 +1089,13 @@ const CertificateDesignerScreen = () => {
         } catch { /* ignore */ }
     }
 
-    const activeProperties = activeObj ? {
+    const isImagePlaceholder = activeObj?.elementType === 'image';
+    const activeProperties = activeObj ? (isImagePlaceholder ? {
+        elementType: 'image',
+        variable: activeObj.variable,
+        width: Math.round(activeObj.getScaledWidth?.() ?? activeObj.width ?? 0),
+        height: Math.round(activeObj.getScaledHeight?.() ?? activeObj.height ?? 0),
+    } : {
         fontFamily: activeObj.fontFamily,
         fontSize: activeObj.fontSize,
         fill: activeFill,
@@ -847,7 +1103,7 @@ const CertificateDesignerScreen = () => {
         text: activeObj.text,
         isStatic: activeObj.isStatic,
         textAlign: activeObj.textAlign || 'left'
-    } : null;
+    }) : null;
 
     if (loading) return (
         <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -917,18 +1173,21 @@ const CertificateDesignerScreen = () => {
                     {/* Dynamic Elements Section */}
                     <SidebarSection title="Dynamic Elements" defaultOpen={true}>
                         <div className="grid grid-cols-1 gap-2">
-                            {availablePlaceholders.map(field => (
-                                <button
-                                    key={field.variable}
-                                    onClick={() => addPlaceholder(field.variable)}
-                                    className="tool-btn"
-                                >
-                                    <div className="p-1 bg-blue-50 text-blue-600 rounded">
-                                        <Type size={14} />
-                                    </div>
-                                    {field.label}
-                                </button>
-                            ))}
+                            {availablePlaceholders.map(field => {
+                                const isImage = IMAGE_PLACEHOLDER_VARS.includes(field.variable);
+                                return (
+                                    <button
+                                        key={field.variable}
+                                        onClick={() => addPlaceholder(field.variable)}
+                                        className="tool-btn"
+                                    >
+                                        <div className={`p-1 rounded ${isImage ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
+                                            {isImage ? <ImageIcon size={14} /> : <Type size={14} />}
+                                        </div>
+                                        {field.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </SidebarSection>
 
@@ -971,6 +1230,17 @@ const CertificateDesignerScreen = () => {
                         </div>
 
                         <div className="workspace-actions">
+                            <div className="mr-4 flex items-center gap-2">
+                                <span className="text-xs text-gray-600">Orientation</span>
+                                <select
+                                    className="property-select w-36"
+                                    value={orientation}
+                                    onChange={(e) => handleOrientationChange(e.target.value)}
+                                >
+                                    <option value="landscape">Landscape</option>
+                                    <option value="portrait">Portrait</option>
+                                </select>
+                            </div>
                             <button
                                 className="action-btn btn-primary"
                                 onClick={handleSave}
@@ -1009,96 +1279,122 @@ const CertificateDesignerScreen = () => {
 
                     <div className="properties-content">
                         {activeProperties ? (
-                            <>
-                                <div className="property-group">
-                                    <label className="property-label">
-                                        {activeProperties.isStatic ? 'Text Content' : 'Dynamic Field (Example)'}
-                                    </label>
-                                    {!activeProperties.isStatic && (
-                                        <p className="text-xs text-gray-500 mb-1">
-                                            Showing example data: {activeProperties.text}
+                            activeProperties.elementType === 'image' ? (
+                                <>
+                                    <div className="property-group">
+                                        <label className="property-label">Type</label>
+                                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                                            <ImageIcon size={18} className="text-blue-600" />
+                                            Image placeholder
                                         </p>
-                                    )}
-                                    <input
-                                        type="text"
-                                        className="property-input"
-                                        value={activeProperties.text}
-                                        onChange={(e) => handlePropertyChange('text', e.target.value)}
-                                        readOnly={!activeProperties.isStatic}
-                                        title={!activeProperties.isStatic ? 'This is example data for preview. The actual value will be replaced when generating certificates.' : ''}
-                                    />
-                                    {!activeProperties.isStatic && (
-                                        <p className="text-xs text-blue-600 mt-1">
-                                            Variable: {activeObj?.variable ? `{{${activeObj.variable}}}` : 'N/A'}
-                                        </p>
-                                    )}
-                                </div>
+                                    </div>
+                                    <div className="property-group">
+                                        <label className="property-label">Variable</label>
+                                        <p className="text-sm font-mono text-blue-600">{`{{${activeProperties.variable}}}`}</p>
+                                        <p className="text-xs text-gray-500 mt-1">Backend will replace with image URL.</p>
+                                    </div>
+                                    <div className="property-group">
+                                        <label className="property-label">Width (px)</label>
+                                        <input
+                                            type="number"
+                                            className="property-input"
+                                            value={activeProperties.width}
+                                            onChange={(e) => handlePropertyChange('width', Number(e.target.value))}
+                                            min="20"
+                                            max="800"
+                                        />
+                                    </div>
+                                    <div className="property-group">
+                                        <label className="property-label">Height (px)</label>
+                                        <input
+                                            type="number"
+                                            className="property-input"
+                                            value={activeProperties.height}
+                                            onChange={(e) => handlePropertyChange('height', Number(e.target.value))}
+                                            min="20"
+                                            max="800"
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="property-group">
+                                        <label className="property-label">
+                                            {activeProperties.isStatic ? 'Text Content' : 'Dynamic Field (Example)'}
+                                        </label>
+                                        {!activeProperties.isStatic && (
+                                            <p className="text-xs text-gray-500 mb-1">
+                                                Showing example data: {activeProperties.text}
+                                            </p>
+                                        )}
+                                        <input
+                                            type="text"
+                                            className="property-input"
+                                            value={activeProperties.text}
+                                            onChange={(e) => handlePropertyChange('text', e.target.value)}
+                                            readOnly={!activeProperties.isStatic}
+                                            title={!activeProperties.isStatic ? 'This is example data for preview. The actual value will be replaced when generating certificates.' : ''}
+                                        />
+                                        {!activeProperties.isStatic && (
+                                            <p className="text-xs text-blue-600 mt-1">
+                                                Variable: {activeObj?.variable ? `{{${activeObj.variable}}}` : 'N/A'}
+                                            </p>
+                                        )}
+                                    </div>
 
-                                <div className="property-group">
-                                    <label className="property-label">Text Alignment</label>
-                                    <select
-                                        className="property-select"
-                                        value={activeProperties.textAlign}
-                                        onChange={(e) => handlePropertyChange('textAlign', e.target.value)}
-                                    >
-                                        <option value="left">Left</option>
-                                        <option value="center">Center</option>
-                                        <option value="right">Right</option>
-                                    </select>
-                                </div>
+                                    <div className="property-group">
+                                        <label className="property-label">Text Alignment</label>
+                                        <select
+                                            className="property-select"
+                                            value={activeProperties.textAlign}
+                                            onChange={(e) => handlePropertyChange('textAlign', e.target.value)}
+                                        >
+                                            <option value="left">Left</option>
+                                            <option value="center">Center</option>
+                                            <option value="right">Right</option>
+                                        </select>
+                                    </div>
 
-                                {/* <div className="property-group">
-                                    <label className="property-label">Font Family</label>
-                                    <select
-                                        className="property-select"
-                                        value={activeProperties.fontFamily}
-                                        onChange={(e) => handlePropertyChange('fontFamily', e.target.value)}
-                                    >
-                                        {fontFamilies.map(font => (
-                                            <option key={font} value={font}>{font}</option>
-                                        ))}
-                                    </select>
-                                </div> */}
-
-                                <div className="property-group">
-                                    <div className="flex justify-between gap-4">
-                                        <div className="flex-1">
-                                            <label className="property-label">Font Size</label>
-                                            <input
-                                                type="number"
-                                                className="property-input"
-                                                value={activeProperties.fontSize}
-                                                onChange={(e) => handlePropertyChange('fontSize', parseInt(e.target.value))}
-                                                min="8"
-                                                max="200"
-                                            />
-                                        </div>
-                                        <div className="w-1/3">
-                                            <label className="property-label">Color</label>
-                                            <input
-                                                type="color"
-                                                className="h-[38px] w-full p-1 border rounded cursor-pointer"
-                                                value={activeProperties.fill}
-                                                onChange={(e) => handlePropertyChange('fill', e.target.value)}
-                                            />
+                                    <div className="property-group">
+                                        <div className="flex justify-between gap-4">
+                                            <div className="flex-1">
+                                                <label className="property-label">Font Size</label>
+                                                <input
+                                                    type="number"
+                                                    className="property-input"
+                                                    value={activeProperties.fontSize}
+                                                    onChange={(e) => handlePropertyChange('fontSize', parseInt(e.target.value))}
+                                                    min="8"
+                                                    max="200"
+                                                />
+                                            </div>
+                                            <div className="w-1/3">
+                                                <label className="property-label">Color</label>
+                                                <input
+                                                    type="color"
+                                                    className="h-[38px] w-full p-1 border rounded cursor-pointer"
+                                                    value={activeProperties.fill}
+                                                    onChange={(e) => handlePropertyChange('fill', e.target.value)}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="property-group">
-                                    <label className="property-label">Font Weight</label>
-                                    <button
-                                        onClick={() => handlePropertyChange('fontWeight', activeProperties.fontWeight === 'bold' ? 'normal' : 'bold')}
-                                        className={`w-full p-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${activeProperties.fontWeight === 'bold'
-                                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                                            }`}
-                                    >
-                                        <Bold size={18} />
-                                        <span className="font-medium">{activeProperties.fontWeight === 'bold' ? 'Bold' : 'Normal'}</span>
-                                    </button>
-                                </div>
-                            </>
+                                    <div className="property-group">
+                                        <label className="property-label">Font Weight</label>
+                                        <button
+                                            onClick={() => handlePropertyChange('fontWeight', activeProperties.fontWeight === 'bold' ? 'normal' : 'bold')}
+                                            className={`w-full p-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${activeProperties.fontWeight === 'bold'
+                                                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                                                }`}
+                                        >
+                                            <Bold size={18} />
+                                            <span className="font-medium">{activeProperties.fontWeight === 'bold' ? 'Bold' : 'Normal'}</span>
+                                        </button>
+                                    </div>
+                                </>
+                            )
                         ) : (
                             <div className="empty-state">
                                 <Move size={48} className="empty-icon" />

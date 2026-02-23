@@ -243,9 +243,11 @@
     "phone": "Phone No",
     "status": "Status",
     "type": "Type",
+    "accreditations": "Accreditations",
     "actions": "Actions",
 
     "assessor": "Assessor",
+    "id": "ID",
     "na": "N/A",
 
     "add_instructor_title": "Add Instructor",

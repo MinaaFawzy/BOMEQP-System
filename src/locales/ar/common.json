@@ -94,5 +94,16 @@
     "status_valid": "صالح",
     "status_expired": "منتهي",
     "status_revoked": "ملغى"
+  },
+  "support": {
+    "title": "الدعم",
+    "subtitle": "معلومات الاتصال بالدعم",
+    "email": "البريد الإلكتروني",
+    "emailSubject": "طلب دعم",
+    "phone": "الهاتف",
+    "phone_placeholder": "أدخل رقم الهاتف",
+    "message": "الرسالة",
+    "messagePlaceholder": "اكتب رسالتك هنا...",
+    "send": "إرسال"
   }
 }
