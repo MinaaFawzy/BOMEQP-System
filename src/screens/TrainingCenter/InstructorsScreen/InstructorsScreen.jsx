@@ -625,16 +625,10 @@ const TrainingCenterInstructorsScreen = () => {
     setSelectedInstructor(null);
   };
 
-  const handleViewDetails = async (instructor) => {
-    try {
-      const data = await trainingCenterAPI.getInstructorDetails(instructor.id);
-      setSelectedInstructor(data.instructor);
-      setDetailModalOpen(true);
-    } catch (error) {
-      console.error('Failed to load instructor details:', error);
-      setSelectedInstructor(instructor);
-      setDetailModalOpen(true);
-    }
+  const handleViewDetails = (instructor) => {
+    // Use the instructor object directly from the table row (which includes accs data)
+    setSelectedInstructor(instructor);
+    setDetailModalOpen(true);
   };
 
   const handleRequestAuthorization = (instructor) => {
@@ -1556,31 +1550,6 @@ const TrainingCenterInstructorsScreen = () => {
                 { key: 'status', label: t('instructors_screen.status'), type: 'status' },
               ]}
             />
-            {selectedInstructor.accs && Array.isArray(selectedInstructor.accs) && selectedInstructor.accs.length > 0 && (
-              <div>
-                <h3 className="instructors-specializations-title">{t('instructors_screen.accreditations')}</h3>
-                <div className="instructors-accs-detail-list">
-                  {selectedInstructor.accs.map((acc, index) => (
-                    <div key={index} className="instructors-acc-detail-item">
-                      <div className="instructors-acc-detail-header">
-                        <Building2 size={16} className="instructors-acc-detail-icon" />
-                        <span className="instructors-acc-detail-name">{acc.name || `ACC ${acc.id}`}</span>
-                      </div>
-                      <div className="instructors-acc-detail-info">
-                        <div className="instructors-acc-detail-row">
-                          <span className="instructors-acc-detail-label">{t('instructors_screen.email')}:</span>
-                          <span className="instructors-acc-detail-value">{acc.email || t('instructors_screen.na')}</span>
-                        </div>
-                        <div className="instructors-acc-detail-row">
-                          <span className="instructors-acc-detail-label">{t('instructors_screen.id')}:</span>
-                          <span className="instructors-acc-detail-value">#{acc.id}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             {selectedInstructor.specializations && selectedInstructor.specializations.length > 0 && (
               <div>
                 <h3 className="instructors-specializations-title">{t('instructors_screen.specializations_languages')}</h3>
@@ -1614,6 +1583,18 @@ const TrainingCenterInstructorsScreen = () => {
                       {selectedInstructor.languages}
                     </span>
                   )}
+                </div>
+              </div>
+            )}
+            {selectedInstructor.accs && Array.isArray(selectedInstructor.accs) && selectedInstructor.accs.length > 0 && (
+              <div>
+                <h3 className="instructors-specializations-title">{t('instructors_screen.accreditations')}</h3>
+                <div className="instructors-specializations-list">
+                  {selectedInstructor.accs.map((acc, index) => (
+                    <span key={index} className="instructors-specialization-badge">
+                      {typeof acc === 'object' ? acc.name : acc}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
@@ -1667,45 +1648,36 @@ const TrainingCenterInstructorsScreen = () => {
                 </div>
               </div>
             )}
-            {selectedInstructor.training_center && (
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">
-                  <Building2 size={16} className="instructors-detail-label-icon" />
-                  {t('title')}
-                </p>
-                <p className="instructors-detail-value">
-                  {typeof selectedInstructor.training_center === 'object'
-                    ? selectedInstructor.training_center.name || selectedInstructor.training_center.email || t('instructors_screen.na')
-                    : selectedInstructor.training_center}
-                </p>
-              </div>
-            )}
-            {selectedInstructor.created_at && (
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">{t('created_at')}</p>
-                <p className="instructors-detail-value">
-                  {new Date(selectedInstructor.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-            )}
-            {selectedInstructor.updated_at && (
-              <div className="instructors-detail-item">
-                <p className="instructors-detail-label">{t('updated_at')}</p>
-                <p className="instructors-detail-value">
-                  {new Date(selectedInstructor.updated_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
+            {(selectedInstructor.created_at || selectedInstructor.updated_at) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {selectedInstructor.created_at && (
+                  <div className="instructors-detail-item">
+                    <p className="instructors-detail-label">{t('created_at')}</p>
+                    <p className="instructors-detail-value">
+                      {new Date(selectedInstructor.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+                {selectedInstructor.updated_at && (
+                  <div className="instructors-detail-item">
+                    <p className="instructors-detail-label">{t('updated_at')}</p>
+                    <p className="instructors-detail-value">
+                      {new Date(selectedInstructor.updated_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {selectedInstructor.cv_url && (

@@ -852,6 +852,7 @@ const InstructorAuthorizationsScreen = () => {
                     icon: CheckCircle,
                     showEmpty: false
                   },
+                  
                 ]}
               />
             </div>
