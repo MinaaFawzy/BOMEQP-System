@@ -15,7 +15,6 @@
   "courses_classes": "Courses & Classes",
   "financial": "Financial",
   "welcome_back_here_is_your_overview": "Welcome back! Here is your overview",
-
   "logout": "Logout",
   "settings": "Settings",
   "group_admin": {
@@ -37,7 +36,6 @@
     "people_management": "People Management",
     "courses_classes": "Courses & Classes"
   },
-
   "acc_admin": {
     "title": "ACC Admin",
     "dashboard": "Dashboard",
@@ -67,6 +65,7 @@
     "courses": "Courses",
     "classes": "Classes",
     "certificate_templates": "Certificate Templates",
+    "trainee_card_template": "Trainee Card Template",
     "discount_codes": "Discount Codes",
     "course_categories": "Course Categories",
     "financial": "Financial",
@@ -77,7 +76,6 @@
     "settings": "Settings",
     "logout": "Logout"
   },
-
   "instructor_drawer": {
     "dashboard": "Dashboard",
     "classes": "Classes",

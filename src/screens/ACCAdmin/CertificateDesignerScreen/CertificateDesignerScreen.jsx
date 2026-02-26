@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import fabric from '../../../utils/fabric-wrapper.js';
-import { accAPI } from '../../../services/api';
+import { accAPI, adminAPI } from '../../../services/api';
 import { ArrowLeft, Upload, Type, Trash2, Move, Save, Bold, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import './CertificateDesignerScreen.css';
 
@@ -35,6 +35,24 @@ const SidebarSection = ({ title, children, defaultOpen = true }) => {
 const CertificateDesignerScreen = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Route-aware API: if accessed via /admin/… use adminAPI, else accAPI
+    const isGroupAdmin = location.pathname.startsWith('/admin/');
+    const templateAPI = isGroupAdmin
+        ? {
+            getTemplateDetails: (tid) => adminAPI.getCertificateTemplate(tid),
+            uploadBackgroundImage: (tid, fd) => adminAPI.uploadCertificateTemplateBackground(tid, fd),
+            updateTemplate: (tid, data) => adminAPI.updateCertificateTemplateConfig(tid, data),
+            backRoute: '/admin/certificate-templates',
+        }
+        : {
+            getTemplateDetails: (tid) => accAPI.getTemplateDetails(tid),
+            uploadBackgroundImage: (tid, fd) => accAPI.uploadBackgroundImage(tid, fd),
+            updateTemplate: (tid, data) => accAPI.updateTemplate(tid, data),
+            backRoute: '/acc/certificate-templates',
+        };
+
     // Removed useHeader hook as we are now standalone
 
     // State
@@ -235,7 +253,7 @@ const CertificateDesignerScreen = () => {
     const loadTemplate = async () => {
         try {
             setLoading(true);
-            const data = await accAPI.getTemplateDetails(id);
+            const data = await templateAPI.getTemplateDetails(id);
 
             // Handle different response structures
             const templateData = data.template || data.data || data;
@@ -595,7 +613,7 @@ const CertificateDesignerScreen = () => {
         if (variableName && IMAGE_PLACEHOLDER_VARS.includes(variableName)) {
             // Get the image path from exampleData (which has the actual asset paths)
             const imagePath = exampleData[variableName];
-            
+
             if (imagePath) {
                 // Load and add the actual image from assets
                 fabric.Image.fromURL(imagePath, (img) => {
@@ -606,7 +624,7 @@ const CertificateDesignerScreen = () => {
 
                     const defaultWidth = 120;
                     const defaultHeight = 80;
-                    
+
                     img.set({
                         scaleX: defaultWidth / img.width,
                         scaleY: defaultHeight / img.height,
@@ -630,7 +648,7 @@ const CertificateDesignerScreen = () => {
                 });
                 return;
             }
-            
+
             // If no image path, add placeholder rectangle
             const defaultWidth = 120;
             const defaultHeight = 80;
@@ -850,7 +868,7 @@ const CertificateDesignerScreen = () => {
             const formData = new FormData();
             formData.append('background_image', file);
 
-            const response = await accAPI.uploadBackgroundImage(template.id, formData);
+            const response = await templateAPI.uploadBackgroundImage(template.id, formData);
             const newUrl = response.background_image_url || response.template?.background_image_url;
 
             if (newUrl) {
@@ -1056,14 +1074,14 @@ const CertificateDesignerScreen = () => {
             });
 
             // Update template configuration with fonts
-            await accAPI.updateTemplate(template.id, {
+            await templateAPI.updateTemplate(template.id, {
                 config_json: config,
                 template_html: templateHtml,
                 orientation,
             });
 
             alert('Configuration saved successfully!');
-            navigate('/acc/certificate-templates');
+            navigate(templateAPI.backRoute);
         } catch (err) {
             console.error('Save failed:', err);
             alert('Failed to save configuration');
@@ -1116,7 +1134,7 @@ const CertificateDesignerScreen = () => {
         <div className="flex h-screen items-center justify-center bg-gray-50 flex-col">
             <div className="text-red-500 mb-4 text-xl">⚠️ {error}</div>
             <button
-                onClick={() => navigate('/acc/certificate-templates')}
+                onClick={() => navigate(templateAPI.backRoute)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
                 Go Back
@@ -1130,7 +1148,7 @@ const CertificateDesignerScreen = () => {
             <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 flex-shrink-0 z-20 shadow-sm">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/acc/certificate-templates')}
+                        onClick={() => navigate(templateAPI.backRoute)}
                         className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors"
                         title="Back to Templates"
                     >

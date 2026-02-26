@@ -18,7 +18,6 @@
   "logout": "تسجيل الخروج",
   "settings": "الإعدادات",
   "welcome_back_here_is_your_overview": "مرحباً بعودتك! إليك نظرة عامة",
-
   "group_admin": {
     "title": "مدير المجموعة",
     "acc_applications": "طلبات ACC",
@@ -36,7 +35,6 @@
     "classes": "الفصول",
     "pending_payments": "المدفوعات المعلقة"
   },
-
   "acc_admin": {
     "title": "مدير ACC",
     "dashboard": "لوحة التحكم",
@@ -69,6 +67,7 @@
     "courses": "الدورات",
     "classes": "الفصول",
     "certificate_templates": "قوالب الشهادات",
+    "trainee_card_template": "قالب بطاقة المتدرب",
     "discount_codes": "رموز الخصم",
     "course_categories": "فئات الدورات",
     "financial": "المالية",

@@ -1,0 +1,638 @@
+.training-centers-map-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: #f9fafb;
+  min-height: calc(100vh - 120px);
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: #6B7280;
+  font-size: 16px;
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 24px;
+}
+
+.error-message {
+  color: #EF4444;
+  font-size: 18px;
+  text-align: center;
+}
+
+.retry-button {
+  padding: 12px 24px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retry-button:hover {
+  background: #2563EB;
+  transform: translateY(-1px);
+}
+
+/* Map Section */
+.map-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  /*
+   * isolation: isolate creates a new stacking context.
+   * Leaflet uses internal z-indexes up to ~600 (panes, controls, etc).
+   * Without isolation, those bleed out and overlap the app's fixed header
+   * when the user scrolls. With isolation, all Leaflet z-indexes are
+   * contained inside this element and can never escape it.
+   */
+  isolation: isolate;
+  z-index: 0;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.map-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.map-header-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #3B82F6;
+}
+
+/* parent owns the height so Leaflet's height:100% resolves correctly */
+.map-wrapper {
+  position: relative;
+  background: #e5e7eb;
+  width: 100%;
+  height: 320px;
+}
+
+/* ✅ Leaflet fills parent */
+.leaflet-map {
+  z-index: 1;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+/* Fix potential 1px gaps between tiles */
+.leaflet-tile {
+  margin: 0 !important;
+}
+
+/* Transparent overlay — absorbs ALL pointer events, map is display-only */
+.map-blocker {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  cursor: default;
+  pointer-events: all;
+}
+
+/* Remove Leaflet's grab cursor since the map is display-only */
+.leaflet-container {
+  cursor: default !important;
+}
+
+/* Map Empty State */
+.map-empty-state {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 1000;
+  padding: 20px;
+  text-align: center;
+}
+
+.map-empty-state p {
+  font-size: 18px;
+  color: #6B7280;
+  margin: 0 0 8px 0;
+}
+
+.map-empty-state-hint {
+  font-size: 14px;
+  color: #9CA3AF;
+  max-width: 400px;
+}
+
+/* Custom Marker Styles */
+.custom-marker {
+  background: transparent !important;
+}
+
+/* Custom Popup Styles */
+.custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 16px;
+  min-width: 200px;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: white;
+}
+
+.popup-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.popup-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 8px 0;
+}
+
+.popup-location svg {
+  flex-shrink: 0;
+}
+
+/* Regions Section */
+.regions-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.regions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.regions-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.clear-filter-button {
+  padding: 8px 16px;
+  background: #F3F4F6;
+  color: #6B7280;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-filter-button:hover {
+  background: #E5E7EB;
+  color: #111827;
+}
+
+.regions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.region-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #F9FAFB;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.region-card:hover {
+  background: #F3F4F6;
+  transform: translateY(-2px);
+}
+
+.region-card.active {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}
+
+.region-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 10px;
+  color: #3B82F6;
+  flex-shrink: 0;
+}
+
+.region-card.active .region-icon {
+  background: #3B82F6;
+  color: white;
+}
+
+.region-info {
+  flex: 1;
+}
+
+.region-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.region-info p {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.region-indicator {
+  flex-shrink: 0;
+}
+
+/* Training Centers Data Section */
+.centers-data-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.centers-data-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.centers-data-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.centers-count {
+  padding: 6px 12px;
+  background: #EFF6FF;
+  color: #3B82F6;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: #9CA3AF;
+}
+
+.empty-state p {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Centers Grid */
+.centers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.center-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.center-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.center-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.center-logo {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.center-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.center-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.center-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  word-wrap: break-word;
+}
+
+.center-type {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.center-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.center-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.center-detail svg {
+  flex-shrink: 0;
+  color: #9CA3AF;
+}
+
+.center-detail a {
+  color: #3B82F6;
+  text-decoration: none;
+  word-wrap: break-word;
+}
+
+.center-detail a:hover {
+  text-decoration: underline;
+}
+
+.center-card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-on-map-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-on-map-button:hover {
+  background: #2563EB;
+  transform: translateY(-1px);
+}
+
+.no-location-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .regions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .centers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .training-centers-map-screen {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .map-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .map-header-stats {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* ✅ now this works because map fills parent */
+  .map-container {
+    height: 400px;
+  }
+
+  .regions-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .regions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .centers-data-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .centers-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .training-centers-map-screen {
+    background: #1f2937;
+  }
+
+  .map-section,
+  .regions-section,
+  .centers-data-section {
+    background: #111827;
+  }
+
+  .map-header h2,
+  .regions-header h3,
+  .centers-data-header h3,
+  .center-info h4 {
+    color: #F9FAFB;
+  }
+
+  .region-card {
+    background: #1F2937;
+  }
+
+  .region-card:hover {
+    background: #374151;
+  }
+
+  .region-card.active {
+    background: #1E3A5F;
+    border-color: #3B82F6;
+  }
+
+  .region-icon {
+    background: #1F2937;
+  }
+
+  .center-card {
+    background: #1F2937;
+    border-color: #374151;
+  }
+
+  .map-empty-state {
+    background: rgba(17, 24, 39, 0.95);
+  }
+
+  .map-empty-state p {
+    color: #9CA3AF;
+  }
+
+  .map-empty-state-hint {
+    color: #6B7280;
+  }
+
+  .no-location-badge {
+    background: #374151;
+    color: #6B7280;
+  }
+}

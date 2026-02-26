@@ -19,6 +19,7 @@ import ACCApplicationsScreen from './screens/GroupAdmin/ACCApplicationsScreen/AC
 import TrainingCenterApplicationsScreen from './screens/GroupAdmin/TrainingCenterApplicationsScreen/TrainingCenterApplicationsScreen';
 import AllACCsScreen from './screens/GroupAdmin/AllACCsScreen/AllACCsScreen';
 import AllTrainingCentersScreen from './screens/GroupAdmin/AllTrainingCentersScreen/AllTrainingCentersScreen';
+import TrainingCentersMapScreen from './screens/GroupAdmin/TrainingCentersMapScreen/TrainingCentersMapScreen';
 import AllInstructorsScreen from './screens/GroupAdmin/AllInstructorsScreen/AllInstructorsScreen';
 import AllCoursesScreen from './screens/GroupAdmin/AllCoursesScreen/AllCoursesScreen';
 import CategoriesScreen from './screens/GroupAdmin/CategoriesScreen/CategoriesScreen';
@@ -31,6 +32,7 @@ import GroupAdminPendingPaymentsScreen from './screens/GroupAdmin/PendingPayment
 import GroupAdminClassesScreen from './screens/GroupAdmin/ClassesScreen/ClassesScreen';
 import StripeConnectScreen from './screens/GroupAdmin/StripeConnectScreen/StripeConnectScreen';
 import TransfersScreen from './screens/GroupAdmin/TransfersScreen/TransfersScreen';
+import GroupAdminCertificateTemplatesScreen from './screens/GroupAdmin/CertificateTemplatesScreen/CertificateTemplatesScreen';
 
 // ACC Admin screens
 import ACCDashboardScreen from './screens/ACCAdmin/DashboardScreen/DashboardScreen';
@@ -43,6 +45,8 @@ import CoursesScreen from './screens/ACCAdmin/CoursesScreen/CoursesScreen';
 import CertificatesScreen from './screens/ACCAdmin/CertificatesScreen/CertificatesScreen';
 import CertificateTemplatesScreen from './screens/ACCAdmin/CertificateTemplatesScreen/CertificateTemplatesScreen';
 import CertificateDesignerScreen from './screens/ACCAdmin/CertificateDesignerScreen/CertificateDesignerScreen';
+import TraineeCardTemplateScreen from './screens/ACCAdmin/TraineeCardTemplateScreen/TraineeCardTemplateScreen';
+import TraineeCardDesignerScreen from './screens/ACCAdmin/TraineeCardDesignerScreen/TraineeCardDesignerScreen';
 import MaterialsScreen from './screens/ACCAdmin/MaterialsScreen/MaterialsScreen';
 import DiscountCodesScreen from './screens/ACCAdmin/DiscountCodesScreen/DiscountCodesScreen';
 import ACCCategoriesScreen from './screens/ACCAdmin/CategoriesScreen/CategoriesScreen';
@@ -206,6 +210,7 @@ function App() {
                           <Route path="training-center-applications" element={<TrainingCenterApplicationsScreen />} />
                           <Route path="all-accs" element={<AllACCsScreen />} />
                           <Route path="all-training-centers" element={<AllTrainingCentersScreen />} />
+                          <Route path="training-centers-map" element={<TrainingCentersMapScreen />} />
                           <Route path="all-instructors" element={<AllInstructorsScreen />} />
                           <Route path="all-courses" element={<AllCoursesScreen />} />
                           <Route path="categories" element={<CategoriesScreen />} />
@@ -218,6 +223,7 @@ function App() {
                           <Route path="transfers" element={<TransfersScreen />} />
                           <Route path="classes" element={<GroupAdminClassesScreen />} />
                           <Route path="pending-payments" element={<GroupAdminPendingPaymentsScreen />} />
+                          <Route path="certificate-templates" element={<GroupAdminCertificateTemplatesScreen />} />
                         </Routes>
                       </Layout>
                     </ProtectedRoute>
@@ -239,6 +245,7 @@ function App() {
                           <Route path="courses" element={<CoursesScreen />} />
                           <Route path="certificates" element={<CertificatesScreen />} />
                           <Route path="certificate-templates" element={<CertificateTemplatesScreen />} />
+                          <Route path="trainee-card-template" element={<TraineeCardTemplateScreen />} />
 
                           <Route path="materials" element={<MaterialsScreen />} />
                           <Route path="discount-codes" element={<DiscountCodesScreen />} />
@@ -252,12 +259,30 @@ function App() {
                   }
                 />
 
-                {/* ACC Admin - Certificate Designer (No Layout) */}
+                {/* Certificate Designer (No Layout) - Shared by ACC Admin and Group Admin */}
                 <Route
                   path="/acc/certificate-templates/:id/design"
                   element={
                     <ProtectedRoute allowedRoles={['acc_admin']}>
                       <CertificateDesignerScreen />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/certificate-templates/:id/design"
+                  element={
+                    <ProtectedRoute allowedRoles={['group_admin']}>
+                      <CertificateDesignerScreen />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Trainee Card Designer (No Layout) */}
+                <Route
+                  path="/acc/certificate-templates/:id/card-design"
+                  element={
+                    <ProtectedRoute allowedRoles={['acc_admin']}>
+                      <TraineeCardDesignerScreen />
                     </ProtectedRoute>
                   }
                 />

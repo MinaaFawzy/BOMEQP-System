@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import { validateEmail, validatePhone, validateRequired, validateMinLength, validateUKID } from '../../../utils/validation';
-import { Users, Mail, Phone, Building2, Award, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User, Calendar } from 'lucide-react';
+import { Users, Mail, Phone, Building2, Award, CheckCircle, Clock, XCircle, Eye, Edit, ClipboardList, Upload, FileText, X, User, Calendar, BookOpen } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import Button from '../../../components/Button/Button';
@@ -13,6 +13,7 @@ import DetailForm from '../../../components/DetailForm/DetailForm';
 import LanguageSelector from '../../../components/LanguageSelector/LanguageSelector';
 import Pagination from '../../../components/Pagination/Pagination';
 import FilterMenu from '../../../components/FilterMenu/FilterMenu';
+import CourseManagementModal from '../../../components/CourseManagementModal/CourseManagementModal';
 import './AllInstructorsScreen.css';
 
 const AllInstructorsScreen = () => {
@@ -21,7 +22,9 @@ const AllInstructorsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [courseManagementModalOpen, setCourseManagementModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const [selectedACC, setSelectedACC] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [saving, setSaving] = useState(false);
@@ -237,6 +240,11 @@ const AllInstructorsScreen = () => {
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  const handleManageCourses = async (instructor) => {
+    setSelectedInstructor(instructor);
+    setCourseManagementModalOpen(true);
   };
 
   const handleEditInstructor = async (instructor) => {
@@ -631,6 +639,36 @@ const AllInstructorsScreen = () => {
           </span>
         );
       }
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleViewDetails(row)}
+            className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => handleManageCourses(row)}
+            className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="Manage Courses"
+          >
+            <BookOpen size={16} />
+          </button>
+          <button
+            onClick={() => handleEditInstructor(row)}
+            className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            title="Edit Instructor"
+          >
+            <Edit size={16} />
+          </button>
+        </div>
+      )
     }
   ], []);
 
@@ -681,9 +719,6 @@ const AllInstructorsScreen = () => {
         <DataTable
           columns={columns}
           data={allInstructors}
-          onView={handleViewDetails}
-          onRowClick={handleViewDetails}
-          onEdit={handleEditInstructor}
           isLoading={loading}
           emptyMessage="No instructors found"
           searchable={true}
@@ -1034,75 +1069,7 @@ const AllInstructorsScreen = () => {
               />
             </div>
             
-            {/* Training Centers Selector */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Training Centers
-              </label>
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                {trainingCenters.length > 0 ? (
-                  trainingCenters.map(center => (
-                    <label key={center.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                      <input
-                        type="checkbox"
-                        checked={instructorFormData.training_centers?.includes(center.id.toString()) || false}
-                        onChange={(e) => {
-                          const updatedCenters = e.target.checked
-                            ? [...(instructorFormData.training_centers || []), center.id.toString()]
-                            : instructorFormData.training_centers?.filter(id => id !== center.id.toString()) || [];
-                          setInstructorFormData({
-                            ...instructorFormData,
-                            training_centers: updatedCenters
-                          });
-                        }}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="text-sm text-gray-700">{center.name}</span>
-                    </label>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No training centers available</p>
-                )}
-              </div>
-              {instructorErrors.training_centers && (
-                <p className="mt-1 text-sm text-red-600">{instructorErrors.training_centers}</p>
-              )}
-            </div>
-            
-            {/* Accreditations (ACCs) Selector */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Accreditations
-              </label>
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                {accreditations.length > 0 ? (
-                  accreditations.map(acc => (
-                    <label key={acc.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                      <input
-                        type="checkbox"
-                        checked={instructorFormData.accreditations?.includes(acc.id.toString()) || false}
-                        onChange={(e) => {
-                          const updatedAccreditations = e.target.checked
-                            ? [...(instructorFormData.accreditations || []), acc.id.toString()]
-                            : instructorFormData.accreditations?.filter(id => id !== acc.id.toString()) || [];
-                          setInstructorFormData({
-                            ...instructorFormData,
-                            accreditations: updatedAccreditations
-                          });
-                        }}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="text-sm text-gray-700">{acc.name}</span>
-                    </label>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No accreditations available</p>
-                )}
-              </div>
-              {instructorErrors.accreditations && (
-                <p className="mt-1 text-sm text-red-600">{instructorErrors.accreditations}</p>
-              )}
-            </div>
+           
           </div>
 
           {instructorErrors.general && (
@@ -1135,6 +1102,17 @@ const AllInstructorsScreen = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Course Management Modal */}
+      <CourseManagementModal
+        isOpen={courseManagementModalOpen}
+        onClose={() => {
+          setCourseManagementModalOpen(false);
+          setSelectedInstructor(null);
+        }}
+        instructor={selectedInstructor}
+        isAdmin={true}
+      />
     </div>
   );
 };

@@ -290,6 +290,7 @@ export const adminAPI = {
   listTrainingCenters: (params) => api.get('/admin/training-centers', { params }),
   getTrainingCenterDetails: (id) => api.get(`/admin/training-centers/${id}`),
   updateTrainingCenter: (id, data) => api.put(`/admin/training-centers/${id}`, data),
+  getTrainingCentersMap: (params) => api.get('/admin/training-centers/map', { params }),
 
   // Training Center Applications
   getTrainingCenterApplications: (params) => api.get('/admin/training-centers/applications', { params }),
@@ -311,6 +312,10 @@ export const adminAPI = {
   // Instructor Authorizations
   getPendingCommissionRequests: (params) => api.get('/admin/instructor-authorizations/pending-commission', { params }),
   setInstructorAuthorizationCommission: (id, data) => api.put(`/admin/instructor-authorizations/${id}/set-commission`, data),
+
+  // Instructor Course Management
+  getInstructorAvailableCourses: (instructorId, params) => api.get(`/admin/instructors/${instructorId}/available-courses`, { params }),
+  updateInstructorCourses: (instructorId, data) => api.put(`/admin/instructors/${instructorId}/courses`, data),
 
   // Categories & Courses
   createCategory: (data) => api.post('/admin/categories', data),
@@ -371,6 +376,24 @@ export const adminAPI = {
   getTransferDetails: (id) => api.get(`/admin/transfers/${id}`),
   getTransferSummaryReport: (params) => api.get('/admin/transfers/reports/summary', { params }),
   retryFailedTransfer: (id) => api.post(`/admin/transfers/${id}/retry`),
+
+  // Certificate Templates (Group Admin - Instructor Achievement)
+  listCertificateTemplates: (params) => api.get('/admin/certificate-templates', { params }),
+  getCertificateTemplate: (id) => api.get(`/admin/certificate-templates/${id}`),
+  createCertificateTemplate: (data) => api.post('/admin/certificate-templates', data),
+  updateCertificateTemplate: (id, data) => api.put(`/admin/certificate-templates/${id}`, data),
+  deleteCertificateTemplate: (id) => api.delete(`/admin/certificate-templates/${id}`),
+  uploadCertificateTemplateBackground: (id, formData) => {
+    const token = getAuthToken();
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    };
+    return axios.post(`${API_BASE_URL}/admin/certificate-templates/${id}/upload-background`, formData, {
+      headers,
+    }).then(response => response.data);
+  },
+  updateCertificateTemplateConfig: (id, data) => api.put(`/admin/certificate-templates/${id}/config`, data),
 };
 
 // ACC Admin APIs
@@ -406,6 +429,13 @@ export const accAPI = {
   returnInstructorRequest: (id, data) => api.put(`/acc/instructors/requests/${id}/return`, data),
   listAuthorizedInstructors: (params) => api.get('/acc/instructors', { params }),
 
+  // Instructor Management
+  updateInstructor: (id, data) => api.put(`/acc/instructors/${id}`, data),
+
+  // Instructor Course Management
+  getInstructorAvailableCourses: (instructorId) => api.get(`/acc/instructors/${instructorId}/available-courses`),
+  updateInstructorCourses: (instructorId, data) => api.put(`/acc/instructors/${instructorId}/courses`, data),
+
   // Courses
   createCourse: (data) => api.post('/acc/courses', data),
   listCourses: (params) => api.get('/acc/courses', { params }),
@@ -432,6 +462,21 @@ export const accAPI = {
     }).then(response => response.data);
   },
   updateTemplateConfig: (id, data) => api.put(`/acc/certificate-templates/${id}/config`, data),
+
+  // Card Templates (Trainee Card)
+  getCardTemplates: () => api.get('/acc/card-template'),
+  updateCardSettings: (id, data) => api.put(`/acc/certificate-templates/${id}/card`, data),
+  uploadCardBackground: (id, formData) => {
+    const token = getAuthToken();
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    };
+    return axios.post(`${API_BASE_URL}/acc/certificate-templates/${id}/upload-card-background`, formData, {
+      headers,
+    }).then(response => response.data);
+  },
+  updateCardConfig: (id, data) => api.put(`/acc/certificate-templates/${id}/card-config`, data),
 
   // Discount Codes
   createDiscountCode: (data) => api.post('/acc/discount-codes', data),

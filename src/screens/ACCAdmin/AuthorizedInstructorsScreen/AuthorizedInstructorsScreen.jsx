@@ -2,12 +2,13 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { accAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
-import { Users, Eye, Mail, Building2, Award, BookOpen, Search, CheckCircle } from 'lucide-react';
+import { Users, Eye, Mail, Building2, Award, BookOpen, Search, CheckCircle, Edit } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
 import FilterMenu from '../../../components/FilterMenu/FilterMenu';
+import CourseManagementModal from '../../../components/CourseManagementModal/CourseManagementModal';
 import './AuthorizedInstructorsScreen.css';
 
 const AuthorizedInstructorsScreen = () => {
@@ -25,8 +26,22 @@ const AuthorizedInstructorsScreen = () => {
 
     // UI State
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [courseManagementModalOpen, setCourseManagementModalOpen] = useState(false);
     const [selectedInstructor, setSelectedInstructor] = useState(null);
+    const [instructorFormData, setInstructorFormData] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        id_number: '',
+        specializations: [],
+        languages: [],
+        status: 'active',
+    });
+    const [instructorErrors, setInstructorErrors] = useState({});
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
@@ -117,6 +132,87 @@ const AuthorizedInstructorsScreen = () => {
     const handleViewDetails = (instructor) => {
         setSelectedInstructor(instructor);
         setDetailModalOpen(true);
+    };
+
+    const handleManageCourses = (instructor) => {
+        setSelectedInstructor(instructor);
+        setCourseManagementModalOpen(true);
+    };
+
+    const handleEditInstructor = async (instructor) => {
+        setSelectedInstructor(instructor);
+        setInstructorFormData({
+            first_name: instructor.first_name || '',
+            last_name: instructor.last_name || '',
+            email: instructor.email || '',
+            phone: instructor.phone || '',
+            id_number: instructor.id_number || '',
+            specializations: instructor.specializations || [],
+            languages: instructor.specializations || instructor.languages || [],
+            status: instructor.status || 'active',
+        });
+        setInstructorErrors({});
+        setEditModalOpen(true);
+    };
+
+    const handleInstructorFormChange = (e) => {
+        const { name, value } = e.target;
+        setInstructorFormData({
+            ...instructorFormData,
+            [name]: value,
+        });
+        setInstructorErrors({});
+    };
+
+    const handleSaveInstructor = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setInstructorErrors({});
+
+        // Validation
+        const validationErrors = {};
+        const firstNameError = instructorFormData.first_name ? null : 'First name is required';
+        const lastNameError = instructorFormData.last_name ? null : 'Last name is required';
+        const emailError = instructorFormData.email ? null : 'Email is required';
+
+        if (firstNameError) validationErrors.first_name = firstNameError;
+        if (lastNameError) validationErrors.last_name = lastNameError;
+        if (emailError) validationErrors.email = emailError;
+
+        if (Object.keys(validationErrors).length > 0) {
+            setInstructorErrors(validationErrors);
+            setSaving(false);
+            return;
+        }
+
+        try {
+            const dataToSend = {
+                first_name: instructorFormData.first_name,
+                last_name: instructorFormData.last_name,
+                email: instructorFormData.email,
+                phone: instructorFormData.phone || null,
+                id_number: instructorFormData.id_number || null,
+                status: instructorFormData.status,
+                specializations: instructorFormData.languages || [],
+            };
+
+            await accAPI.updateInstructor(selectedInstructor.id, dataToSend);
+            alert('Instructor updated successfully!');
+            setEditModalOpen(false);
+            setSelectedInstructor(null);
+            loadData();
+        } catch (error) {
+            console.error('Failed to update instructor:', error);
+            if (error.response?.data?.message) {
+                setInstructorErrors({ general: error.response.data.message });
+            } else if (error.response?.data?.errors) {
+                setInstructorErrors(error.response.data.errors);
+            } else {
+                setInstructorErrors({ general: error.message || 'Failed to update instructor' });
+            }
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleFilterApply = (filters) => {
@@ -249,10 +345,24 @@ const AuthorizedInstructorsScreen = () => {
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                         onClick={() => handleViewDetails(row)}
-                        className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
                         title={t('authorized_instructors_screen.actions.view_details')}
                     >
                         <Eye size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleManageCourses(row)}
+                        className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                        title="Manage Courses"
+                    >
+                        <BookOpen size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleEditInstructor(row)}
+                        className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                        title="Edit Instructor"
+                    >
+                        <Edit size={16} />
                     </button>
                 </div>
             )
@@ -528,6 +638,119 @@ const AuthorizedInstructorsScreen = () => {
                             </div>
                         )}
                     </div>
+                )}
+            </Modal>
+
+            {/* Course Management Modal */}
+            <CourseManagementModal
+                isOpen={courseManagementModalOpen}
+                onClose={() => {
+                    setCourseManagementModalOpen(false);
+                    setSelectedInstructor(null);
+                }}
+                instructor={selectedInstructor}
+                isAdmin={false}
+            />
+
+            {/* Edit Instructor Modal */}
+            <Modal
+                isOpen={editModalOpen}
+                onClose={() => {
+                    setEditModalOpen(false);
+                    setSelectedInstructor(null);
+                }}
+                title={`Edit Instructor: ${selectedInstructor?.first_name} ${selectedInstructor?.last_name}`}
+                size="lg"
+            >
+                {selectedInstructor && (
+                    <form onSubmit={handleSaveInstructor} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input
+                                    type="text"
+                                    value={instructorFormData.first_name}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input
+                                    type="text"
+                                    value={instructorFormData.last_name}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input
+                                    type="email"
+                                    value={instructorFormData.email}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <input
+                                    type="text"
+                                    value={instructorFormData.phone}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">ID Number</label>
+                                <input
+                                    type="text"
+                                    value={instructorFormData.id_number}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select
+                                    value={instructorFormData.status}
+                                    onChange={(e) => handleInstructorFormChange(e)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="suspended">Suspended</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {instructorErrors.general && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-600 font-medium">{instructorErrors.general}</p>
+                            </div>
+                        )}
+
+                        <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditModalOpen(false);
+                                    setSelectedInstructor(null);
+                                }}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 disabled:opacity-50"
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </form>
                 )}
             </Modal>
         </div>

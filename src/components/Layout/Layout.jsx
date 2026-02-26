@@ -35,6 +35,7 @@ import {
   User,
   ArrowRightLeft,
   Link2,
+  Map,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './Layout.css';
@@ -191,6 +192,7 @@ const Layout = ({ children }) => {
             label: 'Training & Instructors',
             items: [
               { path: '/admin/all-training-centers', icon: School, label: 'Training Centers' },
+              { path: '/admin/training-centers-map', icon: Map, label: 'Training Centers Map' },
               { path: '/admin/all-instructors', icon: Users, label: 'Instructors' },
               { path: '/admin/instructor-authorizations', icon: UserCheck, label: 'Instructor Commissions' },
             ]
@@ -204,6 +206,15 @@ const Layout = ({ children }) => {
               { path: '/admin/all-courses', icon: GraduationCap, label: 'Courses' },
               { path: '/admin/classes', icon: School, label: 'Classes' },
               { path: '/admin/categories', icon: FolderTree, label: 'Course Categories' },
+            ]
+          },
+          {
+            type: 'group',
+            key: 'certificates',
+            icon: Award,
+            label: 'Certificates',
+            items: [
+              { path: '/admin/certificate-templates', icon: FileText, label: 'Certificate Templates' },
             ]
           },
           {
@@ -252,6 +263,7 @@ const Layout = ({ children }) => {
               { path: '/acc/classes', icon: School, label: t('acc_drawer.classes') },
               { path: '/acc/certificates', icon: Award, label: t('acc_drawer.certificates') },
               { path: '/acc/certificate-templates', icon: FileText, label: t('acc_drawer.certificate_templates') },
+              { path: '/acc/trainee-card-template', icon: CreditCard, label: t('acc_drawer.trainee_card_template') },
               { path: '/acc/discount-codes', icon: Tag, label: t('acc_drawer.discount_codes') },
               { path: '/acc/categories', icon: FolderTree, label: t('acc_drawer.course_categories') },
             ]
@@ -341,10 +353,13 @@ const Layout = ({ children }) => {
     if (path === '/admin/training-center-applications') return 'TC Applications';
     if (path === '/admin/all-accs') return 'Accreditation Bodies';
     if (path === '/admin/all-training-centers') return 'Training Centers';
+    if (path === '/admin/training-centers-map') return 'Training Centers Map';
     if (path === '/admin/all-instructors') return 'Instructors';
     if (path === '/admin/all-courses') return 'Courses';
     if (path === '/admin/classes') return 'Classes';
     if (path === '/admin/categories') return 'Course Categories';
+    if (path === '/admin/certificate-templates') return 'Instructor Certificate Templates';
+    if (path.startsWith('/admin/certificate-templates/') && path.includes('/design')) return 'Certificate Designer';
     if (path === '/admin/instructor-authorizations') return 'Instructor Commissions';
     if (path === '/admin/payment-transactions') return 'Payment Transactions';
     if (path === '/admin/pending-payments') return 'Pending Payments';
@@ -361,6 +376,7 @@ const Layout = ({ children }) => {
     if (path === '/acc/courses') return 'Courses';
     if (path === '/acc/certificates') return 'Certificates';
     if (path === '/acc/certificate-templates') return 'Certificate Templates';
+    if (path === '/acc/trainee-card-template') return 'Trainee Card Templates';
     if (path === '/acc/materials') return 'Materials';
     if (path === '/acc/discount-codes') return 'Discount Codes';
     if (path === '/acc/categories') return 'Course Categories';
