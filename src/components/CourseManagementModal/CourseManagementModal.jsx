@@ -5,7 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import './CourseManagementModal.css';
 
 const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('instructor');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -44,7 +44,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
       } else {
         response = await accAPI.getInstructorAvailableCourses(instructor.id);
       }
-      
+
       const categoriesList = response.categories || [];
       setCategories(categoriesList);
       setSummary(response.summary || { total_courses: 0, authorized_courses: 0 });
@@ -52,7 +52,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
       // Initialize course states based on is_authorized field from response
       const initialStates = {};
       const allCourses = [];
-      
+
       categoriesList.forEach(category => {
         category.sub_categories.forEach(subCategory => {
           subCategory.courses.forEach(course => {
@@ -128,7 +128,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
       Object.keys(courseStates).forEach(courseId => {
         const currentState = courseStates[courseId];
         const initialState = initialCourseStates[courseId];
-        
+
         if (currentState && !initialState) {
           addCourseIds.push(parseInt(courseId));
         } else if (!currentState && initialState) {
@@ -137,7 +137,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
       });
 
       if (addCourseIds.length === 0 && removeCourseIds.length === 0) {
-        alert(t('instructor.course_management_modal.alerts.no_changes'));
+        alert(t('course_management_modal.alerts.no_changes'));
         setSaving(false);
         return;
       }
@@ -158,17 +158,17 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
         await accAPI.updateInstructorCourses(instructor.id, data);
       }
 
-      alert(t('instructor.course_management_modal.alerts.success'));
+      alert(t('course_management_modal.alerts.success'));
       onClose();
     } catch (error) {
       console.error('Failed to update instructor courses:', error);
       if (error.response?.data?.message) {
-        alert(t('instructor.course_management_modal.alerts.error_with_message', { message: error.response.data.message }));
+        alert(t('course_management_modal.alerts.error_with_message', { message: error.response.data.message }));
       } else if (error.response?.data?.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat().join('\n');
-        alert(t('instructor.course_management_modal.alerts.error_with_message', { message: errorMessages }));
+        alert(t('course_management_modal.alerts.error_with_message', { message: errorMessages }));
       } else {
-        alert(t('instructor.course_management_modal.alerts.error_generic'));
+        alert(t('course_management_modal.alerts.error_generic'));
       }
     } finally {
       setSaving(false);
@@ -200,12 +200,12 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
             </div>
             <div>
               <h2 className="course-management-modal-title">
-                {t('instructor.course_management_modal.title')}
+                {t('course_management_modal.title')}
               </h2>
               <p className="course-management-modal-subtitle">
-                {t('instructor.course_management_modal.subtitle', { 
-                  first_name: instructor?.first_name || '', 
-                  last_name: instructor?.last_name || '' 
+                {t('course_management_modal.subtitle', {
+                  first_name: instructor?.first_name || '',
+                  last_name: instructor?.last_name || ''
                 })}
               </p>
             </div>
@@ -221,7 +221,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
         {/* ACC Selector - Only show for Group Admin */}
         {isAdmin && instructor?.accs && instructor.accs.length > 0 && (
           <div className="course-management-acc-selector">
-            <label className="course-management-acc-label">{t('instructor.course_management_modal.select_accreditation')}</label>
+            <label className="course-management-acc-label">{t('course_management_modal.select_accreditation')}</label>
             <select
               className="course-management-acc-select"
               value={selectedACC || ''}
@@ -264,12 +264,12 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
           {loading ? (
             <div className="course-management-loading">
               <Loader2 className="animate-spin" size={40} />
-              <p>{t('instructor.course_management_modal.loading_courses')}</p>
+              <p>{t('course_management_modal.loading_courses')}</p>
             </div>
           ) : categories.length === 0 ? (
             <div className="course-management-empty">
               <BookOpen size={64} />
-              <p>{t('instructor.course_management_modal.no_courses_available')}</p>
+              <p>{t('course_management_modal.no_courses_available')}</p>
             </div>
           ) : (
             <div className="course-management-list">
@@ -280,72 +280,72 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                     allCoursesInCategory.push(course);
                   });
                 });
-                
-                const allSelected = allCoursesInCategory.length > 0 && 
+
+                const allSelected = allCoursesInCategory.length > 0 &&
                   allCoursesInCategory.every(course => courseStates[course.id]);
                 const someSelected = allCoursesInCategory.some(course => courseStates[course.id]);
                 const selectedCount = allCoursesInCategory.filter(course => courseStates[course.id]).length;
 
                 return (
                   <div key={category.id} className="course-management-category">
-                    <div 
+                    <div
                       className="course-management-category-header"
                       onClick={() => toggleCategory(category.id)}
                     >
                       <div className="course-management-category-left">
-                        <ChevronRight 
-                          size={20} 
+                        <ChevronRight
+                          size={20}
                           className={`course-management-chevron ${expandedCategories[category.id] ? 'expanded' : ''}`}
                         />
                         <Layers size={20} className="course-management-category-icon" />
                         <div className="course-management-category-info">
                           <span className="course-management-category-name">{category.name}</span>
                           <span className="course-management-category-count">
-                            {t('instructor.course_management_modal.selected_count', { 
-                              selected: selectedCount, 
-                              total: allCoursesInCategory.length 
+                            {t('course_management_modal.selected_count', {
+                              selected: selectedCount,
+                              total: allCoursesInCategory.length
                             })}
                           </span>
                         </div>
                       </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleAllCoursesInCategory(category, !allSelected);
-                          }}
-                          className={`course-management-toggle-btn ${allSelected ? 'selected' : ''}`}
-                        >
-                          <Check size={16} />
-                          {allSelected ? t('instructor.course_management_modal.deselect_all') : t('instructor.course_management_modal.select_all')}
-                        </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleAllCoursesInCategory(category, !allSelected);
+                        }}
+                        className={`course-management-toggle-btn ${allSelected ? 'selected' : ''}`}
+                      >
+                        <Check size={16} />
+                        {allSelected ? t('course_management_modal.deselect_all') : t('course_management_modal.select_all')}
+                      </button>
                     </div>
 
                     {expandedCategories[category.id] && (
                       <div className="course-management-subcategories">
                         {category.sub_categories.map((subCategory) => {
-                          const allSelectedInSub = subCategory.courses.length > 0 && 
+                          const allSelectedInSub = subCategory.courses.length > 0 &&
                             subCategory.courses.every(course => courseStates[course.id]);
                           const someSelectedInSub = subCategory.courses.some(course => courseStates[course.id]);
                           const selectedCountInSub = subCategory.courses.filter(course => courseStates[course.id]).length;
 
                           return (
                             <div key={subCategory.id} className="course-management-subcategory">
-                              <div 
+                              <div
                                 className="course-management-subcategory-header"
                                 onClick={() => toggleSubCategory(subCategory.id)}
                               >
                                 <div className="course-management-subcategory-left">
-                                  <ChevronRight 
-                                    size={18} 
+                                  <ChevronRight
+                                    size={18}
                                     className={`course-management-chevron ${expandedSubCategories[subCategory.id] ? 'expanded' : ''}`}
                                   />
                                   <Grid3x3 size={16} className="course-management-subcategory-icon" />
                                   <div className="course-management-subcategory-info">
                                     <span className="course-management-subcategory-name">{subCategory.name}</span>
                                     <span className="course-management-subcategory-count">
-                                      {t('instructor.course_management_modal.selected_count', { 
-                                        selected: selectedCountInSub, 
-                                        total: subCategory.courses.length 
+                                      {t('course_management_modal.selected_count', {
+                                        selected: selectedCountInSub,
+                                        total: subCategory.courses.length
                                       })}
                                     </span>
                                   </div>
@@ -358,7 +358,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                                   className={`course-management-toggle-btn-small ${allSelectedInSub ? 'selected' : ''}`}
                                 >
                                   <Check size={14} />
-                                  {allSelectedInSub ? t('instructor.course_management_modal.deselect') : t('instructor.course_management_modal.select')}
+                                  {allSelectedInSub ? t('course_management_modal.deselect') : t('course_management_modal.select')}
                                 </button>
                               </div>
 
@@ -368,7 +368,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                                     <div key={course.id} className="course-management-course">
                                       <div className="course-management-course-info">
                                         <div className="course-management-course-main">
-                                          <span className="course-management-course-code">{t('instructor.course_management_modal.course.code')} {course.code}</span>
+                                          <span className="course-management-course-code">{t('course_management_modal.course.code')} {course.code}</span>
                                           <span className="course-management-course-name">{course.name}</span>
                                         </div>
                                         {course.name_ar && (
@@ -404,7 +404,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
           <div className="course-management-footer-info">
             {hasChanges() && (
               <span className="course-management-changes-badge">
-                {t('instructor.course_management_modal.changes_pending')}
+                {t('course_management_modal.changes_pending')}
               </span>
             )}
           </div>
@@ -414,7 +414,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
               className="course-management-btn course-management-btn-secondary"
               disabled={saving}
             >
-              {t('instructor.course_management_modal.cancel')}
+              {t('course_management_modal.cancel')}
             </button>
             <button
               onClick={handleSubmit}
@@ -424,12 +424,12 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
               {saving ? (
                 <>
                   <Loader2 className="animate-spin" size={18} />
-                  {t('instructor.course_management_modal.saving')}
+                  {t('course_management_modal.saving')}
                 </>
               ) : (
                 <>
                   <Check size={18} />
-                  {t('instructor.course_management_modal.save_changes')}
+                  {t('course_management_modal.save_changes')}
                 </>
               )}
             </button>
