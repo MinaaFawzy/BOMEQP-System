@@ -78,7 +78,7 @@ const TrainingCentersMapScreen = () => {
 
   // ── Header ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    setHeaderTitle('Training Centers Map');
+    setHeaderTitle('Training Centers Regions');
     setHeaderSubtitle('View training centers by region on the map');
     return () => { setHeaderTitle(null); setHeaderSubtitle(null); };
   }, [setHeaderTitle, setHeaderSubtitle]);
@@ -311,27 +311,7 @@ const TrainingCentersMapScreen = () => {
                   )}
                 </div>
 
-                <div className="center-card-footer">
-                  {center.latitude && center.longitude ? (
-                    <button
-                      className="view-on-map-button"
-                      onClick={() =>
-                        window.open(
-                          `https://www.google.com/maps?q=${center.latitude},${center.longitude}`,
-                          '_blank'
-                        )
-                      }
-                    >
-                      <MapPin className="w-4 h-4" />
-                      View on Map
-                    </button>
-                  ) : (
-                    <div className="no-location-badge">
-                      <MapPin className="w-4 h-4" />
-                      No Location Data
-                    </div>
-                  )}
-                </div>
+
               </div>
             ))}
           </div>

@@ -271,5 +271,30 @@
     "common": {
       "na": "लागू नहीं"
     }
+  },
+  "course_management_modal": {
+    "title": "पाठ्यक्रम प्रबंधित करें",
+    "subtitle": "{{first_name}} {{last_name}}",
+    "select_accreditation": "मान्यता चुनें",
+    "loading_courses": "पाठ्यक्रम लोड हो रहे हैं...",
+    "no_courses_available": "कोई पाठ्यक्रम उपलब्ध नहीं",
+    "selected_count": "{{selected}}/{{total}} चयनित",
+    "select_all": "सभी चुनें",
+    "deselect_all": "सभी अचयनित करें",
+    "select": "चुनें",
+    "deselect": "अचयनित करें",
+    "changes_pending": "परिवर्तन लंबित",
+    "cancel": "रद्द करें",
+    "save_changes": "परिवर्तन सहेजें",
+    "saving": "सहेजा जा रहा है...",
+    "alerts": {
+      "no_changes": "सहेजने के लिए कोई परिवर्तन नहीं।",
+      "success": "प्रशिक्षक के पाठ्यक्रम सफलतापूर्वक अपडेट हो गए!",
+      "error_generic": "प्रशिक्षक के पाठ्यक्रम अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
+      "error_with_message": "त्रुटि: {{message}}"
+    },
+    "course": {
+      "code": "कोड:"
+    }
   }
 }

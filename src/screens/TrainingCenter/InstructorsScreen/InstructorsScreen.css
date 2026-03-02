@@ -20,6 +20,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1061,6 +1062,12 @@ select:focus {
 .instructors-column-id {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+.instructors-column-id-badge {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
 }
 
 .instructors-column-email {

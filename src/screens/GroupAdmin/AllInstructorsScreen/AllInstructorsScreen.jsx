@@ -91,10 +91,10 @@ const AllInstructorsScreen = () => {
   useEffect(() => {
     setHeaderTitle('Instructors');
     setHeaderSubtitle('View and manage all instructors across all ACCs');
-    
+
     // Load training centers and accreditations data
     loadTrainingCentersAndAccreditations();
-    
+
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -107,7 +107,7 @@ const AllInstructorsScreen = () => {
       const centersResponse = await adminAPI.listTrainingCenters({ per_page: 1000 });
       const centersList = centersResponse.data || centersResponse.training_centers || [];
       setTrainingCenters(centersList);
-      
+
       // Fetch accreditations (ACCs)
       const accsResponse = await adminAPI.listACCs({ per_page: 1000 });
       const accsList = accsResponse.data || accsResponse.accs || [];
@@ -385,14 +385,14 @@ const AllInstructorsScreen = () => {
         if (dataToSend.phone) formData.append('phone', dataToSend.phone);
         if (dataToSend.id_number) formData.append('id_number', dataToSend.id_number);
         if (dataToSend.status) formData.append('status', dataToSend.status);
-        
+
         // Append training centers
         if (dataToSend.training_centers && Array.isArray(dataToSend.training_centers)) {
           dataToSend.training_centers.forEach(center => {
             formData.append('training_centers[]', center);
           });
         }
-        
+
         // Append accreditations
         if (dataToSend.accreditations && Array.isArray(dataToSend.accreditations)) {
           dataToSend.accreditations.forEach(acc => {
@@ -500,6 +500,14 @@ const AllInstructorsScreen = () => {
 
   // DataTable columns
   const columns = useMemo(() => [
+    {
+      header: 'ID',
+      accessor: 'id',
+      sortable: true,
+      render: (value) => (
+        <span className="text-sm font-medium text-gray-700">{value}</span>
+      )
+    },
     {
       header: 'Instructor',
       accessor: 'name',
@@ -823,22 +831,22 @@ const AllInstructorsScreen = () => {
 
               {/* Accreditations */}
               {selectedInstructor && (selectedInstructor.accs || selectedInstructor.accreditations) &&
-               (selectedInstructor.accs || selectedInstructor.accreditations).length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                    <Award className="h-4 w-4 mr-2" />
-                    Accreditations:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedInstructor.accs || selectedInstructor.accreditations).map((acc, index) => (
-                      <span key={index} className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center">
-                        <Award className="h-3 w-3 mr-1" />
-                        {typeof acc === 'object' ? acc.name : acc}
-                      </span>
-                    ))}
+                (selectedInstructor.accs || selectedInstructor.accreditations).length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                      <Award className="h-4 w-4 mr-2" />
+                      Accreditations:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(selectedInstructor.accs || selectedInstructor.accreditations).map((acc, index) => (
+                        <span key={index} className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center">
+                          <Award className="h-3 w-3 mr-1" />
+                          {typeof acc === 'object' ? acc.name : acc}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* CV & Passport */}
               {selectedInstructor && (
@@ -1068,8 +1076,8 @@ const AllInstructorsScreen = () => {
                 useAPI={false}
               />
             </div>
-            
-           
+
+
           </div>
 
           {instructorErrors.general && (

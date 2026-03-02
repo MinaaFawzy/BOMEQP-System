@@ -271,5 +271,30 @@
     "common": {
       "na": "N/D"
     }
+  },
+  "course_management_modal": {
+    "title": "Gestionar cursos",
+    "subtitle": "{{first_name}} {{last_name}}",
+    "select_accreditation": "Seleccionar acreditación",
+    "loading_courses": "Cargando cursos...",
+    "no_courses_available": "No hay cursos disponibles",
+    "selected_count": "{{selected}}/{{total}} seleccionados",
+    "select_all": "Seleccionar todos",
+    "deselect_all": "Deseleccionar todos",
+    "select": "Seleccionar",
+    "deselect": "Deseleccionar",
+    "changes_pending": "Cambios pendientes",
+    "cancel": "Cancelar",
+    "save_changes": "Guardar cambios",
+    "saving": "Guardando...",
+    "alerts": {
+      "no_changes": "No hay cambios para guardar.",
+      "success": "¡Cursos del instructor actualizados correctamente!",
+      "error_generic": "No se pudieron actualizar los cursos del instructor. Por favor, inténtalo de nuevo.",
+      "error_with_message": "Error: {{message}}"
+    },
+    "course": {
+      "code": "Código:"
+    }
   }
 }

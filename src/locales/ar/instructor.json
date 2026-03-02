@@ -271,5 +271,30 @@
     "common": {
       "na": "غير متاح"
     }
+  },
+  "course_management_modal": {
+    "title": "إدارة الدورات",
+    "subtitle": "{{first_name}} {{last_name}}",
+    "select_accreditation": "اختر جهة الاعتماد",
+    "loading_courses": "جاري تحميل الدورات...",
+    "no_courses_available": "لا توجد دورات متاحة",
+    "selected_count": "{{selected}}/{{total}} محددة",
+    "select_all": "تحديد الكل",
+    "deselect_all": "إلغاء تحديد الكل",
+    "select": "تحديد",
+    "deselect": "إلغاء التحديد",
+    "changes_pending": "تغييرات معلقة",
+    "cancel": "إلغاء",
+    "save_changes": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "alerts": {
+      "no_changes": "لا توجد تغييرات للحفظ.",
+      "success": "تم تحديث دورات المدرب بنجاح!",
+      "error_generic": "فشل تحديث دورات المدرب. يرجى المحاولة مرة أخرى.",
+      "error_with_message": "خطأ: {{message}}"
+    },
+    "course": {
+      "code": "الكود:"
+    }
   }
 }

@@ -8,6 +8,7 @@ import './TraineeCardDesignerScreen.css';
 import trainingCenterLogo from '../../../assets/training_center_logo.png';
 import accLogo from '../../../assets/accretidation_logo.png';
 import qrCode from '../../../assets/QRcode.png';
+import instructorPhoto from '../../../assets/instructor.png';
 
 // Card dimensions: CR80 wallet card ratio ~1.586:1
 const CARD_WIDTH = 856;
@@ -45,7 +46,7 @@ const EXAMPLE_DATA = {
     issue_date_formatted: 'January 15, 2026',
     expiry_date: '2027-01-15',
     serial_number: 'CARD-2026-ABC123XYZ',
-    instructor_photo: trainingCenterLogo,   // placeholder visual
+    instructor_photo: instructorPhoto,
     training_center_logo: trainingCenterLogo,
     acc_logo: accLogo,
     qr_code: qrCode,
@@ -505,7 +506,38 @@ const TraineeCardDesignerScreen = () => {
                 };
             });
 
-            await accAPI.updateCardConfig(id, { card_config_json: { elements } });
+            const bgImageStyle = template?.card_background_image_url
+                ? `background-image: url('${template.card_background_image_url}'); background-size: cover; background-position: center; background-repeat: no-repeat;`
+                : 'background-color: #ffffff;';
+
+            const htmlContent = `
+<div style="position: relative; width: ${CARD_WIDTH}px; height: ${CARD_HEIGHT}px; ${bgImageStyle} overflow: hidden; font-family: sans-serif;">
+${elements.map(el => {
+                const leftPx = Math.round(el.x * CARD_WIDTH);
+                const topPx = Math.round(el.y * CARD_HEIGHT);
+                if (el.type === 'image') {
+                    const widthPx = Math.round(el.width * CARD_WIDTH);
+                    const heightPx = Math.round(el.height * CARD_HEIGHT);
+                    return `    <img src="${el.variable}" style="position: absolute; left: ${leftPx}px; top: ${topPx}px; width: ${widthPx}px; height: ${heightPx}px; object-fit: contain;" />`;
+                } else {
+                    let alignStyle = '';
+                    if (el.text_align === 'center') {
+                        alignStyle = `left: ${leftPx - 1000}px; width: 2000px; text-align: center;`;
+                    } else if (el.text_align === 'right') {
+                        alignStyle = `left: ${leftPx - 2000}px; width: 2000px; text-align: right;`;
+                    } else {
+                        alignStyle = `left: ${leftPx}px; text-align: left; white-space: nowrap;`;
+                    }
+                    return `    <div style="position: absolute; top: ${topPx}px; color: ${el.color}; font-size: ${el.font_size}px; font-family: '${el.font_family || 'Arial'}', sans-serif; font-weight: ${el.font_weight || 'normal'}; ${alignStyle} margin: 0; padding: 0; line-height: 1;">${el.variable}</div>`;
+                }
+            }).join('\n')}
+</div>
+`.trim();
+
+            await accAPI.updateCardSettings(id, {
+                card_template_html: htmlContent,
+                card_config_json: { elements }
+            });
             alert('Card configuration saved successfully!');
             navigate('/acc/trainee-card-template');
         } catch (err) {
@@ -577,9 +609,9 @@ const TraineeCardDesignerScreen = () => {
                     <div>
                         <h1 className="text-lg font-bold text-gray-900 leading-tight flex items-center gap-2">
                             <CreditCard size={20} className="text-indigo-600" />
-                            {template?.name || 'Untitled Template'}
+                            Global Trainee Card
                         </h1>
-                        <p className="text-xs text-gray-500">Trainee Card Designer · CR80 (856 × 540)</p>
+                        <p className="text-xs text-gray-500">ACC-wide card design · applies to all courses · CR80 (856 × 540)</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -658,7 +690,7 @@ const TraineeCardDesignerScreen = () => {
                     <div className="card-workspace-header">
                         <div className="card-template-info">
                             <CreditCard size={16} className="text-indigo-500" />
-                            <span className="card-template-name">{template?.name || 'Untitled Template'}</span>
+                            <span className="card-template-name">Global Trainee Card</span>
                             <span className="card-template-status">{template?.status || 'draft'}</span>
                         </div>
                         <div className="card-workspace-actions">

@@ -192,7 +192,7 @@ const Layout = ({ children }) => {
             label: 'Training & Instructors',
             items: [
               { path: '/admin/all-training-centers', icon: School, label: 'Training Centers' },
-              { path: '/admin/training-centers-map', icon: Map, label: 'Training Centers Map' },
+              { path: '/admin/training-centers-map', icon: Map, label: 'Training Centers Regions' },
               { path: '/admin/all-instructors', icon: Users, label: 'Instructors' },
               { path: '/admin/instructor-authorizations', icon: UserCheck, label: 'Instructor Commissions' },
             ]
@@ -353,7 +353,7 @@ const Layout = ({ children }) => {
     if (path === '/admin/training-center-applications') return 'TC Applications';
     if (path === '/admin/all-accs') return 'Accreditation Bodies';
     if (path === '/admin/all-training-centers') return 'Training Centers';
-    if (path === '/admin/training-centers-map') return 'Training Centers Map';
+    if (path === '/admin/training-centers-map') return 'Training Centers Regions';
     if (path === '/admin/all-instructors') return 'Instructors';
     if (path === '/admin/all-courses') return 'Courses';
     if (path === '/admin/classes') return 'Classes';

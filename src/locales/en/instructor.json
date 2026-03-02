@@ -271,5 +271,30 @@
     "common": {
       "na": "N/A"
     }
+  },
+  "course_management_modal": {
+    "title": "Manage Courses",
+    "subtitle": "{{first_name}} {{last_name}}",
+    "select_accreditation": "Select Accreditation",
+    "loading_courses": "Loading courses...",
+    "no_courses_available": "No courses available",
+    "selected_count": "{{selected}}/{{total}} selected",
+    "select_all": "Select All",
+    "deselect_all": "Deselect All",
+    "select": "Select",
+    "deselect": "Deselect",
+    "changes_pending": "Changes pending",
+    "cancel": "Cancel",
+    "save_changes": "Save Changes",
+    "saving": "Saving...",
+    "alerts": {
+      "no_changes": "No changes to save.",
+      "success": "Instructor courses updated successfully!",
+      "error_generic": "Failed to update instructor courses. Please try again.",
+      "error_with_message": "Error: {{message}}"
+    },
+    "course": {
+      "code": "Code:"
+    }
   }
 }

@@ -91,21 +91,23 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #ffffff;
   border: 4px solid white;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
 }
 
 .profile-avatar-placeholder {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  background: #ffffff;
   border: 4px solid white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-color, #3b82f6);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -320,4 +322,3 @@
     justify-content: center;
   }
 }
-

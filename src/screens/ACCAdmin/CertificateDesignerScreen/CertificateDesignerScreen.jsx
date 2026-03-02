@@ -9,6 +9,7 @@ import './CertificateDesignerScreen.css';
 import trainingCenterLogo from '../../../assets/training_center_logo.png';
 import accLogo from '../../../assets/accretidation_logo.png';
 import qrCode from '../../../assets/QRcode.png';
+import instructorPhoto from '../../../assets/instructor.png';
 
 const SidebarSection = ({ title, children, defaultOpen = true }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -43,7 +44,7 @@ const CertificateDesignerScreen = () => {
         ? {
             getTemplateDetails: (tid) => adminAPI.getCertificateTemplate(tid),
             uploadBackgroundImage: (tid, fd) => adminAPI.uploadCertificateTemplateBackground(tid, fd),
-            updateTemplate: (tid, data) => adminAPI.updateCertificateTemplateConfig(tid, data),
+            updateTemplate: (tid, data) => adminAPI.updateCertificateTemplate(tid, data),
             backRoute: '/admin/certificate-templates',
         }
         : {
@@ -72,7 +73,7 @@ const CertificateDesignerScreen = () => {
     };
 
     // Image-type variables: rendered as image placeholders on canvas and as <img> in HTML
-    const IMAGE_PLACEHOLDER_VARS = ['training_center_logo', 'acc_logo', 'qr_code'];
+    const IMAGE_PLACEHOLDER_VARS = ['training_center_logo', 'acc_logo', 'qr_code', 'instructor_photo'];
 
     // Dynamic Constants based on template type
     const availablePlaceholders = useMemo(() => {
@@ -136,6 +137,7 @@ const CertificateDesignerScreen = () => {
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
                 { variable: 'expiry_date', label: 'Expiry Date' },
+                { variable: 'instructor_photo', label: 'Instructor Photo (Image)' },
                 { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
                 { variable: 'acc_logo', label: 'ACC Logo (Image)' },
                 { variable: 'qr_code', label: 'QR Code (Image)' },
@@ -212,6 +214,7 @@ const CertificateDesignerScreen = () => {
                 issue_date_formatted: 'January 15, 2026',
                 verification_code: 'INS-VER-XYZ789ABC',
                 expiry_date: '2027-01-15',
+                instructor_photo: instructorPhoto,
                 training_center_logo: trainingCenterLogo,
                 acc_logo: accLogo,
                 qr_code: qrCode,

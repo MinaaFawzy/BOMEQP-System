@@ -1167,5 +1167,58 @@
     "common": {
       "na": "N/D"
     }
+  },
+  "trainee_card_template": {
+    "header": {
+      "title": "Plantilla de Tarjeta de Alumno",
+      "subtitle": "Diseña la tarjeta de identificación de tamaño cartera que aparece en cada certificado PDF"
+    },
+    "loading": "Cargando plantilla de tarjeta…",
+    "error": {
+      "load_failed": "Error al cargar la plantilla de tarjeta. Por favor, inténtalo de nuevo.",
+      "retry": "Reintentar"
+    },
+    "no_card": {
+      "title": "Aún no hay diseño de tarjeta",
+      "description": "Tu ACC aún no tiene un diseño de tarjeta de alumno. Haz clic abajo para abrir el diseñador de tarjetas y crear uno ahora.",
+      "go_to_design": "Ir al Diseño de Plantilla de Tarjeta",
+      "no_cert_templates": "No se encontraron plantillas de certificados. Por favor, crea una plantilla de certificado primero.",
+      "go_to_cert_templates": "Ir a Plantillas de Certificados",
+      "how_it_works": "Cómo funciona",
+      "step_1": "Haz clic en <strong>Ir al Diseño de Plantilla de Tarjeta</strong> para abrir el lienzo de la tarjeta.",
+      "step_2": "Sube una imagen de fondo de tarjeta (tamaño CR80 de cartera) y arrastra elementos al lienzo.",
+      "step_3": "Guarda — el diseño de la tarjeta aparecerá en esta página.",
+      "step_4": "Activa <strong>Incluir Tarjeta</strong> para adjuntarla a cada certificado PDF."
+    },
+    "banner": {
+      "text": "Esta tarjeta se agrega como <strong>página 2</strong> a cada certificado PDF cuando <strong>Incluir Tarjeta</strong> está activado."
+    },
+    "preview": {
+      "no_background": "Sin imagen de fondo",
+      "design_configured": "Diseño configurado",
+      "no_design": "Sin diseño aún"
+    },
+    "info": {
+      "template_name": "Plantilla de Certificado",
+      "template_type": "curso",
+      "stats": {
+        "elements": "{{count}} elemento{{plural}}",
+        "updated": "Actualizado {{date}}",
+        "id": "ID {{id}}"
+      }
+    },
+    "toggle": {
+      "title": "Incluir Tarjeta en PDF",
+      "enabled": "Activado — Los PDFs tendrán 2 páginas (certificado + tarjeta).",
+      "disabled": "Desactivado — Los PDFs son de una sola página (el diseño de la tarjeta se guarda pero no se imprime)."
+    },
+    "actions": {
+      "edit_design": "Editar Diseño de Tarjeta",
+      "create_design": "Crear Diseño de Tarjeta",
+      "certificate_design": "Diseño de Certificado"
+    },
+    "messages": {
+      "toggle_failed": "Error al actualizar la configuración de la tarjeta. Por favor, inténtalo de nuevo."
+    }
   }
 }

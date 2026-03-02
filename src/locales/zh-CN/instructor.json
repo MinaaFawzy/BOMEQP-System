@@ -271,5 +271,30 @@
     "common": {
       "na": "不适用"
     }
+  },
+  "course_management_modal": {
+    "title": "管理课程",
+    "subtitle": "{{first_name}} {{last_name}}",
+    "select_accreditation": "选择认证机构",
+    "loading_courses": "正在加载课程...",
+    "no_courses_available": "没有可用课程",
+    "selected_count": "已选择 {{selected}}/{{total}}",
+    "select_all": "全选",
+    "deselect_all": "取消全选",
+    "select": "选择",
+    "deselect": "取消选择",
+    "changes_pending": "待保存的更改",
+    "cancel": "取消",
+    "save_changes": "保存更改",
+    "saving": "正在保存...",
+    "alerts": {
+      "no_changes": "没有要保存的更改。",
+      "success": "讲师课程更新成功！",
+      "error_generic": "更新讲师课程失败。请重试。",
+      "error_with_message": "错误：{{message}}"
+    },
+    "course": {
+      "code": "代码："
+    }
   }
 }

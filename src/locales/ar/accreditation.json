@@ -23,22 +23,18 @@
       "title": "إدارة الاشتراك",
       "subtitle": "إدارة اشتراك جهة الاعتماد وبيانات الدفع"
     },
-
     "no_subscription": {
       "title": "لا يوجد اشتراك نشط",
       "description": "يجب الاشتراك للوصول إلى جميع ميزات جهة الاعتماد. يرجى إتمام عملية الدفع للمتابعة.",
       "subscribe_now": "اشترك الآن"
     },
-
     "current_subscription": {
       "title": "الاشتراك الحالي",
       "subtitle": "إدارة تفاصيل الاشتراك",
-
       "status": {
         "paid": "مدفوع",
         "pending": "قيد الانتظار"
       },
-
       "fields": {
         "start_date": "تاريخ البداية",
         "end_date": "تاريخ الانتهاء",
@@ -47,61 +43,46 @@
         "enabled": "مفعل",
         "disabled": "غير مفعل"
       },
-
       "actions": {
         "pay_subscription": "دفع الاشتراك",
         "manage_renewal": "إدارة التجديد"
       }
     },
-
     "payment_modal": {
       "title": "الاشتراك / دفع الاشتراك",
-
       "amount": "المبلغ",
       "amount_placeholder": "5000.00",
-
       "payment_method_title": "طريقة الدفع: بطاقة ائتمان",
       "payment_method_description": "سيتم تنفيذ الدفع بأمان عبر Stripe. اضغط \"ادفع الآن\" لإدخال بيانات البطاقة.",
-
       "cancel": "إلغاء",
       "pay_now": "ادفع الآن",
       "processing": "جاري المعالجة..."
     },
-
     "renewal_modal": {
       "title": "إدارة تجديد الاشتراك",
-
       "amount": "المبلغ",
       "amount_placeholder": "10000.00",
-
       "payment_method_title": "طريقة الدفع: بطاقة ائتمان",
       "payment_method_description": "سيتم تنفيذ الدفع بأمان عبر Stripe. اضغط \"تجديد الاشتراك\" لإدخال بيانات البطاقة.",
-
       "auto_renew": "تفعيل التجديد التلقائي",
       "auto_renew_hint": "عند التفعيل، سيتم تجديد الاشتراك تلقائيًا عند انتهاء الفترة الحالية.",
-
       "cancel": "إلغاء",
       "renew": "تجديد الاشتراك",
       "processing": "جاري المعالجة..."
     },
-
     "messages": {
       "payment_success": "تمت معالجة دفع الاشتراك بنجاح!",
       "renew_success": "تم تجديد الاشتراك بنجاح!"
     },
-
     "errors": {
       "invalid_amount": "يرجى إدخال مبلغ صحيح أكبر من 0",
       "min_amount": "يجب ألا يقل المبلغ عن 1 دولار",
-
       "create_payment_intent_failed": "فشل إنشاء عملية الدفع. حاول مرة أخرى.",
       "payment_not_completed": "لم يكتمل الدفع. الحالة: {{status}}",
       "payment_verification_failed": "فشل التحقق من الدفع. يرجى التواصل مع الدعم.",
       "payment_process_failed": "تم الدفع ولكن فشل تفعيل الاشتراك. يرجى التواصل مع الدعم.",
-
       "renew_failed": "تم الدفع ولكن فشل تجديد الاشتراك. يرجى التواصل مع الدعم."
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -111,7 +92,6 @@
       "title": "مراكز التدريب",
       "subtitle": "إدارة طلبات واعتمادات مراكز التدريب"
     },
-
     "tabs": {
       "total": "الكل",
       "pending": "قيد المراجعة",
@@ -119,11 +99,9 @@
       "returned": "معادة",
       "rejected": "مرفوض"
     },
-
     "search": {
       "placeholder": "ابحث عن مراكز التدريب..."
     },
-
     "table": {
       "training_center": "مركز التدريب",
       "email": "البريد الإلكتروني",
@@ -132,14 +110,12 @@
       "actions": "الإجراءات",
       "empty": "لا توجد مراكز تدريب"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "approve": "اعتماد",
       "reject": "رفض",
       "return": "إرجاع"
     },
-
     "status": {
       "pending": "قيد المراجعة",
       "active": "نشط",
@@ -148,15 +124,12 @@
       "rejected": "مرفوض",
       "na": "غير متاح"
     },
-
     "details": {
       "request_title": "تفاصيل طلب مركز التدريب",
       "details_title": "تفاصيل مركز التدريب",
-
       "request_info": "معلومات الطلب",
       "training_center_info": "معلومات مركز التدريب",
       "documents": "المستندات",
-
       "request_id": "رقم الطلب",
       "training_center_id": "رقم مركز التدريب",
       "request_date": "تاريخ الطلب",
@@ -167,7 +140,6 @@
       "total_requests": "إجمالي الطلبات",
       "no_history": "لا يوجد تاريخ"
     },
-
     "company": {
       "company_name": "اسم الشركة",
       "website": "الموقع الإلكتروني",
@@ -175,21 +147,17 @@
       "phone": "رقم الهاتف",
       "fax": "فاكس",
       "training_provider_type": "نوع جهة التدريب",
-
       "physical_address": "العنوان الفعلي",
       "mailing_same_as_physical": "عنوان المراسلات نفس الفعلي",
       "mailing_address": "عنوان المراسلات",
-
       "primary_contact": "جهة الاتصال الأساسية",
       "primary_contact_email": "بريد جهة الاتصال",
       "primary_contact_country": "دولة جهة الاتصال",
       "primary_contact_mobile": "هاتف جهة الاتصال",
-
       "secondary_contact": "جهة اتصال إضافية",
       "secondary_contact_email": "بريد جهة الاتصال الإضافية",
       "secondary_contact_country": "دولة جهة الاتصال الإضافية",
       "secondary_contact_mobile": "هاتف جهة الاتصال الإضافية",
-
       "gov_registry_number": "رقم السجل الحكومي",
       "registration_certificate": "شهادة تسجيل الشركة",
       "facility_floorplan": "مخطط المنشأة",
@@ -197,13 +165,11 @@
       "how_did_you_hear": "كيف سمعت عنا",
       "description": "الوصف"
     },
-
     "documents": {
       "view_certificate": "عرض الشهادة",
       "view_floorplan": "عرض المخطط",
       "view_document": "عرض المستند"
     },
-
     "rejection": {
       "title": "رفض طلب مركز التدريب",
       "reason_label": "سبب الرفض",
@@ -212,7 +178,6 @@
       "missing_reason": "يرجى إدخال سبب الرفض",
       "success": "تم رفض طلب مركز التدريب"
     },
-
     "return": {
       "title": "إرجاع طلب مركز التدريب",
       "comment_label": "ملاحظات الإرجاع",
@@ -221,14 +186,12 @@
       "missing_comment": "يرجى إدخال ملاحظات الإرجاع",
       "success": "تم إرجاع الطلب للمراجعة"
     },
-
     "messages": {
       "approve_confirm": "هل تريد اعتماد طلب مركز التدريب؟",
       "approve_success": "تم اعتماد طلب مركز التدريب بنجاح!",
       "approve_failed": "فشل اعتماد الطلب",
       "load_failed": "فشل تحميل البيانات"
     },
-
     "common": {
       "yes": "نعم",
       "no": "لا",
@@ -241,18 +204,15 @@
       "title": "طلبات اعتماد المدربين",
       "subtitle": "مراجعة طلبات اعتماد المدربين"
     },
-
     "tabs": {
       "total": "الكل",
       "pending": "قيد المراجعة",
       "active": "نشط",
       "returned": "معاد"
     },
-
     "search": {
       "placeholder": "ابحث عن مدرب..."
     },
-
     "table": {
       "instructor": "المدرب",
       "email": "البريد الإلكتروني",
@@ -262,14 +222,12 @@
       "empty": "لا يوجد مدربون",
       "requests_count": "إجمالي الطلبات"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "approve": "اعتماد",
       "reject": "رفض",
       "return": "إرجاع"
     },
-
     "status": {
       "pending": "قيد المراجعة",
       "approved": "معتمد",
@@ -280,16 +238,13 @@
       "unpaid": "غير مدفوع",
       "na": "غير متاح"
     },
-
     "details": {
       "request_title": "تفاصيل طلب المدرب",
       "details_title": "تفاصيل المدرب",
-
       "request_info": "معلومات الطلب",
       "instructor_info": "معلومات المدرب",
       "documents": "المستندات",
       "authorization_details": "تفاصيل الاعتماد",
-
       "request_id": "رقم الطلب",
       "training_center_id": "رقم مركز التدريب",
       "request_date": "تاريخ الطلب",
@@ -323,7 +278,6 @@
       "city": "المدينة",
       "address": "العنوان"
     },
-
     "fields": {
       "first_name": "الاسم الأول",
       "last_name": "اسم العائلة",
@@ -334,12 +288,10 @@
       "specialization": "التخصص",
       "training_center": "مركز التدريب"
     },
-
     "documents": {
       "view_document": "عرض",
       "document": "مستند"
     },
-
     "approval": {
       "modal_title": "اعتماد طلب المدرب",
       "price_label": "سعر الاعتماد",
@@ -348,7 +300,6 @@
       "note": "بعد الاعتماد، يجب على مسؤول المجموعة تحديد نسبة العمولة قبل أن يتمكن مركز التدريب من الدفع.",
       "success": "تم اعتماد المدرب بنجاح. في انتظار تحديد نسبة العمولة."
     },
-
     "rejection": {
       "modal_title": "رفض طلب المدرب",
       "reason_label": "سبب الرفض",
@@ -356,7 +307,6 @@
       "success": "تم رفض طلب المدرب",
       "missing_reason": "يرجى إدخال سبب الرفض"
     },
-
     "return": {
       "modal_title": "إرجاع طلب المدرب",
       "comment_label": "ملاحظات الإرجاع",
@@ -364,13 +314,11 @@
       "success": "تم إرجاع الطلب للمراجعة",
       "missing_comment": "يرجى إدخال ملاحظات الإرجاع"
     },
-
     "messages": {
       "approve_confirm": "هل تريد اعتماد طلب المدرب؟",
       "approve_failed": "فشل اعتماد الطلب",
       "load_failed": "فشل تحميل البيانات"
     },
-
     "common": {
       "cancel": "إلغاء",
       "approve": "اعتماد",
@@ -386,11 +334,9 @@
       "title": "المدربون المعتمدون",
       "subtitle": "عرض جميع المدربين المعتمدين"
     },
-
     "search": {
       "placeholder": "ابحث بالاسم أو البريد الإلكتروني أو الهاتف أو مركز التدريب..."
     },
-
     "table": {
       "instructor": "المدرب",
       "email": "البريد الإلكتروني",
@@ -401,26 +347,21 @@
       "actions": "الإجراءات",
       "empty": "لا يوجد مدربون معتمدون"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل"
     },
-
     "status": {
       "paid": "مدفوع",
       "pending": "قيد الانتظار",
       "na": "غير متاح"
     },
-
     "details": {
       "modal_title": "تفاصيل المدرب",
-
       "instructor_info": "معلومات المدرب",
       "training_center_info": "مركز التدريب",
       "training_centers_info": "مراكز التدريب",
       "authorization_details": "تفاصيل الاعتماد",
       "authorized_courses": "الدورات المعتمدة",
-
       "first_name": "الاسم الأول",
       "last_name": "اسم العائلة",
       "email": "البريد الإلكتروني",
@@ -429,17 +370,14 @@
       "is_assessor": "مدرب/مقيم",
       "cv": "رفع السيرة الذاتية / الشهادات الداعمة",
       "passport": "نسخة جواز السفر",
-
       "name": "الاسم",
       "commission_percentage": "نسبة العمولة",
       "authorization_price": "سعر الاعتماد"
     },
-
     "cards": {
       "commission_percentage": "نسبة العمولة",
       "authorization_price": "سعر الاعتماد"
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -453,23 +391,19 @@
       "create": "إنشاء دورة",
       "update": "تحديث الدورة"
     },
-
     "search": {
       "placeholder": "ابحث عن دورة..."
     },
-
     "filters": {
       "all_status": "كل الحالات",
       "active": "نشطة",
       "inactive": "غير نشطة",
       "archived": "مؤرشفة",
-
       "all_levels": "كل المستويات",
       "beginner": "مبتدئ",
       "intermediate": "متوسط",
       "advanced": "متقدم"
     },
-
     "table": {
       "course": "الدورة",
       "level": "المستوى",
@@ -480,18 +414,15 @@
       "actions": "الإجراءات",
       "no_courses": "لا توجد دورات"
     },
-
     "status": {
       "active": "نشطة",
       "inactive": "غير نشطة",
       "archived": "مؤرشفة"
     },
-
     "assessor": {
       "required": "مطلوب",
       "not_required": "غير مطلوب"
     },
-
     "pricing": {
       "not_set": "غير محدد",
       "information_title": "معلومات التسعير",
@@ -500,7 +431,6 @@
       "currency": "العملة",
       "note": "ملاحظة: يتم إدارة نسب العمولة بواسطة مسؤول المجموعة."
     },
-
     "form": {
       "course_name_en": "اسم الدورة (إنجليزي)",
       "course_name_ar": "اسم الدورة (عربي)",
@@ -508,16 +438,13 @@
       "category": "التصنيف",
       "sub_category": "التصنيف الفرعي",
       "description": "الوصف",
-
       "duration_hours": "المدة (بالساعات)",
       "max_capacity": "الحد الأقصى",
       "level": "المستوى",
       "status": "الحالة",
-
       "assessor_required": "يتطلب مُقيِّم",
       "assessor_required_hint": "هذه الدورة تتطلب مُقيِّم"
     },
-
     "validation": {
       "course_name_required": "اسم الدورة مطلوب",
       "course_name_max": "يجب ألا يزيد اسم الدورة عن 255 حرفًا",
@@ -532,7 +459,6 @@
       "invalid_status": "حالة غير صالحة",
       "currency_required": "العملة مطلوبة عند تحديد التسعير"
     },
-
     "messages": {
       "created_success": "تم إنشاء الدورة بنجاح!",
       "updated_success": "تم تحديث الدورة بنجاح!",
@@ -540,14 +466,11 @@
       "load_failed": "فشل تحميل الدورات",
       "save_failed": "فشل حفظ الدورة"
     },
-
     "details": {
       "modal_title": "تفاصيل الدورة",
-
       "course_information": "معلومات الدورة",
       "category_information": "معلومات التصنيف",
       "pricing_information": "معلومات التسعير",
-
       "course_id": "رقم الدورة",
       "course_name": "اسم الدورة",
       "course_code": "كود الدورة",
@@ -556,14 +479,11 @@
       "trainees": "المتدربون",
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث",
-
       "sub_category": "التصنيف الفرعي",
       "category": "التصنيف",
-
       "no_pricing": "لا يوجد تسعير",
       "no_pricing_hint": "يمكنك إضافة التسعير عند تعديل الدورة"
     },
-
     "actions": {
       "edit": "تعديل",
       "delete": "حذف",
@@ -574,7 +494,6 @@
       "delete_confirm_title": "حذف الدورة",
       "delete_confirm_message": "هل أنت متأكد من حذف هذه الدورة؟ لا يمكن التراجع عن هذا الإجراء."
     },
-
     "common": {
       "na": "غير متاح",
       "hours": "ساعات",
@@ -586,11 +505,9 @@
       "title": "الفصول",
       "subtitle": "عرض جميع الفصول من مراكز التدريب المعتمدة"
     },
-
     "search": {
       "placeholder": "ابحث عن فصل..."
     },
-
     "filters": {
       "all": "كل الحالات",
       "scheduled": "مجدولة",
@@ -598,7 +515,6 @@
       "completed": "مكتملة",
       "cancelled": "ملغاة"
     },
-
     "table": {
       "class_name": "اسم الدورة",
       "course": "الدورة",
@@ -613,11 +529,9 @@
       "actions": "الإجراءات",
       "empty": "لا توجد دورات"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل"
     },
-
     "status": {
       "scheduled": "مجدولة",
       "in_progress": "قيد التنفيذ",
@@ -625,10 +539,8 @@
       "cancelled": "ملغاة",
       "na": "غير متاح"
     },
-
     "details": {
       "modal_title": "تفاصيل الدورة",
-
       "class_info": "معلومات الدورة",
       "course_info": "معلومات الدورة التدريبية",
       "training_center_info": "معلومات مركز التدريب",
@@ -636,16 +548,13 @@
       "schedule_info": "معلومات الجدول",
       "location_capacity": "الموقع والسعة",
       "trainees": "المتدربون",
-
       "weekly_schedule": "الجدول الأسبوعي",
       "no_trainees": "لا يوجد متدربون مسجلون في هذه الدورة"
     },
-
     "fields": {
       "status": "الحالة",
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث",
-
       "course_name": "اسم الدورة",
       "course_code": "كود الدورة",
       "course_name_ar": "اسم الدورة (عربي)",
@@ -657,7 +566,6 @@
       "description": "الوصف",
       "sub_category": "التصنيف الفرعي",
       "category": "التصنيف",
-
       "first_name": "الاسم الاول",
       "last_name": "الاسم الاخير",
       "name": "الاسم",
@@ -667,22 +575,18 @@
       "address": "العنوان",
       "city": "المدينة",
       "country": "الدولة",
-
       "start_date": "تاريخ البداية",
       "end_date": "تاريخ النهاية",
       "exam_date": "تاريخ الاختبار",
       "exam_score": "درجة الاختبار",
       "start_time": "وقت البداية",
       "end_time": "وقت النهاية",
-
       "location_type": "نوع الموقع",
       "location_details": "تفاصيل الموقع",
       "capacity": "السعة",
       "full_percentage": "ممتلئة بنسبة {{percent}}٪",
-
       "trainee_id": "الرقم"
     },
-
     "common": {
       "na": "غير متاح",
       "to": "إلى",
@@ -695,17 +599,14 @@
       "title": "الشهادات",
       "subtitle": "عرض جميع الشهادات الصادرة باستخدام القوالب الخاصة بك"
     },
-
     "search": {
       "placeholder": "ابحث عن شهادة..."
     },
-
     "filters": {
       "all": "كل الحالات",
       "valid": "سارية",
       "invalid": "غير سارية"
     },
-
     "table": {
       "certificate_number": "رقم الشهادة",
       "name": "الاسم",
@@ -717,21 +618,17 @@
       "actions": "الإجراءات",
       "empty": "لا توجد شهادات"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "verify": "التحقق من الشهادة"
     },
-
     "status": {
       "valid": "سارية",
       "invalid": "غير سارية",
       "na": "غير متاح"
     },
-
     "details": {
       "modal_title": "تفاصيل الشهادة",
-
       "certificate_number": "رقم الشهادة",
       "trainee_name": "اسم المتدرب",
       "course": "الدورة",
@@ -743,11 +640,9 @@
       "download_pdf": "تحميل PDF",
       "status": "الحالة"
     },
-
     "pagination": {
       "per_page": "عدد العناصر في الصفحة"
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -758,17 +653,14 @@
       "subtitle": "إنشاء وإدارة قوالب الشهادات",
       "create": "إنشاء قالب"
     },
-
     "search": {
       "placeholder": "ابحث عن قالب..."
     },
-
     "filters": {
       "all": "كل الحالات",
       "active": "نشط",
       "inactive": "غير نشط"
     },
-
     "table": {
       "name": "الاسم",
       "type": "النوع",
@@ -783,32 +675,27 @@
       "training_center": "مركز التدريب",
       "instructor": "المدرب"
     },
-
     "type_descriptions": {
       "course": "لإكمال الدورة",
       "training_center": "لإعتماد مركز التدريب",
       "instructor": "لإعتماد المدرب"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "edit": "تعديل",
       "design": "تصميم القالب",
       "delete": "حذف"
     },
-
     "status": {
       "active": "نشط",
       "inactive": "غير نشط",
       "na": "غير متاح"
     },
-
     "modal": {
       "create_title": "إنشاء قالب",
       "edit_title": "تعديل قالب",
       "details_title": "تفاصيل القالب"
     },
-
     "form": {
       "template_type": "نوع القالب",
       "assigned_courses": "الدورات المعينة",
@@ -821,14 +708,12 @@
       "course_specific": "الدورات الخاصة",
       "select_courses": "اختر الدورات"
     },
-
     "buttons": {
       "cancel": "إلغاء",
       "create": "إنشاء",
       "update": "تحديث",
       "saving": "جاري الحفظ..."
     },
-
     "details": {
       "template_name": "اسم القالب",
       "category": "التصنيف",
@@ -838,17 +723,14 @@
       "no_configuration": "لا توجد إعدادات",
       "no_background": "لا توجد صورة خلفية"
     },
-
     "errors": {
       "save_failed": "فشل حفظ القالب. حاول مرة أخرى.",
       "delete_failed": "فشل حذف القالب. حاول مرة أخرى.",
       "delete_in_use": "هذا القالب مستخدم في {{count}} شهادة. سيؤدي الحذف إلى حذف جميع الشهادات المرتبطة."
     },
-
     "confirmations": {
       "delete": "هل أنت متأكد من حذف \"{{name}}\"؟"
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -859,11 +741,9 @@
       "subtitle": "إدارة وتتبع جميع أكواد الخصم",
       "add_code": "إضافة كود"
     },
-
     "search": {
       "placeholder": "ابحث بالكود أو النوع..."
     },
-
     "filters": {
       "status": {
         "all": "كل الحالات",
@@ -873,7 +753,6 @@
         "depleted": "نفدت الكمية"
       }
     },
-
     "table": {
       "code": "الكود",
       "discount": "الخصم",
@@ -888,23 +767,19 @@
       "unknown_course": "دورة غير معروفة",
       "not_set": "غير محدد"
     },
-
     "types": {
       "time_limited": "محدد بمدة",
       "quantity_based": "محدد بكمية"
     },
-
     "status": {
       "active": "نشط",
       "inactive": "غير نشط",
       "na": "غير متاح"
     },
-
     "modal": {
       "add_title": "إضافة كود خصم جديد",
       "edit_title": "تعديل كود الخصم"
     },
-
     "form": {
       "discount_code": "كود الخصم",
       "discount_percentage": "نسبة الخصم",
@@ -915,12 +790,10 @@
       "valid_from": "ساري من",
       "valid_until": "ساري حتى",
       "total_quantity": "إجمالي الكمية",
-
       "code_placeholder": "مثال: SAVE20",
       "percentage_placeholder": "مثال: 20",
       "quantity_placeholder": "مثال: 100"
     },
-
     "buttons": {
       "cancel": "إلغاء",
       "create": "إنشاء كود خصم",
@@ -928,32 +801,26 @@
       "creating": "جاري الإنشاء...",
       "updating": "جاري التحديث..."
     },
-
     "validation": {
       "code_required": "كود الخصم مطلوب",
       "discount_percentage_required": "يرجى إدخال نسبة خصم صحيحة",
       "discount_type_required": "نوع الخصم مطلوب",
       "course_required": "الدورة مطلوبة",
-
       "valid_from_required": "تاريخ البداية مطلوب",
       "valid_until_required": "تاريخ النهاية مطلوب",
       "valid_until_after_valid_from": "يجب أن يكون تاريخ النهاية بعد تاريخ البداية",
-
       "total_quantity_required": "إجمالي الكمية مطلوب ويجب أن يكون أكبر من 0"
     },
-
     "messages": {
       "created_success": "تم إنشاء كود الخصم بنجاح!",
       "updated_success": "تم تحديث كود الخصم بنجاح!",
       "deleted_success": "تم حذف كود الخصم بنجاح!"
     },
-
     "errors": {
       "create_failed": "فشل إنشاء كود الخصم. حاول مرة أخرى.",
       "delete_id_not_found": "لا يمكن الحذف: لم يتم العثور على رقم كود الخصم",
       "delete_failed": "فشل حذف كود الخصم: {{message}}"
     },
-
     "confirmations": {
       "delete_title": "حذف كود الخصم",
       "delete_message": "هل أنت متأكد من حذف كود الخصم \"{{code}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
@@ -965,14 +832,12 @@
       "title": "التصنيفات",
       "subtitle": "عرض التصنيفات المعيّنة وإدارة التصنيفات الخاصة بك"
     },
-
     "stats": {
       "total_categories": "إجمالي التصنيفات",
       "active_categories": "التصنيفات النشطة",
       "sub_categories": "التصنيفات الفرعية",
       "active_sub_categories": "التصنيفات الفرعية النشطة"
     },
-
     "table": {
       "category": "التصنيف",
       "description": "الوصف",
@@ -982,17 +847,14 @@
       "no_data": "لا توجد تصنيفات",
       "no_sub_categories": "لا توجد تصنيفات فرعية لهذا التصنيف"
     },
-
     "filters": {
       "all": "كل الحالات",
       "active": "نشط",
       "inactive": "غير نشط"
     },
-
     "search": {
       "placeholder": "ابحث بالاسم..."
     },
-
     "actions": {
       "refresh": "تحديث",
       "add_category": "إضافة تصنيف",
@@ -1002,19 +864,16 @@
       "edit_sub_category": "تعديل تصنيف فرعي",
       "delete_sub_category": "حذف تصنيف فرعي"
     },
-
     "badges": {
       "created_by_me": "تم إنشاؤه بواسطتي",
       "assigned_by_admin": "مُعيّن من الإدارة"
     },
-
     "modal": {
       "add_category": "إضافة تصنيف جديد",
       "edit_category": "تعديل التصنيف",
       "add_sub_category": "إضافة تصنيف فرعي",
       "edit_sub_category": "تعديل تصنيف فرعي"
     },
-
     "form": {
       "category_name_en": "اسم التصنيف (إنجليزي)",
       "category_name_ar": "اسم التصنيف (عربي)",
@@ -1023,12 +882,10 @@
       "active": "نشط",
       "inactive": "غير نشط"
     },
-
     "messages": {
       "save_failed": "فشل حفظ التصنيف",
       "delete_failed": "فشل حذف التصنيف"
     },
-
     "common": {
       "na": "غير متاح",
       "cancel": "إلغاء",
@@ -1041,17 +898,14 @@
       "title": "المعاملات المالية",
       "subtitle": "عرض جميع المعاملات المالية"
     },
-
     "summary": {
       "total_transactions": "إجمالي المعاملات",
       "total_received": "إجمالي المستلم",
       "total_paid": "إجمالي المدفوع"
     },
-
     "search": {
       "placeholder": "ابحث في المعاملات..."
     },
-
     "filters": {
       "type": {
         "all": "كل الأنواع",
@@ -1070,7 +924,6 @@
         "refunded": "مستردة"
       }
     },
-
     "table": {
       "type": "النوع",
       "payer": "الدافع",
@@ -1083,11 +936,9 @@
       "actions": "الإجراءات",
       "empty": "لا توجد معاملات"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل"
     },
-
     "status": {
       "completed": "مكتملة",
       "pending": "قيد الانتظار",
@@ -1095,44 +946,33 @@
       "refunded": "مستردة",
       "na": "غير متاح"
     },
-
     "details": {
       "modal_title": "تفاصيل المعاملة",
-
       "transaction_type": "نوع المعاملة",
       "payment_method": "طريقة الدفع",
       "payment_type": "نوع الدفع",
       "total_amount": "المبلغ الإجمالي",
       "amount_received": "المبلغ المستلم",
       "platform_commission": "عمولة المنصة",
-
       "payer_info": "معلومات الدافع",
       "payee_info": "معلومات المستلم",
-
       "name": "الاسم",
       "email": "البريد الإلكتروني",
       "type": "النوع",
-
       "description": "الوصف",
-
       "reference_info": "معلومات المرجع",
       "reference_type": "النوع",
-
       "commission_ledgers": "سجلات العمولات",
       "group_commission": "عمولة المجموعة",
       "acc_commission": "عمولة جهة الاعتماد",
-
       "created_at": "تاريخ الإنشاء",
       "completed_at": "تاريخ الإكمال",
-
       "payment_gateway_transaction_id": "رقم معاملة بوابة الدفع"
     },
-
     "messages": {
       "amount_after_commission": "المبلغ الذي استلمته بعد خصم العمولة",
       "commission_deducted": "تم خصم العمولة من المبلغ الإجمالي"
     },
-
     "common": {
       "na": "غير متاح"
     }
@@ -1142,11 +982,9 @@
       "title": "المدفوعات اليدوية المعلّقة",
       "subtitle": "مراجعة واعتماد طلبات الدفع اليدوية"
     },
-
     "search": {
       "placeholder": "ابحث حسب مركز التدريب أو الدورة أو المبلغ أو التاريخ..."
     },
-
     "table": {
       "training_center": "مركز التدريب",
       "course": "الدورة",
@@ -1159,16 +997,13 @@
       "empty_title": "لا توجد مدفوعات معلّقة",
       "empty_subtitle": "تمت مراجعة جميع طلبات الدفع"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "approve_payment": "اعتماد الدفع",
       "reject_payment": "رفض الدفع"
     },
-
     "details": {
       "modal_title": "تفاصيل طلب الدفع",
-
       "training_center": "مركز التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
@@ -1177,56 +1012,44 @@
       "final_amount": "المبلغ النهائي",
       "submitted_date": "تاريخ الإرسال",
       "updated_at": "تاريخ التحديث",
-
       "receipt": "إيصال الدفع",
       "view_receipt": "عرض الإيصال"
     },
-
     "approve": {
       "modal_title": "اعتماد الدفع",
-
       "training_center": "مركز التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "calculated_total": "الإجمالي المحسوب",
-
       "payment_amount": "مبلغ الدفع",
       "payment_amount_help": "أدخل مبلغ الدفع (يجب أن يطابق: {{amount}})",
-
       "submit": "اعتماد الدفع",
       "submitting": "جاري الاعتماد..."
     },
-
     "reject": {
       "modal_title": "رفض الدفع",
-
       "training_center": "مركز التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "amount": "المبلغ",
-
       "rejection_reason": "سبب الرفض",
       "rejection_placeholder": "اكتب سبب الرفض...",
       "rejection_help": "يرجى إدخال سبب واضح لرفض طلب الدفع (بحد أقصى 1000 حرف)",
-
       "submit": "رفض الدفع",
       "submitting": "جاري الرفض..."
     },
-
     "validation": {
       "payment_amount_required": "يرجى إدخال مبلغ دفع صحيح",
       "payment_amount_mismatch": "يجب أن يطابق مبلغ الدفع الإجمالي المحسوب: {{amount}}",
       "rejection_reason_required": "يرجى إدخال سبب الرفض",
       "rejection_reason_max": "يجب ألا يزيد سبب الرفض عن 1000 حرف"
     },
-
     "messages": {
       "approve_success": "تم اعتماد الدفع بنجاح وتم إنشاء الأكواد.",
       "reject_success": "تم رفض الدفع بنجاح.",
       "approve_failed": "فشل اعتماد الدفع. حاول مرة أخرى.",
       "reject_failed": "فشل رفض الدفع. حاول مرة أخرى."
     },
-
     "common": {
       "cancel": "إلغاء",
       "na": "غير متاح"
@@ -1238,12 +1061,10 @@
       "subtitle": "إدارة معلومات الحساب",
       "edit": "تعديل الملف الشخصي"
     },
-
     "status": {
       "active": "نشط",
       "inactive": "غير نشط"
     },
-
     "sections": {
       "accreditation_info": {
         "title": "معلومات جهة الاعتماد",
@@ -1283,7 +1104,6 @@
         "subtitle": "تحديث كلمة مرور الحساب"
       }
     },
-
     "form": {
       "name": "الاسم",
       "legal_name": "الاسم القانوني",
@@ -1291,51 +1111,41 @@
       "phone": "رقم الهاتف",
       "fax": "فاكس",
       "website": "الموقع الإلكتروني",
-
       "street_address": "عنوان الشارع",
       "postal_code": "الرمز البريدي",
       "country": "الدولة",
       "city": "المدينة",
-
       "title": "اللقب",
       "first_name": "الاسم الأول",
       "last_name": "اسم العائلة",
       "mobile": "رقم الموبايل",
-
       "passport_copy": "صورة جواز السفر",
       "view_passport": "عرض جواز السفر الحالي",
-
       "gov_registry_number": "رقم السجل الحكومي",
       "hear_about_us": "كيف سمعت عنا؟",
       "company_certificate": "شهادة تسجيل الشركة",
       "view_certificate": "عرض الشهادة الحالية",
-
       "language": "اللغة"
     },
-
     "placeholders": {
       "select_country": "اختر الدولة",
       "select_city": "اختر المدينة",
       "hear_about_us": "كيف سمعت عنا؟"
     },
-
     "agreements": {
       "receive_comms": "أوافق على استلام مراسلات أخرى من BOMEQP",
       "terms": "أؤكد أنني قرأت وفهمت ووافقت على الشروط والأحكام"
     },
-
     "buttons": {
       "cancel": "إلغاء",
       "save": "حفظ التغييرات",
       "saving": "جاري الحفظ...",
       "upload_logo": "اضغط لرفع الشعار"
     },
-
     "messages": {
       "profile_updated": "تم تحديث الملف الشخصي بنجاح!",
       "password_changed": "تم تغيير كلمة المرور بنجاح!"
     },
-
     "validation": {
       "required": "هذا الحقل مطلوب",
       "invalid_email": "بريد إلكتروني غير صالح",
@@ -1344,7 +1154,6 @@
       "file_type": "يجب أن يكون الملف PDF أو صورة",
       "file_size": "يجب ألا يتجاوز حجم الملف 10 ميجابايت"
     },
-
     "password": {
       "current": "كلمة المرور الحالية",
       "new": "كلمة المرور الجديدة",
@@ -1355,9 +1164,63 @@
       "submit": "تغيير كلمة المرور",
       "submitting": "جاري التغيير..."
     },
-
     "common": {
       "na": "غير متاح"
+    }
+  },
+  "trainee_card_template": {
+    "header": {
+      "title": "قالب بطاقة المتدرب",
+      "subtitle": "صمم بطاقة تعريفية بحجم المحفظة تظهر على كل شهادة PDF"
+    },
+    "loading": "جاري تحميل قالب البطاقة…",
+    "error": {
+      "load_failed": "فشل تحميل قالب البطاقة. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
+    },
+    "no_card": {
+      "title": "لا يوجد تصميم بطاقة بعد",
+      "description": "لا يوجد لدى مركز الاعتماد الخاص بك تصميم لبطاقة المتدرب بعد. انقر أدناه لفتح مصمم البطاقات وإنشاء واحد الآن.",
+      "go_to_design": "الذهاب إلى تصميم قالب البطاقة",
+      "no_cert_templates": "لم يتم العثور على قوالب شهادات. يرجى إنشاء قالب شهادة أولاً.",
+      "go_to_cert_templates": "الذهاب إلى قوالب الشهادات",
+      "how_it_works": "كيف يعمل",
+      "step_1": "انقر على <strong>الذهاب إلى تصميم قالب البطاقة</strong> لفتح لوحة الرسم.",
+      "step_2": "قم برفع خلفية البطاقة (بحجم CR80 للمحفظة) واسحب العناصر إلى اللوحة.",
+      "step_3": "احفظ — سيظهر تصميم البطاقة على هذه الصفحة.",
+      "step_4": "قم بتفعيل <strong>تضمين البطاقة</strong> لإرفاقها بكل شهادة PDF."
+    },
+    "banner": {
+      "text": "تتم إضافة هذه البطاقة كـ <strong>صفحة 2</strong> إلى كل شهادة PDF عند تفعيل <strong>تضمين البطاقة</strong>."
+    },
+    "preview": {
+      "no_background": "لا توجد صورة خلفية",
+      "design_configured": "تم تكوين التصميم",
+      "no_design": "لا يوجد تصميم بعد"
+    },
+    "info": {
+      "template_name": "قالب الشهادة",
+      "template_type": "دورة",
+      "global_card_title": "بطاقة المتدرب العامة",
+      "global_card_subtitle": "تصميم عام لكل الدورات",
+      "stats": {
+        "elements": "{{count}} عنصر{{plural}}",
+        "updated": "تم التحديث {{date}}",
+        "id": "معرف {{id}}"
+      }
+    },
+    "toggle": {
+      "title": "تضمين البطاقة في PDF",
+      "enabled": "مفعل — ستكون ملفات PDF من صفحتين (شهادة + بطاقة).",
+      "disabled": "معطل — ملفات PDF من صفحة واحدة (يتم حفظ تصميم البطاقة ولكن لا يتم طباعته)."
+    },
+    "actions": {
+      "edit_design": "تعديل تصميم البطاقة",
+      "create_design": "إنشاء تصميم البطاقة",
+      "certificate_design": "تصميم الشهادة"
+    },
+    "messages": {
+      "toggle_failed": "فشل تحديث إعدادات البطاقة. يرجى المحاولة مرة أخرى."
     }
   }
 }

@@ -228,6 +228,14 @@ const AuthorizedInstructorsScreen = () => {
     // Define columns for DataTable
     const columns = useMemo(() => [
         {
+            header: 'ID',
+            accessor: 'id',
+            sortable: true,
+            render: (value) => (
+                <span className="text-sm font-medium text-gray-700">{value}</span>
+            )
+        },
+        {
             header: t('authorized_instructors_screen.table.instructor'),
             accessor: 'first_name',
             sortable: true,

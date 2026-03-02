@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X, BookOpen, ChevronDown, ChevronRight, Loader2, Check, Grid3x3, Layers } from 'lucide-react';
 import { adminAPI, accAPI } from '../../services/api';
+import { useTranslation } from '../../hooks/useTranslation';
 import './CourseManagementModal.css';
 
 const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -135,7 +137,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
       });
 
       if (addCourseIds.length === 0 && removeCourseIds.length === 0) {
-        alert('No changes to save.');
+        alert(t('instructor.course_management_modal.alerts.no_changes'));
         setSaving(false);
         return;
       }
@@ -156,17 +158,17 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
         await accAPI.updateInstructorCourses(instructor.id, data);
       }
 
-      alert('Instructor courses updated successfully!');
+      alert(t('instructor.course_management_modal.alerts.success'));
       onClose();
     } catch (error) {
       console.error('Failed to update instructor courses:', error);
       if (error.response?.data?.message) {
-        alert(`Error: ${error.response.data.message}`);
+        alert(t('instructor.course_management_modal.alerts.error_with_message', { message: error.response.data.message }));
       } else if (error.response?.data?.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat().join('\n');
-        alert(`Error:\n${errorMessages}`);
+        alert(t('instructor.course_management_modal.alerts.error_with_message', { message: errorMessages }));
       } else {
-        alert('Failed to update instructor courses. Please try again.');
+        alert(t('instructor.course_management_modal.alerts.error_generic'));
       }
     } finally {
       setSaving(false);
@@ -198,10 +200,13 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
             </div>
             <div>
               <h2 className="course-management-modal-title">
-                Manage Courses
+                {t('instructor.course_management_modal.title')}
               </h2>
               <p className="course-management-modal-subtitle">
-                {instructor?.first_name} {instructor?.last_name}
+                {t('instructor.course_management_modal.subtitle', { 
+                  first_name: instructor?.first_name || '', 
+                  last_name: instructor?.last_name || '' 
+                })}
               </p>
             </div>
           </div>
@@ -216,7 +221,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
         {/* ACC Selector - Only show for Group Admin */}
         {isAdmin && instructor?.accs && instructor.accs.length > 0 && (
           <div className="course-management-acc-selector">
-            <label className="course-management-acc-label">Select Accreditation</label>
+            <label className="course-management-acc-label">{t('instructor.course_management_modal.select_accreditation')}</label>
             <select
               className="course-management-acc-select"
               value={selectedACC || ''}
@@ -259,12 +264,12 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
           {loading ? (
             <div className="course-management-loading">
               <Loader2 className="animate-spin" size={40} />
-              <p>Loading courses...</p>
+              <p>{t('instructor.course_management_modal.loading_courses')}</p>
             </div>
           ) : categories.length === 0 ? (
             <div className="course-management-empty">
               <BookOpen size={64} />
-              <p>No courses available</p>
+              <p>{t('instructor.course_management_modal.no_courses_available')}</p>
             </div>
           ) : (
             <div className="course-management-list">
@@ -296,20 +301,23 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                         <div className="course-management-category-info">
                           <span className="course-management-category-name">{category.name}</span>
                           <span className="course-management-category-count">
-                            {selectedCount}/{allCoursesInCategory.length} selected
+                            {t('instructor.course_management_modal.selected_count', { 
+                              selected: selectedCount, 
+                              total: allCoursesInCategory.length 
+                            })}
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleAllCoursesInCategory(category, !allSelected);
-                        }}
-                        className={`course-management-toggle-btn ${allSelected ? 'selected' : ''}`}
-                      >
-                        <Check size={16} />
-                        {allSelected ? 'Deselect All' : 'Select All'}
-                      </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAllCoursesInCategory(category, !allSelected);
+                          }}
+                          className={`course-management-toggle-btn ${allSelected ? 'selected' : ''}`}
+                        >
+                          <Check size={16} />
+                          {allSelected ? t('instructor.course_management_modal.deselect_all') : t('instructor.course_management_modal.select_all')}
+                        </button>
                     </div>
 
                     {expandedCategories[category.id] && (
@@ -335,7 +343,10 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                                   <div className="course-management-subcategory-info">
                                     <span className="course-management-subcategory-name">{subCategory.name}</span>
                                     <span className="course-management-subcategory-count">
-                                      {selectedCountInSub}/{subCategory.courses.length} selected
+                                      {t('instructor.course_management_modal.selected_count', { 
+                                        selected: selectedCountInSub, 
+                                        total: subCategory.courses.length 
+                                      })}
                                     </span>
                                   </div>
                                 </div>
@@ -347,7 +358,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                                   className={`course-management-toggle-btn-small ${allSelectedInSub ? 'selected' : ''}`}
                                 >
                                   <Check size={14} />
-                                  {allSelectedInSub ? 'Deselect' : 'Select'}
+                                  {allSelectedInSub ? t('instructor.course_management_modal.deselect') : t('instructor.course_management_modal.select')}
                                 </button>
                               </div>
 
@@ -357,7 +368,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
                                     <div key={course.id} className="course-management-course">
                                       <div className="course-management-course-info">
                                         <div className="course-management-course-main">
-                                          <span className="course-management-course-code">{course.code}</span>
+                                          <span className="course-management-course-code">{t('instructor.course_management_modal.course.code')} {course.code}</span>
                                           <span className="course-management-course-name">{course.name}</span>
                                         </div>
                                         {course.name_ar && (
@@ -393,7 +404,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
           <div className="course-management-footer-info">
             {hasChanges() && (
               <span className="course-management-changes-badge">
-                Changes pending
+                {t('instructor.course_management_modal.changes_pending')}
               </span>
             )}
           </div>
@@ -403,7 +414,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
               className="course-management-btn course-management-btn-secondary"
               disabled={saving}
             >
-              Cancel
+              {t('instructor.course_management_modal.cancel')}
             </button>
             <button
               onClick={handleSubmit}
@@ -413,12 +424,12 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
               {saving ? (
                 <>
                   <Loader2 className="animate-spin" size={18} />
-                  Saving...
+                  {t('instructor.course_management_modal.saving')}
                 </>
               ) : (
                 <>
                   <Check size={18} />
-                  Save Changes
+                  {t('instructor.course_management_modal.save_changes')}
                 </>
               )}
             </button>

@@ -1397,7 +1397,7 @@ const ClassesScreen = () => {
             >
               {saving ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <div className="loading-spinner-small" />
                   {t('classes_screen.actions.saving')}
                 </>
               ) : (

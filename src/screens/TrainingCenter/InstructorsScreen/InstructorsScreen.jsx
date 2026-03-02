@@ -889,6 +889,14 @@ const TrainingCenterInstructorsScreen = () => {
   // Define columns for DataTable
   const instructorsColumns = useMemo(() => [
     {
+      header: t('instructors_screen.id') || 'ID',
+      accessor: 'id',
+      sortable: true,
+      render: (value) => (
+        <span className="instructors-column-id-badge">{value}</span>
+      )
+    },
+    {
       header: t('instructors_screen.instructor'),
       accessor: 'name',
       sortable: true,

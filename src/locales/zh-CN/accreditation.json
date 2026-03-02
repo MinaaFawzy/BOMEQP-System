@@ -1177,5 +1177,58 @@
     "common": {
       "na": "N/A"
     }
+  },
+  "trainee_card_template": {
+    "header": {
+      "title": "学员 卡片 模板",
+      "subtitle": "设计 钱包 大小 ID 卡片 出现 在 每个 证书 PDF"
+    },
+    "loading": "加载 卡片 模板…",
+    "error": {
+      "load_failed": "失败 到 加载 卡片 模板. 请 尝试 再次.",
+      "retry": "重试"
+    },
+    "no_card": {
+      "title": "否 卡片 设计 还",
+      "description": "您的 ACC 还 没有 一个 学员 卡片 设计. 点击 下方 到 打开 卡片 设计师 和 创建 一个 现在.",
+      "go_to_design": "去 到 卡片 模板 设计",
+      "no_cert_templates": "否 证书 模板 找到. 请 创建 一个 证书 模板 首先.",
+      "go_to_cert_templates": "去 到 证书 模板",
+      "how_it_works": "它 如何 工作",
+      "step_1": "点击 <strong>去 到 卡片 模板 设计</strong> 到 打开 卡片 画布.",
+      "step_2": "上传 一个 卡片 背景 (CR80 钱包 大小) 和 拖动 元素 到 画布.",
+      "step_3": "保存 — 卡片 设计 将 出现 在 此 页面.",
+      "step_4": "切换 <strong>包括 卡片</strong> 到 附加 它 到 每个 证书 PDF."
+    },
+    "banner": {
+      "text": "此 卡片 是 附加 作为 <strong>页面 2</strong> 到 每个 证书 PDF 当 <strong>包括 卡片</strong> 是 启用."
+    },
+    "preview": {
+      "no_background": "否 背景 图片",
+      "design_configured": "设计 已 配置",
+      "no_design": "否 设计 还"
+    },
+    "info": {
+      "template_name": "证书 模板",
+      "template_type": "课程",
+      "stats": {
+        "elements": "{{count}} 元素{{plural}}",
+        "updated": "已更新 {{date}}",
+        "id": "ID {{id}}"
+      }
+    },
+    "toggle": {
+      "title": "包括 卡片 在 PDF",
+      "enabled": "已启用 — PDFs 将 有 2 页面 (证书 + 卡片).",
+      "disabled": "已禁用 — PDFs 是 单页面 (卡片 设计 是 已保存 但 不 打印)."
+    },
+    "actions": {
+      "edit_design": "编辑 卡片 设计",
+      "create_design": "创建 卡片 设计",
+      "certificate_design": "证书 设计"
+    },
+    "messages": {
+      "toggle_failed": "失败 到 更新 卡片 设置. 请 尝试 再次."
+    }
   }
 }
