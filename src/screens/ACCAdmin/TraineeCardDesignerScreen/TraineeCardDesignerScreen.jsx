@@ -18,8 +18,9 @@ const IMAGE_PLACEHOLDER_VARS = ['instructor_photo', 'training_center_logo', 'acc
 
 const AVAILABLE_VARIABLES = [
     { variable: 'instructor_name', label: 'Instructor Full Name' },
-    { variable: 'instructor_first_name', label: 'First Name' },
-    { variable: 'instructor_last_name', label: 'Last Name' },
+    // { variable: 'instructor_first_name', label: 'First Name' },
+    // { variable: 'instructor_last_name', label: 'Last Name' },
+    { variable: 'student_name', label: 'Student Name' },
     { variable: 'course_name', label: 'Course Name' },
     { variable: 'course_code', label: 'Course Code' },
     { variable: 'training_center_name', label: 'Training Center Name' },
@@ -38,6 +39,7 @@ const EXAMPLE_DATA = {
     instructor_name: 'Dr. Sarah Johnson',
     instructor_first_name: 'Sarah',
     instructor_last_name: 'Johnson',
+    student_name: 'John Doe',
     course_name: 'Advanced Project Management',
     course_code: 'APM-301',
     training_center_name: 'Excellence Training Center',

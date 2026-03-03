@@ -318,19 +318,36 @@ const CertificatesScreen = () => {
                 { key: 'verification_code', label: t('certificates_screen.details.verification_code'), icon: Hash },
                 {
                   key: 'certificate_pdf_url',
-                  label: t('certificates_screen.details.certificate_pdf'),
-                  icon: Download,
-                  render: (value) => value ? (
-                    <a
-                      href={value}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
-                    >
-                      <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
-                      {t('certificates_screen.details.download_pdf')}
-                    </a>
-                  ) : t('certificates_screen.common.na')
+                  label: t('certificates_screen.details.files_label'),
+                  icon: FileText,
+                  render: (value, row) => (
+                    <div className="flex flex-wrap gap-3">
+                      {value ? (
+                        <a
+                          href={value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
+                        >
+                          <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
+                          {t('certificates_screen.details.view_certificate')}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 text-sm">{t('certificates_screen.common.na')}</span>
+                      )}
+                      {row?.card_pdf_url && (
+                        <a
+                          href={row.card_pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
+                        >
+                          <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
+                          {t('certificates_screen.details.view_card')}
+                        </a>
+                      )}
+                    </div>
+                  )
                 },
                 { key: 'status', label: t('certificates_screen.details.status'), type: 'status' },
               ]}

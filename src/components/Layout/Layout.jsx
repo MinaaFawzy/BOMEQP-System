@@ -376,7 +376,7 @@ const Layout = ({ children }) => {
     if (path === '/acc/courses') return 'Courses';
     if (path === '/acc/certificates') return 'Certificates';
     if (path === '/acc/certificate-templates') return 'Certificate Templates';
-    if (path === '/acc/trainee-card-template') return 'Trainee Card Templates';
+    if (path === '/acc/trainee-card-template') return t('acc_admin.trainee_card_template');
     if (path === '/acc/materials') return 'Materials';
     if (path === '/acc/discount-codes') return 'Discount Codes';
     if (path === '/acc/categories') return 'Course Categories';

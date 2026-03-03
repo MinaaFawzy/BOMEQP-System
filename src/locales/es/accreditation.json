@@ -638,6 +638,9 @@
       "verification_code": "Código de verificación",
       "certificate_pdf": "PDF del certificado",
       "download_pdf": "Descargar PDF",
+      "files_label": "Archivos",
+      "view_certificate": "Ver certificado",
+      "view_card": "Ver tarjeta",
       "status": "Estado"
     },
     "pagination": {

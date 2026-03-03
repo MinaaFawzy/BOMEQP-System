@@ -334,11 +334,9 @@
       "title": "अधिकृत प्रशिक्षक",
       "subtitle": "सभी स्वीकृत प्रशिक्षकों को देखें"
     },
-
     "search": {
       "placeholder": "नाम, ईमेल, फ़ोन या प्रशिक्षण केंद्र से खोजें..."
     },
-
     "table": {
       "instructor": "प्रशिक्षक",
       "email": "ईमेल",
@@ -349,26 +347,21 @@
       "actions": "क्रियाएं",
       "empty": "कोई अधिकृत प्रशिक्षक नहीं मिला"
     },
-
     "actions": {
       "view_details": "विवरण देखें"
     },
-
     "status": {
       "paid": "भुगतान किया गया",
       "pending": "लंबित",
       "na": "लागू नहीं"
     },
-
     "details": {
       "modal_title": "प्रशिक्षक विवरण",
-
       "instructor_info": "प्रशिक्षक जानकारी",
       "training_center_info": "प्रशिक्षण केंद्र",
       "training_centers_info": "प्रशिक्षण केंद्र",
       "authorization_details": "प्राधिकरण विवरण",
       "authorized_courses": "अधिकृत पाठ्यक्रम",
-
       "first_name": "पहला नाम",
       "last_name": "अंतिम नाम",
       "email": "ईमेल",
@@ -377,17 +370,14 @@
       "is_assessor": "प्रशिक्षक/मूल्यांकनकर्ता",
       "cv": "सी.वी. अपलोड करें / सहायक प्रमाण पत्र",
       "passport": "पासपोर्ट प्रति",
-
       "name": "नाम",
       "commission_percentage": "कमीशन प्रतिशत",
       "authorization_price": "प्राधिकरण शुल्क"
     },
-
     "cards": {
       "commission_percentage": "कमीशन प्रतिशत",
       "authorization_price": "प्राधिकरण शुल्क"
     },
-
     "common": {
       "na": "लागू नहीं"
     }
@@ -648,6 +638,9 @@
       "verification_code": "सत्यापन कोड",
       "certificate_pdf": "प्रमाणपत्र PDF",
       "download_pdf": "डाउनलोड PDF",
+      "files_label": "फाइलें",
+      "view_certificate": "देखें प्रमाणपत्र",
+      "view_card": "देखें कार्ड",
       "status": "स्थिति"
     },
     "pagination": {
@@ -685,7 +678,6 @@
       "training_center": "प्रशिक्षण केंद्र",
       "instructor": "प्रशिक्षक"
     },
-
     "type_descriptions": {
       "course": "पाठ्यक्रम पूर्णता के लिए",
       "training_center": "प्रशिक्षण केंद्र प्राधिकरण के लिए",

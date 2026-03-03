@@ -3,9 +3,9 @@ import { Phone, Mail, MessageCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import './SupportButton.css';
 
-const SUPPORT_EMAIL = 'fady22malak@gmail.com';
-const SUPPORT_PHONE = '01287952795';
-const SUPPORT_PHONE_WITH_CODE = '201287952795';
+const SUPPORT_EMAIL = 'bahaa.riyad@gmail.com';
+const SUPPORT_PHONE = '01116291000';
+const SUPPORT_PHONE_WITH_CODE = '201116291000';
 
 const SupportButton = () => {
   const { t } = useTranslation('common');
@@ -43,7 +43,7 @@ const SupportButton = () => {
       );
 
       const body = encodeURIComponent(
-`Hello Support Team,
+        `Hello Support Team,
 
 ${message}
 `
@@ -60,7 +60,7 @@ ${message}
 
       setIsOpen(false);
       setMessage('');
-    } 
+    }
     else if (selectedMethod === 'phone') {
       const whatsappLink = `https://wa.me/${SUPPORT_PHONE_WITH_CODE}?text=${encodeURIComponent(message)}`;
       window.open(whatsappLink, '_blank', 'noopener,noreferrer');

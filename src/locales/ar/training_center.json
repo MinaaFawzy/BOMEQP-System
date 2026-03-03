@@ -145,31 +145,25 @@
     "browse_and_request_authorization_from_Accreditation_Bodies": "تصفح واطلب الاعتماد من جهات الاعتماد",
     "available_accreditation": "جهات الاعتماد المتاحة",
     "my_authorizations": "اعتماداتي",
-
     "accreditation_body_name": "اسم جهة الاعتماد",
     "active": "نشط",
     "email": "البريد الإلكتروني",
     "country": "الدولة",
     "status": "الحالة",
     "actions": "الإجراءات",
-
     "view_details": "عرض التفاصيل",
     "view_info": "عرض المعلومات",
     "request_authorization": "طلب اعتماد",
-
     "acc": "جهة الاعتماد",
     "request_date": "تاريخ الطلب",
     "reviewed_at": "تاريخ المراجعة",
-
     "search_by_name_email_or_country": "ابحث بالاسم أو البريد أو الدولة...",
     "no_accs_found": "لا توجد جهات اعتماد",
     "search_by_accreditations_name_or_status": "ابحث باسم جهة الاعتماد أو الحالة...",
     "no_authorization_requests_found": "لا توجد طلبات اعتماد",
-
     "request_authorization_from": "طلب اعتماد من",
     "accreditation_body_details": "تفاصيل جهة الاعتماد",
     "authorization_request_details": "تفاصيل طلب الاعتماد",
-
     "id": "المعرف",
     "name": "الاسم",
     "phone": "رقم الهاتف",
@@ -184,7 +178,6 @@
     "description": "الوصف",
     "created_at": "تاريخ الإنشاء",
     "updated_at": "تاريخ التحديث",
-
     "additional_info": "معلومات إضافية",
     "acc_id": "معرف جهة الاعتماد",
     "authorization_request_submitted_successfully": "تم إرسال طلب الاعتماد بنجاح",
@@ -193,13 +186,11 @@
     "use_formdata_with_structure": "يرجى استخدام FormData بالهيكل الصحيح",
     "server_error_occurred": "حدث خطأ في الخادم",
     "failed_to_submit_request": "فشل إرسال الطلب",
-
     "additional_information": "معلومات إضافية",
     "accreditation_body_comment_return_reason": "تعليق جهة الاعتماد / سبب الإرجاع",
     "rejection_reason": "سبب الرفض",
     "submitted_documents": "المستندات المرفقة",
     "acc_name": "اسم جهة الاعتماد",
-
     "available": "متاح",
     "pending": "قيد المراجعة",
     "approved": "معتمد",
@@ -472,7 +463,6 @@
       "subtitle": "عرض ودفع طلبات اعتماد المدربين",
       "refresh": "تحديث البيانات"
     },
-
     "table": {
       "instructor": "المدرب",
       "accreditation": "جهة الاعتماد",
@@ -483,7 +473,6 @@
       "empty": "لا توجد طلبات اعتماد مطابقة لخيارات البحث",
       "search_placeholder": "ابحث بالاسم أو الرقم أو جهة الاعتماد..."
     },
-
     "filters": {
       "all_status": "كل الحالات",
       "pending": "قيد المراجعة",
@@ -495,12 +484,10 @@
       "paid": "مدفوع",
       "failed": "فشل"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "pay_authorization": "دفع الاعتماد"
     },
-
     "payment": {
       "title": "دفع اعتماد المدرب",
       "instructor": "المدرب",
@@ -516,7 +503,6 @@
       "already_paid": "تم دفع هذا الاعتماد بالفعل.",
       "invalid_price": "سعر الاعتماد غير صالح. يرجى التواصل مع الدعم."
     },
-
     "details": {
       "title": "تفاصيل الاعتماد",
       "group_admin_status": "حالة مسؤول المجموعة",
@@ -547,7 +533,6 @@
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث"
     },
-
     "status": {
       "pending": "قيد المراجعة",
       "approved": "معتمد",
@@ -557,7 +542,6 @@
       "failed": "فشل",
       "na": "غير متاح"
     },
-
     "errors": {
       "no_authorization_selected": "لم يتم اختيار اعتماد",
       "payment_not_completed": "لم يكتمل الدفع. الحالة: {{status}}",
@@ -575,7 +559,6 @@
       "edit": "تعديل دورة",
       "update": "تحديث الدورة"
     },
-
     "stats": {
       "total": "إجمالي الدورات",
       "scheduled": "مجدولة",
@@ -583,7 +566,6 @@
       "cancelled": "ملغاة",
       "in_progress": "قيد التنفيذ"
     },
-
     "table": {
       "class_name": "اسم الدورة",
       "course": "الدورة",
@@ -599,56 +581,43 @@
       "no_classes_filtered": "لا توجد دورات مطابقة لخيارات البحث",
       "search_placeholder": "ابحث باسم الدورة أو المدرب..."
     },
-
     "status": {
       "all": "كل الحالات",
       "scheduled": "مجدولة",
       "completed": "مكتملة",
       "cancelled": "ملغاة"
     },
-
     "form": {
       "accreditation": "جهة الاعتماد",
       "select_accreditation": "اختر جهة اعتماد...",
       "no_accreditations": "لا توجد جهات اعتماد",
       "no_accreditations_help": "يجب أن يكون لديك اعتماد واحد على الأقل.",
-
       "category": "التصنيف",
       "select_category": "اختر تصنيفًا...",
-
       "sub_category": "التصنيف الفرعي",
       "select_sub_category": "اختر تصنيفًا فرعيًا...",
-
       "course": "الدورة",
       "select_course": "اختر دورة...",
       "no_courses": "لا توجد دورات متاحة",
-
       "class_name": "اسم الدورة",
       "class_name_placeholder": "مثال: دورة يناير 2024",
-
       "instructor": "المدرب",
       "select_instructor": "اختر مدربًا...",
       "no_instructors": "لا يوجد مدربون",
-
       "assessor_required_title": "هذه الدورة تتطلب مُقيِّم",
       "assessor_required_no": "لا يوجد مُقيِّمون متاحون",
       "assessor_required_info": "يتم عرض المُقيِّمين فقط",
-
       "start_date": "تاريخ البداية",
       "end_date": "تاريخ النهاية",
-
       "exam_date": "تاريخ الاختبار (اختياري)",
       "exam_date_help": "تاريخ عقد الاختبار",
-
       "grade": "الدرجة (اختياري)",
       "grade_help": "الدرجة من 0 إلى 100",
-
       "location": "الموقع",
       "physical": "حضوري",
       "online": "عن بُعد",
       "hybrid": "هجين"
     },
-
     "trainees": {
       "title": "المتدربون (اختياري)",
       "search_placeholder": "ابحث بالاسم أو البريد أو الرقم...",
@@ -657,7 +626,6 @@
       "no_trainees": "لا يوجد متدربون",
       "no_trainees_search": "لا يوجد متدربون مطابقون للبحث"
     },
-
     "details": {
       "title": "تفاصيل الدورة",
       "course_info": "معلومات الدورة",
@@ -668,7 +636,6 @@
       "no_enrolled": "لا يوجد متدربون مسجلون",
       "mark_complete": "تعيين كمكتملة"
     },
-
     "actions": {
       "cancel": "إلغاء",
       "save": "حفظ",
@@ -677,7 +644,6 @@
       "delete_title": "حذف الدورة",
       "delete_confirm": "هل أنت متأكد من حذف هذه الدورة؟ لا يمكن التراجع عن هذا الإجراء."
     },
-
     "errors": {
       "acc_required": "جهة الاعتماد مطلوبة",
       "category_required": "التصنيف مطلوب",
@@ -689,7 +655,6 @@
       "end_date_required": "تاريخ النهاية مطلوب",
       "save_failed": "فشل حفظ الدورة. يرجى التأكد من إدخال جميع البيانات."
     },
-
     "common": {
       "na": "غير متاح",
       "not_set": "غير محدد"
@@ -701,7 +666,6 @@
       "subtitle": "إصدار وإدارة الشهادات التدريبية",
       "issue": "إصدار شهادة"
     },
-
     "table": {
       "certificate_number": "رقم الشهادة",
       "trainee": "المتدرب",
@@ -712,48 +676,40 @@
       "actions": "الإجراءات",
       "search_placeholder": "ابحث برقم الشهادة أو اسم المتدرب أو الدورة..."
     },
-
     "filters": {
       "all_status": "كل الحالات",
       "valid": "سارية",
       "expired": "منتهية",
       "revoked": "ملغاة"
     },
-
     "actions": {
       "view_details": "عرض التفاصيل",
       "download": "تحميل الشهادة",
       "verify": "التحقق من الشهادة"
     },
-
     "modal": {
       "issue_title": "إصدار شهادة",
       "details_title": "تفاصيل الشهادة"
     },
-
     "form": {
       "class": "الدورة",
       "select_class": "اختر دورة",
       "loading_classes": "جاري تحميل الدورات...",
       "no_classes": "لا توجد دورات متاحة",
       "class_help": "اختر دورة لإصدار شهادة لها",
-
       "trainee": "المتدرب",
       "select_trainee": "اختر متدرب",
       "no_trainees": "لا يوجد متدربون في هذه الدورة",
       "trainee_help": "اختر متدربًا من هذه الدورة",
-
       "issue_date": "تاريخ الإصدار",
       "expiry_date": "تاريخ الانتهاء",
       "expiry_help": "يجب أن يكون بعد تاريخ الإصدار"
     },
-
     "buttons": {
       "cancel": "إلغاء",
       "issue": "إصدار الشهادة",
       "generating": "جاري الإصدار..."
     },
-
     "details": {
       "certificate_number": "رقم الشهادة",
       "verification_code": "رمز التحقق",
@@ -765,9 +721,11 @@
       "status": "الحالة",
       "certificate_file": "ملف الشهادة",
       "view_certificate": "عرض الشهادة",
-      "download_certificate": "تحميل الشهادة"
+      "download_certificate": "تحميل الشهادة",
+      "files_label": "الملفات",
+      "view_card": "عرض البطاقة",
+      "download_card": "تحميل البطاقة"
     },
-
     "status": {
       "valid": "سارية",
       "expired": "منتهية",
@@ -775,12 +733,10 @@
       "invalid": "غير صالحة",
       "na": "غير متاح"
     },
-
     "messages": {
       "issued_success": "تم إصدار الشهادة بنجاح!",
       "duplicate": "تم إصدار شهادة لهذا المتدرب في هذه الدورة بالفعل."
     },
-
     "errors": {
       "select_acc": "يرجى اختيار جهة اعتماد",
       "select_course": "يرجى اختيار دورة",
@@ -789,6 +745,7 @@
       "expiry_after_issue": "يجب أن يكون تاريخ الانتهاء بعد تاريخ الإصدار",
       "duplicate_submit": "لا يمكن إصدار الشهادة: يوجد سجل مكرر لهذا المتدرب في هذه الدورة.",
       "download_failed": "فشل تحميل الشهادة. حاول مرة أخرى.",
+      "download_card_failed": "فشل تحميل البطاقة. حاول مرة أخرى.",
       "no_permission": "ليس لديك صلاحية لتحميل هذه الشهادة.",
       "not_found": "ملف الشهادة غير موجود.",
       "server_error": "حدث خطأ في الخادم. حاول لاحقًا.",
@@ -801,37 +758,30 @@
       "subtitle": "إدارة مخزون وشراء رموز الشهادات",
       "purchase": "شراء رموز"
     },
-
     "tabs": {
       "inventory": "المخزون",
       "purchase_history": "سجل المشتريات"
     },
-
     "search": {
       "inventory_placeholder": "ابحث بالكود أو الدورة...",
       "history_placeholder": "ابحث بالكود أو الدورة..."
     },
-
     "filter": {
       "all": "كل الحالات",
       "available": "متاح",
       "used": "مستخدم"
     },
-
     "inventory": {
       "empty_title": "لا توجد رموز في المخزون",
       "empty_subtitle_default": "قم بشراء رموز للبدء!",
       "empty_subtitle_filtered": "جرّب تعديل عوامل التصفية",
-
       "total_codes": "إجمالي الرموز",
       "available_codes": "المتاحة",
       "used_codes": "المستخدمة"
     },
-
     "history": {
       "empty_title": "لا يوجد سجل مشتريات",
       "empty_subtitle": "سيظهر سجل مشترياتك هنا",
-
       "accreditation": "جهة الاعتماد",
       "course": "الدورة",
       "quantity": "الكمية",
@@ -839,62 +789,48 @@
       "purchase_date": "تاريخ الشراء",
       "payment_method": "طريقة الدفع"
     },
-
     "purchase_modal": {
       "title": "شراء رموز الشهادات",
-
       "accreditation": "جهة الاعتماد",
       "no_approved_acc": "لا توجد جهات اعتماد معتمدة. يرجى الحصول على موافقة أولاً.",
       "no_approved_acc_warning": "لم يتم العثور على جهات اعتماد معتمدة. يرجى طلب الاعتماد أولاً.",
-
       "category": "التصنيف",
       "select_category": "اختر تصنيفًا...",
       "loading_categories": "جاري تحميل التصنيفات...",
-
       "sub_category": "التصنيف الفرعي",
       "select_sub_category": "اختر تصنيفًا فرعيًا...",
       "loading_sub_categories": "جاري تحميل التصنيفات الفرعية...",
-
       "course": "الدورة",
       "select_course": "اختر دورة...",
       "loading_courses": "جاري تحميل الدورات...",
       "no_courses": "لا توجد دورات للتصنيف الفرعي المختار",
-
       "quantity": "الكمية",
-
       "discount_code": "كود الخصم (اختياري)",
       "no_discount_code": "لا يوجد كود خصم",
       "manual_discount_hint": "لا توجد أكواد خصم. يمكنك إدخال كود يدويًا إذا كان لديك.",
       "discount_codes_available": "يوجد {{count}} كود خصم متاح لهذه الدورة",
       "available_discount_codes": "أكواد الخصم المتاحة",
       "expires": "ينتهي في",
-
       "payment_method": "طريقة الدفع",
       "credit_card": "بطاقة ائتمان",
       "manual_payment": "دفع يدوي (رفع إيصال)",
-
       "payment_info_title": "معلومات الدفع اليدوي",
       "final_amount": "المبلغ النهائي",
       "supported_formats": "الصيغ المدعومة",
       "max_size": "الحد الأقصى",
-
       "payment_amount": "مبلغ الدفع",
       "payment_amount_hint": "أدخل المبلغ الذي قمت بدفعه",
-
       "payment_receipt": "إيصال الدفع",
-
       "credit_card_info_title": "طريقة الدفع: بطاقة ائتمان",
       "credit_card_info_text": "سيتم تنفيذ الدفع بأمان عبر Stripe. سيتم احتساب المبلغ النهائي شامل الخصومات. اضغط \"شراء رموز\" لإدخال بيانات البطاقة.",
       "select_course_first": "اختر المادة اولا",
       "enter_discount_manually": "أدخل كود الخصم يدويًا"
     },
-
     "buttons": {
       "cancel": "إلغاء",
       "purchase": "شراء رموز",
       "processing": "جاري المعالجة..."
     },
-
     "status": {
       "available": "متاح",
       "used": "مستخدم",
@@ -906,26 +842,20 @@
       "completed": "مكتمل",
       "approved": "معتمد"
     },
-
     "errors": {
       "select_acc": "يرجى اختيار جهة اعتماد",
       "select_course": "يرجى اختيار دورة",
       "invalid_quantity": "يرجى إدخال كمية صحيحة",
       "invalid_data": "بيانات غير صحيحة. يرجى التحقق والمحاولة مرة أخرى.",
-
       "payment_intent_failed": "فشل إنشاء عملية الدفع. حاول مرة أخرى.",
       "validation_failed": "فشل التحقق من البيانات. يرجى مراجعة الإدخال.",
-
       "file_type_not_supported": "نوع الملف غير مدعوم",
       "file_size_exceeded": "يجب ألا يتجاوز حجم الملف {{size}} ميجابايت",
       "file_process_failed": "فشل معالجة الملف. حاول مرة أخرى.",
-
       "payment_failed": "فشل التحقق من الدفع. يرجى التواصل مع الدعم.",
       "purchase_failed": "تم الدفع ولكن فشل إتمام الشراء. يرجى التواصل مع الدعم.",
-
       "load_failed": "فشل تحميل البيانات"
     },
-
     "messages": {
       "manual_payment_submitted": "تم إرسال طلب الدفع بنجاح. في انتظار الموافقة.",
       "purchase_success": "تم شراء الرموز بنجاح!"
@@ -936,17 +866,14 @@
       "title": "المعاملات المالية",
       "subtitle": "عرض جميع المعاملات المالية"
     },
-
     "summary": {
       "total_transactions": "إجمالي المعاملات",
       "total_spent": "إجمالي المصروف",
       "total_received": "إجمالي المستلم"
     },
-
     "search": {
       "placeholder": "ابحث حسب النوع أو المبلغ أو الحالة أو الدافع أو المستلم..."
     },
-
     "filters": {
       "type": {
         "all": "كل الأنواع",
@@ -962,7 +889,6 @@
         "refunded": "مُستردة"
       }
     },
-
     "table": {
       "type": "النوع",
       "payer": "الدافع",
@@ -974,13 +900,11 @@
       "empty_subtitle": "لا توجد معاملات متاحة",
       "empty_filtered": "لا توجد معاملات مطابقة لخيارات البحث"
     },
-
     "transaction_type": {
       "code_purchase": "شراء رموز",
       "course_purchase": "شراء دورة",
       "instructor_authorization": "اعتماد مدرب"
     },
-
     "status": {
       "pending": "قيد المراجعة",
       "completed": "مكتملة",
@@ -988,25 +912,19 @@
       "refunded": "مُستردة",
       "na": "غير متاح"
     },
-
     "modal": {
       "title": "تفاصيل المعاملة",
-
       "transaction_type": "نوع المعاملة",
       "payment_method": "طريقة الدفع",
       "description": "الوصف",
-
       "payer_info": "معلومات الدافع",
       "payee_info": "معلومات المستلم",
-
       "name": "الاسم",
       "email": "البريد الإلكتروني",
       "type": "النوع",
-
       "reference_info": "معلومات المرجع",
       "reference_type": "النوع",
       "reference_details": "التفاصيل",
-
       "transfer_info": "معلومات التحويل التلقائي",
       "gross_amount": "المبلغ الإجمالي",
       "commission": "العمولة (15٪)",
@@ -1014,14 +932,11 @@
       "transfer_status": "حالة التحويل",
       "stripe_transfer_id": "معرّف تحويل Stripe",
       "transferred_at": "تاريخ التحويل",
-
       "created_at": "تاريخ الإنشاء",
       "completed_at": "تاريخ الاكتمال",
-
       "payment_gateway_id": "معرّف معاملة بوابة الدفع",
       "no_additional_details": "لا توجد تفاصيل إضافية"
     },
-
     "common": {
       "na": "غير متاح",
       "yes": "نعم",
@@ -1033,30 +948,25 @@
       "title": "الملف الشخصي",
       "subtitle": "إدارة بيانات مركز التدريب"
     },
-
     "actions": {
       "edit": "تعديل الملف الشخصي",
       "cancel": "إلغاء",
       "save": "حفظ التغييرات",
       "saving": "جاري الحفظ..."
     },
-
     "messages": {
       "profile_updated": "تم تحديث الملف الشخصي بنجاح!",
       "password_changed": "تم تغيير كلمة المرور بنجاح!"
     },
-
     "errors": {
       "load_failed": "فشل تحميل البيانات. حاول مرة أخرى.",
       "update_failed": "فشل تحديث البيانات. حاول مرة أخرى.",
       "password_change_failed": "فشل تغيير كلمة المرور"
     },
-
     "sections": {
       "company_info": {
         "title": "معلومات الشركة",
         "subtitle": "البيانات الأساسية لمركز التدريب",
-
         "user_name": "الاسم",
         "company_name": "اسم الشركة",
         "website": "الموقع الإلكتروني",
@@ -1066,33 +976,27 @@
         "training_provider_type": "نوع جهة التدريب",
         "select_type": "اختر النوع"
       },
-
       "physical_address": {
         "title": "العنوان الفعلي",
         "subtitle": "الموقع الفعلي لمركز التدريب",
-
         "address": "العنوان",
         "city": "المدينة",
         "country": "الدولة",
         "postal_code": "الرمز البريدي",
         "select_country": "اختر الدولة"
       },
-
       "mailing_address": {
         "title": "عنوان المراسلات",
         "subtitle": "عنوان استلام المراسلات",
         "same_as_physical": "نفس العنوان الفعلي",
-
         "address": "عنوان المراسلات",
         "city": "مدينة المراسلات",
         "country": "دولة المراسلات",
         "postal_code": "الرمز البريدي"
       },
-
       "primary_contact": {
         "title": "جهة الاتصال الأساسية",
         "subtitle": "جهة الاتصال الرئيسية للمركز",
-
         "contact_title": "اللقب",
         "first_name": "الاسم الأول",
         "last_name": "اسم العائلة",
@@ -1101,12 +1005,10 @@
         "mobile": "رقم الهاتف",
         "select_title": "اختر اللقب"
       },
-
       "secondary_contact": {
         "title": "جهة اتصال إضافية",
         "subtitle": "جهة اتصال احتياطية (اختياري)",
         "add": "إضافة جهة اتصال إضافية",
-
         "contact_title": "اللقب",
         "first_name": "الاسم الأول",
         "last_name": "اسم العائلة",
@@ -1114,48 +1016,37 @@
         "country": "الدولة",
         "mobile": "رقم الهاتف"
       },
-
       "additional_info": {
         "title": "معلومات إضافية",
         "subtitle": "بيانات التسجيل والتفضيلات",
-
         "gov_registry_number": "رقم السجل الحكومي",
         "registration_certificate": "شهادة تسجيل الشركة",
         "registration_formats": "PDF أو JPEG أو PNG (حد أقصى 10 ميجا)",
         "view_current_certificate": "عرض الشهادة الحالية",
-
         "facility_floorplan": "مخطط المنشأة (اختياري)",
         "view_current_floorplan": "عرض المخطط الحالي",
-
         "interested_fields": "المجالات المهتم بها (اختياري)",
         "how_did_you_hear": "كيف سمعت عنا؟ (اختياري)",
         "how_did_you_hear_placeholder": "أخبرنا كيف تعرفت علينا..."
       }
     },
-
     "password": {
       "title": "تغيير كلمة المرور",
       "subtitle": "تحديث كلمة مرور الحساب",
-
       "current": "كلمة المرور الحالية",
       "new": "كلمة المرور الجديدة",
       "confirm": "تأكيد كلمة المرور الجديدة",
-
       "current_placeholder": "أدخل كلمة المرور الحالية",
       "new_placeholder": "يجب أن تحتوي على أحرف كبيرة وأرقام ورموز",
       "confirm_placeholder": "تأكيد كلمة المرور الجديدة",
-
       "submit": "تغيير كلمة المرور"
     },
-
     "language": {
       "title": "إعدادات اللغة",
       "subtitle": "اختر لغتك المفضلة",
-
       "application_language": "لغة التطبيق",
       "description": "اختر اللغة التي تفضل استخدامها في واجهة التطبيق. سيتم تحديث الصفحة تلقائيًا عند تغيير اللغة."
     },
-
     "common": {
       "training_center": "مركز التدريب",
       "no_email": "لا يوجد بريد إلكتروني"

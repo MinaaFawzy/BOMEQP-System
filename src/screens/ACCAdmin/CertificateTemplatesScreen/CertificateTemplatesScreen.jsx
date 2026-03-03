@@ -47,6 +47,7 @@ const CertificateTemplatesScreen = () => {
     course_ids: [],
     name: '',
     status: 'active',
+    include_card: false,
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -189,6 +190,7 @@ const CertificateTemplatesScreen = () => {
       course_ids: [],
       name: '',
       status: 'active',
+      include_card: false,
     });
     setErrors({});
     setExpandedCategories(new Set());
@@ -204,6 +206,7 @@ const CertificateTemplatesScreen = () => {
       course_ids: [],
       name: '',
       status: 'active',
+      include_card: false,
     });
     setErrors({});
     setExpandedCategories(new Set());
@@ -327,9 +330,10 @@ const CertificateTemplatesScreen = () => {
         status: formData.status,
       };
 
-      // Only include course_ids for course type templates
+      // Only include course_ids and include_card for course type templates
       if (formData.template_type === 'course') {
         templateData.course_ids = formData.course_ids;
+        templateData.include_card = formData.include_card;
 
         if (!templateData.course_ids || templateData.course_ids.length === 0) {
           setErrors({ general: t('certificate_templates_screen.errors.no_courses_selected', 'Please select at least one course') });
@@ -432,25 +436,25 @@ const CertificateTemplatesScreen = () => {
     setSelectedTemplate(template);
     setIsEditMode(true);
 
-    // Determine course_ids from template
+    const templateType = template.template_type || 'course';
+
+    // Determine course_ids only for course-type templates
     let courseIds = [];
-    if (template.courses && Array.isArray(template.courses) && template.courses.length > 0) {
-      courseIds = template.courses.map(c => c.id);
-    } else if (template.course_id) {
-      // Legacy single course
-      courseIds = [template.course_id];
-    } else if (template.category_id) {
-      // Legacy category - we might want to alert the user or just start with empty/all
-      // For now, let's start with empty so they choose, or maybe fetch all courses for that category
-      // But we don't want to auto-assign all courses if they didn't ask.
-      courseIds = [];
+    if (templateType === 'course') {
+      if (template.courses && Array.isArray(template.courses) && template.courses.length > 0) {
+        courseIds = template.courses.map(c => c.id);
+      } else if (template.course_id) {
+        // Legacy single course
+        courseIds = [template.course_id];
+      }
     }
 
     setFormData({
-      template_type: template.template_type || 'course',
+      template_type: templateType,
       course_ids: courseIds,
       name: template.name || '',
       status: template.status || 'active',
+      include_card: templateType === 'course' ? (template.include_card ?? false) : false,
     });
     setErrors({});
     setExpandedCategories(new Set());
@@ -773,6 +777,29 @@ const CertificateTemplatesScreen = () => {
             error={errors.name}
           />
 
+          {/* Include Card Switch - Only show for course type templates */}
+          {formData.template_type === 'course' && (
+            <div className="include-card-toggle-row">
+              <div className="include-card-toggle-text">
+                <span className="include-card-toggle-label">
+                  {t('certificate_templates_screen.form.include_card', 'Include Card')}
+                </span>
+                <span className="include-card-toggle-desc">
+                  {t('certificate_templates_screen.form.include_card_desc', 'Attach a trainee card as a second page in the generated PDF')}
+                </span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formData.include_card}
+                onClick={() => setFormData(prev => ({ ...prev, include_card: !prev.include_card }))}
+                className={`include-card-switch ${formData.include_card ? 'include-card-switch--on' : 'include-card-switch--off'}`}
+              >
+                <span className="include-card-switch__thumb" />
+              </button>
+            </div>
+          )}
+
           {/* Course Selection - Only show for course type templates */}
           {formData.template_type === 'course' && (
             <div>
@@ -1023,34 +1050,12 @@ const CertificateTemplatesScreen = () => {
                 }
               },
               { key: 'status', label: t('certificate_templates_screen.details.status') },
-              {
+              // Only show assigned courses field for course-type templates
+              ...(selectedTemplate?.template_type === 'course' || !selectedTemplate?.template_type ? [{
                 key: 'courses',
                 label: t('certificate_templates_screen.form.assigned_courses', 'Assigned Courses'),
                 showEmpty: true,
                 render: (_, row) => {
-                  // For training_center and instructor types, show applicable message
-                  if (row.template_type === 'training_center') {
-                    return (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Building2 size={16} className="text-green-600" />
-                        <span className="text-sm italic">
-                          {t('certificate_templates_screen.common.applies_to_all_training_centers', 'Applies to all approved training centers')}
-                        </span>
-                      </div>
-                    );
-                  }
-
-                  if (row.template_type === 'instructor') {
-                    return (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <GraduationCap size={16} className="text-purple-600" />
-                        <span className="text-sm italic">
-                          {t('certificate_templates_screen.common.applies_to_all_instructors', 'Applies to all authorized instructors')}
-                        </span>
-                      </div>
-                    );
-                  }
-
                   // Course type templates
                   if (row.courses && row.courses.length > 0) {
                     return (
@@ -1102,7 +1107,7 @@ const CertificateTemplatesScreen = () => {
 
                   return <span className="text-gray-400 italic">{t('certificate_templates_screen.common.na', 'N/A')}</span>;
                 }
-              }
+              }] : [])
             ]}
           />
         )}

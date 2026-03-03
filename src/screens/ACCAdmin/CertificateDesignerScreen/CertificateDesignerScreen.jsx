@@ -75,13 +75,18 @@ const CertificateDesignerScreen = () => {
     // Image-type variables: rendered as image placeholders on canvas and as <img> in HTML
     const IMAGE_PLACEHOLDER_VARS = ['training_center_logo', 'acc_logo', 'qr_code', 'instructor_photo'];
 
+    // ACC-related variable keys to hide when coming from the Group Admin dashboard
+    const ACC_ONLY_VARS = ['acc_logo', 'acc_legal_name'];
+
     // Dynamic Constants based on template type
     const availablePlaceholders = useMemo(() => {
         const templateType = template?.template_type || 'course';
 
+        let list = [];
+
         // Course Certificate Variables
         if (templateType === 'course') {
-            return [
+            list = [
                 { variable: 'student_name', label: 'Student Name' },
                 { variable: 'course_name', label: 'Course Name' },
                 { variable: 'date', label: 'Issue Date' },
@@ -95,18 +100,10 @@ const CertificateDesignerScreen = () => {
         }
 
         // Training Center Template Variables
-        if (templateType === 'training_center') {
-            return [
-                { variable: 'training_center_name', label: 'Training Center Name' },
+        else if (templateType === 'training_center') {
+            list = [
                 { variable: 'training_center_legal_name', label: 'Training Center Legal Name' },
-                { variable: 'training_center_email', label: 'Training Center Email' },
-                { variable: 'training_center_country', label: 'Training Center Country' },
-                { variable: 'training_center_city', label: 'Training Center City' },
-                { variable: 'training_center_registration_number', label: 'Registration Number' },
-                { variable: 'acc_name', label: 'ACC Name' },
                 { variable: 'acc_legal_name', label: 'ACC Legal Name' },
-                { variable: 'acc_registration_number', label: 'ACC Registration Number' },
-                { variable: 'acc_country', label: 'ACC Country' },
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
@@ -117,22 +114,11 @@ const CertificateDesignerScreen = () => {
         }
 
         // Instructor Template Variables
-        if (templateType === 'instructor') {
-            return [
+        else if (templateType === 'instructor') {
+            list = [
                 { variable: 'instructor_name', label: 'Instructor Full Name' },
-                { variable: 'instructor_first_name', label: 'Instructor First Name' },
-                { variable: 'instructor_last_name', label: 'Instructor Last Name' },
-                { variable: 'instructor_email', label: 'Instructor Email' },
                 { variable: 'instructor_id_number', label: 'Instructor ID Number' },
-                { variable: 'instructor_country', label: 'Instructor Country' },
-                { variable: 'instructor_city', label: 'Instructor City' },
-                { variable: 'course_name', label: 'Course Name' },
-                { variable: 'course_name_ar', label: 'Course Name (Arabic)' },
-                { variable: 'course_code', label: 'Course Code' },
-                { variable: 'acc_name', label: 'ACC Name' },
                 { variable: 'acc_legal_name', label: 'ACC Legal Name' },
-                { variable: 'acc_registration_number', label: 'ACC Registration Number' },
-                { variable: 'acc_country', label: 'ACC Country' },
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
@@ -145,20 +131,31 @@ const CertificateDesignerScreen = () => {
         }
 
         // Default to course
-        return [
-            { variable: 'student_name', label: 'Student Name' },
-            { variable: 'course_name', label: 'Course Name' },
-            { variable: 'date', label: 'Issue Date' },
-        ];
-    }, [template?.template_type]);
+        else {
+            list = [
+                { variable: 'student_name', label: 'Student Name' },
+                { variable: 'course_name', label: 'Course Name' },
+                { variable: 'date', label: 'Issue Date' },
+            ];
+        }
+
+        // Strip ACC-only variables when accessed from the Group Admin dashboard
+        if (isGroupAdmin) {
+            list = list.filter(p => !ACC_ONLY_VARS.includes(p.variable));
+        }
+
+        return list;
+    }, [template?.template_type, isGroupAdmin]);
 
     // Example data for preview - shows actual data length and format
     const exampleData = useMemo(() => {
         const templateType = template?.template_type || 'course';
 
+        let data = {};
+
         // Course Certificate Example Data
         if (templateType === 'course') {
-            return {
+            data = {
                 student_name: 'John Smith',
                 course_name: 'Advanced Business Management',
                 date: 'January 15, 2026',
@@ -172,18 +169,10 @@ const CertificateDesignerScreen = () => {
         }
 
         // Training Center Example Data
-        if (templateType === 'training_center') {
-            return {
-                training_center_name: 'Excellence Training Center',
+        else if (templateType === 'training_center') {
+            data = {
                 training_center_legal_name: 'Excellence Training Center LLC',
-                training_center_email: 'info@excellencetraining.com',
-                training_center_country: 'United States',
-                training_center_city: 'New York',
-                training_center_registration_number: 'TC-2024-001234',
-                acc_name: 'Global Accreditation Council',
                 acc_legal_name: 'Global Accreditation Council Inc.',
-                acc_registration_number: 'ACC-2020-5678',
-                acc_country: 'United States',
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
                 verification_code: 'TC-VER-ABC123XYZ',
@@ -194,22 +183,11 @@ const CertificateDesignerScreen = () => {
         }
 
         // Instructor Example Data
-        if (templateType === 'instructor') {
-            return {
+        else if (templateType === 'instructor') {
+            data = {
                 instructor_name: 'Dr. Sarah Johnson',
-                instructor_first_name: 'Sarah',
-                instructor_last_name: 'Johnson',
-                instructor_email: 'sarah.johnson@example.com',
                 instructor_id_number: 'ID-987654321',
-                instructor_country: 'United Kingdom',
-                instructor_city: 'London',
-                course_name: 'Advanced Project Management',
-                course_name_ar: 'إدارة المشاريع المتقدمة',
-                course_code: 'APM-301',
-                acc_name: 'Global Accreditation Council',
                 acc_legal_name: 'Global Accreditation Council Inc.',
-                acc_registration_number: 'ACC-2020-5678',
-                acc_country: 'United States',
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',
                 verification_code: 'INS-VER-XYZ789ABC',
@@ -222,12 +200,21 @@ const CertificateDesignerScreen = () => {
         }
 
         // Default
-        return {
-            student_name: 'John Smith',
-            course_name: 'Sample Course',
-            date: 'January 15, 2026',
-        };
-    }, [template?.template_type]);
+        else {
+            data = {
+                student_name: 'John Smith',
+                course_name: 'Sample Course',
+                date: 'January 15, 2026',
+            };
+        }
+
+        // Strip ACC-only example data when accessed from the Group Admin dashboard
+        if (isGroupAdmin) {
+            ACC_ONLY_VARS.forEach(key => delete data[key]);
+        }
+
+        return data;
+    }, [template?.template_type, isGroupAdmin]);
 
     const fontFamilies = [
         'Arial', 'Helvetica', 'Times New Roman', 'Courier New',

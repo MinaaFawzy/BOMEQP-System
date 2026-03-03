@@ -334,11 +334,9 @@
       "title": "已授权讲师",
       "subtitle": "查看所有已批准的讲师"
     },
-
     "search": {
       "placeholder": "按姓名、电子邮件、电话或培训中心搜索..."
     },
-
     "table": {
       "instructor": "讲师",
       "email": "电子邮件",
@@ -349,26 +347,21 @@
       "actions": "操作",
       "empty": "未找到已授权的讲师"
     },
-
     "actions": {
       "view_details": "查看详情"
     },
-
     "status": {
       "paid": "已支付",
       "pending": "待处理",
       "na": "不适用"
     },
-
     "details": {
       "modal_title": "讲师详情",
-
       "instructor_info": "讲师信息",
       "training_center_info": "培训中心",
       "training_centers_info": "培训中心",
       "authorization_details": "授权详情",
       "authorized_courses": "已授权课程",
-
       "first_name": "名",
       "last_name": "姓",
       "email": "电子邮件",
@@ -377,17 +370,14 @@
       "is_assessor": "讲师/评估员",
       "cv": "上传简历/支持证书",
       "passport": "护照复印件",
-
       "name": "名称",
       "commission_percentage": "佣金比例",
       "authorization_price": "授权费用"
     },
-
     "cards": {
       "commission_percentage": "佣金比例",
       "authorization_price": "授权费用"
     },
-
     "common": {
       "na": "不适用"
     }
@@ -648,6 +638,9 @@
       "verification_code": "验证 代码",
       "certificate_pdf": "证书 PDF",
       "download_pdf": "下载 PDF",
+      "files_label": "文件",
+      "view_certificate": "查看 证书",
+      "view_card": "查看 卡",
       "status": "状态"
     },
     "pagination": {

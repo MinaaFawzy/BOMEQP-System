@@ -637,6 +637,9 @@
       "verification_code": "Verification Code",
       "certificate_pdf": "Certificate PDF",
       "download_pdf": "Download PDF",
+      "files_label": "Files",
+      "view_certificate": "View Certificate",
+      "view_card": "View Card",
       "status": "Status"
     },
     "pagination": {

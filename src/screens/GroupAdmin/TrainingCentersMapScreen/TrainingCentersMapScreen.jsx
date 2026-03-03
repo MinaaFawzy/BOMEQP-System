@@ -1,8 +1,16 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
+
+const getAuthToken = () =>
+  sessionStorage.getItem('auth_token') ||
+  sessionStorage.getItem('token') ||
+  localStorage.getItem('auth_token') ||
+  localStorage.getItem('token');
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import { MapPin, Globe, Building2, Mail, Phone, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { MapPin, Globe, Building2, Mail, Phone, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
 import StatusBadge from '../../../components/StatusBadge/StatusBadge';
 import L from 'leaflet';
 import './TrainingCentersMapScreen.css';
@@ -75,6 +83,7 @@ const TrainingCentersMapScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState(null);
+  const [downloadingRegion, setDownloadingRegion] = useState(null);
 
   // ── Header ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -100,6 +109,46 @@ const TrainingCentersMapScreen = () => {
       setError('Failed to load training centers. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ── CSV Export ────────────────────────────────────────────────────────────────
+  /** Build the export URL for a given region, preferring the one from the API response */
+  const getExportUrl = (regionName) => {
+    const fromApi = summary?.export_download_urls?.[regionName];
+    if (fromApi) return fromApi;
+    // Fallback: construct the URL ourselves using the same base as api.js
+    return `${API_BASE_URL}/admin/training-centers/map/export?region=${encodeURIComponent(regionName)}&status=active`;
+  };
+
+  const handleExportCSV = async (region) => {
+    if (downloadingRegion) return;
+    const url = getExportUrl(region);
+    try {
+      setDownloadingRegion(region);
+      const token = getAuthToken();
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error(`Export failed: ${response.status}`);
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      // Derive filename from region name (sanitise slashes/spaces)
+      const safeRegion = region.replace(/[/\\]/g, '-').replace(/\s+/g, '-').toLowerCase();
+      link.download = `training-centers-${safeRegion}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error('CSV export error:', err);
+      alert('Failed to download CSV. Please try again.');
+    } finally {
+      setDownloadingRegion(null);
     }
   };
 
@@ -240,22 +289,39 @@ const TrainingCentersMapScreen = () => {
         </div>
 
         <div className="regions-grid">
-          {regions.map((region) => (
-            <button
-              key={region.name}
-              onClick={() => setSelectedRegion(region.isActive ? null : region.name)}
-              className={`region-card ${region.isActive ? 'active' : ''}`}
-            >
-              <div className="region-icon"><MapPin className="w-6 h-6" /></div>
-              <div className="region-info">
-                <h4>{region.name}</h4>
-                <p>{region.count} Training Centers</p>
+          {regions.map((region) => {
+            const isDownloading = downloadingRegion === region.name;
+            return (
+              <div
+                key={region.name}
+                className={`region-card ${region.isActive ? 'active' : ''}`}
+                onClick={() => setSelectedRegion(region.isActive ? null : region.name)}
+              >
+                <div className="region-icon"><MapPin className="w-6 h-6" /></div>
+                <div className="region-info">
+                  <h4>{region.name}</h4>
+                  <p>{region.count} Training Centers</p>
+                </div>
+                <div className="region-card-actions">
+                  {region.isActive && <CheckCircle className="w-5 h-5 text-primary-600" />}
+                  <button
+                    className={`region-export-btn ${isDownloading ? 'loading' : ''}`}
+                    title={`Download ${region.name} CSV`}
+                    disabled={isDownloading || !!downloadingRegion}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExportCSV(region.name);
+                    }}
+                  >
+                    {isDownloading
+                      ? <span className="export-spinner" />
+                      : <Download className="w-4 h-4" />}
+                    <span>{isDownloading ? 'Downloading…' : 'CSV'}</span>
+                  </button>
+                </div>
               </div>
-              <div className="region-indicator">
-                {region.isActive && <CheckCircle className="w-5 h-5 text-primary-600" />}
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -709,7 +709,10 @@
       "status": "状态",
       "certificate_file": "证书文件",
       "view_certificate": "查看证书",
-      "download_certificate": "下载证书"
+      "download_certificate": "下载证书",
+      "files_label": "文件",
+      "view_card": "查看卡片",
+      "download_card": "下载卡片"
     },
     "status": {
       "valid": "有效",
@@ -730,6 +733,7 @@
       "expiry_after_issue": "到期日期必须晚于签发日期",
       "duplicate_submit": "无法签发证书：该班级和学员的记录已存在。",
       "download_failed": "下载证书失败。请重试。",
+      "download_card_failed": "下载卡片失败。请重试。",
       "no_permission": "您没有权限下载此证书。",
       "not_found": "未找到证书文件。",
       "server_error": "服务器错误。请稍后重试。",

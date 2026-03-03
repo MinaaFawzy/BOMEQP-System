@@ -611,6 +611,37 @@ const TrainingCenterCertificatesScreen = () => {
     }
   };
 
+  const handleDownloadCard = async (cert) => {
+    const url = cert?.card_pdf_url;
+    if (!url) return;
+    try {
+      const token =
+        sessionStorage.getItem('auth_token') ||
+        sessionStorage.getItem('token') ||
+        localStorage.getItem('auth_token') ||
+        localStorage.getItem('token');
+
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `card-${cert.certificate_number || cert.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Failed to download card:', error);
+      alert(t('certificates_screen.errors.download_card_failed'));
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return t('certificates_screen.status.na');
     return new Date(dateString).toLocaleDateString();
@@ -736,6 +767,7 @@ const TrainingCenterCertificatesScreen = () => {
           >
             <Eye size={16} />
           </button>
+          {/* Download certificate — forces a file download via the API blob handler */}
           <button
             onClick={() => handleDownload(row)}
             className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -743,7 +775,15 @@ const TrainingCenterCertificatesScreen = () => {
           >
             <Download size={16} />
           </button>
-
+          {row.card_pdf_url && (
+            <button
+              onClick={() => handleDownloadCard(row)}
+              className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              title={t('certificates_screen.details.download_card')}
+            >
+              <Download size={16} />
+            </button>
+          )}
           {row.verification_code && (
             <a
               href={`/certificates/verify/${row.verification_code}`}
@@ -964,10 +1004,11 @@ const TrainingCenterCertificatesScreen = () => {
                 { key: 'status', label: t('certificates_screen.details.status'), type: 'status' },
                 {
                   key: 'certificate_pdf_url',
-                  label: t('certificates_screen.details.certificate_file'),
-                  icon: Download,
-                  render: (value) => (
-                    <div className="flex gap-3">
+                  label: t('certificates_screen.details.files_label'),
+                  icon: FileText,
+                  render: (value, row) => (
+                    <div className="flex flex-wrap gap-3">
+                      {/* View Certificate — opens PDF in new tab */}
                       {value && (
                         <a
                           href={value}
@@ -979,6 +1020,7 @@ const TrainingCenterCertificatesScreen = () => {
                           {t('certificates_screen.details.view_certificate')}
                         </a>
                       )}
+                      {/* Download Certificate — triggers blob download via API */}
                       <button
                         onClick={() => handleDownload(selectedCertificate)}
                         className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
@@ -986,6 +1028,28 @@ const TrainingCenterCertificatesScreen = () => {
                         <Download size={18} className="group-hover:scale-110 group-hover:translate-y-0.5 transition-transform duration-300" />
                         {t('certificates_screen.details.download_certificate')}
                       </button>
+                      {/* View Card — opens card PDF in new tab */}
+                      {row?.card_pdf_url && (
+                        <a
+                          href={row.card_pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
+                        >
+                          <Eye size={18} className="group-hover:scale-110 transition-transform duration-300" />
+                          {t('certificates_screen.details.view_card')}
+                        </a>
+                      )}
+                      {/* Download Card — blob download */}
+                      {row?.card_pdf_url && (
+                        <button
+                          onClick={() => handleDownloadCard(selectedCertificate)}
+                          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm group"
+                        >
+                          <Download size={18} className="group-hover:scale-110 group-hover:translate-y-0.5 transition-transform duration-300" />
+                          {t('certificates_screen.details.download_card')}
+                        </button>
+                      )}
                     </div>
                   )
                 },

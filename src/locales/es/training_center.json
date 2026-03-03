@@ -113,7 +113,6 @@
   "primary_contact_country": "País del contacto principal",
   "company_gov_registry_number": "Número de registro gubernamental de la empresa",
   "gov_registry_number": "Número de registro gubernamental",
-
   "dashboard": {
     "authorized_accreditation": "Acreditaciones autorizadas",
     "classes": "Clases",
@@ -710,7 +709,10 @@
       "status": "Estado",
       "certificate_file": "Archivo del certificado",
       "view_certificate": "Ver certificado",
-      "download_certificate": "Descargar certificado"
+      "download_certificate": "Descargar certificado",
+      "files_label": "Archivos",
+      "view_card": "Ver tarjeta",
+      "download_card": "Descargar tarjeta"
     },
     "status": {
       "valid": "Válido",
@@ -731,6 +733,7 @@
       "expiry_after_issue": "La fecha de vencimiento debe ser posterior a la fecha de emisión",
       "duplicate_submit": "No se puede emitir el certificado: se encontró un registro duplicado para esta clase y este participante.",
       "download_failed": "No se pudo descargar el certificado. Por favor, inténtalo de nuevo.",
+      "download_card_failed": "No se pudo descargar la tarjeta. Por favor, inténtalo de nuevo.",
       "no_permission": "No tienes permiso para descargar este certificado.",
       "not_found": "No se encontró el archivo del certificado.",
       "server_error": "Error del servidor. Por favor, inténtalo más tarde.",

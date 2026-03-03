@@ -638,6 +638,9 @@
       "verification_code": "رمز التحقق",
       "certificate_pdf": "ملف الشهادة",
       "download_pdf": "تحميل PDF",
+      "files_label": "الملفات",
+      "view_certificate": "عرض الشهادة",
+      "view_card": "عرض البطاقة",
       "status": "الحالة"
     },
     "pagination": {
