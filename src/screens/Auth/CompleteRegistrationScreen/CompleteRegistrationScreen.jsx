@@ -86,6 +86,7 @@ const CompleteRegistrationScreen = () => {
         // Auth & Organization
         company_name: '',
         name: '', // ACC Admin Name
+        legal_name: '', // TC Legal Name
         website: '',
         primary_email: '', // Company/Body Email
         password: '',
@@ -214,7 +215,6 @@ const CompleteRegistrationScreen = () => {
         // 1. Company Info
         if (!formData.company_name) newErrors.company_name = 'This field is required';
         if (role === 'acc_admin' && !formData.name) newErrors.name = 'This field is required';
-        if (role === 'training_center' && !formData.name) newErrors.name = 'This field is required';
 
         // Company Email
         if (!formData.primary_email) newErrors.primary_email = 'This field is required';
@@ -314,8 +314,10 @@ const CompleteRegistrationScreen = () => {
                 const submissionData = new FormData();
 
                 // --- User Account Fields ---
-                // Name: Use the name field for both ACC and TC
-                const userName = formData.name || `${formData.primary_first_name} ${formData.primary_last_name}`.trim();
+                // For ACC: use the explicit 'name' field. For TC: derive from primary contact.
+                const userName = isTrainingCenter
+                    ? `${formData.primary_first_name} ${formData.primary_last_name}`.trim()
+                    : (formData.name || `${formData.primary_first_name} ${formData.primary_last_name}`.trim());
                 submissionData.append('name', userName);
                 // Email: Spec says "User's email". Using Primary Contact Email (User Account email).
                 submissionData.append('email', formData.primary_email);
@@ -328,10 +330,12 @@ const CompleteRegistrationScreen = () => {
                 // --- Training Provider / Entity Fields ---
 
                 if (isTrainingCenter) {
+                    submissionData.append('name', formData.company_name);
                     submissionData.append('company_name', formData.company_name);
+                    if (formData.legal_name) submissionData.append('legal_name', formData.legal_name);
                     submissionData.append('company_email', formData.primary_email);
                 } else {
-                    submissionData.append('legal_name', formData.company_name);
+                    submissionData.append('legal_name', formData.legal_name);
                     submissionData.append('acc_email', formData.primary_email);
                 }
 
@@ -391,7 +395,7 @@ const CompleteRegistrationScreen = () => {
 
                 // Additional Information
                 // Additional Information
-                submissionData.append('company_gov_registry_number', formData.gov_registry_number);
+                submissionData.append('company_gov_registry_number', formData.company_gov_registry_number);
                 if (formData.referral_source) submissionData.append('how_did_you_hear_about_us', formData.referral_source); // Optional per ACC Spec
 
                 // Interested Fields (Array) - Only for Training Provider
@@ -481,7 +485,7 @@ const CompleteRegistrationScreen = () => {
 
                         <div className="grid">
                             <div className="field">
-                                <label>{isAcc ? 'Accreditation Legal Name' : 'Company Name'} <span className="req">*</span></label>
+                                <label>{isAcc ? 'Accreditation Legal Name' : 'Name'} <span className="req">*</span></label>
                                 <CustomInput
                                     name="company_name"
                                     value={formData.company_name}
@@ -504,13 +508,13 @@ const CompleteRegistrationScreen = () => {
                             )}
                             {isTraining && (
                                 <div className="field">
-                                    <label>Name <span className="req">*</span></label>
+                                    <label>Legal Name</label>
                                     <CustomInput
-                                        name="name"
-                                        value={formData.name}
+                                        name="legal_name"
+                                        value={formData.legal_name}
                                         onChange={handleChange}
-                                        error={!!errors.name}
-                                        helperText={errors.name}
+                                        error={!!errors.legal_name}
+                                        helperText={errors.legal_name}
                                     />
                                 </div>
                             )}
