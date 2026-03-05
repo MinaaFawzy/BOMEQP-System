@@ -3,7 +3,7 @@
     "cards": {
       "total_revenue": "कुल राजस्व",
       "pending_requests": "लंबित अनुरोध",
-      "active_training_centers": "सक्रिय प्रशिक्षण केंद्र",
+      "active_training_centers": "सक्रिय प्रशिक्षण प्रदाता",
       "active_instructors": "सक्रिय प्रशिक्षक",
       "click_to_view_details": "क्लिक करें को/तक देखें विवरण"
     },
@@ -89,8 +89,8 @@
   },
   "training_centers_screen": {
     "header": {
-      "title": "प्रशिक्षण केंद्र",
-      "subtitle": "प्रबंधित करें प्रशिक्षण केंद्र प्राधिकरण और अनुरोध"
+      "title": "प्रशिक्षण प्रदाता",
+      "subtitle": "प्रबंधित करें प्रशिक्षण प्रदाता प्राधिकरण और अनुरोध"
     },
     "tabs": {
       "total": "कुल",
@@ -100,15 +100,15 @@
       "rejected": "मुख्यालय"
     },
     "search": {
-      "placeholder": "खोजें प्रशिक्षण केंद्र..."
+      "placeholder": "खोजें प्रशिक्षण प्रदाता..."
     },
     "table": {
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "email": "ईमेल",
       "date": "तिथि",
       "status": "स्थिति",
       "actions": "क्रियाएं",
-      "empty": "नहीं प्रशिक्षण केंद्र मिला"
+      "empty": "नहीं प्रशिक्षण प्रदाता मिला"
     },
     "actions": {
       "view_details": "देखें विवरण",
@@ -125,13 +125,13 @@
       "na": "N/A"
     },
     "details": {
-      "request_title": "प्रशिक्षण केंद्र अनुरोध विवरण",
-      "details_title": "प्रशिक्षण केंद्र विवरण",
+      "request_title": "प्रशिक्षण प्रदाता अनुरोध विवरण",
+      "details_title": "प्रशिक्षण प्रदाता विवरण",
       "request_info": "अनुरोध जानकारी",
-      "training_center_info": "प्रशिक्षण केंद्र जानकारी",
+      "training_center_info": "प्रशिक्षण प्रदाता जानकारी",
       "documents": "दस्तावेज़",
       "request_id": "अनुरोध ID",
-      "training_center_id": "प्रशिक्षण केंद्र ID",
+      "training_center_id": "प्रशिक्षण प्रदाता ID",
       "request_date": "अनुरोध तिथि",
       "created_at": "बनाया गया पर",
       "updated_at": "अपडेट किया गया पर",
@@ -171,15 +171,15 @@
       "view_document": "देखें दस्तावेज़"
     },
     "rejection": {
-      "title": "अस्वीकृत करें प्रशिक्षण केंद्र अनुरोध",
+      "title": "अस्वीकृत करें प्रशिक्षण प्रदाता अनुरोध",
       "reason_label": "अस्वीकृति कारण",
       "reason_placeholder": "दर्ज करें  कारण के लिए अस्वीकृति...",
       "confirm": "अस्वीकृत करें अनुरोध",
       "missing_reason": "कृपया प्रदान करें a अस्वीकृति कारण",
-      "success": "प्रशिक्षण केंद्र अनुरोध अस्वीकृत"
+      "success": "प्रशिक्षण प्रदाता अनुरोध अस्वीकृत"
     },
     "return": {
-      "title": "वापस प्रशिक्षण केंद्र अनुरोध",
+      "title": "वापस प्रशिक्षण प्रदाता अनुरोध",
       "comment_label": "वापस टिप्पणी",
       "comment_placeholder": "दर्ज करें टिप्पणियाँ के लिए वापस किया जा रहा है  अनुरोध...",
       "confirm": "वापस अनुरोध",
@@ -187,8 +187,8 @@
       "success": "अनुरोध वापस किया गया के लिए संशोधन"
     },
     "messages": {
-      "approve_confirm": "स्वीकृत करें यह प्रशिक्षण केंद्र अनुरोध?",
-      "approve_success": "प्रशिक्षण केंद्र अनुरोध स्वीकृत सफलतापूर्वक!",
+      "approve_confirm": "स्वीकृत करें यह प्रशिक्षण प्रदाता अनुरोध?",
+      "approve_success": "प्रशिक्षण प्रदाता अनुरोध स्वीकृत सफलतापूर्वक!",
       "approve_failed": "विफल को/तक स्वीकृत करें अनुरोध",
       "load_failed": "विफल को/तक लोड डेटा"
     },
@@ -201,8 +201,8 @@
   },
   "instructors_screen": {
     "header": {
-      "title": "स्वीकृतीकरण अनुरोध",
-      "subtitle": "प्रबंधित करें स्वीकृतीकरण अनुरोध"
+      "title": "प्रशिक्षक",
+      "subtitle": "प्रबंधित करें प्रशिक्षक अनुरोध"
     },
     "tabs": {
       "total": "कुल",
@@ -246,7 +246,7 @@
       "documents": "दस्तावेज़",
       "authorization_details": "प्राधिकरण विवरण",
       "request_id": "अनुरोध ID",
-      "training_center_id": "प्रशिक्षण केंद्र ID",
+      "training_center_id": "प्रशिक्षण प्रदाता ID",
       "request_date": "अनुरोध तिथि",
       "created_at": "बनाया गया पर",
       "updated_at": "अपडेट किया गया पर",
@@ -286,7 +286,7 @@
       "date_of_birth": "तिथि का/की/के जन्म",
       "nationality": "राष्ट्रीयता",
       "specialization": "विशेषज्ञता",
-      "training_center": "प्रशिक्षण केंद्र"
+      "training_center": "प्रशिक्षण प्रदाता"
     },
     "documents": {
       "view_document": "देखें",
@@ -297,7 +297,7 @@
       "price_label": "प्राधिकरण शुल्क",
       "price_placeholder": "500.00",
       "description": "कृपया सेट करें  प्राधिकरण शुल्क के लिए यह प्रशिक्षक.",
-      "note": "स्वीकृति के बाद, प्रशिक्षण केंद्र के भुगतान से पहले ग्रुप एडमिन को कमीशन प्रतिशत सेट करना होगा।",
+      "note": "स्वीकृति के बाद, प्रशिक्षण प्रदाता के भुगतान से पहले ग्रुप एडमिन को कमीशन प्रतिशत सेट करना होगा।",
       "success": "प्रशिक्षक स्वीकृत सफलतापूर्वक. प्रतीक्षा के लिए ग्रुप एडमिन को/तक सेट करें कमीशन प्रतिशत."
     },
     "rejection": {
@@ -335,13 +335,13 @@
       "subtitle": "सभी स्वीकृत प्रशिक्षकों को देखें"
     },
     "search": {
-      "placeholder": "नाम, ईमेल, फ़ोन या प्रशिक्षण केंद्र से खोजें..."
+      "placeholder": "नाम, ईमेल, फ़ोन या प्रशिक्षण प्रदाता से खोजें..."
     },
     "table": {
       "instructor": "प्रशिक्षक",
       "email": "ईमेल",
-      "training_center": "प्रशिक्षण केंद्र",
-      "training_centers": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
+      "training_centers": "प्रशिक्षण प्रदाता",
       "commission": "कमीशन %",
       "payment_status": "भुगतान स्थिति",
       "actions": "क्रियाएं",
@@ -358,8 +358,8 @@
     "details": {
       "modal_title": "प्रशिक्षक विवरण",
       "instructor_info": "प्रशिक्षक जानकारी",
-      "training_center_info": "प्रशिक्षण केंद्र",
-      "training_centers_info": "प्रशिक्षण केंद्र",
+      "training_center_info": "प्रशिक्षण प्रदाता",
+      "training_centers_info": "प्रशिक्षण प्रदाता",
       "authorization_details": "प्राधिकरण विवरण",
       "authorized_courses": "अधिकृत पाठ्यक्रम",
       "first_name": "पहला नाम",
@@ -503,7 +503,7 @@
   "classes_screen": {
     "header": {
       "title": "कक्षाएँ",
-      "subtitle": "देखें सभी कक्षाएँ से अधिकृत प्रशिक्षण केंद्र"
+      "subtitle": "देखें सभी कक्षाएँ से अधिकृत प्रशिक्षण प्रदाता"
     },
     "search": {
       "placeholder": "खोजें कक्षाएँ..."
@@ -518,7 +518,7 @@
     "table": {
       "class_name": "कक्षा नाम",
       "course": "पाठ्यक्रम",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "instructor": "प्रशिक्षक",
       "schedule": "शेड्यूल",
       "exam_date": "परीक्षा तिथि",
@@ -543,7 +543,7 @@
       "modal_title": "कक्षा विवरण",
       "class_info": "कक्षा जानकारी",
       "course_info": "पाठ्यक्रम जानकारी",
-      "training_center_info": "प्रशिक्षण केंद्र जानकारी",
+      "training_center_info": "प्रशिक्षण प्रदाता जानकारी",
       "instructor_info": "प्रशिक्षक जानकारी",
       "schedule_info": "शेड्यूल जानकारी",
       "location_capacity": "स्थान & क्षमता",
@@ -675,12 +675,12 @@
     },
     "types": {
       "course": "पाठ्यक्रम",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "instructor": "प्रशिक्षक"
     },
     "type_descriptions": {
       "course": "पाठ्यक्रम पूर्णता के लिए",
-      "training_center": "प्रशिक्षण केंद्र प्राधिकरण के लिए",
+      "training_center": "प्रशिक्षण प्रदाता प्राधिकरण के लिए",
       "instructor": "प्रशिक्षक प्राधिकरण के लिए"
     },
     "actions": {
@@ -709,7 +709,9 @@
       "scope": "मान्यता",
       "category_level": "श्रेणी स्तर",
       "course_specific": "कोर्स स्पेसिफिक",
-      "select_courses": "कोर्स चुनें"
+      "select_courses": "कोर्स चुनें",
+      "include_card": "कार्ड शामिल करें",
+      "include_card_desc": "जेनेरेट किए गए PDF में प्रशिक्षार्थी कार्ड दूसरे पृष्ठ के रूप में जोड़ें"
     },
     "buttons": {
       "cancel": "रद्द करें",
@@ -729,13 +731,24 @@
     "errors": {
       "save_failed": "विफल को/तक सहेजें टेम्पलेट. कृपया प्रयास करें फिर से.",
       "delete_failed": "विफल को/तक हटाएँ टेम्पलेट. कृपया प्रयास करें फिर से.",
-      "delete_in_use": "यह टेम्पलेट है हो रहा है उपयोग किया गया द्वारा {{count}} प्रमाणपत्र(s). हटाया जा रहा है यह होगा भी हटाएँ सभी संबंधित प्रमाणपत्र."
+      "delete_in_use": "यह टेम्पलेट है हो रहा है उपयोग किया गया द्वारा {{count}} प्रमाणपत्र(s). हटाया जा रहा यह होगा भी हटाएँ सभी संबंधित प्रमाणपत्र.",
+      "no_courses_selected": "कृपया कम से कम एक कोर्स चुनें"
     },
     "confirmations": {
       "delete": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं?"
     },
     "common": {
-      "na": "N/A"
+      "na": "N/A",
+      "course": "पाठ्यक्रम",
+      "category": "श्रेणी",
+      "multiple_courses": "बहुते पाठ्यक्रम",
+      "courses": "पाठ्यक्रम",
+      "all_training_centers": "सभी प्रशिक्षण प्रदाता",
+      "all_instructors": "सभी प्रशिक्षक",
+      "cannot_change_type": "(बदला नहीं जा सकता)",
+      "applies_to_all_training_centers": "सभी अनुमोदित प्रशिक्षण प्रदाता पर लागू होता है",
+      "applies_to_all_instructors": "सभी अधिकृत प्रशिक्षकों पर लागू होता है",
+      "no_categories": "कोई श्रेणियाँ नहीं मिली"
     }
   },
   "discount_codes_screen": {
@@ -880,6 +893,7 @@
     "form": {
       "category_name_en": "श्रेणी नाम (अंग्रेज़ी)",
       "category_name_ar": "श्रेणी नाम (अरबी)",
+      "sub_category_name": "उप-श्रेणी का नाम",
       "description": "विवरण",
       "status": "स्थिति",
       "active": "सक्रिय",
@@ -986,10 +1000,10 @@
       "subtitle": "समीक्षा और स्वीकृत करें मैनुअल भुगतान अनुरोध"
     },
     "search": {
-      "placeholder": "खोजें द्वारा प्रशिक्षण केंद्र, पाठ्यक्रम, राशि, या तिथि..."
+      "placeholder": "खोजें द्वारा प्रशिक्षण प्रदाता, पाठ्यक्रम, राशि, या तिथि..."
     },
     "table": {
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "course": "पाठ्यक्रम",
       "quantity": "मात्रा",
       "total_amount": "कुल राशि",
@@ -1007,7 +1021,7 @@
     },
     "details": {
       "modal_title": "भुगतान अनुरोध विवरण",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "course": "पाठ्यक्रम",
       "quantity": "मात्रा",
       "total_amount": "कुल राशि",
@@ -1020,7 +1034,7 @@
     },
     "approve": {
       "modal_title": "स्वीकृत करें भुगतान",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "course": "पाठ्यक्रम",
       "quantity": "मात्रा",
       "calculated_total": "गणना किया गया कुल",
@@ -1031,7 +1045,7 @@
     },
     "reject": {
       "modal_title": "अस्वीकृत करें भुगतान",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "course": "पाठ्यक्रम",
       "quantity": "मात्रा",
       "amount": "राशि",
@@ -1204,6 +1218,8 @@
     "info": {
       "template_name": "सर्टिफिकेट टेम्पलेट",
       "template_type": "कोर्स",
+      "global_card_title": "ग्लोबल कार्ड टेम्पलेट",
+      "global_card_subtitle": "पूरे सिस्टम के लिए ACC डिज़ाइन · सभी पाठ्यक्रमों पर लागू होता है",
       "stats": {
         "elements": "{{count}} तत्व{{plural}}",
         "updated": "अपडेट किया गया {{date}}",

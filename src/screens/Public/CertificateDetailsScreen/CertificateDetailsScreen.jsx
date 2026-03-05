@@ -209,12 +209,12 @@ const CertificateDetailsScreen = () => {
 
                     </div>
 
-                    {/* 4. TRAINING CENTER SECTION */}
+                    {/* 4. TRAINING PROVIDER SECTION */}
                     {certificate.training_center && (
                         <div className="cert-tc-section">
                             <div className="cert-tc-header">
                                 <Building2 size={24} />
-                                <span className="cert-tc-title">Training Center Verification</span>
+                                <span className="cert-tc-title">Training Provider Verification</span>
                             </div>
 
                             <div className="cert-tc-card">

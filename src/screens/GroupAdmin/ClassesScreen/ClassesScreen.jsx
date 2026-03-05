@@ -316,7 +316,7 @@ const ClassesScreen = () => {
                                 <p className="text-sm text-gray-500 text-center max-w-sm">
                                     {searchQuery || statusFilter !== 'all'
                                         ? 'Try adjusting your search or filters to find what you\'re looking for.'
-                                        : 'Classes will appear here once they are created by training centers.'}
+                                        : 'Classes will appear here once they are created by training providers.'}
                                 </p>
                             </div>
                         ) : 'No classes found.'
@@ -414,11 +414,11 @@ const ClassesScreen = () => {
                             </div>
                         </div>
 
-                        {/* Training Center Info */}
+                        {/* Training Provider Info */}
                         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <Building2 size={16} className="text-gray-600" />
-                                Training Center
+                                Training Provider
                             </h4>
                             {selectedClass.training_center ? (
                                 <DetailForm
@@ -431,7 +431,7 @@ const ClassesScreen = () => {
                                     ]}
                                 />
                             ) : (
-                                <p className="text-sm text-gray-500 italic">No training center information.</p>
+                                <p className="text-sm text-gray-500 italic">No training provider information.</p>
                             )}
                         </div>
 

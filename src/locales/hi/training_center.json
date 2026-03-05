@@ -24,7 +24,7 @@
   "authorization_request_details": "प्राधिकरण अनुरोध विवरण",
   "ID": "आईडी",
   "status": "स्थिति",
-  "training_center_state": "प्रशिक्षण केंद्र की स्थिति",
+  "training_center_state": "प्रशिक्षण प्रदाता की स्थिति",
   "authorized_accreditation": "अधिकृत मान्यता",
   "classes_over_time": "समय के साथ कक्षाएँ",
   "classes_status_distribution": "कक्षा स्थिति वितरण",
@@ -118,7 +118,7 @@
     "classes": "कक्षाएँ",
     "classes_over_time": "समय के साथ कक्षाएँ",
     "classes_status_distribution": "कक्षा स्थिति वितरण",
-    "training_center_state": "प्रशिक्षण केंद्र की स्थिति",
+    "training_center_state": "प्रशिक्षण प्रदाता की स्थिति",
     "status": "स्थिति",
     "registration_date": "पंजीकरण तिथि",
     "accreditation_status": "मान्यता स्थिति",
@@ -843,7 +843,15 @@
       "file_process_failed": "फ़ाइल प्रोसेस करने में विफल। कृपया पुनः प्रयास करें।",
       "payment_failed": "भुगतान सत्यापन विफल। कृपया सहायता से संपर्क करें।",
       "purchase_failed": "भुगतान सफल हुआ लेकिन खरीद पूरी नहीं हो सकी। कृपया सहायता से संपर्क करें।",
-      "load_failed": "डेटा लोड करने में विफल"
+      "load_failed": "डेटा लोड करने में विफल",
+      "category_required": "श्रेणी आवश्यक है",
+      "sub_category_required": "उप-श्रेणी आवश्यक है",
+      "course_required": "पाठ्यक्रम आवश्यक है",
+      "class_name_required": "कक्षा का नाम आवश्यक है",
+      "instructor_required": "प्रशिक्षक आवश्यक है",
+      "start_date_required": "प्रारंभ तिथि आवश्यक है",
+      "end_date_required": "समाप्ति तिथि आवश्यक है",
+      "save_failed": "कक्षा को सहेजने में विफल। कृपया सभी आवश्यक फ़ील्ड जांचें।"
     },
     "messages": {
       "manual_payment_submitted": "भुगतान अनुरोध सफलतापूर्वक सबमिट किया गया। स्वीकृति की प्रतीक्षा है।",
@@ -968,7 +976,7 @@
       },
       "physical_address": {
         "title": "भौतिक पता",
-        "subtitle": "आपके प्रशिक्षण केंद्र का भौतिक स्थान",
+        "subtitle": "आपके प्रशिक्षण प्रदाता का भौतिक स्थान",
         "address": "पता",
         "city": "शहर",
         "country": "देश",
@@ -1038,7 +1046,7 @@
       "description": "एप्लिकेशन इंटरफ़ेस के लिए भाषा चुनें। भाषा बदलते ही पेज स्वतः अपडेट हो जाएगा।"
     },
     "common": {
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "no_email": "कोई ईमेल प्रदान नहीं किया गया"
     }
   }

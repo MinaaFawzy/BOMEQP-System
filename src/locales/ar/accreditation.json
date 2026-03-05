@@ -3,7 +3,7 @@
     "cards": {
       "total_revenue": "إجمالي الإيرادات",
       "pending_requests": "الطلبات المعلّقة",
-      "active_training_centers": "مراكز تدريب نشطة",
+      "active_training_centers": "جهات التدريب النشطة",
       "active_instructors": "مدربون نشطون",
       "click_to_view_details": "اضغط لعرض التفاصيل"
     },
@@ -89,8 +89,8 @@
   },
   "training_centers_screen": {
     "header": {
-      "title": "مراكز التدريب",
-      "subtitle": "إدارة طلبات واعتمادات مراكز التدريب"
+      "title": "جهات التدريب",
+      "subtitle": "إدارة طلبات واعتمادات جهات التدريب"
     },
     "tabs": {
       "total": "الكل",
@@ -100,15 +100,15 @@
       "rejected": "مرفوض"
     },
     "search": {
-      "placeholder": "ابحث عن مراكز التدريب..."
+      "placeholder": "ابحث عن جهات التدريب..."
     },
     "table": {
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "email": "البريد الإلكتروني",
       "date": "التاريخ",
       "status": "الحالة",
       "actions": "الإجراءات",
-      "empty": "لا توجد مراكز تدريب"
+      "empty": "لا توجد جهات تدريب"
     },
     "actions": {
       "view_details": "عرض التفاصيل",
@@ -125,13 +125,13 @@
       "na": "غير متاح"
     },
     "details": {
-      "request_title": "تفاصيل طلب مركز التدريب",
-      "details_title": "تفاصيل مركز التدريب",
+      "request_title": "تفاصيل طلب جهة التدريب",
+      "details_title": "تفاصيل جهة التدريب",
       "request_info": "معلومات الطلب",
-      "training_center_info": "معلومات مركز التدريب",
+      "training_center_info": "معلومات جهة التدريب",
       "documents": "المستندات",
       "request_id": "رقم الطلب",
-      "training_center_id": "رقم مركز التدريب",
+      "training_center_id": "رقم جهة التدريب",
       "request_date": "تاريخ الطلب",
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث",
@@ -171,15 +171,15 @@
       "view_document": "عرض المستند"
     },
     "rejection": {
-      "title": "رفض طلب مركز التدريب",
+      "title": "رفض طلب جهة التدريب",
       "reason_label": "سبب الرفض",
       "reason_placeholder": "اكتب سبب الرفض...",
       "confirm": "رفض الطلب",
       "missing_reason": "يرجى إدخال سبب الرفض",
-      "success": "تم رفض طلب مركز التدريب"
+      "success": "تم رفض طلب جهة التدريب"
     },
     "return": {
-      "title": "إرجاع طلب مركز التدريب",
+      "title": "إرجاع طلب جهة التدريب",
       "comment_label": "ملاحظات الإرجاع",
       "comment_placeholder": "اكتب سبب الإرجاع...",
       "confirm": "إرجاع الطلب",
@@ -187,8 +187,8 @@
       "success": "تم إرجاع الطلب للمراجعة"
     },
     "messages": {
-      "approve_confirm": "هل تريد اعتماد طلب مركز التدريب؟",
-      "approve_success": "تم اعتماد طلب مركز التدريب بنجاح!",
+      "approve_confirm": "هل تريد اعتماد طلب جهة التدريب؟",
+      "approve_success": "تم اعتماد طلب جهة التدريب بنجاح!",
       "approve_failed": "فشل اعتماد الطلب",
       "load_failed": "فشل تحميل البيانات"
     },
@@ -246,7 +246,7 @@
       "documents": "المستندات",
       "authorization_details": "تفاصيل الاعتماد",
       "request_id": "رقم الطلب",
-      "training_center_id": "رقم مركز التدريب",
+      "training_center_id": "رقم جهة التدريب",
       "request_date": "تاريخ الطلب",
       "created_at": "تاريخ الإنشاء",
       "updated_at": "تاريخ التحديث",
@@ -286,7 +286,7 @@
       "date_of_birth": "تاريخ الميلاد",
       "nationality": "الجنسية",
       "specialization": "التخصص",
-      "training_center": "مركز التدريب"
+      "training_center": "جهة التدريب"
     },
     "documents": {
       "view_document": "عرض",
@@ -297,7 +297,7 @@
       "price_label": "سعر الاعتماد",
       "price_placeholder": "500.00",
       "description": "يرجى تحديد سعر الاعتماد لهذا المدرب.",
-      "note": "بعد الاعتماد، يجب على مسؤول المجموعة تحديد نسبة العمولة قبل أن يتمكن مركز التدريب من الدفع.",
+      "note": "بعد الاعتماد، يجب على مسؤول المجموعة تحديد نسبة العمولة قبل أن يتمكن جهة التدريب من الدفع.",
       "success": "تم اعتماد المدرب بنجاح. في انتظار تحديد نسبة العمولة."
     },
     "rejection": {
@@ -335,13 +335,13 @@
       "subtitle": "عرض جميع المدربين المعتمدين"
     },
     "search": {
-      "placeholder": "ابحث بالاسم أو البريد الإلكتروني أو الهاتف أو مركز التدريب..."
+      "placeholder": "ابحث بالاسم أو البريد الإلكتروني أو الهاتف أو جهة التدريب..."
     },
     "table": {
       "instructor": "المدرب",
       "email": "البريد الإلكتروني",
-      "training_center": "مركز التدريب",
-      "training_centers": "مراكز التدريب",
+      "training_center": "جهة التدريب",
+      "training_centers": "جهات التدريب",
       "commission": "نسبة العمولة",
       "payment_status": "حالة الدفع",
       "actions": "الإجراءات",
@@ -358,8 +358,8 @@
     "details": {
       "modal_title": "تفاصيل المدرب",
       "instructor_info": "معلومات المدرب",
-      "training_center_info": "مركز التدريب",
-      "training_centers_info": "مراكز التدريب",
+      "training_center_info": "جهة التدريب",
+      "training_centers_info": "جهات التدريب",
       "authorization_details": "تفاصيل الاعتماد",
       "authorized_courses": "الدورات المعتمدة",
       "first_name": "الاسم الأول",
@@ -503,7 +503,7 @@
   "classes_screen": {
     "header": {
       "title": "الفصول",
-      "subtitle": "عرض جميع الفصول من مراكز التدريب المعتمدة"
+      "subtitle": "عرض جميع الفصول من جهات التدريب المعتمدة"
     },
     "search": {
       "placeholder": "ابحث عن فصل..."
@@ -518,7 +518,7 @@
     "table": {
       "class_name": "اسم الدورة",
       "course": "الدورة",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "instructor": "المدرب",
       "schedule": "الجدول",
       "exam_date": "تاريخ الاختبار",
@@ -543,7 +543,7 @@
       "modal_title": "تفاصيل الدورة",
       "class_info": "معلومات الدورة",
       "course_info": "معلومات الدورة التدريبية",
-      "training_center_info": "معلومات مركز التدريب",
+      "training_center_info": "معلومات جهة التدريب",
       "instructor_info": "معلومات المدرب",
       "schedule_info": "معلومات الجدول",
       "location_capacity": "الموقع والسعة",
@@ -675,12 +675,12 @@
     },
     "types": {
       "course": "الدورة",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "instructor": "المدرب"
     },
     "type_descriptions": {
       "course": "لإكمال الدورة",
-      "training_center": "لإعتماد مركز التدريب",
+      "training_center": "لإعتماد جهة التدريب",
       "instructor": "لإعتماد المدرب"
     },
     "actions": {
@@ -709,7 +709,9 @@
       "scope": "المجال",
       "category_level": "مستوى التصنيف",
       "course_specific": "الدورات الخاصة",
-      "select_courses": "اختر الدورات"
+      "select_courses": "اختر الدورات",
+      "include_card": "تضمين البطاقة",
+      "include_card_desc": "إضافة بطاقة المتدرب كصفحة ثانية في ملف PDF المُنشأ"
     },
     "buttons": {
       "cancel": "إلغاء",
@@ -729,13 +731,24 @@
     "errors": {
       "save_failed": "فشل حفظ القالب. حاول مرة أخرى.",
       "delete_failed": "فشل حذف القالب. حاول مرة أخرى.",
-      "delete_in_use": "هذا القالب مستخدم في {{count}} شهادة. سيؤدي الحذف إلى حذف جميع الشهادات المرتبطة."
+      "delete_in_use": "هذا القالب مستخدم في {{count}} شهادة. سيؤدي الحذف إلى حذف جميع الشهادات المرتبطة.",
+      "no_courses_selected": "يرجى اختيار دورة واحدة على الأقل"
     },
     "confirmations": {
       "delete": "هل أنت متأكد من حذف \"{{name}}\"؟"
     },
     "common": {
-      "na": "غير متاح"
+      "na": "غير متاح",
+      "course": "الدورة",
+      "category": "التصنيف",
+      "multiple_courses": "دورات متعددة",
+      "courses": "الدورات",
+      "all_training_centers": "جميع جهات التدريب",
+      "all_instructors": "جميع المدربين",
+      "cannot_change_type": "(لا يمكن تغييره)",
+      "applies_to_all_training_centers": "ينطبق على جميع جهات التدريب المعتمدة",
+      "applies_to_all_instructors": "ينطبق على جميع المدربين المعتمدين",
+      "no_categories": "لا توجد تصنيفات"
     }
   },
   "discount_codes_screen": {
@@ -880,6 +893,7 @@
     "form": {
       "category_name_en": "اسم التصنيف (إنجليزي)",
       "category_name_ar": "اسم التصنيف (عربي)",
+      "sub_category_name": "اسم التصنيف الفرعي",
       "description": "الوصف",
       "status": "الحالة",
       "active": "نشط",
@@ -986,10 +1000,10 @@
       "subtitle": "مراجعة واعتماد طلبات الدفع اليدوية"
     },
     "search": {
-      "placeholder": "ابحث حسب مركز التدريب أو الدورة أو المبلغ أو التاريخ..."
+      "placeholder": "ابحث حسب جهة التدريب أو الدورة أو المبلغ أو التاريخ..."
     },
     "table": {
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "total_amount": "المبلغ الإجمالي",
@@ -1007,7 +1021,7 @@
     },
     "details": {
       "modal_title": "تفاصيل طلب الدفع",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "total_amount": "المبلغ الإجمالي",
@@ -1020,7 +1034,7 @@
     },
     "approve": {
       "modal_title": "اعتماد الدفع",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "calculated_total": "الإجمالي المحسوب",
@@ -1031,7 +1045,7 @@
     },
     "reject": {
       "modal_title": "رفض الدفع",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "course": "الدورة",
       "quantity": "الكمية",
       "amount": "المبلغ",
@@ -1183,7 +1197,7 @@
     },
     "no_card": {
       "title": "لا يوجد تصميم بطاقة بعد",
-      "description": "لا يوجد لدى مركز الاعتماد الخاص بك تصميم لبطاقة المتدرب بعد. انقر أدناه لفتح مصمم البطاقات وإنشاء واحد الآن.",
+      "description": "لا يوجد لدى جهة الاعتماد الخاصة بك تصميم لبطاقة المتدرب بعد. انقر أدناه لفتح مصمم البطاقات وإنشاء واحد الآن.",
       "go_to_design": "الذهاب إلى تصميم قالب البطاقة",
       "no_cert_templates": "لم يتم العثور على قوالب شهادات. يرجى إنشاء قالب شهادة أولاً.",
       "go_to_cert_templates": "الذهاب إلى قوالب الشهادات",

@@ -223,7 +223,7 @@ function AuthScreen() {
                                                     lineHeight: 1.2
                                                 }}
                                             >
-                                                Training Center
+                                                Approved Training Provider
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -296,6 +296,7 @@ function AuthScreen() {
                                     </Box>
                                 </Paper>
                             </Box>
+
                         </Box>
 
                         {registerError && (

@@ -61,7 +61,7 @@ const ACCDashboardScreen = () => {
               onClick={() => navigate('/acc/training-centers?filter=pending')}
             />
 
-            {/* Active Training Centers Card */}
+            {/* Active Training Providers Card */}
             <DashboardCard
               icon={Building2}
               colorType="instructors"

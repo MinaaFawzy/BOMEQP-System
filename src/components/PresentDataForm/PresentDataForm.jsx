@@ -271,12 +271,12 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
         </div>
       )}
 
-      {/* Training Center Information */}
+      {/* Training Provider Information */}
       {data.training_center && (
         <div className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
           <div className="flex items-center mb-3">
             <Building2 className="h-5 w-5 text-indigo-600 mr-2" />
-            <p className="text-sm font-semibold text-indigo-900">Training Center</p>
+            <p className="text-sm font-semibold text-indigo-900">Training Provider</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {typeof data.training_center === 'string' ? (
@@ -394,7 +394,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                   )}
                   {pricing.training_center_commission_percentage !== undefined && (
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Training Center Commission</p>
+                      <p className="text-xs text-gray-500 mb-1">Training Provider Commission</p>
                       <p className="text-sm font-medium text-gray-700">{pricing.training_center_commission_percentage || '0'}%</p>
                     </div>
                   )}

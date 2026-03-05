@@ -239,7 +239,7 @@ const CompleteRegistrationScreen = () => {
 
         // 3. Mailing Address
         if (!formData.mailing_same_as_physical) {
-            // For Training Center, conditional requiring. For Acc Admin, usually required.
+            // For Training Provider, conditional requiring. For Acc Admin, usually required.
             // Based on API doc: "If 'Same as Physical Address' is Unchecked: The following fields become required" for TC.
             if (!formData.mailing_address) newErrors.mailing_address = 'This field is required';
             if (!formData.mailing_city) newErrors.mailing_city = 'This field is required';
@@ -257,7 +257,7 @@ const CompleteRegistrationScreen = () => {
         if (!formData.primary_mobile) newErrors.primary_mobile = 'This field is required';
 
         // 5. Secondary Contact
-        // Logic: "Secondary Contact (Required for ACC)" vs "Optional for Training Center"
+        // Logic: "Secondary Contact (Required for ACC)" vs "Optional for Training Provider"
         if (role === 'acc_admin') {
             // For ACC, check all fields regardless of has_secondary_contact flag (it should be forced true or UI should imply it)
             if (!formData.secondary_title) newErrors.secondary_title = 'This field is required';
@@ -268,7 +268,7 @@ const CompleteRegistrationScreen = () => {
             if (!formData.secondary_country) newErrors.secondary_country = 'This field is required';
             if (!formData.secondary_mobile) newErrors.secondary_mobile = 'This field is required';
         } else if (formData.has_secondary_contact) {
-            // For Training Center, only if checked
+            // For Training Provider, only if checked
             if (!formData.secondary_title) newErrors.secondary_title = 'This field is required';
             if (!formData.secondary_first_name) newErrors.secondary_first_name = 'This field is required';
             if (!formData.secondary_last_name) newErrors.secondary_last_name = 'This field is required';
@@ -293,7 +293,7 @@ const CompleteRegistrationScreen = () => {
             if (!formData.secondary_contact_passport) newErrors.secondary_contact_passport = 'This file is required';
         }
 
-        // Facility Floorplan required for Training Center
+        // Facility Floorplan required for Training Provider
         if (isTrainingCenter && !formData.facility_floorplan) newErrors.facility_floorplan = 'This file is required';
 
 
@@ -325,7 +325,7 @@ const CompleteRegistrationScreen = () => {
                 // Role Mapping
                 submissionData.append('role', isTrainingCenter ? 'training_center_admin' : 'acc_admin');
 
-                // --- Training Center / Entity Fields ---
+                // --- Training Provider / Entity Fields ---
 
                 if (isTrainingCenter) {
                     submissionData.append('company_name', formData.company_name);
@@ -394,7 +394,7 @@ const CompleteRegistrationScreen = () => {
                 submissionData.append('company_gov_registry_number', formData.gov_registry_number);
                 if (formData.referral_source) submissionData.append('how_did_you_hear_about_us', formData.referral_source); // Optional per ACC Spec
 
-                // Interested Fields (Array) - Only for Training Center
+                // Interested Fields (Array) - Only for Training Provider
                 if (isTrainingCenter && formData.interested_fields.length > 0) {
                     formData.interested_fields.forEach((field, index) => {
                         submissionData.append(`interested_fields[${index}]`, field);
@@ -465,7 +465,7 @@ const CompleteRegistrationScreen = () => {
                         </IconButton>
                         <div>
                             <h1>Create Account</h1>
-                            <p>{isTraining ? 'Training Center Registration' : 'Accreditation Body Registration'}</p>
+                            <p>{isTraining ? 'Training Provider Registration' : 'Accreditation Body Registration'}</p>
                         </div>
                     </div>
                 </header>
@@ -597,7 +597,7 @@ const CompleteRegistrationScreen = () => {
                                         onChange={handleChange}
                                         error={!!errors.provider_type}
                                     >
-                                        <MenuItem value="Training Center">Training Center</MenuItem>
+                                        <MenuItem value="Training Center">Training Provider</MenuItem>
                                         <MenuItem value="Institute">Institute</MenuItem>
                                         <MenuItem value="University">University</MenuItem>
                                     </CustomInput>
@@ -807,7 +807,7 @@ const CompleteRegistrationScreen = () => {
                             <h2>Secondary Contact {isAcc ? <span className="req">* (Required)</span> : <span className="hint">(Optional)</span>}</h2>
                         </div>
 
-                        {/* Checkbox only for Training Center */}
+                        {/* Checkbox only for Training Provider */}
                         {isTraining && (
                             <div className="row">
                                 <label className="check">

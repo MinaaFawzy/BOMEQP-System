@@ -98,11 +98,12 @@ const ReportsScreen = () => {
                 <DataTable
                   columns={[
                     { header: 'Name', accessor: 'name' },
-                    { header: 'Status', accessor: 'status', render: (value) => (
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        value === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>{value}</span>
-                    )},
+                    {
+                      header: 'Status', accessor: 'status', render: (value) => (
+                        <span className={`px-2 py-1 text-xs rounded-full ${value === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>{value}</span>
+                      )
+                    },
                   ]}
                   data={selectedReport.data.accs}
                   isLoading={false}
@@ -188,8 +189,8 @@ const ReportsScreen = () => {
           className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <TrendingUp className="h-12 w-12 text-purple-600 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Training Centers Report</h3>
-          <p className="text-gray-600 text-sm">Training center statistics</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Training Providers Report</h3>
+          <p className="text-gray-600 text-sm">Training provider statistics</p>
         </div>
       </div>
 
@@ -202,9 +203,9 @@ const ReportsScreen = () => {
         }}
         title={
           selectedReport?.type === 'revenue' ? 'Revenue Report' :
-          selectedReport?.type === 'accs' ? 'ACCs Report' :
-          selectedReport?.type === 'certificates' ? 'Certificates Report' :
-          'Training Centers Report'
+            selectedReport?.type === 'accs' ? 'ACCs Report' :
+              selectedReport?.type === 'certificates' ? 'Certificates Report' :
+                'Training Providers Report'
         }
         size="lg"
       >

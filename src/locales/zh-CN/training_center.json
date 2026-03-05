@@ -24,7 +24,7 @@
   "authorization_request_details": "授权申请详情",
   "ID": "ID",
   "status": "状态",
-  "training_center_state": "培训中心状态",
+  "training_center_state": "培训提供者状态",
   "authorized_accreditation": "已授权认证",
   "classes_over_time": "课程趋势",
   "classes_status_distribution": "课程状态分布",
@@ -118,7 +118,7 @@
     "classes": "课程",
     "classes_over_time": "课程趋势",
     "classes_status_distribution": "课程状态分布",
-    "training_center_state": "培训中心状态",
+    "training_center_state": "培训提供者状态",
     "status": "状态",
     "registration_date": "注册日期",
     "accreditation_status": "认证状态",
@@ -842,7 +842,15 @@
       "file_process_failed": "处理文件失败。请重试。",
       "payment_failed": "付款验证失败。请联系支持。",
       "purchase_failed": "付款成功，但购买未能完成。请联系支持。",
-      "load_failed": "加载数据失败"
+      "load_failed": "加载数据失败",
+      "category_required": "类别是必需的",
+      "sub_category_required": "子类别是必需的",
+      "course_required": "课程是必需的",
+      "class_name_required": "班级名称是必需的",
+      "instructor_required": "讲师是必需的",
+      "start_date_required": "开始日期是必需的",
+      "end_date_required": "结束日期是必需的",
+      "save_failed": "保存班级失败。请检查所有必填字段。"
     },
     "messages": {
       "manual_payment_submitted": "付款申请提交成功，等待审批。",
@@ -962,12 +970,12 @@
         "email": "公司邮箱地址",
         "phone": "电话",
         "fax": "传真",
-        "training_provider_type": "培训机构类型",
+        "training_provider_type": "培训提供者类型",
         "select_type": "选择类型"
       },
       "physical_address": {
         "title": "实际地址",
-        "subtitle": "培训中心的实际位置",
+        "subtitle": "培训提供者的实际位置",
         "address": "地址",
         "city": "城市",
         "country": "国家",
@@ -1037,7 +1045,7 @@
       "description": "选择应用界面语言。更改语言后页面将自动更新。"
     },
     "common": {
-      "training_center": "培训中心",
+      "training_center": "培训提供者",
       "no_email": "未提供电子邮件"
     }
   }

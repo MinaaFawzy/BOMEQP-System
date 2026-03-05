@@ -145,7 +145,7 @@ const InstructorsScreen = () => {
           _normalizedName: `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim(),
           _normalizedEmail: instructor.email || '',
           _normalizedDate: item.request_date || item.created_at || item.updated_at,
-          // Handle Training Center Name safely
+          // Handle Training Provider Name safely
           _normalizedTrainingCenter: item.training_center?.name || item.training_center?.legal_name || t('instructors_screen.common.na'),
           _trainingCenterId: item.training_center_id,
           _isRequest: true,
@@ -641,7 +641,7 @@ const InstructorsScreen = () => {
               )}
             </div>
 
-            {/* Training Center Information */}
+            {/* Training Provider Information */}
             {selectedRequest.training_center && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

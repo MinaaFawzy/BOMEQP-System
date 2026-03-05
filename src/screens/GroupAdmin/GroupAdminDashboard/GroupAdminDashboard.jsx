@@ -91,11 +91,11 @@ const GroupAdminDashboard = () => {
               onClick={() => navigate('/admin/all-accs')}
             />
 
-            {/* Training Centers Card */}
+            {/* Training Providers Card */}
             <DashboardCard
               icon={School}
               colorType="certificates"
-              label="Training Centers"
+              label="Training Providers"
               value={dashboard.training_centers || 0}
               hint="Click to view details"
               onClick={() => navigate('/admin/all-training-centers')}

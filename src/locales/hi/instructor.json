@@ -24,7 +24,7 @@
       "view_all": "सभी देखें",
       "table": {
         "course": "पाठ्यक्रम",
-        "training_center": "प्रशिक्षण केंद्र",
+        "training_center": "प्रशिक्षण प्रदाता",
         "dates": "तिथियाँ",
         "status": "स्थिति",
         "students": "छात्र",
@@ -42,7 +42,7 @@
       "view_full_profile": "पूरी प्रोफ़ाइल देखें"
     },
     "training_centers": {
-      "title": "प्रशिक्षण केंद्र",
+      "title": "प्रशिक्षण प्रदाता",
       "view_all_with_count": "सभी देखें ({{count}})",
       "empty": "कोई प्रशिक्षण केंद्र नहीं मिला"
     },
@@ -85,7 +85,7 @@
     },
     "table": {
       "course": "पाठ्यक्रम",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "start_date": "प्रारंभ तिथि",
       "end_date": "समाप्ति तिथि",
       "exam_date": "परीक्षा तिथि",
@@ -108,7 +108,7 @@
     "details": {
       "modal_title": "कक्षा विवरण",
       "course": "पाठ्यक्रम",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "start_date": "प्रारंभ तिथि",
       "end_date": "समाप्ति तिथि",
       "exam_date": "परीक्षा तिथि",
@@ -187,7 +187,7 @@
       "select_city": "शहर चुनें",
       "type": "प्रकार",
       "account_status": "खाता स्थिति",
-      "training_center": "प्रशिक्षण केंद्र",
+      "training_center": "प्रशिक्षण प्रदाता",
       "specializations": "विशेषज्ञताएँ"
     },
     "profile_photo": {
@@ -263,9 +263,9 @@
       "file_size": "फ़ाइल का आकार 10MB से कम होना चाहिए",
       "password_required": "वर्तमान पासवर्ड आवश्यक है",
       "password_failed": "पासवर्ड बदलने में विफल",
-      "this_field_is_managed_by_your_training_center": "यह फ़ील्ड आपके प्रशिक्षण केंद्र द्वारा प्रबंधित है",
-      "your_account_status_is_managed_by_your_training_center": "आपकी खाता स्थिति आपके प्रशिक्षण केंद्र द्वारा प्रबंधित है",
-      "you_are_registered_under_this_training_center": "आप इस प्रशिक्षण केंद्र के तहत पंजीकृत हैं",
+      "this_field_is_managed_by_your_training_center": "यह फ़ील्ड आपके प्रशिक्षण प्रदाता द्वारा प्रबंधित है",
+      "your_account_status_is_managed_by_your_training_center": "आपकी खाता स्थिति आपके प्रशिक्षण प्रदाता द्वारा प्रबंधित है",
+      "you_are_registered_under_this_training_center": "आप इस प्रशिक्षण प्रदाता के तहत पंजीकृत हैं",
       "click_to_view": "ऊपर दिए गए लिंक पर क्लिक करके अपने वर्तमान सीवी को एक नए टैब में देखें"
     },
     "common": {

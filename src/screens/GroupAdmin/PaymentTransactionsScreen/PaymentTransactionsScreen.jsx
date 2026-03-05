@@ -566,7 +566,7 @@ const PaymentTransactionsScreen = () => {
                         )}
                         {ledger.training_center && (
                           <div>
-                            <span className="text-gray-600">Training Center:</span>
+                            <span className="text-gray-600">Training Provider:</span>
                             <span className="font-semibold text-gray-900 ml-2">{ledger.training_center.name}</span>
                           </div>
                         )}

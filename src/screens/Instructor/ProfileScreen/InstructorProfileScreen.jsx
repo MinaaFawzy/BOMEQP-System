@@ -958,7 +958,7 @@ const InstructorProfileScreen = () => {
               </div>
             </div>
 
-            {/* Training Center Information (Read-only) */}
+            {/* Training provider Information (Read-only) */}
             {instructorData?.training_center && (
               <div className="pt-4 border-t border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">

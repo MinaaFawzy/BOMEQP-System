@@ -422,7 +422,11 @@ const DataTable = ({
                                   // Priority: Edit + Delete > View + Edit > View + Delete > View + View (fallback)
                                   const buttons = [];
 
-                                  if (onEdit && onDelete) {
+                                  const canEdit = onEdit && row.hideEdit !== true;
+                                  const canDelete = onDelete && row.hideDelete !== true;
+                                  const canView = onView && row.hideView !== true;
+
+                                  if (canEdit && canDelete) {
                                     // Show Edit and Delete
                                     buttons.push(
                                       <button
@@ -444,7 +448,7 @@ const DataTable = ({
                                         <Trash2 size={18} />
                                       </button>
                                     );
-                                  } else if (onView && onEdit) {
+                                  } else if (canView && canEdit) {
                                     // Show View and Edit
                                     buttons.push(
                                       <button
@@ -466,7 +470,7 @@ const DataTable = ({
                                         <Edit size={18} />
                                       </button>
                                     );
-                                  } else if (onView && onDelete) {
+                                  } else if (canView && canDelete) {
                                     // Show View and Delete
                                     buttons.push(
                                       <button
@@ -488,7 +492,7 @@ const DataTable = ({
                                         <Trash2 size={18} />
                                       </button>
                                     );
-                                  } else if (onEdit) {
+                                  } else if (canEdit) {
                                     // Only Edit - show Edit once
                                     buttons.push(
                                       <button
@@ -500,7 +504,7 @@ const DataTable = ({
                                         <Edit size={18} />
                                       </button>
                                     );
-                                  } else if (onDelete) {
+                                  } else if (canDelete) {
                                     // Only Delete - show Delete once
                                     buttons.push(
                                       <button
@@ -512,7 +516,7 @@ const DataTable = ({
                                         <Trash2 size={18} />
                                       </button>
                                     );
-                                  } else if (onView) {
+                                  } else if (canView) {
                                     // Only View - show View once
                                     buttons.push(
                                       <button

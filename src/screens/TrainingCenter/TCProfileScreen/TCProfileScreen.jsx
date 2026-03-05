@@ -91,7 +91,7 @@ const TCProfileScreen = () => {
   });
 
   const titleOptions = ['Mr.', 'Mrs.', 'Eng.', 'Prof.'];
-  const trainingProviderTypes = ['Training Center', 'Institute', 'University'];
+  const trainingProviderTypes = ['Training Provider', 'Institute', 'University'];
   const interestedFieldsOptions = ['QHSE', 'Food Safety', 'Management'];
 
   useEffect(() => {

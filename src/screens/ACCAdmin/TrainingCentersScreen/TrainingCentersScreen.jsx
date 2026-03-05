@@ -222,7 +222,7 @@ const TrainingCentersScreen = () => {
                 <>
                   <img
                     src={logoUrl}
-                    alt={value || 'Training Center Logo'}
+                    alt={value || 'Training Provider Logo'}
                     className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                     width="40"
                     height="40"
@@ -542,7 +542,7 @@ const TrainingCentersScreen = () => {
               </div>
             )}
 
-            {/* Training Center Information */}
+            {/* Training Provider Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Building2 className="mr-2" size={20} />
@@ -922,7 +922,7 @@ const TrainingCentersScreen = () => {
           setSelectedRequest(null);
           setRejectionReason('');
         }}
-        title="Reject Training Center Request"
+        title="Reject Training Provider Request"
         size="md"
       >
         <div className="space-y-4">
@@ -966,7 +966,7 @@ const TrainingCentersScreen = () => {
           setSelectedRequest(null);
           setReturnComment('');
         }}
-        title="Return Training Center Request"
+        title="Return Training Provider Request"
         size="md"
       >
         <div className="space-y-4">

@@ -306,7 +306,7 @@ const TransfersScreen = () => {
                         >
                             <option value="all">All User Types</option>
                             <option value="acc">ACC</option>
-                            <option value="training_center">Training Center</option>
+                            <option value="training_center">Training Provider</option>
                             <option value="instructor">Instructor</option>
                         </select>
                     </div>

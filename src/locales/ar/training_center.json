@@ -14,7 +14,7 @@
   "status": "الحالة",
   "registration_date": "تاريخ التسجيل",
   "accreditation_status": "حالة الاعتماد",
-  "training_center_state": "حالة مركز التدريب",
+  "training_center_state": "حالة جهة التدريب",
   "authorized_accreditation": "الاعتماد المعتمد",
   "classes_over_time": "الفصول على مر الزمن",
   "classes_status_distribution": "توزيع الفصول حسب الحالة",
@@ -132,7 +132,7 @@
     "classes": "الدورات",
     "classes_over_time": "الدورات بمرور الوقت",
     "classes_status_distribution": "توزيع حالات الدورات",
-    "training_center_state": "حالة مركز التدريب",
+    "training_center_state": "حالة جهة التدريب",
     "status": "الحالة",
     "registration_date": "تاريخ التسجيل",
     "accreditation_status": "حالة الاعتماد",
@@ -854,7 +854,15 @@
       "file_process_failed": "فشل معالجة الملف. حاول مرة أخرى.",
       "payment_failed": "فشل التحقق من الدفع. يرجى التواصل مع الدعم.",
       "purchase_failed": "تم الدفع ولكن فشل إتمام الشراء. يرجى التواصل مع الدعم.",
-      "load_failed": "فشل تحميل البيانات"
+      "load_failed": "فشل تحميل البيانات",
+      "category_required": "الفئة مطلوبة",
+      "sub_category_required": "الفئة الفرعية مطلوبة",
+      "course_required": "الدورة مطلوبة",
+      "class_name_required": "اسم الفصل مطلوب",
+      "instructor_required": "المدرب مطلوب",
+      "start_date_required": "تاريخ البدء مطلوب",
+      "end_date_required": "تاريخ الانتهاء مطلوب",
+      "save_failed": "فشل حفظ الفصل. يرجى التحقق من جميع الحقول المطلوبة."
     },
     "messages": {
       "manual_payment_submitted": "تم إرسال طلب الدفع بنجاح. في انتظار الموافقة.",
@@ -1048,7 +1056,7 @@
       "description": "اختر اللغة التي تفضل استخدامها في واجهة التطبيق. سيتم تحديث الصفحة تلقائيًا عند تغيير اللغة."
     },
     "common": {
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "no_email": "لا يوجد بريد إلكتروني"
     }
   }

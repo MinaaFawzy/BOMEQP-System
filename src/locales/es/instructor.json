@@ -24,7 +24,7 @@
       "view_all": "Ver todas",
       "table": {
         "course": "Curso",
-        "training_center": "Centro de formación",
+        "training_center": "Proveedor de formación",
         "dates": "Fechas",
         "status": "Estado",
         "students": "Estudiantes",
@@ -42,9 +42,9 @@
       "view_full_profile": "Ver perfil completo"
     },
     "training_centers": {
-      "title": "Centros de formación",
+      "title": "Proveedores de formación",
       "view_all_with_count": "Ver todos ({{count}})",
-      "empty": "No se encontraron centros de formación"
+      "empty": "No se encontraron proveedores de formación"
     },
     "accs": {
       "title": "Organismos de acreditación",
@@ -85,7 +85,7 @@
     },
     "table": {
       "course": "Curso",
-      "training_center": "Centro de formación",
+      "training_center": "Proveedor de formación",
       "start_date": "Fecha de inicio",
       "end_date": "Fecha de finalización",
       "exam_date": "Fecha del examen",
@@ -108,7 +108,7 @@
     "details": {
       "modal_title": "Detalles de la clase",
       "course": "Curso",
-      "training_center": "Centro de formación",
+      "training_center": "Proveedor de formación",
       "start_date": "Fecha de inicio",
       "end_date": "Fecha de finalización",
       "exam_date": "Fecha del examen",
@@ -187,7 +187,7 @@
       "select_city": "Seleccionar ciudad",
       "type": "Tipo",
       "account_status": "Estado de la cuenta",
-      "training_center": "Centro de formación",
+      "training_center": "Proveedor de formación",
       "specializations": "Especializaciones"
     },
     "profile_photo": {
@@ -263,9 +263,9 @@
       "file_size": "El tamaño del archivo debe ser menor a 10MB",
       "password_required": "La contraseña actual es obligatoria",
       "password_failed": "No se pudo cambiar la contraseña",
-      "this_field_is_managed_by_your_training_center": "Este campo es gestionado por tu Centro de formación",
-      "your_account_status_is_managed_by_your_training_center": "El estado de tu cuenta es gestionado por tu Centro de formación",
-      "you_are_registered_under_this_training_center": "Estás registrado bajo este Centro de formación",
+      "this_field_is_managed_by_your_training_center": "Este campo es gestionado por tu proveedor de formación",
+      "your_account_status_is_managed_by_your_training_center": "El estado de tu cuenta es gestionado por tu proveedor de formación",
+      "you_are_registered_under_this_training_center": "Estás registrado bajo este proveedor de formación",
       "click_to_view": "Haz clic en el enlace de arriba para ver tu CV actual en una nueva pestaña"
     },
     "common": {

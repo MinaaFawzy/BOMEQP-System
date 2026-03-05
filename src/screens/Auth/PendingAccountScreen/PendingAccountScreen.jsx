@@ -45,7 +45,7 @@ const PendingAccountScreen = () => {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Application Rejected</h1>
             <p className="text-gray-600 mb-4">
-              Your {isTrainingCenter ? 'Training Center' : 'ACC'} application has been rejected.
+              Your {isTrainingCenter ? 'Training Provider' : 'ACC'} application has been rejected.
             </p>
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
               <p className="text-sm font-semibold text-red-800 mb-2">Rejection Reason:</p>
@@ -62,11 +62,11 @@ const PendingAccountScreen = () => {
               )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              {isTrainingCenter ? 'Training Center Application Pending' : 'Account Pending Approval'}
+              {isTrainingCenter ? 'Training Provider Application Pending' : 'Account Pending Approval'}
             </h1>
             <p className="text-gray-600 mb-4">
               {isTrainingCenter
-                ? 'Your Training Center application has been submitted and is pending approval from a Group Admin.'
+                ? 'Your Training Provider application has been submitted and is pending approval from a Group Admin.'
                 : 'Your account is currently pending approval. Please wait for an administrator to review and approve your account.'}
             </p>
             <p className="text-sm text-gray-500 mb-6">

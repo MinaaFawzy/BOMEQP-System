@@ -24,7 +24,7 @@
       "view_all": "عرض الكل",
       "table": {
         "course": "الدورة",
-        "training_center": "مركز التدريب",
+        "training_center": "جهة التدريب",
         "dates": "التواريخ",
         "status": "الحالة",
         "students": "المتدربون",
@@ -42,9 +42,9 @@
       "view_full_profile": "عرض الملف بالكامل"
     },
     "training_centers": {
-      "title": "مراكز التدريب",
+      "title": "جهات التدريب",
       "view_all_with_count": "عرض الكل ({{count}})",
-      "empty": "لا توجد مراكز تدريب"
+      "empty": "لا توجد جهات تدريب"
     },
     "accs": {
       "title": "جهات الاعتماد",
@@ -85,7 +85,7 @@
     },
     "table": {
       "course": "الدورة",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "start_date": "تاريخ البداية",
       "end_date": "تاريخ النهاية",
       "exam_date": "تاريخ الاختبار",
@@ -108,7 +108,7 @@
     "details": {
       "modal_title": "تفاصيل الدورة",
       "course": "الدورة",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "start_date": "تاريخ البداية",
       "end_date": "تاريخ النهاية",
       "exam_date": "تاريخ الاختبار",
@@ -187,7 +187,7 @@
       "select_city": "اختر المدينة",
       "type": "النوع",
       "account_status": "حالة الحساب",
-      "training_center": "مركز التدريب",
+      "training_center": "جهة التدريب",
       "specializations": "التخصصات"
     },
     "profile_photo": {
@@ -263,9 +263,9 @@
       "file_size": "يجب ألا يتجاوز حجم الملف 10 ميجابايت",
       "password_required": "كلمة المرور الحالية مطلوبة",
       "password_failed": "فشل تغيير كلمة المرور",
-      "this_field_is_managed_by_your_training_center": "هذا الحقل يُدار بواسطة مركز التدريب الخاص بك",
-      "your_account_status_is_managed_by_your_training_center": "حالة حسابك تُدار بواسطة مركز التدريب الخاص بك",
-      "you_are_registered_under_this_training_center": "أنت مسجل تحت هذا المركز التدريبي",
+      "this_field_is_managed_by_your_training_center": "هذا الحقل يُدار بواسطة جهة التدريب الخاصة بك",
+      "your_account_status_is_managed_by_your_training_center": "حالة حسابك تُدار بواسطة جهة التدريب الخاصة بك",
+      "you_are_registered_under_this_training_center": "أنت مسجل تحت جهة التدريب هذه",
       "click_to_view": "اضغط على الرابط أعلاه لعرض سيرتك الذاتية الحالية في علامة تبويب جديدة"
     },
     "common": {

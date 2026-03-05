@@ -181,7 +181,7 @@ const Layout = ({ children }) => {
             label: 'Accreditation Bodies',
             items: [
               { path: '/admin/accs', icon: FileCheck, label: 'ACC Applications' },
-              { path: '/admin/training-center-applications', icon: FileCheck, label: 'TC Applications' },
+              { path: '/admin/training-center-applications', icon: FileCheck, label: 'ATP Applications' },
               { path: '/admin/all-accs', icon: Building2, label: 'Accreditation Bodies' },
             ]
           },
@@ -191,8 +191,8 @@ const Layout = ({ children }) => {
             icon: Users,
             label: 'Training & Instructors',
             items: [
-              { path: '/admin/all-training-centers', icon: School, label: 'Training Centers' },
-              { path: '/admin/training-centers-map', icon: Map, label: 'Training Centers Regions' },
+              { path: '/admin/all-training-centers', icon: School, label: 'Training Providers' },
+              { path: '/admin/training-centers-map', icon: Map, label: 'Training Providers Regions' },
               { path: '/admin/all-instructors', icon: Users, label: 'Instructors' },
               { path: '/admin/instructor-authorizations', icon: UserCheck, label: 'Instructor Commissions' },
             ]
@@ -352,8 +352,8 @@ const Layout = ({ children }) => {
     if (path === '/admin/accs') return 'ACC Applications';
     if (path === '/admin/training-center-applications') return 'TC Applications';
     if (path === '/admin/all-accs') return 'Accreditation Bodies';
-    if (path === '/admin/all-training-centers') return 'Training Centers';
-    if (path === '/admin/training-centers-map') return 'Training Centers Regions';
+    if (path === '/admin/all-training-centers') return 'Training Providers';
+    if (path === '/admin/training-centers-map') return 'Training Providers Regions';
     if (path === '/admin/all-instructors') return 'Instructors';
     if (path === '/admin/all-courses') return 'Courses';
     if (path === '/admin/classes') return 'Classes';
@@ -370,7 +370,7 @@ const Layout = ({ children }) => {
     // ACC Admin routes
     if (path === '/acc/dashboard') return t('dashboard');
     if (path === '/acc/subscription') return 'Subscription Management';
-    if (path === '/acc/training-centers') return 'Training Centers';
+    if (path === '/acc/training-centers') return 'Training Providers';
     if (path === '/acc/authorized-instructors') return 'Authorized Instructors';
     if (path === '/acc/instructor-requests') return 'Instructor Authorization Requests';
     if (path === '/acc/courses') return 'Courses';
@@ -384,7 +384,7 @@ const Layout = ({ children }) => {
     if (path === '/acc/payment-transactions') return 'Payment Transactions';
     if (path === '/acc/pending-payments') return 'Pending Payments';
 
-    // Training Center routes
+    // Training Provider routes
     if (path === '/training-center/dashboard') return t('dashboard');
     if (path === '/training-center/accs') return t('accreditation_bodies');
     if (path === '/training-center/instructors') return t('instructors');
@@ -489,7 +489,7 @@ const Layout = ({ children }) => {
                       {user?.role === 'instructor'
                         ? (isAssessor ? 'Assessor' : 'Instructor')
                         : user?.role === 'training_center_admin'
-                          ? 'Training Center'
+                          ? 'Training Provider'
                           : user?.role === 'acc_admin'
                             ? 'Accreditation Body Admin'
                             : user?.role === 'group_admin'
@@ -740,7 +740,7 @@ const Layout = ({ children }) => {
             <div className="max-w-7xl mx-auto">
               {
                 // user?.role === 'training_center_admin' ? (
-                //   // Coming Soon Screen for Training Center Admin
+                //   // Coming Soon Screen for Training Provider Admin
                 //   <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
                 //     <div className="text-center max-w-2xl mx-auto px-4">
                 //       <div className="mb-8">
@@ -753,7 +753,7 @@ const Layout = ({ children }) => {
                 //       </h1>
                 //       <p className="text-xl text-gray-600 mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
                 //         We're working hard to bring you an amazing experience. 
-                //         The Training Center Admin portal will be available shortly.
+                //         The Training  Admin portal will be available shortly.
                 //       </p>
                 //       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 //         <button

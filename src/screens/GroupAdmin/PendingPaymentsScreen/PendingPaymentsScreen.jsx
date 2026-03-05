@@ -289,7 +289,7 @@ const PendingPaymentsScreen = () => {
       ),
     },
     {
-      header: 'Training Center',
+      header: 'Training Provider',
       accessor: 'training_center',
       sortable: true,
       render: (value, row) => (
@@ -388,7 +388,7 @@ const PendingPaymentsScreen = () => {
         searchValue={searchQuery}
         onSearch={setSearchQuery}
         filterable={false}
-        searchPlaceholder="Search by ACC, training center, course, amount, or date..."
+        searchPlaceholder="Search by ACC, training provider, course, amount, or date..."
         sortable={true}
       />
       <div className="p-4 border-t border-gray-100">
@@ -426,7 +426,7 @@ const PendingPaymentsScreen = () => {
                 },
                 {
                   key: 'training_center',
-                  label: 'Training Center',
+                  label: 'Training Provider',
                   icon: Building2,
                   render: (value) => value?.name || 'N/A'
                 },
@@ -533,7 +533,7 @@ const PendingPaymentsScreen = () => {
                 <strong>ACC:</strong> {selectedBatch.acc?.name || 'N/A'}
               </p>
               <p className="approve-info-text">
-                <strong>Training Center:</strong> {selectedBatch.training_center?.name || 'N/A'}
+                <strong>Training Provider:</strong> {selectedBatch.training_center?.name || 'N/A'}
               </p>
               <p className="approve-info-text">
                 <strong>Course:</strong> {selectedBatch.course?.name || 'N/A'}
@@ -608,7 +608,7 @@ const PendingPaymentsScreen = () => {
                 <strong>ACC:</strong> {selectedBatch.acc?.name || 'N/A'}
               </p>
               <p className="reject-info-text">
-                <strong>Training Center:</strong> {selectedBatch.training_center?.name || 'N/A'}
+                <strong>Training Provider:</strong> {selectedBatch.training_center?.name || 'N/A'}
               </p>
               <p className="reject-info-text">
                 <strong>Course:</strong> {selectedBatch.course?.name || 'N/A'}

@@ -92,7 +92,7 @@ const AllInstructorsScreen = () => {
     setHeaderTitle('Instructors');
     setHeaderSubtitle('View and manage all instructors across all ACCs');
 
-    // Load training centers and accreditations data
+    // Load training providers and accreditations data
     loadTrainingCentersAndAccreditations();
 
     return () => {
@@ -103,7 +103,7 @@ const AllInstructorsScreen = () => {
 
   const loadTrainingCentersAndAccreditations = async () => {
     try {
-      // Fetch training centers
+      // Fetch training providers
       const centersResponse = await adminAPI.listTrainingCenters({ per_page: 1000 });
       const centersList = centersResponse.data || centersResponse.training_centers || [];
       setTrainingCenters(centersList);
@@ -113,7 +113,7 @@ const AllInstructorsScreen = () => {
       const accsList = accsResponse.data || accsResponse.accs || [];
       setAccreditations(accsList);
     } catch (error) {
-      console.error('Failed to load training centers and accreditations:', error);
+      console.error('Failed to load training providers and accreditations:', error);
     }
   };
 
@@ -386,7 +386,7 @@ const AllInstructorsScreen = () => {
         if (dataToSend.id_number) formData.append('id_number', dataToSend.id_number);
         if (dataToSend.status) formData.append('status', dataToSend.status);
 
-        // Append training centers
+        // Append training providers
         if (dataToSend.training_centers && Array.isArray(dataToSend.training_centers)) {
           dataToSend.training_centers.forEach(center => {
             formData.append('training_centers[]', center);
@@ -582,7 +582,7 @@ const AllInstructorsScreen = () => {
       )
     },
     {
-      header: 'Training Centers',
+      header: 'Training Providers',
       accessor: 'training_centers',
       sortable: true,
       render: (value, row) => {
@@ -731,7 +731,7 @@ const AllInstructorsScreen = () => {
           emptyMessage="No instructors found"
           searchable={true}
           searchValue={searchQuery}
-          searchPlaceholder="Search by name, email, ID number, or training center..."
+          searchPlaceholder="Search by name, email, ID number, or training provider..."
           onSearch={(value) => {
             setSearchQuery(value);
           }}
@@ -811,12 +811,12 @@ const AllInstructorsScreen = () => {
                 </div>
               )}
 
-              {/* Training Centers */}
+              {/* Training Providers */}
               {selectedInstructor && selectedInstructor.training_centers && selectedInstructor.training_centers.length > 0 && (
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
                     <Building2 className="h-4 w-4 mr-2" />
-                    Training Centers:
+                    Training Providers:
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedInstructor.training_centers.map((center, index) => (

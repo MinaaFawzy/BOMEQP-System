@@ -27,14 +27,16 @@
   background: white;
   color: #0f172a;
   border: 1px solid #e2e8f0;
-  padding: 1rem 1.75rem; /* Increased padding */
+  padding: 1rem 1.75rem;
+  /* Increased padding */
   border-radius: 9999px;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  margin: 2rem 2rem; /* Add horizontal margin */
+  margin: 2rem 2rem;
+  /* Add horizontal margin */
 }
 
 .cert-back-btn:hover {
@@ -44,7 +46,8 @@
 }
 
 /* Loading & Error */
-.cert-loading, .cert-error-container {
+.cert-loading,
+.cert-error-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -137,14 +140,14 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 .cert-acc-logo-wrapper {
   background: white;
   padding: 1.5rem;
   border-radius: 24px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
   width: 160px;
   height: 160px;
@@ -170,7 +173,7 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-weight: 700;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 1rem;
 }
 
@@ -184,7 +187,7 @@
 
 .cert-acc-legal {
   font-size: 1.1rem;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 2.5rem;
   font-weight: 400;
 }
@@ -206,14 +209,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1rem;
 }
 
 .cert-acc-item a {
   color: white;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.2s;
 }
 
@@ -287,7 +290,7 @@
   line-height: 1.3;
 }
 
-/* --- Training Center (Clean Panel) --- */
+/* --- Training Provider (Clean Panel) --- */
 .cert-tc-section {
   border-top: 1px solid #e2e8f0;
   padding-top: 4rem;
@@ -402,26 +405,28 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 640px) {
   .cert-title {
     font-size: 2.5rem;
   }
-  
+
   .cert-acc-name {
     font-size: 2rem;
   }
-  
+
   .cert-acc-container {
     padding: 2.5rem;
   }
-  
+
   .cert-data-box {
     padding: 1.5rem;
   }
-  
+
   .cert-back-btn {
     margin: 1.5rem;
     padding: 0.75rem 1.25rem;

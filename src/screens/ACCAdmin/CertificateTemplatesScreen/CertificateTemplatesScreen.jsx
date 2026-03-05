@@ -488,7 +488,7 @@ const CertificateTemplatesScreen = () => {
           },
           training_center: {
             icon: Building2,
-            label: t('certificate_templates_screen.types.training_center', 'Training Center'),
+            label: t('certificate_templates_screen.types.training_center', 'Training Provider'),
             bgColor: 'bg-green-100',
             textColor: 'text-green-800'
           },
@@ -523,7 +523,7 @@ const CertificateTemplatesScreen = () => {
         if (row.template_type === 'training_center') {
           return (
             <div className="text-sm text-gray-600 italic">
-              {t('certificate_templates_screen.common.all_training_centers', 'All Training Centers')}
+              {t('certificate_templates_screen.common.all_training_centers', 'All Training Providers')}
             </div>
           );
         }
@@ -717,10 +717,10 @@ const CertificateTemplatesScreen = () => {
                     }`} size={24} />
                   <div className={`text-sm font-medium ${formData.template_type === 'training_center' ? 'text-green-900' : 'text-gray-700'
                     }`}>
-                    {t('certificate_templates_screen.types.training_center', 'Training Center')}
+                    {t('certificate_templates_screen.types.training_center', 'Training Provider')}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {t('certificate_templates_screen.type_descriptions.training_center', 'For TC authorization')}
+                    {t('certificate_templates_screen.type_descriptions.training_center', 'For Training Provider authorization')}
                   </div>
                 </button>
 
@@ -866,7 +866,7 @@ const CertificateTemplatesScreen = () => {
                                 {category.name || category.name_ar || `Category ${category.id}`}
                               </span>
                               <span className="text-xs text-gray-500 block">
-                                ({categoryCourses.length} {t('courses', 'courses')})
+                                ({categoryCourses.length} {t('certificate_templates_screen.common.courses', 'courses')})
                               </span>
                             </div>
                           </div>
@@ -1035,7 +1035,7 @@ const CertificateTemplatesScreen = () => {
                 render: (value) => {
                   const typeConfig = {
                     course: { icon: BookOpen, label: t('certificate_templates_screen.types.course', 'Course'), color: 'blue' },
-                    training_center: { icon: Building2, label: t('certificate_templates_screen.types.training_center', 'Training Center'), color: 'green' },
+                    training_center: { icon: Building2, label: t('certificate_templates_screen.types.training_center', 'Training Provider'), color: 'green' },
                     instructor: { icon: GraduationCap, label: t('certificate_templates_screen.types.instructor', 'Instructor'), color: 'purple' }
                   };
                   const type = value || 'course';

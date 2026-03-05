@@ -24,7 +24,7 @@
       "view_all": "View All",
       "table": {
         "course": "Course",
-        "training_center": "Training Center",
+        "training_center": "Training Provider",
         "dates": "Dates",
         "status": "Status",
         "students": "Students",
@@ -42,9 +42,9 @@
       "view_full_profile": "View Full Profile"
     },
     "training_centers": {
-      "title": "Training Centers",
+      "title": "Training Providers",
       "view_all_with_count": "View All ({{count}})",
-      "empty": "No training centers found"
+      "empty": "No training providers found"
     },
     "accs": {
       "title": "Accreditation Bodies",
@@ -85,7 +85,7 @@
     },
     "table": {
       "course": "Course",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "start_date": "Start Date",
       "end_date": "End Date",
       "exam_date": "Exam Date",
@@ -108,7 +108,7 @@
     "details": {
       "modal_title": "Class Details",
       "course": "Course",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "start_date": "Start Date",
       "end_date": "End Date",
       "exam_date": "Exam Date",
@@ -187,7 +187,7 @@
       "select_city": "Select City",
       "type": "Type",
       "account_status": "Account Status",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "specializations": "Specializations"
     },
     "profile_photo": {
@@ -263,9 +263,9 @@
       "file_size": "File size must be less than 10MB",
       "password_required": "Current password is required",
       "password_failed": "Failed to change password",
-      "this_field_is_managed_by_your_training_center": "This field is managed by your Training Center",
-      "your_account_status_is_managed_by_your_training_center": "Your account status is managed by your Training Center",
-      "you_are_registered_under_this_training_center": "You are registered under this Training Center",
+      "this_field_is_managed_by_your_training_center": "This field is managed by your Training Provider",
+      "your_account_status_is_managed_by_your_training_center": "Your account status is managed by your Training Provider",
+      "you_are_registered_under_this_training_center": "You are registered under this Training Provider",
       "click_to_view": "Click the link above to view your current CV in a new tab"
     },
     "common": {

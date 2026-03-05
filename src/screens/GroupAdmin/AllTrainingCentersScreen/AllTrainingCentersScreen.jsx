@@ -76,8 +76,8 @@ const AllTrainingCentersScreen = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-    setHeaderTitle('All Training Centers');
-    setHeaderSubtitle('Manage all training centers');
+    setHeaderTitle('All Training Providers');
+    setHeaderSubtitle('Manage all training providers');
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -166,7 +166,7 @@ const AllTrainingCentersScreen = () => {
 
       hasDataRef.current = true;
     } catch (error) {
-      console.error('Failed to load training centers:', error);
+      console.error('Failed to load training providers:', error);
       setAllTrainingCenters([]);
     } finally {
       if (showLoading) {
@@ -233,7 +233,7 @@ const AllTrainingCentersScreen = () => {
       setSelectedTC(data.training_center);
       setDetailModalOpen(true);
     } catch (error) {
-      console.error('Failed to load training center details:', error);
+      console.error('Failed to load training provider details:', error);
       setSelectedTC(tc);
       setDetailModalOpen(true);
     }
@@ -267,8 +267,8 @@ const AllTrainingCentersScreen = () => {
       }
       setEditModalOpen(true);
     } catch (error) {
-      console.error('Failed to load training center details:', error);
-      alert('Failed to load training center details');
+      console.error('Failed to load training provider details:', error);
+      alert('Failed to load training provider details');
     }
   };
 
@@ -324,12 +324,12 @@ const AllTrainingCentersScreen = () => {
       await loadTrainingCenters();
       setEditModalOpen(false);
       setSelectedTC(null);
-      alert('Training center updated successfully!');
+      alert('Training provider updated successfully!');
     } catch (error) {
       if (error.response?.data?.errors) {
         setTcErrors(error.response.data.errors);
       } else {
-        setTcErrors({ general: error.response?.data?.message || error.message || 'Failed to update training center' });
+        setTcErrors({ general: error.response?.data?.message || error.message || 'Failed to update training provider' });
       }
     } finally {
       setSaving(false);
@@ -347,7 +347,7 @@ const AllTrainingCentersScreen = () => {
   // DataTable columns
   const columns = useMemo(() => [
     {
-      header: 'Training Center',
+      header: 'Training Provider',
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -357,7 +357,7 @@ const AllTrainingCentersScreen = () => {
               <>
                 <img
                   src={row.logo_url}
-                  alt={value || 'Training Center Logo'}
+                  alt={value || 'Training Provider Logo'}
                   className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                   width="40"
                   height="40"
@@ -500,7 +500,7 @@ const AllTrainingCentersScreen = () => {
           onRowClick={handleViewDetails}
           onEdit={handleEditTrainingCenter}
           isLoading={loading}
-          emptyMessage="No training centers found"
+          emptyMessage="No training providers found"
           searchable={true}
           searchValue={searchQuery}
           searchPlaceholder="Search by name, email, legal name, registration number, or country..."
@@ -525,14 +525,14 @@ const AllTrainingCentersScreen = () => {
         )}
       </div>
 
-      {/* Training Center Detail Modal */}
+      {/* Training Provider Detail Modal */}
       <Modal
         isOpen={detailModalOpen}
         onClose={() => {
           setDetailModalOpen(false);
           setSelectedTC(null);
         }}
-        title="Training Center Details"
+        title="Training Provider Details"
         size="lg"
       >
         <div className="space-y-6">
@@ -666,14 +666,14 @@ const AllTrainingCentersScreen = () => {
                   handleEditTrainingCenter(selectedTC);
                 }}
               >
-                Edit Training Center
+                Edit Training Provider
               </Button>
             </div>
           )}
         </div>
       </Modal>
 
-      {/* Edit Training Center Modal */}
+      {/* Edit Training Provider Modal */}
       <Modal
         isOpen={editModalOpen}
         onClose={() => {
@@ -695,7 +695,7 @@ const AllTrainingCentersScreen = () => {
           setTcErrors({});
           setCities([]);
         }}
-        title={`Edit Training Center: ${selectedTC?.name}`}
+        title={`Edit Training Provider: ${selectedTC?.name}`}
         size="lg"
       >
         <form onSubmit={handleSaveTrainingCenter} className="space-y-4">

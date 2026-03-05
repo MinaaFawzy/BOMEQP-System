@@ -54,7 +54,7 @@ import ACCPaymentTransactionsScreen from './screens/ACCAdmin/PaymentTransactions
 import ACCClassesScreen from './screens/ACCAdmin/ClassesScreen/ClassesScreen';
 import ACCPendingPaymentsScreen from './screens/ACCAdmin/PendingPaymentsScreen/PendingPaymentsScreen';
 
-// Training Center screens
+// Training Provider screens
 import TrainingCenterDashboardScreen from './screens/TrainingCenter/DashboardScreen/DashboardScreen';
 import ACCsScreen from './screens/TrainingCenter/ACCsScreen/ACCsScreen';
 import TrainingCenterInstructorsScreen from './screens/TrainingCenter/InstructorsScreen/InstructorsScreen';
@@ -287,7 +287,7 @@ function App() {
                   }
                 />
 
-                {/* Training Center routes */}
+                {/* Training Provider routes */}
                 <Route
                   path="/training-center/*"
                   element={

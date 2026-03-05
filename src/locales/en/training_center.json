@@ -1,5 +1,5 @@
 {
-  "title": "Training Center",
+  "title": "Training Provider",
   "accs": "Accreditation Bodies",
   "instructors": "Instructors",
   "classes": "Classes",
@@ -24,7 +24,7 @@
   "authorization_request_details": "Authorization Request Details",
   "ID": "ID",
   "status": "Status",
-  "training_center_state": "Training Center State",
+  "training_center_state": "Training Provider State",
   "authorized_accreditation": "Authorized Accreditation",
   "classes_over_time": "Classes Over Time",
   "classes_status_distribution": "Classes Status Distribution",
@@ -118,7 +118,7 @@
     "classes": "Classes",
     "classes_over_time": "Classes Over Time",
     "classes_status_distribution": "Classes Status Distribution",
-    "training_center_state": "Training Center State",
+    "training_center_state": "Training Provider State",
     "status": "Status",
     "registration_date": "Registration Date",
     "accreditation_status": "Accreditation Status",
@@ -215,7 +215,7 @@
     "click_to_upload_file": "Click to upload file",
     "remove_file": "Remove File",
     "additional_information": "Additional Information",
-    "provide_additional_info": "Provide any additional information about your training center...",
+    "provide_additional_info": "Provide any additional information about your training provider...",
     "maximum_5000_characters": "Maximum 5000 characters",
     "cancel": "Cancel",
     "submit_request": "Submit Request",
@@ -847,7 +847,15 @@
       "file_process_failed": "Failed to process file. Please try again.",
       "payment_failed": "Payment verification failed. Please contact support.",
       "purchase_failed": "Payment succeeded but failed to complete purchase. Please contact support.",
-      "load_failed": "Failed to load data"
+      "load_failed": "Failed to load data",
+      "category_required": "Category is required",
+      "sub_category_required": "Sub-Category is required",
+      "course_required": "Course is required",
+      "class_name_required": "Class Name is required",
+      "instructor_required": "Instructor is required",
+      "start_date_required": "Start date is required",
+      "end_date_required": "End date is required",
+      "save_failed": "Failed to save class. Please check all required fields."
     },
     "messages": {
       "manual_payment_submitted": "Payment request submitted successfully. Waiting for approval.",
@@ -906,7 +914,7 @@
       "instructor_name": "Instructor Name",
       "acc_id": "ACC ID",
       "acc_name": "ACC Name",
-      "training_center_id": "Training Center ID",
+      "training_center_id": "Training Provider ID",
       "authorization_price": "Authorization Price"
     },
     "status": {
@@ -950,7 +958,7 @@
   "tc_profile_screen": {
     "header": {
       "title": "Profile",
-      "subtitle": "Manage your training center profile information"
+      "subtitle": "Manage your training provider profile information"
     },
     "actions": {
       "edit": "Edit Profile",
@@ -970,7 +978,7 @@
     "sections": {
       "company_info": {
         "title": "Company Information",
-        "subtitle": "Basic details about your training center",
+        "subtitle": "Basic details about your training provider",
         "name": "Name",
         "legal_name": "Legal Name",
         "website": "Website",
@@ -982,7 +990,7 @@
       },
       "physical_address": {
         "title": "Physical Address",
-        "subtitle": "Your training center's physical location",
+        "subtitle": "Your training provider's physical location",
         "address": "Address",
         "city": "City",
         "country": "Country",
@@ -1052,7 +1060,7 @@
       "description": "Select the language you want to use for the application interface. The page will automatically update when you change the language."
     },
     "common": {
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "no_email": "No email provided"
     }
   }

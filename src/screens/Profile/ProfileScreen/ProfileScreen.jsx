@@ -28,7 +28,7 @@ const ProfileScreen = () => {
   const [cvUrl, setCvUrl] = useState(null);
   const [uploadingCv, setUploadingCv] = useState(false);
 
-  // Training Center profile data
+  // Training Provider profile data
   const [logoFile, setLogoFile] = useState(null);
   const [logoUrl, setLogoUrl] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,7 +48,7 @@ const ProfileScreen = () => {
     city: '',
     id_number: '',
     specializations: [],
-    // Training Center fields
+    // Training provider fields
     name: '',
     legal_name: '',
     registration_number: '',
@@ -87,7 +87,7 @@ const ProfileScreen = () => {
 
     // Only load profile once per role
     if (!profileLoadedRef.current) {
-      // For training center and instructor, wait for countries to load first
+      // For training provider and instructor, wait for countries to load first
       if (isTrainingCenter || isInstructor) {
         if (countries.length > 0) {
           profileLoadedRef.current = true;
@@ -178,7 +178,7 @@ const ProfileScreen = () => {
 
         // Note: loadCities will be called by useEffect when formData.country changes
       } else if (isTrainingCenter) {
-        // Load Training Center profile using trainingCenterAPI.getProfile()
+        // Load Training provider profile using trainingCenterAPI.getProfile()
         const response = await trainingCenterAPI.getProfile();
         const profileData = response.profile || response.training_center || response;
 
@@ -413,7 +413,7 @@ const ProfileScreen = () => {
           setCvUrl(updatedInstructor.cv_url || updatedInstructor.cv);
         }
       } else if (isTrainingCenter) {
-        // Update Training Center profile
+        // Update Training provider profile
         const hasLogoFile = logoFile instanceof File;
 
         // Use FormData if logo file is being uploaded (POST method required for file uploads)
@@ -705,7 +705,7 @@ const ProfileScreen = () => {
             <form onSubmit={handleUpdateProfile} className="space-y-5">
               {isTrainingCenter ? (
                 <>
-                  {/* Training Center Logo Section */}
+                  {/* Training provider Logo Section */}
                   <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
                     <div className="relative">
                       <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
@@ -728,8 +728,8 @@ const ProfileScreen = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">Training Center Logo</h3>
-                      <p className="text-sm text-gray-500 mb-3">Upload your training center logo</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">Training provider Logo</h3>
+                      <p className="text-sm text-gray-500 mb-3">Upload your training provider logo</p>
                       {!isEditing && (
                         <button
                           type="button"
@@ -748,7 +748,7 @@ const ProfileScreen = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormInput
-                      label="Training Center Name"
+                      label="Training provider Name"
                       name="name"
                       value={formData.name}
                       onChange={handleProfileChange}
@@ -778,7 +778,7 @@ const ProfileScreen = () => {
                       onChange={handleProfileChange}
                       viewMode={!isEditing}
                       error={errors.legal_name}
-                      placeholder="Official legal name of the training center"
+                      placeholder="Official legal name of the training provider"
                     />
 
                     <FormInput
@@ -918,7 +918,7 @@ const ProfileScreen = () => {
                     onChange={handleProfileChange}
                     viewMode={!isEditing}
                     error={errors.description}
-                    placeholder="Tell us about your training center..."
+                    placeholder="Tell us about your training provider..."
                   />
 
                   {isEditing && (

@@ -210,7 +210,7 @@ const StripePaymentModal = ({
   const [stripePromise, setStripePromise] = useState(null);
   const [stripeConfigError, setStripeConfigError] = useState(null);
 
-  // Check if user is training center - hide commission details from them
+  // Check if user is training provider - hide commission details from them
   const isTrainingCenter = user?.role === 'training_center';
 
   // Load Stripe config when modal opens
@@ -326,8 +326,8 @@ const StripePaymentModal = ({
               <p><strong>Unit Price:</strong> {paymentSummary.currency || currency} {parseFloat(paymentSummary.unit_price).toFixed(2)}</p>
             )}
 
-            {/* Payment Breakdown - Hidden from Training Center */}
-            {/* Only show breakdown if user is NOT training center AND there's commission/provider info */}
+            {/* Payment Breakdown - Hidden from Training Provider */}
+            {/* Only show breakdown if user is NOT training provider AND there's commission/provider info */}
             {!isTrainingCenter &&
               (paymentSummary.commission_amount || paymentSummary.provider_amount) && (
                 <div className="mt-3 pt-3 border-t border-green-300">

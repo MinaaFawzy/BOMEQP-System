@@ -232,7 +232,7 @@ const TrainingCenterDashboardScreen = () => {
             </div>
           )}
 
-          {/* Training Center State Section */}
+          {/* Training Provider State Section */}
           <StateSection title={t('dashboard.training_center_state')} titleIcon={Building2}>
             <StateItem
               icon={CheckCircle}

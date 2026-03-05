@@ -466,9 +466,9 @@ const InstructorDashboardScreen = () => {
         </div>
       </div>
 
-      {/* Training Centers & ACCs */}
+      {/* Training Providers & ACCs */}
       <div className="training-grid">
-        {/* Training Centers */}
+        {/* Training Providers */}
         <div className="card">
           <div className="card-header">
             <div className="card-header-content">

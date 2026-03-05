@@ -3,7 +3,7 @@
     "cards": {
       "total_revenue": "总计 收入",
       "pending_requests": "待处理 申请",
-      "active_training_centers": "启用 培训 中心",
+      "active_training_centers": "启用 培训 提供者",
       "active_instructors": "启用 讲师",
       "click_to_view_details": "点击 到 查看 详情"
     },
@@ -89,8 +89,8 @@
   },
   "training_centers_screen": {
     "header": {
-      "title": "培训 中心",
-      "subtitle": "管理 培训 中心 授权 和 申请"
+      "title": "培训 提供者",
+      "subtitle": "管理 培训 提供者 授权 和 申请"
     },
     "tabs": {
       "total": "总计",
@@ -100,15 +100,15 @@
       "rejected": "已拒绝"
     },
     "search": {
-      "placeholder": "搜索 培训 中心..."
+      "placeholder": "搜索 培训 提供者..."
     },
     "table": {
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "email": "电子邮件",
       "date": "日期",
       "status": "状态",
       "actions": "操作",
-      "empty": "否 培训 中心 找到"
+      "empty": "否 培训 提供者 找到"
     },
     "actions": {
       "view_details": "查看 详情",
@@ -125,13 +125,13 @@
       "na": "N/A"
     },
     "details": {
-      "request_title": "培训 中心 申请 详情",
-      "details_title": "培训 中心 详情",
+      "request_title": "培训 提供者 申请 详情",
+      "details_title": "培训 提供者 详情",
       "request_info": "申请 信息",
-      "training_center_info": "培训 中心 信息",
+      "training_center_info": "培训 提供者 信息",
       "documents": "文件",
       "request_id": "申请 ID",
-      "training_center_id": "培训 中心 ID",
+      "training_center_id": "培训 提供者 ID",
       "request_date": "申请 日期",
       "created_at": "已创建 在",
       "updated_at": "已更新 在",
@@ -171,15 +171,15 @@
       "view_document": "查看 文件"
     },
     "rejection": {
-      "title": "拒绝 培训 中心 申请",
+      "title": "拒绝 培训 提供者 申请",
       "reason_label": "拒绝 原因",
       "reason_placeholder": "输入  原因 为 拒绝...",
       "confirm": "拒绝 申请",
       "missing_reason": "请 提供 a 拒绝 原因",
-      "success": "培训 中心 申请 已拒绝"
+      "success": "培训 提供者 申请 已拒绝"
     },
     "return": {
-      "title": "退回 培训 中心 申请",
+      "title": "退回 培训 提供者 申请",
       "comment_label": "退回 备注",
       "comment_placeholder": "输入 备注 为 退回中  申请...",
       "confirm": "退回 申请",
@@ -187,8 +187,8 @@
       "success": "申请 已退回 为 修订"
     },
     "messages": {
-      "approve_confirm": "批准 此 培训 中心 申请?",
-      "approve_success": "培训 中心 申请 已批准 成功!",
+      "approve_confirm": "批准 此 培训 提供者 申请?",
+      "approve_success": "培训 提供者 申请 已批准 成功!",
       "approve_failed": "失败 到 批准 申请",
       "load_failed": "失败 到 加载 数据"
     },
@@ -246,7 +246,7 @@
       "documents": "文件",
       "authorization_details": "授权 详情",
       "request_id": "申请 ID",
-      "training_center_id": "培训 中心 ID",
+      "training_center_id": "培训 提供者 ID",
       "request_date": "申请 日期",
       "created_at": "已创建 在",
       "updated_at": "已更新 在",
@@ -286,7 +286,7 @@
       "date_of_birth": "日期 的 出生",
       "nationality": "国籍",
       "specialization": "专业方向",
-      "training_center": "培训 中心"
+      "training_center": "培训 提供者"
     },
     "documents": {
       "view_document": "查看",
@@ -297,7 +297,7 @@
       "price_label": "授权 价格",
       "price_placeholder": "500.00",
       "description": "请 设置  授权 价格 为 此 讲师.",
-      "note": "批准后，集团管理员需要先设置佣金比例，培训中心才能付款。",
+      "note": "批准后，集团管理员需要先设置佣金比例，培训提供者才能付款。",
       "success": "讲师 已批准 成功. 等待 为 集团 管理员 到 设置 佣金 百分比."
     },
     "rejection": {
@@ -335,13 +335,13 @@
       "subtitle": "查看所有已批准的讲师"
     },
     "search": {
-      "placeholder": "按姓名、电子邮件、电话或培训中心搜索..."
+      "placeholder": "按姓名、电子邮件、电话或培训提供者搜索..."
     },
     "table": {
       "instructor": "讲师",
       "email": "电子邮件",
-      "training_center": "培训中心",
-      "training_centers": "培训中心",
+      "training_center": "培训提供者",
+      "training_centers": "培训提供者",
       "commission": "佣金 %",
       "payment_status": "付款状态",
       "actions": "操作",
@@ -358,8 +358,8 @@
     "details": {
       "modal_title": "讲师详情",
       "instructor_info": "讲师信息",
-      "training_center_info": "培训中心",
-      "training_centers_info": "培训中心",
+      "training_center_info": "培训提供者",
+      "training_centers_info": "培训提供者",
       "authorization_details": "授权详情",
       "authorized_courses": "已授权课程",
       "first_name": "名",
@@ -503,7 +503,7 @@
   "classes_screen": {
     "header": {
       "title": "班级",
-      "subtitle": "查看 全部 班级 从 已授权 培训 中心"
+      "subtitle": "查看 全部 班级 从 已授权 培训 提供者"
     },
     "search": {
       "placeholder": "搜索 班级..."
@@ -518,7 +518,7 @@
     "table": {
       "class_name": "班级 名称",
       "course": "课程",
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "instructor": "讲师",
       "schedule": "日程",
       "exam_date": "考试 日期",
@@ -543,7 +543,7 @@
       "modal_title": "班级 详情",
       "class_info": "班级 信息",
       "course_info": "课程 信息",
-      "training_center_info": "培训 中心 信息",
+      "training_center_info": "培训 提供者 信息",
       "instructor_info": "讲师 信息",
       "schedule_info": "日程 信息",
       "location_capacity": "位置 & 容量",
@@ -675,12 +675,12 @@
     },
     "types": {
       "course": "课程",
-      "training_center": "培训 中心",
-      "instructor": "培训师"
+      "training_center": "培训 提供者",
+      "instructor": "讲师"
     },
     "type_descriptions": {
       "course": "课程 完成",
-      "training_center": "培训 中心 授权",
+      "training_center": "培训 提供者 授权",
       "instructor": "培训师 授权"
     },
     "actions": {
@@ -709,7 +709,9 @@
       "scope": "范围",
       "category_level": "分类 级别",
       "course_specific": "课程 特定",
-      "select_courses": "选择 课程"
+      "select_courses": "选择 课程",
+      "include_card": "包含卡片",
+      "include_card_desc": "将学员卡作为第二页附加在生成的PDF中"
     },
     "buttons": {
       "cancel": "取消",
@@ -729,13 +731,24 @@
     "errors": {
       "save_failed": "失败 到 保存 模板. 请 尝试 再次.",
       "delete_failed": "失败 到 删除 模板. 请 尝试 再次.",
-      "delete_in_use": "此 模板 是 正在 已使用 由 {{count}} 证书(s). 删除中 它 将 也 删除 全部 相关 证书."
+      "delete_in_use": "此 模板 是 正在 已使用 由 {{count}} 证书(s). 删除中 它 将 也 删除 全部 相关 证书.",
+      "no_courses_selected": "请至少选择一门课程"
     },
     "confirmations": {
       "delete": "确定要删除“{{name}}”吗？"
     },
     "common": {
-      "na": "N/A"
+      "na": "N/A",
+      "course": "课程",
+      "category": "分类",
+      "multiple_courses": "多个课程",
+      "courses": "课程",
+      "all_training_centers": "所有培训提供者",
+      "all_instructors": "所有讲师",
+      "cannot_change_type": "(无法更改)",
+      "applies_to_all_training_centers": "适用于所有获批的培训提供者",
+      "applies_to_all_instructors": "适用于所有授权讲师",
+      "no_categories": "未找到分类"
     }
   },
   "discount_codes_screen": {
@@ -880,6 +893,7 @@
     "form": {
       "category_name_en": "分类 名称 (英语)",
       "category_name_ar": "分类 名称 (阿拉伯语)",
+      "sub_category_name": "子分类名称",
       "description": "描述",
       "status": "状态",
       "active": "启用",
@@ -986,10 +1000,10 @@
       "subtitle": "审核 和 批准 手动 付款 申请"
     },
     "search": {
-      "placeholder": "搜索 由 培训 中心, 课程, 金额, 或 日期..."
+      "placeholder": "搜索 由 培训 提供者, 课程, 金额, 或 日期..."
     },
     "table": {
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "course": "课程",
       "quantity": "数量",
       "total_amount": "总计 金额",
@@ -1007,7 +1021,7 @@
     },
     "details": {
       "modal_title": "付款 申请 详情",
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "course": "课程",
       "quantity": "数量",
       "total_amount": "总计 金额",
@@ -1020,7 +1034,7 @@
     },
     "approve": {
       "modal_title": "批准 付款",
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "course": "课程",
       "quantity": "数量",
       "calculated_total": "已计算 总计",
@@ -1031,7 +1045,7 @@
     },
     "reject": {
       "modal_title": "拒绝 付款",
-      "training_center": "培训 中心",
+      "training_center": "培训 提供者",
       "course": "课程",
       "quantity": "数量",
       "amount": "金额",
@@ -1204,6 +1218,8 @@
     "info": {
       "template_name": "证书 模板",
       "template_type": "课程",
+      "global_card_title": "全局 卡片 模板",
+      "global_card_subtitle": "整个 系统的 ACC 设计 · 适用于 所有 课程",
       "stats": {
         "elements": "{{count}} 元素{{plural}}",
         "updated": "已更新 {{date}}",

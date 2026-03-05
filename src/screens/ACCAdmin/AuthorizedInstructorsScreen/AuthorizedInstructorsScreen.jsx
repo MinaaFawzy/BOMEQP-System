@@ -536,7 +536,7 @@ const AuthorizedInstructorsScreen = () => {
                             </div>
                         </div>
 
-                        {/* Training Centers */}
+                        {/* Training Providers */}
                         {selectedInstructor.training_centers && selectedInstructor.training_centers.length > 0 && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

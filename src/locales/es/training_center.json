@@ -24,7 +24,7 @@
   "authorization_request_details": "Detalles de la solicitud de autorización",
   "ID": "ID",
   "status": "Estado",
-  "training_center_state": "Estado del centro de formación",
+  "training_center_state": "Estado del proveedor de formación",
   "authorized_accreditation": "Acreditación autorizada",
   "classes_over_time": "Clases a lo largo del tiempo",
   "classes_status_distribution": "Distribución del estado de las clases",
@@ -118,7 +118,7 @@
     "classes": "Clases",
     "classes_over_time": "Clases a lo largo del tiempo",
     "classes_status_distribution": "Distribución del estado de las clases",
-    "training_center_state": "Estado del centro de formación",
+    "training_center_state": "Estado del proveedor de formación",
     "status": "Estado",
     "registration_date": "Fecha de registro",
     "accreditation_status": "Estado de acreditación",
@@ -842,7 +842,15 @@
       "file_process_failed": "No se pudo procesar el archivo. Por favor, inténtalo de nuevo.",
       "payment_failed": "La verificación del pago falló. Por favor, contacta al soporte.",
       "purchase_failed": "El pago fue exitoso, pero no se pudo completar la compra. Por favor, contacta al soporte.",
-      "load_failed": "No se pudieron cargar los datos"
+      "load_failed": "No se pudieron cargar los datos",
+      "category_required": "La categoría es obligatoria",
+      "sub_category_required": "La subcategoría es obligatoria",
+      "course_required": "El curso es obligatorio",
+      "class_name_required": "El nombre de la clase es obligatorio",
+      "instructor_required": "El instructor es obligatorio",
+      "start_date_required": "La fecha de inicio es obligatoria",
+      "end_date_required": "La fecha de fin es obligatoria",
+      "save_failed": "No se pudo guardar la clase. Por favor, verifica todos los campos obligatorios."
     },
     "messages": {
       "manual_payment_submitted": "Solicitud de pago enviada correctamente. En espera de aprobación.",
@@ -901,7 +909,7 @@
       "instructor_name": "Nombre del instructor",
       "acc_id": "ID del ACC",
       "acc_name": "Nombre del ACC",
-      "training_center_id": "ID del centro de formación",
+      "training_center_id": "ID del proveedor de formación",
       "authorization_price": "Precio de autorización"
     },
     "status": {
@@ -1046,7 +1054,7 @@
       "description": "Selecciona el idioma que deseas usar para la interfaz de la aplicación. La página se actualizará automáticamente cuando cambies el idioma."
     },
     "common": {
-      "training_center": "Centro de formación",
+      "training_center": "Proveedor de formación",
       "no_email": "No se proporcionó correo electrónico"
     }
   }

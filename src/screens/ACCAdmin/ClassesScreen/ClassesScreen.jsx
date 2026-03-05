@@ -499,7 +499,7 @@ const ClassesScreen = () => {
               </div>
             )}
 
-            {/* Training Center Information */}
+            {/* Training Provider Information */}
             {selectedClass.training_center && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

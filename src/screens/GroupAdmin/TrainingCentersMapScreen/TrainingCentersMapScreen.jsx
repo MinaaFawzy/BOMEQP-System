@@ -53,13 +53,26 @@ const makeIcon = (status) =>
 
 // ─── Inner helpers (must be children of MapContainer) ────────────────────────
 
-/** Forces Leaflet to recalculate its size after the container is painted */
+/** Forces Leaflet to recalculate its size when its container resizes */
 const AutoSize = () => {
   const map = useMap();
   useEffect(() => {
-    // rAF fires after paint; ensures container has real pixel dimensions
+    const container = map.getContainer();
+    if (!container) return;
+
+    // rAF on mount
     const id = requestAnimationFrame(() => map.invalidateSize());
-    return () => cancelAnimationFrame(id);
+
+    // Watch for size changes (e.g. sidebar open/close)
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => map.invalidateSize());
+    });
+    observer.observe(container);
+
+    return () => {
+      cancelAnimationFrame(id);
+      observer.disconnect();
+    };
   }, [map]);
   return null;
 };
@@ -87,8 +100,8 @@ const TrainingCentersMapScreen = () => {
 
   // ── Header ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    setHeaderTitle('Training Centers Regions');
-    setHeaderSubtitle('View training centers by region on the map');
+    setHeaderTitle('Training Providers Regions');
+    setHeaderSubtitle('View training providers by region on the map');
     return () => { setHeaderTitle(null); setHeaderSubtitle(null); };
   }, [setHeaderTitle, setHeaderSubtitle]);
 
@@ -106,7 +119,7 @@ const TrainingCentersMapScreen = () => {
       }
     } catch (err) {
       console.error('Map fetch error:', err);
-      setError('Failed to load training centers. Please try again.');
+      setError('Failed to load training providers. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -181,7 +194,7 @@ const TrainingCentersMapScreen = () => {
       <div className="training-centers-map-screen">
         <div className="loading-container">
           <div className="spinner" />
-          <p>Loading training centers map...</p>
+          <p>Loading training providers map...</p>
         </div>
       </div>
     );
@@ -209,11 +222,11 @@ const TrainingCentersMapScreen = () => {
         <div className="map-header">
           <div className="map-header-left">
             <Globe className="w-6 h-6 text-primary-600" />
-            <h2>Global Training Centers</h2>
+            <h2>Global Training Providers</h2>
           </div>
           <div className="map-header-stats">
             <div className="stat-item">
-              <span className="stat-label">Total Centers</span>
+              <span className="stat-label">Total Providers</span>
               <span className="stat-value">{summary?.total || 0}</span>
             </div>
             <div className="stat-item">
@@ -268,9 +281,9 @@ const TrainingCentersMapScreen = () => {
           {mappedCenters.length === 0 && (
             <div className="map-empty-state">
               <MapPin className="w-16 h-16 text-gray-300 mb-4" />
-              <p>No training centers with location data available</p>
+              <p>No training providers with location data available</p>
               <p className="map-empty-state-hint">
-                Training centers need latitude and longitude coordinates to appear on the map
+                Training providers need latitude and longitude coordinates to appear on the map
               </p>
             </div>
           )}
@@ -300,10 +313,9 @@ const TrainingCentersMapScreen = () => {
                 <div className="region-icon"><MapPin className="w-6 h-6" /></div>
                 <div className="region-info">
                   <h4>{region.name}</h4>
-                  <p>{region.count} Training Centers</p>
+                  <p>{region.count} Training Providers</p>
                 </div>
                 <div className="region-card-actions">
-                  {region.isActive && <CheckCircle className="w-5 h-5 text-primary-600" />}
                   <button
                     className={`region-export-btn ${isDownloading ? 'loading' : ''}`}
                     title={`Download ${region.name} CSV`}
@@ -328,14 +340,14 @@ const TrainingCentersMapScreen = () => {
       {/* ══ Center cards ══════════════════════════════════════════════════════ */}
       <div className="centers-data-section">
         <div className="centers-data-header">
-          <h3>{selectedRegion ? `${selectedRegion} Training Centers` : 'All Training Centers'}</h3>
-          <span className="centers-count">{filteredCenters.length} centers</span>
+          <h3>{selectedRegion ? `${selectedRegion} Training Providers` : 'All Training Providers'}</h3>
+          <span className="centers-count">{filteredCenters.length} providers</span>
         </div>
 
         {filteredCenters.length === 0 ? (
           <div className="empty-state">
             <Building2 className="w-16 h-16 text-gray-300 mb-4" />
-            <p>No training centers found</p>
+            <p>No training providers found</p>
           </div>
         ) : (
           <div className="centers-grid">

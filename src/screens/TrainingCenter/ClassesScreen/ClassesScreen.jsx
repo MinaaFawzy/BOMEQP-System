@@ -421,7 +421,7 @@ const ClassesScreen = () => {
     }
   };
 
-  // Load available trainees for the training center
+  // Load available trainees for the training provider
   const loadAvailableTrainees = async () => {
     try {
       setLoadingTrainees(true);
@@ -683,16 +683,16 @@ const ClassesScreen = () => {
     try {
       const data = await trainingCenterAPI.getClassDetails(classItem.id);
       // Handle different response structures
-      const classData = data.class || data.data || data;
-      // Ensure trainees are included (could be in classData.trainees or data.trainees)
-      if (classData && !classData.trainees && data.trainees) {
-        classData.trainees = data.trainees;
-      }
-      // If still no trainees, try to get from original classItem
-      if (classData && !classData.trainees && classItem.trainees) {
-        classData.trainees = classItem.trainees;
-      }
-      setSelectedClass(classData);
+      let classData = data?.data?.class || data?.class || data?.data || data;
+
+      // Ensure trainees are included
+      let trainees = classData?.trainees || data?.data?.trainees || data?.trainees || classItem.trainees || [];
+
+      const mergedClass = { ...classItem, ...classData, trainees };
+      if (!mergedClass.course && classItem.course) mergedClass.course = classItem.course;
+      if (!mergedClass.instructor && classItem.instructor) mergedClass.instructor = classItem.instructor;
+
+      setSelectedClass(mergedClass);
       setDetailModalOpen(true);
     } catch (error) {
       console.error('Failed to load class details:', error);
@@ -904,6 +904,7 @@ const ClassesScreen = () => {
       return {
         ...classItem,
         _searchText: searchText,
+        hideEdit: classItem.status === 'completed',
       };
     });
   }, [classes]);

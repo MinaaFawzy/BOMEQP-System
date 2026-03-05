@@ -24,7 +24,7 @@
       "view_all": "查看全部",
       "table": {
         "course": "课程",
-        "training_center": "培训中心",
+        "training_center": "培训提供者",
         "dates": "日期",
         "status": "状态",
         "students": "学员",
@@ -42,9 +42,9 @@
       "view_full_profile": "查看完整资料"
     },
     "training_centers": {
-      "title": "培训中心",
+      "title": "培训提供者",
       "view_all_with_count": "查看全部 ({{count}})",
-      "empty": "未找到培训中心"
+      "empty": "未找到培训提供者"
     },
     "accs": {
       "title": "认证机构",
@@ -85,7 +85,7 @@
     },
     "table": {
       "course": "课程",
-      "training_center": "培训中心",
+      "training_center": "培训提供者",
       "start_date": "开始日期",
       "end_date": "结束日期",
       "exam_date": "考试日期",
@@ -108,7 +108,7 @@
     "details": {
       "modal_title": "课程详情",
       "course": "课程",
-      "training_center": "培训中心",
+      "training_center": "培训提供者",
       "start_date": "开始日期",
       "end_date": "结束日期",
       "exam_date": "考试日期",
@@ -187,7 +187,7 @@
       "select_city": "选择城市",
       "type": "类型",
       "account_status": "账户状态",
-      "training_center": "培训中心",
+      "training_center": "培训提供者",
       "specializations": "专业领域"
     },
     "profile_photo": {
@@ -263,9 +263,9 @@
       "file_size": "文件大小必须小于 10MB",
       "password_required": "需要当前密码",
       "password_failed": "修改密码失败",
-      "this_field_is_managed_by_your_training_center": "此字段 由您的 培训中心 管理",
-      "your_account_status_is_managed_by_your_training_center": "您的账户状态 由您的 培训中心 管理",
-      "you_are_registered_under_this_training_center": "您注册于此 培训中心",
+      "this_field_is_managed_by_your_training_center": "此字段 由您的 培训提供者 管理",
+      "your_account_status_is_managed_by_your_training_center": "您的账户状态 由您的 培训提供者 管理",
+      "you_are_registered_under_this_training_center": "您注册于此 培训提供者",
       "click_to_view": "点击上方的链接，在新标签页中查看当前简历"
     },
     "common": {

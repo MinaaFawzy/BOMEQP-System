@@ -3,7 +3,7 @@
     "cards": {
       "total_revenue": "Total Revenue",
       "pending_requests": "Pending Requests",
-      "active_training_centers": "Active Training Centers",
+      "active_training_centers": "Active Training Providers",
       "active_instructors": "Active Instructors",
       "click_to_view_details": "Click to view details"
     },
@@ -89,8 +89,8 @@
   },
   "training_centers_screen": {
     "header": {
-      "title": "Training Centers",
-      "subtitle": "Manage training center authorizations and requests"
+      "title": "Training Providers",
+      "subtitle": "Manage training provider authorizations and requests"
     },
     "tabs": {
       "total": "Total",
@@ -100,15 +100,15 @@
       "rejected": "Rejected"
     },
     "search": {
-      "placeholder": "Search training centers..."
+      "placeholder": "Search training providers..."
     },
     "table": {
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "email": "Email",
       "date": "Date",
       "status": "Status",
       "actions": "Actions",
-      "empty": "No training centers found"
+      "empty": "No training providers found"
     },
     "actions": {
       "view_details": "View Details",
@@ -125,13 +125,13 @@
       "na": "N/A"
     },
     "details": {
-      "request_title": "Training Center Request Details",
-      "details_title": "Training Center Details",
+      "request_title": "Training Provider Request Details",
+      "details_title": "Training Provider Details",
       "request_info": "Request Information",
-      "training_center_info": "Training Center Information",
+      "training_center_info": "Training Provider Information",
       "documents": "Documents",
       "request_id": "Request ID",
-      "training_center_id": "Training Center ID",
+      "training_center_id": "Training Provider ID",
       "request_date": "Request Date",
       "created_at": "Created At",
       "updated_at": "Updated At",
@@ -171,15 +171,15 @@
       "view_document": "View Document"
     },
     "rejection": {
-      "title": "Reject Training Center Request",
+      "title": "Reject Training Provider Request",
       "reason_label": "Rejection Reason",
       "reason_placeholder": "Enter the reason for rejection...",
       "confirm": "Reject Request",
       "missing_reason": "Please provide a rejection reason",
-      "success": "Training center request rejected"
+      "success": "Training provider request rejected"
     },
     "return": {
-      "title": "Return Training Center Request",
+      "title": "Return Training Provider Request",
       "comment_label": "Return Comment",
       "comment_placeholder": "Enter comments for returning the request...",
       "confirm": "Return Request",
@@ -187,8 +187,8 @@
       "success": "Request returned for revision"
     },
     "messages": {
-      "approve_confirm": "Approve this training center request?",
-      "approve_success": "Training center request approved successfully!",
+      "approve_confirm": "Approve this training provider request?",
+      "approve_success": "Training provider request approved successfully!",
       "approve_failed": "Failed to approve request",
       "load_failed": "Failed to load data"
     },
@@ -246,7 +246,7 @@
       "documents": "Documents",
       "authorization_details": "Authorization Details",
       "request_id": "Request ID",
-      "training_center_id": "Training Center ID",
+      "training_center_id": "Training Provider ID",
       "request_date": "Request Date",
       "created_at": "Created At",
       "updated_at": "Updated At",
@@ -286,7 +286,7 @@
       "date_of_birth": "D.O.B:",
       "nationality": "Nationality",
       "specialization": "Specialization",
-      "training_center": "Training Center"
+      "training_center": "Training Provider"
     },
     "documents": {
       "view_document": "View",
@@ -297,7 +297,7 @@
       "price_label": "Authorization Price",
       "price_placeholder": "500.00",
       "description": "Please set the authorization price for this instructor.",
-      "note": "After approval, Group Admin will need to set the commission percentage before Training Center can pay.",
+      "note": "After approval, Group Admin will need to set the commission percentage before Training Provider can pay.",
       "success": "Instructor approved successfully. Waiting for Group Admin to set commission percentage."
     },
     "rejection": {
@@ -335,13 +335,13 @@
       "subtitle": "View all approved instructors"
     },
     "search": {
-      "placeholder": "Search by name, email, phone, or training center..."
+      "placeholder": "Search by name, email, phone, or training provider..."
     },
     "table": {
       "instructor": "Instructor",
       "email": "Email",
-      "training_center": "Training Center",
-      "training_centers": "Training Centers",
+      "training_center": "Training Provider",
+      "training_centers": "Training Providers",
       "commission": "Commission %",
       "payment_status": "Payment Status",
       "actions": "Actions",
@@ -358,8 +358,8 @@
     "details": {
       "modal_title": "Instructor Details",
       "instructor_info": "Instructor Information",
-      "training_center_info": "Training Center",
-      "training_centers_info": "Training Centers",
+      "training_center_info": "Training Provider",
+      "training_centers_info": "Training Providers",
       "authorization_details": "Authorization Details",
       "authorized_courses": "Authorized Courses",
       "first_name": "First name",
@@ -503,7 +503,7 @@
   "classes_screen": {
     "header": {
       "title": "Classes",
-      "subtitle": "View all classes from authorized training centers"
+      "subtitle": "View all classes from authorized training providers"
     },
     "search": {
       "placeholder": "Search classes..."
@@ -518,7 +518,7 @@
     "table": {
       "class_name": "Class Name",
       "course": "Course",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "instructor": "Instructor",
       "schedule": "Schedule",
       "exam_date": "Exam Date",
@@ -543,7 +543,7 @@
       "modal_title": "Class Details",
       "class_info": "Class Information",
       "course_info": "Course Information",
-      "training_center_info": "Training Center Information",
+      "training_center_info": "Training Provider Information",
       "instructor_info": "Instructor Information",
       "schedule_info": "Schedule Information",
       "location_capacity": "Location & Capacity",
@@ -674,12 +674,12 @@
     },
     "types": {
       "course": "Course",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "instructor": "Instructor"
     },
     "type_descriptions": {
       "course": "For course completion",
-      "training_center": "For TC authorization",
+      "training_center": "For TP authorization",
       "instructor": "For instructor authorization"
     },
     "actions": {
@@ -708,7 +708,9 @@
       "status": "Status",
       "scope": "Scope",
       "category_level": "Category Level",
-      "course_specific": "Course Specific"
+      "course_specific": "Course Specific",
+      "include_card": "Include Card",
+      "include_card_desc": "Attach a trainee card as a second page in the generated PDF"
     },
     "buttons": {
       "cancel": "Cancel",
@@ -742,11 +744,12 @@
       "category": "Category",
       "multiple_courses": "Multiple Courses",
       "courses": "Courses",
-      "all_training_centers": "All Training Centers",
+      "all_training_centers": "All Training Providers",
       "all_instructors": "All Instructors",
       "cannot_change_type": "(Cannot be changed)",
-      "applies_to_all_training_centers": "Applies to all approved training centers",
-      "applies_to_all_instructors": "Applies to all authorized instructors"
+      "applies_to_all_training_centers": "Applies to all approved training providers",
+      "applies_to_all_instructors": "Applies to all authorized instructors",
+      "no_categories": "No categories found"
     }
   },
   "discount_codes_screen": {
@@ -998,10 +1001,10 @@
       "subtitle": "Review and approve manual payment requests"
     },
     "search": {
-      "placeholder": "Search by training center, course, amount, or date..."
+      "placeholder": "Search by training provider, course, amount, or date..."
     },
     "table": {
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "course": "Course",
       "quantity": "Quantity",
       "total_amount": "Total Amount",
@@ -1019,7 +1022,7 @@
     },
     "details": {
       "modal_title": "Payment Request Details",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "course": "Course",
       "quantity": "Quantity",
       "total_amount": "Total Amount",
@@ -1032,7 +1035,7 @@
     },
     "approve": {
       "modal_title": "Approve Payment",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "course": "Course",
       "quantity": "Quantity",
       "calculated_total": "Calculated Total",
@@ -1043,7 +1046,7 @@
     },
     "reject": {
       "modal_title": "Reject Payment",
-      "training_center": "Training Center",
+      "training_center": "Training Provider",
       "course": "Course",
       "quantity": "Quantity",
       "amount": "Amount",

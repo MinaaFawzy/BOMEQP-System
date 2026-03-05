@@ -37,8 +37,8 @@ const TrainingCenterApplicationsScreen = () => {
   });
 
   useEffect(() => {
-    setHeaderTitle('Training Center Applications');
-    setHeaderSubtitle('Review and manage Training Center registration applications');
+    setHeaderTitle('Training Provider Applications');
+    setHeaderSubtitle('Review and manage Training Provider registration applications');
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -119,12 +119,12 @@ const TrainingCenterApplicationsScreen = () => {
   };
 
   const handleApprove = async (id) => {
-    if (!confirm('Are you sure you want to approve this Training Center application?')) {
+    if (!confirm('Are you sure you want to approve this Training Provider application?')) {
       return;
     }
     try {
       await adminAPI.approveTrainingCenterApplication(id);
-      alert('Training Center application approved successfully!');
+      alert('Training Provider application approved successfully!');
       await loadApplications();
     } catch (error) {
       alert('Failed to approve application: ' + (error.message || 'Unknown error'));
@@ -149,7 +149,7 @@ const TrainingCenterApplicationsScreen = () => {
     }
     try {
       await adminAPI.rejectTrainingCenterApplication(selectedApp.id, { rejection_reason: rejectionReason });
-      alert('Training Center application rejected');
+      alert('Training Provider application rejected');
       await loadApplications();
       setRejectDialogOpen(false);
       setSelectedApp(null);
@@ -168,7 +168,7 @@ const TrainingCenterApplicationsScreen = () => {
   // DataTable columns
   const columns = useMemo(() => [
     {
-      header: 'Training Center',
+      header: 'Training Provider',
       accessor: 'name',
       sortable: true,
       render: (value, row) => (
@@ -282,7 +282,7 @@ const TrainingCenterApplicationsScreen = () => {
           searchValue={searchTerm}
           onSearch={handleSearch}
           filterable={false}
-          searchPlaceholder="Search by training center name, email, or legal name..."
+          searchPlaceholder="Search by training provider name, email, or legal name..."
         />
         <div className="p-4 border-t border-gray-100">
           <Pagination
@@ -302,7 +302,7 @@ const TrainingCenterApplicationsScreen = () => {
           setDetailModalOpen(false);
           setSelectedApp(null);
         }}
-        title="Training Center Application Details"
+        title="Training Provider Application Details"
         size="lg"
       >
         <div className="space-y-6">
@@ -472,7 +472,7 @@ const TrainingCenterApplicationsScreen = () => {
           setSelectedApp(null);
           setRejectionReason('');
         }}
-        title="Reject Training Center Application"
+        title="Reject Training Provider Application"
         size="md"
       >
         <div className="space-y-4">

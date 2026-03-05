@@ -93,21 +93,21 @@ const CertificateDesignerScreen = () => {
                 { variable: 'expiry_date', label: 'Expiry Date' },
                 { variable: 'cert_id', label: 'Certificate ID' },
                 { variable: 'verification_code', label: 'Verification Code' },
-                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'training_center_logo', label: 'Training Provider Logo (Image)' },
                 { variable: 'acc_logo', label: 'ACC Logo (Image)' },
                 { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
         }
 
-        // Training Center Template Variables
+        // Training Provider Template Variables
         else if (templateType === 'training_center') {
             list = [
-                { variable: 'training_center_legal_name', label: 'Training Center Legal Name' },
+                { variable: 'training_center_legal_name', label: 'Training Provider Legal Name' },
                 { variable: 'acc_legal_name', label: 'ACC Legal Name' },
                 { variable: 'issue_date', label: 'Issue Date' },
                 { variable: 'issue_date_formatted', label: 'Issue Date (Formatted)' },
                 { variable: 'verification_code', label: 'Verification Code' },
-                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'training_center_logo', label: 'Training Provider Logo (Image)' },
                 { variable: 'acc_logo', label: 'ACC Logo (Image)' },
                 { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
@@ -124,7 +124,7 @@ const CertificateDesignerScreen = () => {
                 { variable: 'verification_code', label: 'Verification Code' },
                 { variable: 'expiry_date', label: 'Expiry Date' },
                 { variable: 'instructor_photo', label: 'Instructor Photo (Image)' },
-                { variable: 'training_center_logo', label: 'Training Center Logo (Image)' },
+                { variable: 'training_center_logo', label: 'Training Provider Logo (Image)' },
                 { variable: 'acc_logo', label: 'ACC Logo (Image)' },
                 { variable: 'qr_code', label: 'QR Code (Image)' },
             ];
@@ -168,10 +168,10 @@ const CertificateDesignerScreen = () => {
             };
         }
 
-        // Training Center Example Data
+        // Training Provider Example Data
         else if (templateType === 'training_center') {
             data = {
-                training_center_legal_name: 'Excellence Training Center LLC',
+                training_center_legal_name: 'Excellence Training Provider LLC',
                 acc_legal_name: 'Global Accreditation Council Inc.',
                 issue_date: '2026-01-15',
                 issue_date_formatted: 'January 15, 2026',

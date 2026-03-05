@@ -38,6 +38,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -675,7 +676,7 @@
   background-color: var(--primary-700);
 }
 
-/* Training Centers & ACCs Grid */
+/* Training Providers & ACCs Grid */
 .training-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
@@ -688,7 +689,7 @@
   }
 }
 
-/* Training Center/ACC Item */
+/* Training Provider/ACC Item */
 .training-item {
   padding: 1rem;
   background-color: #f9fafb;

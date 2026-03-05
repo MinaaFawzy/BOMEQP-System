@@ -175,7 +175,7 @@ const InstructorAuthorizationsScreen = () => {
       setCommissionModalOpen(false);
       setSelectedAuthorization(null);
       setCommissionPercentage('');
-      alert('Commission percentage set successfully. Training Center can now complete payment.');
+      alert('Commission percentage set successfully. Training Provider can now complete payment.');
     } catch (error) {
       console.error('Failed to set commission:', error);
       if (error.response?.data) {
@@ -231,7 +231,7 @@ const InstructorAuthorizationsScreen = () => {
       )
     },
     {
-      header: 'Training Center',
+      header: 'Training Provider',
       accessor: 'training_center',
       sortable: true,
       render: (value) => (
@@ -305,7 +305,7 @@ const InstructorAuthorizationsScreen = () => {
           searchValue={searchQuery}
           onSearch={(value) => setSearchQuery(value)}
           filterable={false}
-          searchPlaceholder="Search by instructor, ACC, or training center..."
+          searchPlaceholder="Search by instructor, ACC, or training provider..."
         />
 
         {authorizations.length > 0 && (
