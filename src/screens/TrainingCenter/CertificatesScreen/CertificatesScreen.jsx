@@ -252,15 +252,15 @@ const TrainingCenterCertificatesScreen = () => {
   useEffect(() => {
     setHeaderTitle(t('certificates_screen.header.title'));
     setHeaderSubtitle(t('certificates_screen.header.subtitle'));
-    setHeaderActions(
-      <button
-        onClick={handleOpenModal}
-        className="header-create-btn"
-      >
-        <Plus size={20} />
-        {t('certificates_screen.header.issue')}
-      </button>
-    );
+    // setHeaderActions(
+    //   <button
+    //     onClick={handleOpenModal}
+    //     className="header-create-btn"
+    //   >
+    //     <Plus size={20} />
+    //     {t('certificates_screen.header.issue')}
+    //   </button>
+    // );
     return () => {
       setHeaderActions(null);
       setHeaderTitle(null);

@@ -616,6 +616,25 @@ export const trainingCenterAPI = {
   updateClass: (id, data) => api.put(`/training-center/classes/${id}`, data),
   deleteClass: (id) => api.delete(`/training-center/classes/${id}`),
   markClassComplete: (id) => api.put(`/training-center/classes/${id}/complete`),
+  saveClassGrades: (id, data) => api.post(`/training-center/classes/${id}/grades`, data),
+  exportClassGradesTemplate: (id) => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/training-center/classes/${id}/grades/export`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      responseType: 'blob',
+    });
+  },
+  importClassGrades: (id, formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/training-center/classes/${id}/grades/import`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    }).then(response => response.data);
+  },
+  generateClassCertificates: (id, data) => api.post(`/training-center/classes/${id}/certificates/generate`, data),
 
   // Certificates
   getAuthorizedACCs: (params) => api.get('/training-center/certificates/accs', { params }),

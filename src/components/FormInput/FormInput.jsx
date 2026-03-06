@@ -138,6 +138,7 @@ const FormInput = ({
           step={step}
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 hover:border-gray-400'
             } ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''} ${props.inputClassName || ''}`}
+          onWheel={(e) => type === 'number' && e.target.blur()}
           {...props}
         />
       )}

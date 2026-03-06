@@ -4,7 +4,7 @@ import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
 import axios from 'axios';
-import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2 } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2, Download, Upload, Award, CheckSquare } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
@@ -32,6 +32,12 @@ const ClassesScreen = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedClassForEnrollment, setSelectedClassForEnrollment] = useState(null);
 
+  // Grades & Certificates State
+  const [grades, setGrades] = useState({});
+  const [isSavingGrades, setIsSavingGrades] = useState(false);
+  const [isUploadingCSV, setIsUploadingCSV] = useState(false);
+  const [isGeneratingCerts, setIsGeneratingCerts] = useState(false);
+
   // Cascade selection states
   const [availableACCs, setAvailableACCs] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -57,6 +63,7 @@ const ClassesScreen = () => {
     end_date: '',
     exam_date: '',
     exam_score: '',
+    success_grade: '',
     location: 'physical',
   });
   const [errors, setErrors] = useState({});
@@ -437,6 +444,140 @@ const ClassesScreen = () => {
     }
   };
 
+  // Grades and Certificates Handlers
+  const handleSaveGrades = async () => {
+    if (!selectedClassForEnrollment) return;
+    setIsSavingGrades(true);
+    try {
+      const gradesArray = Object.keys(grades).map(id => ({
+        trainee_id: parseInt(id),
+        score: grades[id] !== '' && grades[id] !== null ? parseFloat(grades[id]) : null
+      })).filter(g => g.score !== null);
+
+      const response = await trainingCenterAPI.saveClassGrades(selectedClassForEnrollment.id, { grades: gradesArray });
+      const updatedClass = response.class || response.data || response;
+      if (updatedClass) {
+        setSelectedClassForEnrollment(updatedClass);
+        loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
+      }
+      alert(t('classes_screen.grades.save_success', { defaultValue: 'Grades saved successfully' }));
+    } catch (error) {
+      const data = error.response?.data;
+      let errorMsg = t('classes_screen.grades.save_error', { defaultValue: 'Failed to save grades' });
+
+      if (data) {
+        if (data.message) {
+          errorMsg = data.message;
+        }
+      }
+      alert(errorMsg);
+    } finally {
+      setIsSavingGrades(false);
+    }
+  };
+
+  const handleDownloadGradesTemplate = async () => {
+    if (!selectedClassForEnrollment) return;
+    try {
+      const response = await trainingCenterAPI.exportClassGradesTemplate(selectedClassForEnrollment.id);
+      // The response is a blob because we used responseType: 'blob'
+      const blob = response.data || response;
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `class_${selectedClassForEnrollment.id}_grades.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      alert(t('classes_screen.grades.download_error', { defaultValue: 'Failed to download template' }));
+    }
+  };
+
+  const handleUploadGradesCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !selectedClassForEnrollment) return;
+
+    setIsUploadingCSV(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await trainingCenterAPI.importClassGrades(selectedClassForEnrollment.id, formData);
+      alert(t('classes_screen.grades.upload_success', { defaultValue: 'Grades imported successfully' }));
+
+      // Reload class details to show updated grades
+      const updatedData = await trainingCenterAPI.getClassDetails(selectedClassForEnrollment.id);
+      const updatedClass = updatedData?.data?.class || updatedData?.class || updatedData?.data || updatedData;
+      if (updatedClass) {
+        setSelectedClassForEnrollment(updatedClass);
+        const newGrades = {};
+        if (updatedClass.trainees && Array.isArray(updatedClass.trainees)) {
+          updatedClass.trainees.forEach(t => {
+            newGrades[t.id || t.trainee_id] = t.exam_score !== null && t.exam_score !== undefined ? t.exam_score : '';
+          });
+        }
+        setGrades(newGrades);
+        loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
+      }
+    } catch (error) {
+      const data = error.response?.data;
+      let errorMsg = t('classes_screen.grades.upload_error', { defaultValue: 'Failed to import grades' }) + ': ';
+
+      if (data) {
+        if (data.message) {
+          errorMsg = data.message;
+        } else {
+          errorMsg += error.message;
+        }
+      } else {
+        errorMsg += error.message;
+      }
+      alert(errorMsg);
+    } finally {
+      setIsUploadingCSV(false);
+      event.target.value = null; // reset file input
+    }
+  };
+
+  const handleGenerateCertificates = async () => {
+    if (!selectedClassForEnrollment) return;
+    if (!window.confirm(t('classes_screen.grades.generate_confirm', { defaultValue: 'Are you sure you want to generate certificates for all successful trainees?' }))) return;
+
+    setIsGeneratingCerts(true);
+    try {
+      const resp = await trainingCenterAPI.generateClassCertificates(selectedClassForEnrollment.id, {});
+      const data = resp.data || resp;
+
+      let successMsg = data.message || t('classes_screen.grades.generate_success', { defaultValue: 'Certificates generation completed' });
+
+      alert(successMsg);
+
+      // Reload class details
+      const updatedData = await trainingCenterAPI.getClassDetails(selectedClassForEnrollment.id);
+      const updatedClass = updatedData?.data?.class || updatedData?.class || updatedData?.data || updatedData;
+      if (updatedClass) {
+        setSelectedClassForEnrollment(updatedClass);
+        loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
+      }
+    } catch (error) {
+      const data = error.response?.data;
+      let errorMsg = t('classes_screen.grades.generate_error', { defaultValue: 'Failed to generate certificates' }) + ': ';
+
+      if (data) {
+        if (data.message) {
+          errorMsg = data.message;
+        } else {
+          errorMsg += error.message;
+        }
+      } else {
+        errorMsg += error.message;
+      }
+      alert(errorMsg);
+    } finally {
+      setIsGeneratingCerts(false);
+    }
+  };
+
   const handleOpenModal = (classItem = null) => {
     if (classItem) {
       setSelectedClass(classItem);
@@ -451,6 +592,7 @@ const ClassesScreen = () => {
         end_date: classItem.end_date ? classItem.end_date.split('T')[0] : '',
         exam_date: classItem.exam_date ? classItem.exam_date.split('T')[0] : '',
         exam_score: classItem.exam_score || '',
+        success_grade: classItem.success_grade || '',
         location: classItem.location || 'physical',
       });
       // Set selected trainees from existing class
@@ -472,6 +614,7 @@ const ClassesScreen = () => {
         end_date: '',
         exam_date: '',
         exam_score: '',
+        success_grade: '',
         location: 'physical',
       });
       setSelectedTraineeIds([]);
@@ -500,6 +643,7 @@ const ClassesScreen = () => {
       end_date: '',
       exam_date: '',
       exam_score: '',
+      success_grade: '',
       location: 'physical',
     });
     setCategories([]);
@@ -626,6 +770,7 @@ const ClassesScreen = () => {
         end_date: formData.end_date,
         exam_date: formData.exam_date || null,
         exam_score: formData.exam_score ? parseInt(formData.exam_score) : null,
+        success_grade: formData.success_grade ? parseInt(formData.success_grade) : null,
         location: formData.location,
       };
 
@@ -806,6 +951,20 @@ const ClassesScreen = () => {
       ),
     },
     {
+      header: t('classes_screen.table.success_grade', { defaultValue: 'Pass Mark' }),
+      accessor: 'success_grade',
+      sortable: true,
+      render: (value) => (
+        <div className="text-sm">
+          {value !== null && value !== undefined ? (
+            <span className="font-semibold text-green-600">{parseInt(value)}</span>
+          ) : (
+            <span className="text-gray-400">{t('classes_screen.common.na')}</span>
+          )}
+        </div>
+      ),
+    },
+    {
       header: t('classes_screen.table.status'),
       accessor: 'status',
       sortable: true,
@@ -843,6 +1002,13 @@ const ClassesScreen = () => {
           e.nativeEvent.stopImmediatePropagation();
           if (hasTrainees) {
             setSelectedClassForEnrollment(row);
+            const initialGrades = {};
+            if (row.trainees && Array.isArray(row.trainees)) {
+              row.trainees.forEach(t => {
+                initialGrades[t.id || t.trainee_id] = t.exam_score !== null && t.exam_score !== undefined ? t.exam_score : '';
+              });
+            }
+            setGrades(initialGrades);
             setEnrollmentModalOpen(true);
           }
         };
@@ -1245,6 +1411,21 @@ const ClassesScreen = () => {
               min="0"
               max="100"
               step="1"
+              inputClassName="no-spinner"
+            />
+
+            <FormInput
+              label={t('classes_screen.form.success_grade', { defaultValue: 'Pass Mark' })}
+              name="success_grade"
+              type="number"
+              value={formData.success_grade}
+              onChange={handleChange}
+              error={errors.success_grade}
+              helpText={t('classes_screen.form.success_grade_help', { defaultValue: 'Minimum score to pass' })}
+              min="0"
+              max="100"
+              step="1"
+              inputClassName="no-spinner"
             />
           </div>
 
@@ -1314,6 +1495,7 @@ const ClassesScreen = () => {
                   <div className="trainees-list">
                     {filteredTrainees.map((trainee) => {
                       const isSelected = selectedTraineeIds.includes(trainee.id);
+                      const enrolledData = selectedClass?.trainees?.find(t => (t.id || t.trainee_id) === trainee.id);
                       return (
                         <div
                           key={trainee.id}
@@ -1349,6 +1531,14 @@ const ClassesScreen = () => {
                                 <span className="trainee-detail-item">
                                   <Hash size={12} />
                                   {trainee.id_number}
+                                </span>
+                              )}
+                              {enrolledData && enrolledData.exam_score !== null && enrolledData.exam_score !== undefined && (
+                                <span className="trainee-detail-item" style={{ marginLeft: 'auto' }}>
+                                  <Award size={12} className="text-indigo-600" />
+                                  <span className="font-semibold text-indigo-700">
+                                    {t('classes_screen.form.grade', { defaultValue: 'Grade' })}: {parseInt(enrolledData.exam_score)}
+                                  </span>
                                 </span>
                               )}
                             </div>
@@ -1564,6 +1754,14 @@ const ClassesScreen = () => {
                   </p>
                 </div>
               )}
+              {selectedClass.success_grade !== null && selectedClass.success_grade !== undefined && (
+                <div className="detail-modal-item" style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
+                  <p className="detail-modal-label" style={{ color: '#16a34a' }}>{t('classes_screen.table.success_grade', { defaultValue: 'Pass Mark' })}</p>
+                  <p className="detail-modal-value" style={{ color: '#15803d', fontWeight: 'bold' }}>
+                    {parseInt(selectedClass.success_grade)}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Additional Information */}
@@ -1603,7 +1801,7 @@ const ClassesScreen = () => {
               {selectedClass.trainees && Array.isArray(selectedClass.trainees) && selectedClass.trainees.length > 0 ? (
                 <div className="detail-modal-trainees-list">
                   {selectedClass.trainees.map((trainee, index) => (
-                    <div key={trainee.id || index} className="detail-modal-trainee-item">
+                    <div key={trainee.id || index} className="detail-modal-trainee-item" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <div className="detail-modal-trainee-content">
                         <div className="detail-modal-trainee-name">
                           <Users size={16} className="detail-modal-trainee-icon" />
@@ -1613,6 +1811,40 @@ const ClassesScreen = () => {
                           <Hash size={14} className="detail-modal-trainee-id-icon" />
                           <span>{trainee.id_number || trainee.id || t('classes_screen.common.na')}</span>
                         </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-2 mt-1">
+                        <div className="flex items-center gap-4">
+                          <span className={`px-2 py-1 inline-flex items-center text-xs font-semibold rounded-full shadow-sm ${trainee.exam_status === 'success' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+                              trainee.exam_status === 'fail' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
+                                'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+                            }`}>
+                            {trainee.exam_status === 'success' && <CheckCircle size={10} className="mr-1" />}
+                            {trainee.exam_status === 'fail' && <XCircle size={10} className="mr-1" />}
+                            {trainee.exam_status ? trainee.exam_status.charAt(0).toUpperCase() + trainee.exam_status.slice(1) : t('classes_screen.common.na')}
+                          </span>
+
+                          <span className="text-sm font-medium text-gray-700 mt-0.5">
+                            {t('classes_screen.form.grade', { defaultValue: 'Grade' })}: <span className="font-bold text-indigo-700">{trainee.exam_score !== null && trainee.exam_score !== undefined ? trainee.exam_score : '-'}</span>
+                          </span>
+                        </div>
+
+                        {trainee.certificate && (
+                          <div className="flex gap-2">
+                            {trainee.certificate.certificate_pdf_url && (
+                              <button onClick={() => window.open(trainee.certificate.certificate_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
+                                <Download size={12} className="mr-1" />
+                                {t('classes_screen.grades.cert', { defaultValue: 'Certificate' })}
+                              </button>
+                            )}
+                            {trainee.certificate.card_pdf_url && (
+                              <button onClick={() => window.open(trainee.certificate.card_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
+                                <Download size={12} className="mr-1" />
+                                {t('classes_screen.grades.card', { defaultValue: 'Card' })}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1696,6 +1928,40 @@ const ClassesScreen = () => {
               <p className="text-sm text-gray-600 mt-1">
                 {t('classes_screen.table.enrollment')}: {selectedClassForEnrollment.enrolled_count || 0} / {selectedClassForEnrollment.course?.max_capacity || t('classes_screen.common.na')}
               </p>
+            </div>
+
+            {/* Grades and Certs Header Actions */}
+            <div className="flex flex-wrap gap-2 justify-end mb-4 bg-white p-3 rounded-lg border border-gray-200">
+              <button
+                onClick={handleDownloadGradesTemplate}
+                className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center shadow-sm"
+              >
+                <Download size={16} className="mr-1" />
+                {t('classes_screen.grades.download_template', { defaultValue: 'Download Template' })}
+              </button>
+
+              <label className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center shadow-sm cursor-pointer">
+                {isUploadingCSV ? <div className="loading-spinner-small mr-2 border-gray-500"></div> : <Upload size={16} className="mr-1" />}
+                {t('classes_screen.grades.upload_csv', { defaultValue: 'Upload CSV' })}
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleUploadGradesCSV}
+                  disabled={isUploadingCSV}
+                />
+              </label>
+
+              {selectedClassForEnrollment.status === 'completed' && selectedClassForEnrollment.exam_score != null && selectedClassForEnrollment.success_grade != null && (
+                <button
+                  onClick={handleGenerateCertificates}
+                  disabled={isGeneratingCerts}
+                  className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center shadow-sm"
+                >
+                  {isGeneratingCerts ? <div className="loading-spinner-small mr-2 border-white"></div> : <Award size={16} className="mr-1" />}
+                  {t('classes_screen.grades.generate_certs', { defaultValue: 'Generate Certificates' })}
+                </button>
+              )}
             </div>
 
             {selectedClassForEnrollment.trainees && selectedClassForEnrollment.trainees.length > 0 ? (
@@ -1782,13 +2048,51 @@ const ClassesScreen = () => {
                           <Clock size={14} className="mr-1" />
                           {t('status')}
                         </p>
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${trainee.status === 'completed' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                          trainee.status === 'enrolled' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300' :
+                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${trainee.exam_status === 'success' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
+                          trainee.exam_status === 'fail' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
                             'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
                           }`}>
-                          {trainee.status === 'completed' && <CheckCircle size={12} className="mr-1" />}
-                          {trainee.status ? t(`classes_screen.status.${trainee.status}`) : t('classes_screen.common.na')}
+                          {trainee.exam_status === 'success' && <CheckCircle size={12} className="mr-1" />}
+                          {trainee.exam_status === 'fail' && <XCircle size={12} className="mr-1" />}
+                          {trainee.exam_status ? trainee.exam_status.charAt(0).toUpperCase() + trainee.exam_status.slice(1) : t('classes_screen.common.na')}
                         </span>
+                      </div>
+
+                      {/* Grade Input & Certificate Links */}
+                      <div className="md:col-span-2 mt-2 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <label className="text-sm font-semibold text-gray-700">
+                            {t('classes_screen.form.grade', { defaultValue: 'Grade' })}:
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={grades[trainee.id || trainee.trainee_id] ?? ''}
+                            onChange={(e) => setGrades({ ...grades, [trainee.id || trainee.trainee_id]: e.target.value })}
+                            onWheel={(e) => e.target.blur()}
+                            className="border border-gray-300 rounded px-2 py-1.5 w-24 text-center text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none no-spinner"
+                            placeholder="-"
+                          />
+                        </div>
+
+                        {trainee.certificate && (
+                          <div className="flex gap-2">
+                            {trainee.certificate.certificate_pdf_url && (
+                              <button onClick={() => window.open(trainee.certificate.certificate_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
+                                <Download size={14} className="mr-1.5" />
+                                {t('classes_screen.grades.cert', { defaultValue: 'Certificate' })}
+                              </button>
+                            )}
+                            {trainee.certificate.card_pdf_url && (
+                              <button onClick={() => window.open(trainee.certificate.card_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
+                                <Download size={14} className="mr-1.5" />
+                                {t('classes_screen.grades.card', { defaultValue: 'Card' })}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1799,6 +2103,20 @@ const ClassesScreen = () => {
                 <Users className="mx-auto text-gray-400 mb-4" size={48} />
                 <p className="text-gray-500 font-medium">{t('classes_screen.details.no_enrolled')}</p>
                 <p className="text-sm text-gray-400 mt-1">{t('classes_screen.trainees.no_trainees')}</p>
+              </div>
+            )}
+
+            {/* Save Grades Button */}
+            {selectedClassForEnrollment.trainees && selectedClassForEnrollment.trainees.length > 0 && (
+              <div className="mt-6 flex justify-end pb-2">
+                <button
+                  onClick={handleSaveGrades}
+                  disabled={isSavingGrades}
+                  className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center shadow-md transition-colors"
+                >
+                  {isSavingGrades ? <div className="loading-spinner-small mr-2 border-white"></div> : <CheckSquare size={18} className="mr-2" />}
+                  {t('classes_screen.grades.save_grades', { defaultValue: 'Save Grades' })}
+                </button>
               </div>
             )}
           </div>
