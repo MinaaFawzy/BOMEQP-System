@@ -599,8 +599,10 @@
       "end_date": "结束日期",
       "exam_date": "考试日期（可选）",
       "exam_date_help": "安排考试的日期",
-      "grade": "成绩（可选）",
+      "grade": "成绩",
       "grade_help": "成绩（0-100）",
+      "success_grade": "及格分数",
+      "success_grade_help": "及格所需的最低分数（0-100）",
       "location": "授课方式",
       "physical": "线下",
       "online": "线上",
@@ -646,6 +648,22 @@
     "common": {
       "na": "不适用",
       "not_set": "未设置"
+    },
+    "grades": {
+      "save_success": "成绩保存成功",
+      "save_error": "保存成绩失败",
+      "download_error": "下载模板失败",
+      "download_template": "下载模板",
+      "upload_csv": "上传 CSV",
+      "upload_success": "成绩导入成功",
+      "upload_error": "导入成绩失败",
+      "generate_certs": "生成证书",
+      "save_grades": "保存成绩",
+      "generate_confirm": "您确定要为所有成功的学员生成证书吗？",
+      "generate_success": "证书生成完成",
+      "generate_error": "生成证书失败",
+      "cert": "证书",
+      "card": "卡片"
     }
   },
   "certificates_screen": {
@@ -1047,6 +1065,13 @@
     "common": {
       "training_center": "培训提供者",
       "no_email": "未提供电子邮件"
+    },
+    "trainee_section": {
+      "status_success": "成功",
+      "status_fail": "失败",
+      "status_na": "不适用",
+      "certificate": "证书",
+      "card": "卡片"
     }
   }
 }

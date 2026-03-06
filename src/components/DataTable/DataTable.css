@@ -113,6 +113,15 @@
   background-color: #fee2e2;
 }
 
+.data-table-action-enrollment {
+  color: #059669;
+}
+
+.data-table-action-enrollment:hover {
+  color: #065f46;
+  background-color: #d1fae5;
+}
+
 /* Search Container */
 .data-table-search-container {
   background: white;

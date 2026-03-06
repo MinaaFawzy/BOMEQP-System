@@ -574,6 +574,7 @@
       "end_date": "تاريخ النهاية",
       "exam_date": "تاريخ الاختبار",
       "grade": "الدرجة",
+      "success_grade": "درجة النجاح",
       "status": "الحالة",
       "enrollment": "التسجيل",
       "no_classes": "لا توجد دورات",
@@ -594,11 +595,13 @@
       "no_accreditations_help": "يجب أن يكون لديك اعتماد واحد على الأقل.",
       "category": "التصنيف",
       "select_category": "اختر تصنيفًا...",
+      "select_category_first": "يرجى اختيار التصنيف أولاً",
       "sub_category": "التصنيف الفرعي",
       "select_sub_category": "اختر تصنيفًا فرعيًا...",
       "course": "الدورة",
       "select_course": "اختر دورة...",
       "no_courses": "لا توجد دورات متاحة",
+      "no_courses_help": "لم يتم العثور على دورات للتصنيف الفرعي المحدد.",
       "class_name": "اسم الدورة",
       "class_name_placeholder": "مثال: دورة يناير 2024",
       "instructor": "المدرب",
@@ -611,8 +614,10 @@
       "end_date": "تاريخ النهاية",
       "exam_date": "تاريخ الاختبار (اختياري)",
       "exam_date_help": "تاريخ عقد الاختبار",
-      "grade": "الدرجة (اختياري)",
+      "grade": "الدرجة",
       "grade_help": "الدرجة من 0 إلى 100",
+      "success_grade": "درجة النجاح",
+      "success_grade_help": "الحد الأدنى للدرجة المطلوبة للنجاح (0-100)",
       "location": "الموقع",
       "physical": "حضوري",
       "online": "عن بُعد",
@@ -658,6 +663,22 @@
     "common": {
       "na": "غير متاح",
       "not_set": "غير محدد"
+    },
+    "grades": {
+      "save_success": "تم حفظ الدرجات بنجاح",
+      "save_error": "فشل حفظ الدرجات",
+      "download_error": "فشل تنزيل القالب",
+      "download_template": "تنزيل القالب",
+      "upload_csv": "تحميل CSV",
+      "upload_success": "تم استيراد الدرجات بنجاح",
+      "upload_error": "فشل استيراد الدرجات",
+      "generate_certs": "إنشاء الشهادات",
+      "save_grades": "حفظ الدرجات",
+      "generate_confirm": "هل أنت متأكد من أنك تريد إنشاء شهادات لجميع المتدربين الناجحين؟",
+      "generate_success": "اكتمل إنشاء الشهادات",
+      "generate_error": "فشل إنشاء الشهادات",
+      "cert": "الشهادة",
+      "card": "البطاقة"
     }
   },
   "certificates_screen": {
@@ -1058,6 +1079,13 @@
     "common": {
       "training_center": "جهة التدريب",
       "no_email": "لا يوجد بريد إلكتروني"
+    },
+    "trainee_section": {
+      "status_success": "نجح",
+      "status_fail": "فشل",
+      "status_na": "غير متوفر",
+      "certificate": "الشهادة",
+      "card": "البطاقة"
     }
   }
 }

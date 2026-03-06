@@ -22,6 +22,7 @@ const DataTable = ({
   expandable = false,
   renderExpandedRow = null,
   getExpandedRows = null,
+  customActions = null, // New prop for custom actions
 
   searchValue = undefined, // Optional controlled search value
   onSearch = null, // Optional search callback
@@ -364,7 +365,7 @@ const DataTable = ({
                     </th>
                   );
                 })}
-                {(onEdit || onDelete || onView) && (
+                {(onEdit || onDelete || onView || customActions) && (
                   <th className="data-table-th">
                     {t('actions')}
                   </th>
@@ -414,7 +415,7 @@ const DataTable = ({
                               </td>
                             );
                           })}
-                          {(onEdit || onDelete || onView) && (
+                          {(onEdit || onDelete || onView || customActions) && (
                             <td className="px-3 py-3 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center gap-2">
                                 {(() => {
@@ -528,6 +529,23 @@ const DataTable = ({
                                         <Eye size={18} />
                                       </button>
                                     );
+                                  }
+
+                                  // Add custom actions
+                                  if (customActions && Array.isArray(customActions)) {
+                                    customActions.forEach((action, index) => {
+                                      if (action.show && !action.show(row)) return;
+                                      buttons.push(
+                                        <button
+                                          key={`custom-${index}`}
+                                          onClick={() => action.onClick(row)}
+                                          className={`data-table-action-btn ${action.className || 'data-table-action-view'}`}
+                                          title={action.title}
+                                        >
+                                          {action.icon}
+                                        </button>
+                                      );
+                                    });
                                   }
 
                                   return buttons;

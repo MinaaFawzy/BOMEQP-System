@@ -103,5 +103,31 @@
     "message": "Mensaje",
     "messagePlaceholder": "Escribe tu mensaje aquí...",
     "send": "Enviar"
+  },
+  "bulk_import_export": {
+    "import_export": "Importar / Exportar",
+    "categories": "Categorías",
+    "sub_categories": "Subcategorías",
+    "export_categories_template": "Exportar Plantilla de Categorías",
+    "export_sub_categories_template": "Exportar Plantilla de Subcategorías",
+    "import_categories": "Importar Categorías",
+    "import_sub_categories": "Importar Subcategorías",
+    "download_csv_template": "Descargar plantilla CSV",
+    "bulk_create_update_csv": "Crear/actualizar en lote desde CSV",
+    "download_failed": "Error al descargar la plantilla",
+    "unknown_error": "Error desconocido",
+    "import_failed": "Error al importar",
+    "click_to_choose_file": "Haga clic para elegir un archivo",
+    "csv_files_only": "Solo archivos .csv",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "upload_csv_categories": "Cargue un archivo .csv para crear o actualizar categorías en lote.",
+    "download_template_csv": "Descargar Plantilla (csv)",
+    "importing": "Importando…",
+    "import": "Importar",
+    "upload_csv_sub_categories": "Cargue un archivo .csv para crear o actualizar subcategorías en lote.",
+    "category_column_exact": "La columna de categoría debe contener el nombre exacto de la categoría.",
+    "valid_category_names": "Nombres de categorías válidas:",
+    "more": "más"
   }
 }

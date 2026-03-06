@@ -561,6 +561,7 @@
       "end_date": "End Date",
       "exam_date": "Exam Date",
       "grade": "Grade",
+      "success_grade": "Pass Mark",
       "status": "Status",
       "enrollment": "Enrollment",
       "no_classes": "No classes found",
@@ -601,8 +602,10 @@
       "end_date": "End Date",
       "exam_date": "Exam Date (Optional)",
       "exam_date_help": "Date when the exam is scheduled",
-      "grade": "Grade (Optional)",
+      "grade": "Grade",
       "grade_help": "Grade (0-100)",
+      "success_grade": "Pass Mark",
+      "success_grade_help": "Minimum score required to pass (0-100)",
       "location": "Location",
       "physical": "Physical",
       "online": "Online",
@@ -648,6 +651,22 @@
     "common": {
       "na": "N/A",
       "not_set": "Not set"
+    },
+    "grades": {
+      "save_success": "Grades saved successfully",
+      "save_error": "Failed to save grades",
+      "download_error": "Failed to download template",
+      "download_template": "Download Template",
+      "upload_csv": "Upload CSV",
+      "upload_success": "Grades imported successfully",
+      "upload_error": "Failed to import grades",
+      "generate_certs": "Generate Certificates",
+      "save_grades": "Save Grades",
+      "generate_confirm": "Are you sure you want to generate certificates for all successful trainees?",
+      "generate_success": "Certificates generation completed",
+      "generate_error": "Failed to generate certificates",
+      "cert": "Certificate",
+      "card": "Card"
     }
   },
   "certificates_screen": {
@@ -1062,6 +1081,13 @@
     "common": {
       "training_center": "Training Provider",
       "no_email": "No email provided"
+    },
+    "trainee_section": {
+      "status_success": "Success",
+      "status_fail": "Fail",
+      "status_na": "N/A",
+      "certificate": "Certificate",
+      "card": "Card"
     }
   }
 }

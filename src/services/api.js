@@ -322,10 +322,38 @@ export const adminAPI = {
   listCategories: (params) => api.get('/admin/categories', { params }),
   updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
   deleteCategory: (id) => api.delete(`/admin/categories/${id}`),
+  downloadCategoriesTemplate: (format = 'xlsx') => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/admin/categories/template/download`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      params: { format },
+      responseType: 'blob',
+    });
+  },
+  importCategories: (formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/admin/categories/import`, formData, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    }).then(response => response.data);
+  },
   createSubCategory: (data) => api.post('/admin/sub-categories', data),
   listSubCategories: (params) => api.get('/admin/sub-categories', { params }),
   updateSubCategory: (id, data) => api.put(`/admin/sub-categories/${id}`, data),
   deleteSubCategory: (id) => api.delete(`/admin/sub-categories/${id}`),
+  downloadSubCategoriesTemplate: (format = 'xlsx') => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/admin/sub-categories/template/download`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      params: { format },
+      responseType: 'blob',
+    });
+  },
+  importSubCategories: (formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/admin/sub-categories/import`, formData, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    }).then(response => response.data);
+  },
   listCourses: (params) => api.get('/admin/courses', { params }),
   getCourseDetails: (id) => api.get(`/admin/courses/${id}`),
   createClass: (data) => api.post('/admin/classes', data),
@@ -510,6 +538,20 @@ export const accAPI = {
   createCategory: (data) => api.post('/acc/categories', data),
   updateCategory: (id, data) => api.put(`/acc/categories/${id}`, data),
   deleteCategory: (id) => api.delete(`/acc/categories/${id}`),
+  downloadCategoriesTemplate: (format = 'xlsx') => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/admin/categories/template/download`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      params: { format },
+      responseType: 'blob',
+    });
+  },
+  importCategories: (formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/admin/categories/import`, formData, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    }).then(response => response.data);
+  },
 
   // Sub Categories
   listSubCategories: (params) => api.get('/acc/sub-categories', { params }),
@@ -517,6 +559,20 @@ export const accAPI = {
   createSubCategory: (data) => api.post('/acc/sub-categories', data),
   updateSubCategory: (id, data) => api.put(`/acc/sub-categories/${id}`, data),
   deleteSubCategory: (id) => api.delete(`/acc/sub-categories/${id}`),
+  downloadSubCategoriesTemplate: (format = 'xlsx') => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/admin/sub-categories/template/download`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      params: { format },
+      responseType: 'blob',
+    });
+  },
+  importSubCategories: (formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/admin/sub-categories/import`, formData, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    }).then(response => response.data);
+  },
 
   // Code Batches - Manual Payment
   getPendingPayments: (params) => api.get('/acc/code-batches/pending-payments', { params }),

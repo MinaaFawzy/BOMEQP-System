@@ -9,6 +9,7 @@ import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
 import Pagination from '../../../components/Pagination/Pagination';
+import BulkImportExportMenu from '../../../components/BulkImportExportMenu/BulkImportExportMenu';
 import './CategoriesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -574,14 +575,23 @@ const CategoriesScreen = () => {
 
       {/* Categories Table with Expandable Sub Categories */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-2">
           <h2 className="text-xl font-semibold text-gray-900">Categories</h2>
-          <Button
-            onClick={() => handleOpenModal()}
-            icon={<Plus size={20} />}
-          >
-            Add Category
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <BulkImportExportMenu
+              onDownloadCategories={adminAPI.downloadCategoriesTemplate}
+              onImportCategories={async (fd) => { const r = await adminAPI.importCategories(fd); await loadCategories(); await loadSubCategories(); return r; }}
+              onDownloadSubCategories={adminAPI.downloadSubCategoriesTemplate}
+              onImportSubCategories={async (fd) => { const r = await adminAPI.importSubCategories(fd); await loadSubCategories(); return r; }}
+              categories={allCategories}
+            />
+            <Button
+              onClick={() => handleOpenModal()}
+              icon={<Plus size={20} />}
+            >
+              Add Category
+            </Button>
+          </div>
         </div>
 
         <DataTable

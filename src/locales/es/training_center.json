@@ -599,8 +599,10 @@
       "end_date": "Fecha de finalización",
       "exam_date": "Fecha del examen (opcional)",
       "exam_date_help": "Fecha en la que está programado el examen",
-      "grade": "Calificación (opcional)",
+      "grade": "Calificación",
       "grade_help": "Calificación (0-100)",
+      "success_grade": "Puntuación de aprobación",
+      "success_grade_help": "Puntuación mínima requerida para aprobar (0-100)",
       "location": "Ubicación",
       "physical": "Presencial",
       "online": "En línea",
@@ -646,6 +648,22 @@
     "common": {
       "na": "N/D",
       "not_set": "No establecido"
+    },
+    "grades": {
+      "save_success": "Calificaciones guardadas exitosamente",
+      "save_error": "Error al guardar calificaciones",
+      "download_error": "Error al descargar plantilla",
+      "download_template": "Descargar Plantilla",
+      "upload_csv": "Subir CSV",
+      "upload_success": "Calificaciones importadas exitosamente",
+      "upload_error": "Error al importar calificaciones",
+      "generate_certs": "Generar Certificados",
+      "save_grades": "Guardar Calificaciones",
+      "generate_confirm": "¿Está seguro de que desea generar certificados para todos los aprendices exitosos?",
+      "generate_success": "Generación de certificados completada",
+      "generate_error": "Error al generar certificados",
+      "cert": "Certificado",
+      "card": "Tarjeta"
     }
   },
   "certificates_screen": {
@@ -1056,6 +1074,13 @@
     "common": {
       "training_center": "Proveedor de formación",
       "no_email": "No se proporcionó correo electrónico"
+    },
+    "trainee_section": {
+      "status_success": "Éxito",
+      "status_fail": "Fallo",
+      "status_na": "N/A",
+      "certificate": "Certificado",
+      "card": "Tarjeta"
     }
   }
 }

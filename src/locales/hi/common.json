@@ -103,5 +103,31 @@
     "message": "संदेश",
     "messagePlaceholder": "अपना संदेश यहाँ टाइप करें...",
     "send": "भेजें"
+  },
+  "bulk_import_export": {
+    "import_export": "आयात / निर्यात",
+    "categories": "श्रेणियाँ",
+    "sub_categories": "उप-श्रेणियाँ",
+    "export_categories_template": "श्रेणियाँ टेम्पलेट निर्यात करें",
+    "export_sub_categories_template": "उप-श्रेणियाँ टेम्पलेट निर्यात करें",
+    "import_categories": "श्रेणियाँ आयात करें",
+    "import_sub_categories": "उप-श्रेणियाँ आयात करें",
+    "download_csv_template": "CSV टेम्पलेट डाउनलोड करें",
+    "bulk_create_update_csv": "CSV से थोक में बनाएं/अपडेट करें",
+    "download_failed": "टेम्पलेट डाउनलोड करने में विफल",
+    "unknown_error": "अज्ञात त्रुटि",
+    "import_failed": "आयात विफल",
+    "click_to_choose_file": "फ़ाइल चुनने के लिए क्लिक करें",
+    "csv_files_only": "केवल .csv फ़ाइल",
+    "created": "बनाया गया",
+    "updated": "अपडेट किया गया",
+    "upload_csv_categories": "श्रेणियाँ को थोक में बनाने या अपडेट करने के लिए एक .csv फ़ाइल अपलोड करें।",
+    "download_template_csv": "टेम्पलेट डाउनलोड करें (csv)",
+    "importing": "आयात हो रहा है…",
+    "import": "आयात करें",
+    "upload_csv_sub_categories": "उप-श्रेणियाँ को थोक में बनाने या अपडेट करने के लिए एक .csv फ़ाइल अपलोड करें।",
+    "category_column_exact": "श्रेणी कॉलम में सटीक श्रेणी का नाम होना चाहिए।",
+    "valid_category_names": "मान्य श्रेणी नाम:",
+    "more": "अधिक"
   }
 }

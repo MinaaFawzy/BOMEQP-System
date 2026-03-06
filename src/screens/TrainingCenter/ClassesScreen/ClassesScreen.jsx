@@ -4,7 +4,7 @@ import { trainingCenterAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
 import axios from 'axios';
-import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2, Download, Upload, Award, CheckSquare } from 'lucide-react';
+import { GraduationCap, Plus, Edit, Trash2, Eye, CheckCircle, Users, Calendar, MapPin, Clock, XCircle, Mail, Phone, Hash, Search, X, BookOpen, Building2, Download, Upload, Award, CheckSquare, UserCheck } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import TabCard from '../../../components/TabCard/TabCard';
@@ -12,6 +12,7 @@ import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
+import TraineeSection from '../../../components/TraineeSection/TraineeSection';
 import './ClassesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -37,6 +38,7 @@ const ClassesScreen = () => {
   const [isSavingGrades, setIsSavingGrades] = useState(false);
   const [isUploadingCSV, setIsUploadingCSV] = useState(false);
   const [isGeneratingCerts, setIsGeneratingCerts] = useState(false);
+  const [expandedTraineeIds, setExpandedTraineeIds] = useState(new Set());
 
   // Cascade selection states
   const [availableACCs, setAvailableACCs] = useState([]);
@@ -460,10 +462,10 @@ const ClassesScreen = () => {
         setSelectedClassForEnrollment(updatedClass);
         loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
       }
-      alert(t('classes_screen.grades.save_success', { defaultValue: 'Grades saved successfully' }));
+      alert(t('classes_screen.grades.save_success'));
     } catch (error) {
       const data = error.response?.data;
-      let errorMsg = t('classes_screen.grades.save_error', { defaultValue: 'Failed to save grades' });
+      let errorMsg = t('classes_screen.grades.save_error');
 
       if (data) {
         if (data.message) {
@@ -490,7 +492,7 @@ const ClassesScreen = () => {
       link.click();
       link.parentNode.removeChild(link);
     } catch (error) {
-      alert(t('classes_screen.grades.download_error', { defaultValue: 'Failed to download template' }));
+      alert(t('classes_screen.grades.download_error'));
     }
   };
 
@@ -503,7 +505,7 @@ const ClassesScreen = () => {
       const formData = new FormData();
       formData.append('file', file);
       await trainingCenterAPI.importClassGrades(selectedClassForEnrollment.id, formData);
-      alert(t('classes_screen.grades.upload_success', { defaultValue: 'Grades imported successfully' }));
+      alert(t('classes_screen.grades.upload_success'));
 
       // Reload class details to show updated grades
       const updatedData = await trainingCenterAPI.getClassDetails(selectedClassForEnrollment.id);
@@ -521,7 +523,7 @@ const ClassesScreen = () => {
       }
     } catch (error) {
       const data = error.response?.data;
-      let errorMsg = t('classes_screen.grades.upload_error', { defaultValue: 'Failed to import grades' }) + ': ';
+      let errorMsg = t('classes_screen.grades.upload_error') + ': ';
 
       if (data) {
         if (data.message) {
@@ -541,14 +543,14 @@ const ClassesScreen = () => {
 
   const handleGenerateCertificates = async () => {
     if (!selectedClassForEnrollment) return;
-    if (!window.confirm(t('classes_screen.grades.generate_confirm', { defaultValue: 'Are you sure you want to generate certificates for all successful trainees?' }))) return;
+    if (!window.confirm(t('classes_screen.grades.generate_confirm'))) return;
 
     setIsGeneratingCerts(true);
     try {
       const resp = await trainingCenterAPI.generateClassCertificates(selectedClassForEnrollment.id, {});
       const data = resp.data || resp;
 
-      let successMsg = data.message || t('classes_screen.grades.generate_success', { defaultValue: 'Certificates generation completed' });
+      let successMsg = data.message || t('classes_screen.grades.generate_success');
 
       alert(successMsg);
 
@@ -561,7 +563,7 @@ const ClassesScreen = () => {
       }
     } catch (error) {
       const data = error.response?.data;
-      let errorMsg = t('classes_screen.grades.generate_error', { defaultValue: 'Failed to generate certificates' }) + ': ';
+      let errorMsg = t('classes_screen.grades.generate_error') + ': ';
 
       if (data) {
         if (data.message) {
@@ -858,6 +860,33 @@ const ClassesScreen = () => {
     }
   };
 
+  const handleEnrollmentClick = (row) => {
+    const hasTrainees = row.trainees && Array.isArray(row.trainees) && row.trainees.length > 0;
+    if (hasTrainees) {
+      setSelectedClassForEnrollment(row);
+      const initialGrades = {};
+      if (row.trainees && Array.isArray(row.trainees)) {
+        row.trainees.forEach(t => {
+          initialGrades[t.id || t.trainee_id] = t.exam_score !== null && t.exam_score !== undefined ? t.exam_score : '';
+        });
+      }
+      setGrades(initialGrades);
+      setEnrollmentModalOpen(true);
+    }
+  };
+
+  const toggleTraineeExpand = (traineeId) => {
+    setExpandedTraineeIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(traineeId)) {
+        newSet.delete(traineeId);
+      } else {
+        newSet.add(traineeId);
+      }
+      return newSet;
+    });
+  };
+
   // Define columns for DataTable
   const columns = useMemo(() => [
     {
@@ -951,7 +980,7 @@ const ClassesScreen = () => {
       ),
     },
     {
-      header: t('classes_screen.table.success_grade', { defaultValue: 'Pass Mark' }),
+      header: t('classes_screen.table.success_grade'),
       accessor: 'success_grade',
       sortable: true,
       render: (value) => (
@@ -990,56 +1019,7 @@ const ClassesScreen = () => {
         );
       },
     },
-    {
-      header: t('classes_screen.table.enrollment'),
-      accessor: 'enrollment',
-      sortable: false,
-      render: (value, row) => {
-        const hasTrainees = row.trainees && Array.isArray(row.trainees) && row.trainees.length > 0;
-        const handleEnrollmentClick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          e.nativeEvent.stopImmediatePropagation();
-          if (hasTrainees) {
-            setSelectedClassForEnrollment(row);
-            const initialGrades = {};
-            if (row.trainees && Array.isArray(row.trainees)) {
-              row.trainees.forEach(t => {
-                initialGrades[t.id || t.trainee_id] = t.exam_score !== null && t.exam_score !== undefined ? t.exam_score : '';
-              });
-            }
-            setGrades(initialGrades);
-            setEnrollmentModalOpen(true);
-          }
-        };
-        return (
-          <div
-            className={`enrollment-container ${hasTrainees ? 'enrollment-clickable' : ''}`}
-            onClick={handleEnrollmentClick}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            onMouseUp={(e) => {
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            role={hasTrainees ? "button" : undefined}
-            tabIndex={hasTrainees ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (hasTrainees && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleEnrollmentClick(e);
-              }
-            }}
-          >
-            {row.enrolled_count || 0} / {row.course?.max_capacity || t('classes_screen.common.na')}
-          </div>
-        );
-      },
-    },
-  ], [t]);
+  ], [t, setSelectedClassForEnrollment, setGrades, setEnrollmentModalOpen]);
 
   // Filter options for DataTable
   const filterOptions = useMemo(() => [
@@ -1192,6 +1172,15 @@ const ClassesScreen = () => {
         }}
         sortable={true}
         defaultFilter={statusFilter}
+        customActions={[
+          {
+            icon: <UserCheck size={18} />,
+            title: t('classes_screen.table.enrollment'),
+            onClick: handleEnrollmentClick,
+            show: (row) => row.trainees && Array.isArray(row.trainees) && row.trainees.length > 0,
+            className: 'data-table-action-enrollment'
+          }
+        ]}
       />
       <Pagination
         currentPage={page}
@@ -1411,6 +1400,7 @@ const ClassesScreen = () => {
               min="0"
               max="100"
               step="1"
+              required
               inputClassName="no-spinner"
             />
 
@@ -1421,10 +1411,11 @@ const ClassesScreen = () => {
               value={formData.success_grade}
               onChange={handleChange}
               error={errors.success_grade}
-              helpText={t('classes_screen.form.success_grade_help', { defaultValue: 'Minimum score to pass' })}
+              helpText={t('classes_screen.form.success_grade_help')}
               min="0"
               max="100"
               step="1"
+              required
               inputClassName="no-spinner"
             />
           </div>
@@ -1537,7 +1528,7 @@ const ClassesScreen = () => {
                                 <span className="trainee-detail-item" style={{ marginLeft: 'auto' }}>
                                   <Award size={12} className="text-indigo-600" />
                                   <span className="font-semibold text-indigo-700">
-                                    {t('classes_screen.form.grade', { defaultValue: 'Grade' })}: {parseInt(enrolledData.exam_score)}
+                                    {t('classes_screen.form.grade')}: {parseInt(enrolledData.exam_score)}
                                   </span>
                                 </span>
                               )}
@@ -1756,7 +1747,7 @@ const ClassesScreen = () => {
               )}
               {selectedClass.success_grade !== null && selectedClass.success_grade !== undefined && (
                 <div className="detail-modal-item" style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
-                  <p className="detail-modal-label" style={{ color: '#16a34a' }}>{t('classes_screen.table.success_grade', { defaultValue: 'Pass Mark' })}</p>
+                  <p className="detail-modal-label" style={{ color: '#16a34a' }}>{t('classes_screen.table.success_grade')}</p>
                   <p className="detail-modal-value" style={{ color: '#15803d', fontWeight: 'bold' }}>
                     {parseInt(selectedClass.success_grade)}
                   </p>
@@ -1798,64 +1789,12 @@ const ClassesScreen = () => {
             {/* Trainees Section - Always show */}
             <div className="detail-modal-section detail-modal-section-blue">
               <p className="detail-modal-section-title detail-modal-section-title-blue">{t('classes_screen.details.enrolled_trainees')}</p>
-              {selectedClass.trainees && Array.isArray(selectedClass.trainees) && selectedClass.trainees.length > 0 ? (
-                <div className="detail-modal-trainees-list">
-                  {selectedClass.trainees.map((trainee, index) => (
-                    <div key={trainee.id || index} className="detail-modal-trainee-item" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div className="detail-modal-trainee-content">
-                        <div className="detail-modal-trainee-name">
-                          <Users size={16} className="detail-modal-trainee-icon" />
-                          <span>{trainee.first_name} {trainee.last_name}</span>
-                        </div>
-                        <div className="detail-modal-trainee-id">
-                          <Hash size={14} className="detail-modal-trainee-id-icon" />
-                          <span>{trainee.id_number || trainee.id || t('classes_screen.common.na')}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-2 mt-1">
-                        <div className="flex items-center gap-4">
-                          <span className={`px-2 py-1 inline-flex items-center text-xs font-semibold rounded-full shadow-sm ${trainee.exam_status === 'success' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                              trainee.exam_status === 'fail' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
-                                'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                            }`}>
-                            {trainee.exam_status === 'success' && <CheckCircle size={10} className="mr-1" />}
-                            {trainee.exam_status === 'fail' && <XCircle size={10} className="mr-1" />}
-                            {trainee.exam_status ? trainee.exam_status.charAt(0).toUpperCase() + trainee.exam_status.slice(1) : t('classes_screen.common.na')}
-                          </span>
-
-                          <span className="text-sm font-medium text-gray-700 mt-0.5">
-                            {t('classes_screen.form.grade', { defaultValue: 'Grade' })}: <span className="font-bold text-indigo-700">{trainee.exam_score !== null && trainee.exam_score !== undefined ? trainee.exam_score : '-'}</span>
-                          </span>
-                        </div>
-
-                        {trainee.certificate && (
-                          <div className="flex gap-2">
-                            {trainee.certificate.certificate_pdf_url && (
-                              <button onClick={() => window.open(trainee.certificate.certificate_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
-                                <Download size={12} className="mr-1" />
-                                {t('classes_screen.grades.cert', { defaultValue: 'Certificate' })}
-                              </button>
-                            )}
-                            {trainee.certificate.card_pdf_url && (
-                              <button onClick={() => window.open(trainee.certificate.card_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
-                                <Download size={12} className="mr-1" />
-                                {t('classes_screen.grades.card', { defaultValue: 'Card' })}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Users className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-gray-500 font-medium">{t('classes_screen.details.no_enrolled')}</p>
-                  <p className="text-sm text-gray-400 mt-1">{t('classes_screen.trainees.no_trainees')}</p>
-                </div>
-              )}
+              <TraineeSection
+                trainees={selectedClass.trainees}
+                mode="view"
+                t={t}
+                className="detail-modal-trainees-list"
+              />
             </div>
 
             {/* Additional Fields */}
@@ -1937,12 +1876,12 @@ const ClassesScreen = () => {
                 className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center shadow-sm"
               >
                 <Download size={16} className="mr-1" />
-                {t('classes_screen.grades.download_template', { defaultValue: 'Download Template' })}
+                {t('classes_screen.grades.download_template')}
               </button>
 
               <label className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center shadow-sm cursor-pointer">
                 {isUploadingCSV ? <div className="loading-spinner-small mr-2 border-gray-500"></div> : <Upload size={16} className="mr-1" />}
-                {t('classes_screen.grades.upload_csv', { defaultValue: 'Upload CSV' })}
+                {t('classes_screen.grades.upload_csv')}
                 <input
                   type="file"
                   accept=".csv"
@@ -1956,155 +1895,24 @@ const ClassesScreen = () => {
                 <button
                   onClick={handleGenerateCertificates}
                   disabled={isGeneratingCerts}
-                  className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center shadow-sm"
+                  className="px-3 py-1.5 text-sm text-white rounded flex items-center shadow-sm"
+                  style={{ backgroundColor: '#1a2c49', hover: '#0f1a33' }}
                 >
                   {isGeneratingCerts ? <div className="loading-spinner-small mr-2 border-white"></div> : <Award size={16} className="mr-1" />}
-                  {t('classes_screen.grades.generate_certs', { defaultValue: 'Generate Certificates' })}
+                  {t('classes_screen.grades.generate_certs')}
                 </button>
               )}
             </div>
 
-            {selectedClassForEnrollment.trainees && selectedClassForEnrollment.trainees.length > 0 ? (
-              <div className="space-y-3">
-                {selectedClassForEnrollment.trainees.map((trainee, index) => (
-                  <div key={trainee.id || index} className="p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1 flex items-center">
-                          <Users size={14} className="mr-1" />
-                          {t('name')}
-                        </p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {trainee.first_name} {trainee.last_name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1 flex items-center">
-                          <Mail size={14} className="mr-1" />
-                          {t('email')}
-                        </p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {trainee.email || t('classes_screen.common.na')}
-                        </p>
-                      </div>
-                      {trainee.phone && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Phone size={14} className="mr-1" />
-                            {t('phone')}
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {trainee.phone}
-                          </p>
-                        </div>
-                      )}
-                      {trainee.id_number && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Hash size={14} className="mr-1" />
-                            {t('trainees.table.columns.idNumber')}
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {trainee.id_number}
-                          </p>
-                        </div>
-                      )}
-                      {trainee.enrolled_at && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            {t('request_date')}
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {new Date(trainee.enrolled_at).toLocaleString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      )}
-                      {trainee.completed_at && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1 flex items-center">
-                            <CheckCircle size={14} className="mr-1" />
-                            {t('reviewed_at')}
-                          </p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {new Date(trainee.completed_at).toLocaleString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1 flex items-center">
-                          <Clock size={14} className="mr-1" />
-                          {t('status')}
-                        </p>
-                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full shadow-sm ${trainee.exam_status === 'success' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' :
-                          trainee.exam_status === 'fail' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300' :
-                            'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                          }`}>
-                          {trainee.exam_status === 'success' && <CheckCircle size={12} className="mr-1" />}
-                          {trainee.exam_status === 'fail' && <XCircle size={12} className="mr-1" />}
-                          {trainee.exam_status ? trainee.exam_status.charAt(0).toUpperCase() + trainee.exam_status.slice(1) : t('classes_screen.common.na')}
-                        </span>
-                      </div>
-
-                      {/* Grade Input & Certificate Links */}
-                      <div className="md:col-span-2 mt-2 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <label className="text-sm font-semibold text-gray-700">
-                            {t('classes_screen.form.grade', { defaultValue: 'Grade' })}:
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value={grades[trainee.id || trainee.trainee_id] ?? ''}
-                            onChange={(e) => setGrades({ ...grades, [trainee.id || trainee.trainee_id]: e.target.value })}
-                            onWheel={(e) => e.target.blur()}
-                            className="border border-gray-300 rounded px-2 py-1.5 w-24 text-center text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none no-spinner"
-                            placeholder="-"
-                          />
-                        </div>
-
-                        {trainee.certificate && (
-                          <div className="flex gap-2">
-                            {trainee.certificate.certificate_pdf_url && (
-                              <button onClick={() => window.open(trainee.certificate.certificate_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
-                                <Download size={14} className="mr-1.5" />
-                                {t('classes_screen.grades.cert', { defaultValue: 'Certificate' })}
-                              </button>
-                            )}
-                            {trainee.certificate.card_pdf_url && (
-                              <button onClick={() => window.open(trainee.certificate.card_pdf_url, '_blank')} className="text-xs bg-indigo-50 text-indigo-700 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 flex items-center border border-indigo-200 shadow-sm transition-colors">
-                                <Download size={14} className="mr-1.5" />
-                                {t('classes_screen.grades.card', { defaultValue: 'Card' })}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Users className="mx-auto text-gray-400 mb-4" size={48} />
-                <p className="text-gray-500 font-medium">{t('classes_screen.details.no_enrolled')}</p>
-                <p className="text-sm text-gray-400 mt-1">{t('classes_screen.trainees.no_trainees')}</p>
-              </div>
-            )}
+            <TraineeSection
+              trainees={selectedClassForEnrollment.trainees}
+              mode="edit"
+              grades={grades}
+              onGradeChange={(traineeId, value) => setGrades({ ...grades, [traineeId]: value })}
+              expandedTraineeIds={expandedTraineeIds}
+              onToggleExpand={toggleTraineeExpand}
+              t={t}
+            />
 
             {/* Save Grades Button */}
             {selectedClassForEnrollment.trainees && selectedClassForEnrollment.trainees.length > 0 && (
@@ -2112,10 +1920,11 @@ const ClassesScreen = () => {
                 <button
                   onClick={handleSaveGrades}
                   disabled={isSavingGrades}
-                  className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center shadow-md transition-colors"
+                  className="px-5 py-2.5 text-white font-medium rounded-lg flex items-center shadow-md transition-colors"
+                  style={{ backgroundColor: '#1a2c49' }}
                 >
                   {isSavingGrades ? <div className="loading-spinner-small mr-2 border-white"></div> : <CheckSquare size={18} className="mr-2" />}
-                  {t('classes_screen.grades.save_grades', { defaultValue: 'Save Grades' })}
+                  {t('classes_screen.grades.save_grades')}
                 </button>
               </div>
             )}

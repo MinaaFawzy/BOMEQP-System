@@ -103,5 +103,31 @@
     "message": "消息",
     "messagePlaceholder": "在此输入您的消息...",
     "send": "发送"
+  },
+  "bulk_import_export": {
+    "import_export": "导入 / 导出",
+    "categories": "类别",
+    "sub_categories": "子类别",
+    "export_categories_template": "导出类别模板",
+    "export_sub_categories_template": "导出子类别模板",
+    "import_categories": "导入类别",
+    "import_sub_categories": "导入子类别",
+    "download_csv_template": "下载 CSV 模板",
+    "bulk_create_update_csv": "从 CSV 批量创建/更新",
+    "download_failed": "下载模板失败",
+    "unknown_error": "未知错误",
+    "import_failed": "导入失败",
+    "click_to_choose_file": "点击选择文件",
+    "csv_files_only": "仅 .csv 文件",
+    "created": "已创建",
+    "updated": "已更新",
+    "upload_csv_categories": "上传 .csv 文件以批量创建或更新类别。",
+    "download_template_csv": "下载模板 (csv)",
+    "importing": "导入中…",
+    "import": "导入",
+    "upload_csv_sub_categories": "上传 .csv 文件以批量创建或更新子类别。",
+    "category_column_exact": "类别列必须包含确切的类别名称。",
+    "valid_category_names": "有效类别名称:",
+    "more": "更多"
   }
 }

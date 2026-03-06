@@ -105,5 +105,31 @@
     "message": "الرسالة",
     "messagePlaceholder": "اكتب رسالتك هنا...",
     "send": "إرسال"
+  },
+  "bulk_import_export": {
+    "import_export": "استيراد / تصدير",
+    "categories": "الفئات",
+    "sub_categories": "الفئات الفرعية",
+    "export_categories_template": "تصدير قالب الفئات",
+    "export_sub_categories_template": "تصدير قالب الفئات الفرعية",
+    "import_categories": "استيراد الفئات",
+    "import_sub_categories": "استيراد الفئات الفرعية",
+    "download_csv_template": "تنزيل قالب CSV",
+    "bulk_create_update_csv": "إنشاء / تحديث دفعي من CSV",
+    "download_failed": "فشل تنزيل القالب",
+    "unknown_error": "خطأ غير معروف",
+    "import_failed": "فشل الاستيراد",
+    "click_to_choose_file": "انقر لاختيار ملف",
+    "csv_files_only": "ملفات CSV فقط",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "upload_csv_categories": "قم بتحميل ملف .csv لإنشاء أو تحديث الفئات بشكل دفعي.",
+    "download_template_csv": "تنزيل القالب (csv)",
+    "importing": "جاري الاستيراد…",
+    "import": "استيراد",
+    "upload_csv_sub_categories": "قم بتحميل ملف .csv لإنشاء أو تحديث الفئات الفرعية بشكل دفعي.",
+    "category_column_exact": "يجب أن يحتوي عمود الفئة على اسم الفئة الدقيق.",
+    "valid_category_names": "أسماء الفئات الصالحة:",
+    "more": "المزيد"
   }
 }

@@ -9,6 +9,7 @@ import Button from '../../../components/Button/Button';
 import TabCard from '../../../components/TabCard/TabCard';
 import TabCardsGrid from '../../../components/TabCardsGrid/TabCardsGrid';
 import DataTable from '../../../components/DataTable/DataTable';
+import BulkImportExportMenu from '../../../components/BulkImportExportMenu/BulkImportExportMenu';
 import './CategoriesScreen.css';
 import FormInput from '../../../components/FormInput/FormInput';
 
@@ -648,9 +649,9 @@ const CategoriesScreen = () => {
       </TabCardsGrid>
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-2">
           <h2 className="text-xl font-semibold text-gray-900">{t('categories_screen.header.title')}</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => loadCategories()}
               icon={<RefreshCw size={20} />}
@@ -661,6 +662,14 @@ const CategoriesScreen = () => {
             >
               {t('categories_screen.actions.refresh')}
             </Button>
+            <BulkImportExportMenu
+              onDownloadCategories={accAPI.downloadCategoriesTemplate}
+              onImportCategories={async (fd) => { const r = await accAPI.importCategories(fd); await loadCategories(); return r; }}
+              onDownloadSubCategories={accAPI.downloadSubCategoriesTemplate}
+              onImportSubCategories={async (fd) => { const r = await accAPI.importSubCategories(fd); await loadSubCategories(); return r; }}
+              categories={categories}
+              cancelLabel={t('categories_screen.common.cancel')}
+            />
             <Button
               onClick={() => handleOpenModal()}
               icon={<Plus size={20} />}
