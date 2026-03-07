@@ -65,7 +65,7 @@ const TraineeSection = ({
     <div className={`space-y-4 ${className}`}>
       {trainees.map((trainee, index) => {
         const traineeId = trainee.id || trainee.trainee_id || index;
-        const status = getStatusConfig(trainee.exam_status, t);
+        const status = getStatusConfig(trainee.exam_status, tCommon);
         const hasCertificate =
           trainee.certificate !== null && trainee.certificate !== undefined;
 
@@ -136,8 +136,8 @@ const TraineeSection = ({
                       }
                       disabled={hasCertificate}
                       className={`no-spinner mt-1 h-11 w-20 rounded-xl border text-center text-base font-semibold outline-none transition ${hasCertificate
-                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                          : "border-slate-300 bg-white text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                        : "border-slate-300 bg-white text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                         }`}
                       placeholder="0"
                     />
@@ -156,7 +156,7 @@ const TraineeSection = ({
                     className="inline-flex h-10 items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
                   >
                     <Award size={16} />
-                    {t('trainee_section.certificate', { defaultValue: 'Certificate' })}
+                    {tCommon('trainee_section.certificate', { defaultValue: 'Certificate' })}
                   </button>
                 )}
 
@@ -168,7 +168,7 @@ const TraineeSection = ({
                     className="inline-flex h-10 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-medium text-violet-700 transition hover:bg-violet-100"
                   >
                     <FileText size={16} />
-                    {t('trainee_section.card', { defaultValue: 'Card' })}
+                    {tCommon('trainee_section.card', { defaultValue: 'Card' })}
                   </button>
                 )}
               </div>

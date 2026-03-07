@@ -287,6 +287,8 @@
     "cancel": "取消",
     "save_changes": "保存更改",
     "saving": "正在保存...",
+    "search_placeholder": "搜索课程（名称或代码）...",
+    "no_search_results": "未找到匹配的课程。",
     "alerts": {
       "no_changes": "没有要保存的更改。",
       "success": "讲师课程更新成功！",

@@ -52,6 +52,13 @@
   "theme": "थीम",
   "dark_mode": "डार्क मोड",
   "light_mode": "लाइट मोड",
+  "trainee_section": {
+    "certificate": "प्रमाणपत्र",
+    "card": "कार्ड",
+    "status_success": "सफल",
+    "status_fail": "विफल",
+    "status_na": "अनुपलब्ध"
+  },
   "pagination": {
     "info": {
       "showing": "दिखा रहा है",

@@ -52,6 +52,13 @@
   "theme": "主题",
   "dark_mode": "深色模式",
   "light_mode": "浅色模式",
+  "trainee_section": {
+    "certificate": "证书",
+    "card": "卡片",
+    "status_success": "成功",
+    "status_fail": "失败",
+    "status_na": "不适用"
+  },
   "pagination": {
     "info": {
       "showing": "显示",
@@ -92,7 +99,7 @@
     "status_valid": "有效",
     "status_expired": "已过期",
     "status_revoked": "已撤销"
-  }, 
+  },
   "support": {
     "title": "支持",
     "subtitle": "支持联系信息",

@@ -287,6 +287,8 @@
     "cancel": "Cancel",
     "save_changes": "Save Changes",
     "saving": "Saving...",
+    "search_placeholder": "Search courses by name or code...",
+    "no_search_results": "No courses found matching your search.",
     "alerts": {
       "no_changes": "No changes to save.",
       "success": "Instructor courses updated successfully!",

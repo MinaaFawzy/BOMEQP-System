@@ -287,6 +287,8 @@
     "cancel": "Cancelar",
     "save_changes": "Guardar cambios",
     "saving": "Guardando...",
+    "search_placeholder": "Busca cursos por nombre o código...",
+    "no_search_results": "No hay cursos disponibles.",
     "alerts": {
       "no_changes": "No hay cambios para guardar.",
       "success": "¡Cursos del instructor actualizados correctamente!",

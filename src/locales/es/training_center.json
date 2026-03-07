@@ -560,6 +560,7 @@
       "end_date": "Fecha de finalización",
       "exam_date": "Fecha del examen",
       "grade": "Calificación",
+      "success_grade": "Calificación de aprobación",
       "status": "Estado",
       "enrollment": "Inscripción",
       "no_classes": "No se encontraron clases",

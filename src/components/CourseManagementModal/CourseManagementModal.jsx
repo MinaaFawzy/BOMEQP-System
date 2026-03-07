@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, BookOpen, ChevronDown, ChevronRight, Loader2, Check, Grid3x3, Layers } from 'lucide-react';
+import { X, BookOpen, ChevronDown, ChevronRight, Loader2, Check, Grid3x3, Layers, Search } from 'lucide-react';
 import { adminAPI, accAPI } from '../../services/api';
 import { useTranslation } from '../../hooks/useTranslation';
 import './CourseManagementModal.css';
@@ -15,6 +15,7 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
   const [initialCourseStates, setInitialCourseStates] = useState({});
   const [summary, setSummary] = useState({ total_courses: 0, authorized_courses: 0 });
   const [selectedACC, setSelectedACC] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (isOpen && instructor) {
@@ -187,6 +188,29 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
     return Object.keys(courseStates).length;
   };
 
+  const filteredCategories = categories.map(category => {
+    const filteredSubCategories = category.sub_categories.map(subCategory => {
+      const filteredCourses = subCategory.courses.filter(course => {
+        const query = searchQuery.toLowerCase();
+        return (
+          course.name.toLowerCase().includes(query) ||
+          course.code.toLowerCase().includes(query) ||
+          (course.name_ar && course.name_ar.toLowerCase().includes(query))
+        );
+      });
+
+      return {
+        ...subCategory,
+        courses: filteredCourses
+      };
+    }).filter(subCategory => subCategory.courses.length > 0);
+
+    return {
+      ...category,
+      sub_categories: filteredSubCategories
+    };
+  }).filter(category => category.sub_categories.length > 0);
+
   if (!isOpen) return null;
 
   return (
@@ -222,21 +246,24 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
         {isAdmin && instructor?.accs && instructor.accs.length > 0 && (
           <div className="course-management-acc-selector">
             <label className="course-management-acc-label">{t('course_management_modal.select_accreditation')}</label>
-            <select
-              className="course-management-acc-select"
-              value={selectedACC || ''}
-              onChange={handleACCChange}
-              disabled={loading}
-            >
-              {instructor.accs.map((acc) => {
-                const accId = acc.id || acc.acc_id || acc.accreditation_id;
-                return (
-                  <option key={accId} value={accId}>
-                    {acc.name || `ACC #${accId}`}
-                  </option>
-                );
-              })}
-            </select>
+            <div className="course-management-acc-select-wrapper">
+              <select
+                className="course-management-acc-select"
+                value={selectedACC || ''}
+                onChange={handleACCChange}
+                disabled={loading}
+              >
+                {instructor.accs.map((acc) => {
+                  const accId = acc.id || acc.acc_id || acc.accreditation_id;
+                  return (
+                    <option key={accId} value={accId}>
+                      {acc.name || `ACC #${accId}`}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown size={18} className="course-management-acc-select-icon" />
+            </div>
           </div>
         )}
 
@@ -261,6 +288,19 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
 
         {/* Body */}
         <div className="course-management-modal-body">
+          {!loading && categories.length > 0 && (
+            <div className="course-management-search-container">
+              <Search size={20} className="course-management-search-icon" />
+              <input
+                type="text"
+                className="course-management-search-input"
+                placeholder={t('course_management_modal.search_placeholder', 'Search courses by name or code...')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          )}
+
           {loading ? (
             <div className="course-management-loading">
               <Loader2 className="animate-spin" size={40} />
@@ -271,9 +311,14 @@ const CourseManagementModal = ({ isOpen, onClose, instructor, isAdmin = false })
               <BookOpen size={64} />
               <p>{t('course_management_modal.no_courses_available')}</p>
             </div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="course-management-empty">
+              <Search size={64} className="course-management-empty-search-icon" />
+              <p>{t('course_management_modal.no_search_results', 'No courses found matching your search.')}</p>
+            </div>
           ) : (
             <div className="course-management-list">
-              {categories.map((category) => {
+              {filteredCategories.map((category) => {
                 const allCoursesInCategory = [];
                 category.sub_categories.forEach(sub => {
                   sub.courses.forEach(course => {

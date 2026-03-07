@@ -52,6 +52,13 @@
   "theme": "Theme",
   "dark_mode": "Dark Mode",
   "light_mode": "Light Mode",
+  "trainee_section": {
+    "certificate": "Certificate",
+    "card": "Card",
+    "status_success": "Success",
+    "status_fail": "Fail",
+    "status_na": "N/A"
+  },
   "pagination": {
     "info": {
       "showing": "Showing",
@@ -59,11 +66,9 @@
       "of": "of",
       "results": "results"
     },
-
     "per_page": {
       "label": "Show:"
     },
-
     "controls": {
       "first_page": "First page",
       "previous_page": "Previous page",
@@ -94,7 +99,7 @@
     "status_valid": "Valid",
     "status_expired": "Expired",
     "status_revoked": "Revoked"
-  }, 
+  },
   "support": {
     "title": "Support",
     "subtitle": "Support contact information",

@@ -110,9 +110,23 @@
   margin-bottom: 0.375rem;
 }
 
+.course-management-acc-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.course-management-acc-select-icon {
+  position: absolute;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
 .course-management-acc-select {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem;
   font-size: 0.9375rem;
   font-weight: 500;
   color: #1f2937;
@@ -122,6 +136,10 @@
   outline: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: none !important;
 }
 
 .course-management-acc-select:hover {
@@ -132,8 +150,6 @@
 .course-management-acc-select:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(26, 44, 73, 0.2);
-  ring: 2px solid var(--primary-color);
-  ring-offset: 0;
 }
 
 .course-management-modal-close {
@@ -248,6 +264,52 @@
 .course-management-empty p {
   font-size: 1rem;
   font-weight: 500;
+}
+
+.course-management-empty-search-icon {
+  color: #9ca3af;
+  opacity: 0.5;
+}
+
+/* Search Bar */
+.course-management-search-container {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.2s;
+}
+
+.course-management-search-container:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(26, 44, 73, 0.1);
+  background: white;
+}
+
+.course-management-search-icon {
+  color: #9ca3af;
+  margin-right: 0.75rem;
+}
+
+[dir="rtl"] .course-management-search-icon {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+
+.course-management-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9375rem;
+  color: #1f2937;
+}
+
+.course-management-search-input::placeholder {
+  color: #9ca3af;
 }
 
 .course-management-list {

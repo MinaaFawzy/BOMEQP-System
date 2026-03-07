@@ -52,6 +52,13 @@
   "theme": "المظهر",
   "dark_mode": "الوضع الداكن",
   "light_mode": "الوضع الفاتح",
+  "trainee_section": {
+    "certificate": "الشهادة",
+    "card": "البطاقة",
+    "status_success": "ناجح",
+    "status_fail": "راسب",
+    "status_na": "غير متوفر"
+  },
   "pagination": {
     "info": {
       "showing": "عرض",
@@ -59,11 +66,9 @@
       "of": "من",
       "results": "نتيجة"
     },
-
     "per_page": {
       "label": "عرض:"
     },
-
     "controls": {
       "first_page": "الصفحة الأولى",
       "previous_page": "الصفحة السابقة",
