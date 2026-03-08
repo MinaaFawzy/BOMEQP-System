@@ -195,7 +195,7 @@ const TraineeCardDesignerScreen = () => {
                     evented: false,
                 });
                 canvas.current.setBackgroundImage(img, () => canvas.current.renderAll());
-            });
+            }, { crossOrigin: 'anonymous' });
         }, 100);
     };
 
@@ -250,7 +250,7 @@ const TraineeCardDesignerScreen = () => {
                     canvas.current.add(img);
                     canvas.current.renderAll();
                     updatePlaceholdersList();
-                });
+                }, { crossOrigin: 'anonymous' });
             }
         });
 
@@ -339,7 +339,7 @@ const TraineeCardDesignerScreen = () => {
                     canvas.current.setActiveObject(img);
                     canvas.current.renderAll();
                     updatePlaceholdersList();
-                });
+                }, { crossOrigin: 'anonymous' });
                 return;
             }
             const dw = 100, dh = 70;
