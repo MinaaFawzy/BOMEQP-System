@@ -77,9 +77,17 @@ const TraineeSection = ({
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               {/* Left */}
               <div className="flex min-w-0 flex-1 gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white shadow">
-                  {getInitials(trainee.first_name, trainee.last_name)}
-                </div>
+                {trainee.profile_picture_url ? (
+                  <img
+                    src={trainee.profile_picture_url}
+                    alt={`${trainee.first_name} ${trainee.last_name}`}
+                    className="h-14 w-14 shrink-0 rounded-md shadow object-contain bg-slate-50"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white shadow">
+                    {getInitials(trainee.first_name, trainee.last_name)}
+                  </div>
+                )}
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">

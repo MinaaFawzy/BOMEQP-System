@@ -9,12 +9,13 @@ import trainingCenterLogo from '../../../assets/training_center_logo.png';
 import accLogo from '../../../assets/accretidation_logo.png';
 import qrCode from '../../../assets/QRcode.png';
 import instructorPhoto from '../../../assets/instructor.png';
+import traineePhoto from '../../../assets/trainee_photo.png';
 
 // Card dimensions: CR80 wallet card ratio ~1.586:1
 const CARD_WIDTH = 856;
 const CARD_HEIGHT = 540;
 
-const IMAGE_PLACEHOLDER_VARS = ['instructor_photo', 'training_center_logo', 'acc_logo', 'qr_code'];
+const IMAGE_PLACEHOLDER_VARS = ['instructor_photo', 'training_center_logo', 'acc_logo', 'qr_code', 'trainee_photo'];
 
 const AVAILABLE_VARIABLES = [
     { variable: 'instructor_name', label: 'Instructor Full Name' },
@@ -30,6 +31,7 @@ const AVAILABLE_VARIABLES = [
     { variable: 'expiry_date', label: 'Expiry Date' },
     { variable: 'serial_number', label: 'Serial Number' },
     { variable: 'instructor_photo', label: 'Instructor Photo (Image)' },
+    { variable: 'trainee_photo', label: 'Trainee Photo (Image)' },
     { variable: 'training_center_logo', label: 'Training Provider Logo (Image)' },
     { variable: 'acc_logo', label: 'ACC Logo (Image)' },
     { variable: 'qr_code', label: 'QR Code (Image)' },
@@ -49,6 +51,7 @@ const EXAMPLE_DATA = {
     expiry_date: '2027-01-15',
     serial_number: 'CARD-2026-ABC123XYZ',
     instructor_photo: instructorPhoto,
+    trainee_photo: traineePhoto,
     training_center_logo: trainingCenterLogo,
     acc_logo: accLogo,
     qr_code: qrCode,

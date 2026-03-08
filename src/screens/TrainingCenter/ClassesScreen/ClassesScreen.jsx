@@ -1507,6 +1507,24 @@ const ClassesScreen = () => {
                               onClick={(e) => e.stopPropagation()}
                             />
                           </div>
+                          <div className="trainee-avatar" style={{ margin: '0 12px' }}>
+                            {trainee.profile_picture_url ? (
+                              <img
+                                src={trainee.profile_picture_url}
+                                alt={`${trainee.first_name} ${trainee.last_name}`}
+                                style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'contain', backgroundColor: '#f8fafc' }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '40px', height: '40px', borderRadius: '50%',
+                                background: 'linear-gradient(to bottom right, #6366f1, #7c3aed)',
+                                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontWeight: 'bold', fontSize: '14px'
+                              }}>
+                                {trainee.first_name?.[0]?.toUpperCase() || ""}{trainee.last_name?.[0]?.toUpperCase() || ""}
+                              </div>
+                            )}
+                          </div>
                           <div className="trainee-info">
                             <div className="trainee-name">
                               {trainee.first_name} {trainee.last_name}

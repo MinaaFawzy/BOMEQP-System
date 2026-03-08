@@ -652,10 +652,10 @@ const TraineesScreen = () => {
       render: (value, row) => (
         <div className="trainees-column-trainee gap-3">
           <div className="trainees-column-icon-wrapper" style={{ position: 'relative' }}>
-            {row.id_image_url ? (
+            {row.card_image_url ? (
               <>
                 <img
-                  src={row.id_image_url}
+                  src={row.card_image_url}
                   alt={`${row.first_name} ${row.last_name}` || 'Trainee ID Image'}
                   className="trainees-column-icon"
                   width="40"
