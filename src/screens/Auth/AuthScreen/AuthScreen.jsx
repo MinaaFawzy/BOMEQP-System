@@ -19,7 +19,8 @@ import {
     Visibility,
     VisibilityOff,
     School as SchoolIcon,
-    VerifiedUser as VerifiedUserIcon
+    VerifiedUser as VerifiedUserIcon,
+    AssignmentTurnedIn as AssignmentTurnedInIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/AuthContext';
 import CustomInput from '../../../components/CustomInput/CustomInput';
@@ -291,6 +292,73 @@ function AuthScreen() {
                                                 }}
                                             >
                                                 Accreditation
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Paper>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Paper
+                                    onClick={() => setRegisterData({ ...registerData, role: 'competency_admin' })}
+                                    elevation={registerData.role === 'competency_admin' ? 2 : 0}
+                                    sx={{
+                                        p: 1.5,
+                                        cursor: 'pointer',
+                                        border: '1.5px solid',
+                                        borderColor: registerData.role === 'competency_admin' ? 'var(--primary-color)' : 'divider',
+                                        backgroundColor: registerData.role === 'competency_admin'
+                                            ? 'rgba(26, 44, 73, 0.08)'
+                                            : 'background.paper',
+                                        borderRadius: '8px',
+                                        transition: 'all 0.2s ease-in-out',
+                                        width: '100%',
+                                        '&:hover': {
+                                            backgroundColor: registerData.role === 'competency_admin'
+                                                ? 'rgba(26, 44, 73, 0.12)'
+                                                : 'action.hover',
+                                            borderColor: 'var(--primary-color)',
+                                            boxShadow: 1
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
+                                        <Box
+                                            sx={{
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: registerData.role === 'competency_admin'
+                                                    ? 'rgba(26, 44, 73, 0.1)'
+                                                    : 'rgba(0, 0, 0, 0.04)',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            <AssignmentTurnedInIcon
+                                                sx={{
+                                                    fontSize: 22,
+                                                    color: registerData.role === 'competency_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.secondary'
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    fontWeight: registerData.role === 'competency_admin' ? 600 : 500,
+                                                    fontSize: '0.75rem',
+                                                    color: registerData.role === 'competency_admin'
+                                                        ? 'var(--primary-color)'
+                                                        : 'text.primary',
+                                                    display: 'block',
+                                                    lineHeight: 1.2
+                                                }}
+                                            >
+                                                Competency Assurance
                                             </Typography>
                                         </Box>
                                     </Box>

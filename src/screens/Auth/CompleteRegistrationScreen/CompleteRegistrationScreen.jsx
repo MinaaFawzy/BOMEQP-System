@@ -145,6 +145,7 @@ const CompleteRegistrationScreen = () => {
     useEffect(() => {
         if (location.state?.role) {
             // Map 'training_center_admin' -> 'training_center' to simplify internal logic
+            // 'acc_admin' and 'competency_admin' are kept as-is
             const r = location.state.role === 'training_center_admin' ? 'training_center' : location.state.role;
             setRole(r);
         }
@@ -211,10 +212,11 @@ const CompleteRegistrationScreen = () => {
     const validateForm = () => {
         const newErrors = {};
         const isTrainingCenter = role === 'training_center';
+        const isAccLike = role === 'acc_admin' || role === 'competency_admin';
 
         // 1. Company Info
         if (!formData.company_name) newErrors.company_name = 'This field is required';
-        if (role === 'acc_admin' && !formData.name) newErrors.name = 'This field is required';
+        if (isAccLike && !formData.name) newErrors.name = 'This field is required';
 
         // Company Email
         if (!formData.primary_email) newErrors.primary_email = 'This field is required';
@@ -257,9 +259,9 @@ const CompleteRegistrationScreen = () => {
         if (!formData.primary_mobile) newErrors.primary_mobile = 'This field is required';
 
         // 5. Secondary Contact
-        // Logic: "Secondary Contact (Required for ACC)" vs "Optional for Training Provider"
-        if (role === 'acc_admin') {
-            // For ACC, check all fields regardless of has_secondary_contact flag (it should be forced true or UI should imply it)
+        // Logic: "Secondary Contact (Required for ACC/Competency)" vs "Optional for Training Provider"
+        if (isAccLike) {
+            // For ACC/Competency, check all fields regardless of has_secondary_contact flag
             if (!formData.secondary_title) newErrors.secondary_title = 'This field is required';
             if (!formData.secondary_first_name) newErrors.secondary_first_name = 'This field is required';
             if (!formData.secondary_last_name) newErrors.secondary_last_name = 'This field is required';
@@ -287,8 +289,8 @@ const CompleteRegistrationScreen = () => {
         // Company Registration Certificate: Required
         if (!formData.company_registration_certificate) newErrors.company_registration_certificate = 'This file is required';
 
-        // Passport Uploads (Required for ACC)
-        if (role === 'acc_admin') {
+        // Passport Uploads (Required for ACC and Competency)
+        if (isAccLike) {
             if (!formData.primary_contact_passport) newErrors.primary_contact_passport = 'This file is required';
             if (!formData.secondary_contact_passport) newErrors.secondary_contact_passport = 'This file is required';
         }
@@ -325,7 +327,15 @@ const CompleteRegistrationScreen = () => {
                 submissionData.append('password_confirmation', formData.confirm_password);
 
                 // Role Mapping
-                submissionData.append('role', isTrainingCenter ? 'training_center_admin' : 'acc_admin');
+                let roleValue;
+                if (isTrainingCenter) {
+                    roleValue = 'training_center_admin';
+                } else if (role === 'competency_admin') {
+                    roleValue = 'competency_admin';
+                } else {
+                    roleValue = 'acc_admin';
+                }
+                submissionData.append('role', roleValue);
 
                 // --- Training Provider / Entity Fields ---
 
@@ -335,7 +345,9 @@ const CompleteRegistrationScreen = () => {
                     if (formData.legal_name) submissionData.append('legal_name', formData.legal_name);
                     submissionData.append('company_email', formData.primary_email);
                 } else {
-                    submissionData.append('legal_name', formData.legal_name);
+                    // acc_admin and competency_admin: the "Legal Name" input (company_name)
+                    // is what the user fills in — formData.legal_name is always empty for these roles
+                    submissionData.append('legal_name', formData.company_name);
                     submissionData.append('acc_email', formData.primary_email);
                 }
 
@@ -377,7 +389,7 @@ const CompleteRegistrationScreen = () => {
                 // Secondary Contact
                 // For ACC, secondary contact is mandatory.
                 // For TC, it's optional based on checkbox.
-                const shouldSendSecondary = !isTrainingCenter || formData.has_secondary_contact;
+                const shouldSendSecondary = role === 'training_center' ? formData.has_secondary_contact : true;
 
                 // Set flag: for TC it's 0/1. For ACC, it's effectively 1 but API might ignore it or we just send fields.
                 // Spec for ACC says "Secondary Contact (Required for ACC)".
@@ -418,7 +430,7 @@ const CompleteRegistrationScreen = () => {
                     submissionData.append('facility_floorplan', formData.facility_floorplan);
                 }
 
-                // ACC Passport Uploads
+                // ACC & Competency Passport Uploads
                 if (!isTrainingCenter) {
                     if (formData.primary_contact_passport) submissionData.append('primary_contact_passport', formData.primary_contact_passport);
                     if (formData.secondary_contact_passport) submissionData.append('secondary_contact_passport', formData.secondary_contact_passport);
@@ -450,6 +462,8 @@ const CompleteRegistrationScreen = () => {
 
     const isTraining = role === 'training_center';
     const isAcc = role === 'acc_admin';
+    const isCompetency = role === 'competency_admin';
+    const isAccLike = isAcc || isCompetency; // ACC and Competency share the same form/validation
 
     // Helper to generate Title Dropdown items
     const titleOptions = [
@@ -469,7 +483,7 @@ const CompleteRegistrationScreen = () => {
                         </IconButton>
                         <div>
                             <h1>Create Account</h1>
-                            <p>{isTraining ? 'Training Provider Registration' : 'Accreditation Body Registration'}</p>
+                            <p>{isTraining ? 'Training Provider Registration' : isCompetency ? 'Competency Assurance Registration' : 'Accreditation Body Registration'}</p>
                         </div>
                     </div>
                 </header>
@@ -479,13 +493,13 @@ const CompleteRegistrationScreen = () => {
                     {/* --- Company Information --- */}
                     <section className="section">
                         <div className="section-head">
-                            <h2>{isAcc ? 'Accreditation Body Information' : 'Company Information'}</h2>
+                            <h2>{isCompetency ? 'Competency Assurance Information' : isAcc ? 'Accreditation Body Information' : 'Company Information'}</h2>
                             <span className="hint">* Required fields</span>
                         </div>
 
                         <div className="grid">
                             <div className="field">
-                                <label>{isAcc ? 'Accreditation Legal Name' : 'Name'} <span className="req">*</span></label>
+                                <label>{isCompetency ? 'Competency Assurance Legal Name' : isAcc ? 'Accreditation Legal Name' : 'Name'} <span className="req">*</span></label>
                                 <CustomInput
                                     name="company_name"
                                     value={formData.company_name}
@@ -494,7 +508,7 @@ const CompleteRegistrationScreen = () => {
                                     helperText={errors.company_name}
                                 />
                             </div>
-                            {isAcc && (
+                            {isAccLike && (
                                 <div className="field">
                                     <label>Name <span className="req">*</span></label>
                                     <CustomInput
@@ -527,7 +541,7 @@ const CompleteRegistrationScreen = () => {
                                 />
                             </div>
                             <div className="field" style={{ gridColumn: 'span 12' }}>
-                                <label>{isAcc ? 'Email address' : 'Company Email address'} <span className="req">*</span></label>
+                                <label>{isAccLike ? 'Email address' : 'Company Email address'} <span className="req">*</span></label>
                                 <CustomInput
                                     name="primary_email"
                                     value={formData.primary_email}
@@ -790,7 +804,7 @@ const CompleteRegistrationScreen = () => {
                                     error={!!errors.primary_mobile}
                                 />
                             </div>
-                            {isAcc && (
+                            {isAccLike && (
                                 <div className="field">
                                     <FileUploadField
                                         label="Upload Primary Contact Passport"
@@ -808,7 +822,7 @@ const CompleteRegistrationScreen = () => {
                     {/* --- Secondary Contact --- */}
                     <section className="section">
                         <div className="section-head">
-                            <h2>Secondary Contact {isAcc ? <span className="req">* (Required)</span> : <span className="hint">(Optional)</span>}</h2>
+                            <h2>Secondary Contact {isAccLike ? <span className="req">* (Required)</span> : <span className="hint">(Optional)</span>}</h2>
                         </div>
 
                         {/* Checkbox only for Training Provider */}
@@ -825,8 +839,8 @@ const CompleteRegistrationScreen = () => {
                             </div>
                         )}
 
-                        {/* Always show for ACC, or if checked for Training */}
-                        {(isAcc || formData.has_secondary_contact) && (
+                        {/* Always show for ACC/Competency, or if checked for Training */}
+                        {(isAccLike || formData.has_secondary_contact) && (
                             <div className="grid">
                                 <div className="field" style={{ gridColumn: 'span 3' }}>
                                     <label>Title <span className="req">*</span></label>
@@ -888,7 +902,7 @@ const CompleteRegistrationScreen = () => {
                                         error={!!errors.secondary_mobile}
                                     />
                                 </div>
-                                {isAcc && (
+                                {isAccLike && (
                                     <div className="field">
                                         <FileUploadField
                                             label="Upload Secondary Contact Passport"
