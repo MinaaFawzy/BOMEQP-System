@@ -111,10 +111,10 @@ const Layout = ({ children }) => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
-  // Check subscription status for ACC admins
+  // Check subscription status for ACC / Competency admins
   useEffect(() => {
     const checkSubscription = async () => {
-      if (user?.role === 'acc_admin') {
+      if (user?.role === 'acc_admin' || user?.role === 'competency_admin') {
         try {
           const data = await accAPI.getSubscription();
           // If subscription exists and has valid dates, consider them subscribed
@@ -133,7 +133,7 @@ const Layout = ({ children }) => {
           setIsSubscribed(false);
         }
       } else {
-        // Not an ACC admin, so subscription check not needed
+        // Not an ACC/Competency admin, so subscription check not needed
         setIsSubscribed(true);
       }
     };
@@ -148,9 +148,9 @@ const Layout = ({ children }) => {
     return children;
   }
 
-  // Redirect unsubscribed ACC admins to subscription page
+  // Redirect unsubscribed ACC / Competency admins to subscription page
   useEffect(() => {
-    if (user?.role === 'acc_admin' && isSubscribed === false) {
+    if ((user?.role === 'acc_admin' || user?.role === 'competency_admin') && isSubscribed === false) {
       // Allow access to subscription page and profile
       const allowedPaths = ['/acc/subscription', '/profile'];
       if (!allowedPaths.some(path => location.pathname.startsWith(path))) {
@@ -232,13 +232,14 @@ const Layout = ({ children }) => {
           },
         ];
       case 'acc_admin':
+      case 'competency_admin':
         // If not subscribed, only show Subscription tab
         if (isSubscribed === false) {
           return [
             { type: 'single', path: '/acc/subscription', icon: CreditCard, label: t('acc_drawer.subscription') },
           ];
         }
-        // If subscribed or still loading, show all items 
+        // If subscribed or still loading, show all items
         return [
           ...baseItems,
           { type: 'single', path: '/acc/subscription', icon: CreditCard, label: t('acc_drawer.subscription') },
@@ -490,11 +491,13 @@ const Layout = ({ children }) => {
                         ? (isAssessor ? 'Assessor' : 'Instructor')
                         : user?.role === 'training_center_admin'
                           ? 'Training Provider'
-                          : user?.role === 'acc_admin'
-                            ? 'Accreditation Body Admin'
-                            : user?.role === 'group_admin'
-                              ? 'Group Admin'
-                              : (user?.role?.replace('_', ' ') || '')}
+                          : user?.role === 'competency_admin'
+                            ? 'Competency Assurance Admin'
+                            : user?.role === 'acc_admin'
+                              ? 'Accreditation Body Admin'
+                              : user?.role === 'group_admin'
+                                ? 'Group Admin'
+                                : (user?.role?.replace('_', ' ') || '')}
                     </p>
                   </div>
                 )}

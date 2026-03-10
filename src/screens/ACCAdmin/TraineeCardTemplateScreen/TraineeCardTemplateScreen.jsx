@@ -15,8 +15,9 @@ const TraineeCardTemplateScreen = () => {
     const { setHeaderTitle, setHeaderSubtitle, setHeaderActions } = useHeader();
     const { t } = useTranslation('accreditation');
 
-    const [cardTemplate, setCardTemplate] = useState(null);   // the one ACC card (first found)
-    const [firstTemplateId, setFirstTemplateId] = useState(null); // fallback when no card yet
+    const [cardTemplate, setCardTemplate] = useState(null);       // shared ACC card design
+    const [certTemplates, setCertTemplates] = useState([]);        // templates with include_card=true
+    const [firstTemplateId, setFirstTemplateId] = useState(null);  // fallback when no card yet
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [toggling, setToggling] = useState(false);
@@ -46,19 +47,20 @@ const TraineeCardTemplateScreen = () => {
         setLoading(true);
         setError(null);
         try {
-            // First: check for existing card designs
+            // GET /api/acc/card-template → { card_template, certificate_templates }
             const cardData = await accAPI.getCardTemplates();
-            const list = cardData.card_templates || cardData.templates || cardData.data || [];
+            const card = cardData.card_template ?? null;
+            const certList = Array.isArray(cardData.certificate_templates) ? cardData.certificate_templates : [];
 
-            if (Array.isArray(list) && list.length > 0) {
-                setCardTemplate(list[0]);
-            } else {
-                setCardTemplate(null);
-                // No card yet — fetch first certificate template for direct navigation
-                const certData = await accAPI.listCertificateTemplates({ per_page: 1 });
-                const certList = certData.data || certData.templates || [];
-                if (Array.isArray(certList) && certList.length > 0) {
-                    setFirstTemplateId(certList[0].id);
+            setCardTemplate(card);
+            setCertTemplates(certList);
+
+            if (!card) {
+                // No card design yet — fetch first certificate template for direct navigation
+                const fallbackData = await accAPI.listCertificateTemplates({ per_page: 1 });
+                const fallbackList = fallbackData.data || fallbackData.templates || [];
+                if (Array.isArray(fallbackList) && fallbackList.length > 0) {
+                    setFirstTemplateId(fallbackList[0].id);
                 }
             }
         } catch (err) {
@@ -74,10 +76,15 @@ const TraineeCardTemplateScreen = () => {
     // ──────────────────────────────
     const handleToggle = async () => {
         if (!cardTemplate || toggling) return;
+        // We need a certificate template id to toggle include_card via PUT /card.
+        // Use the first template that has include_card=true, or fallback to firstTemplateId.
+        const targetId = certTemplates[0]?.id ?? firstTemplateId;
+        if (!targetId) return;
         setToggling(true);
         try {
-            await accAPI.updateCardSettings(cardTemplate.id, { include_card: !cardTemplate.include_card });
-            setCardTemplate(prev => ({ ...prev, include_card: !prev.include_card }));
+            const newVal = !cardTemplate.include_card;
+            await accAPI.updateCardSettings(targetId, { include_card: newVal });
+            setCardTemplate(prev => ({ ...prev, include_card: newVal }));
         } catch (err) {
             console.error('Toggle failed:', err);
             alert(t('trainee_card_template.messages.toggle_failed'));
@@ -90,8 +97,11 @@ const TraineeCardTemplateScreen = () => {
     // Navigate to designer
     // ──────────────────────────────
     const handleDesign = () => {
-        if (!cardTemplate) return;
-        navigate(`/acc/certificate-templates/${cardTemplate.id}/card-design`);
+        // Navigate to the designer using the first cert template that has card data,
+        // or any first available cert template.
+        const targetId = certTemplates[0]?.id ?? firstTemplateId ?? cardTemplate?.id;
+        if (!targetId) return;
+        navigate(`/acc/certificate-templates/${targetId}/card-design`);
     };
 
     // ──────────────────────────────

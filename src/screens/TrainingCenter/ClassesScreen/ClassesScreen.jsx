@@ -451,17 +451,48 @@ const ClassesScreen = () => {
     if (!selectedClassForEnrollment) return;
     setIsSavingGrades(true);
     try {
-      const gradesArray = Object.keys(grades).map(id => ({
-        trainee_id: parseInt(id),
-        score: grades[id] !== '' && grades[id] !== null ? parseFloat(grades[id]) : null
-      })).filter(g => g.score !== null);
+      // Build a set of trainee IDs who already have a certificate — skip them
+      const traineesWithCertificate = new Set(
+        (selectedClassForEnrollment.trainees || [])
+          .filter(tr => tr.certificate !== null && tr.certificate !== undefined)
+          .map(tr => String(tr.id || tr.trainee_id))
+      );
+
+      const gradesArray = Object.keys(grades)
+        .filter(id => !traineesWithCertificate.has(id)) // exclude already-certified trainees
+        .map(id => ({
+          trainee_id: parseInt(id),
+          score: grades[id] !== '' && grades[id] !== null ? parseFloat(grades[id]) : null
+        }))
+        .filter(g => g.score !== null);
 
       const response = await trainingCenterAPI.saveClassGrades(selectedClassForEnrollment.id, { grades: gradesArray });
-      const updatedClass = response.class || response.data || response;
-      if (updatedClass) {
-        setSelectedClassForEnrollment(updatedClass);
-        loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
+
+      // Only update the grades of trainees from the response — don't replace the whole class object
+      const returnedGrades = response?.grades || response?.data?.grades || [];
+      if (returnedGrades.length > 0) {
+        // Build a quick lookup map: trainee_id -> updated grade data
+        const gradeMap = {};
+        returnedGrades.forEach(g => {
+          gradeMap[g.trainee_id] = g;
+        });
+
+        setSelectedClassForEnrollment(prev => ({
+          ...prev,
+          trainees: (prev.trainees || []).map(tr => {
+            const id = tr.id || tr.trainee_id;
+            const updated = gradeMap[id];
+            if (!updated) return tr;
+            return {
+              ...tr,
+              exam_score: updated.score ?? updated.exam_score ?? tr.exam_score,
+              exam_status: updated.exam_status ?? tr.exam_status,
+            };
+          }),
+        }));
       }
+
+      loadData(page, perPage, debouncedSearchTerm, statusFilter, false);
       alert(t('classes_screen.grades.save_success'));
     } catch (error) {
       const data = error.response?.data;

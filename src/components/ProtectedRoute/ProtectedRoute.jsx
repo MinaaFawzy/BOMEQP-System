@@ -19,9 +19,9 @@ const ProtectedRoute = ({ children, allowedRoles = [], allowPending = false }) =
   }
 
   // Check if user is pending/inactive (unless route allows pending users)
-  // ACC Admin and Training Provider Admin can access pending account screen
+  // ACC Admin, Competency Admin and Training Provider Admin can access pending account screen
   const needsPendingScreen = !allowPending &&
-    (user?.role === 'acc_admin' || user?.role === 'training_center_admin') &&
+    (user?.role === 'acc_admin' || user?.role === 'competency_admin' || user?.role === 'training_center_admin') &&
     user?.status !== 'active';
 
   if (needsPendingScreen) {

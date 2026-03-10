@@ -9,6 +9,7 @@ import FormInput from '../../../components/FormInput/FormInput';
 import DataTable from '../../../components/DataTable/DataTable';
 import DetailForm from '../../../components/DetailForm/DetailForm';
 import Pagination from '../../../components/Pagination/Pagination';
+import BulkImportExportMenu from '../../../components/BulkImportExportMenu/BulkImportExportMenu';
 import { validateRequired, validateNumber, validateMinLength, validateMaxLength } from '../../../utils/validation';
 import './CoursesScreen.css';
 
@@ -651,6 +652,17 @@ const CoursesScreen = () => {
   ], [handleOpenModal, handleDelete]);
 
 
+  // ── Bulk import/export handlers ────────────────────────────────────────────
+  const handleDownloadCoursesTemplate = (format) => accAPI.downloadCoursesTemplate(format);
+
+  const handleImportCourses = async (formData) => {
+    const result = await accAPI.importCourses(formData);
+    // Refresh the courses list after a successful import
+    await loadCourses();
+    return result;
+  };
+  // ───────────────────────────────────────────────────────────────────────────
+
   return (
     <div>
       {/* Search and Filters */}
@@ -685,6 +697,13 @@ const CoursesScreen = () => {
               <option value="inactive">{t('courses_screen.filters.inactive')}</option>
             </select>
           </div>
+
+          {/* Bulk Import / Export */}
+          <BulkImportExportMenu
+            mode="courses"
+            onDownloadCategories={handleDownloadCoursesTemplate}
+            onImportCategories={handleImportCourses}
+          />
         </div>
       </div>
 

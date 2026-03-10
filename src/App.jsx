@@ -94,7 +94,7 @@ const ProfileRoute = () => {
 
   return (
     <Layout>
-      {user?.role === 'acc_admin' ? (
+      {(user?.role === 'acc_admin' || user?.role === 'competency_admin') ? (
         <ACCProfileScreen />
       ) : user?.role === 'instructor' ? (
         <InstructorProfileScreen />
@@ -234,7 +234,7 @@ function App() {
                 <Route
                   path="/acc/*"
                   element={
-                    <ProtectedRoute allowedRoles={['acc_admin']}>
+                    <ProtectedRoute allowedRoles={['acc_admin', 'competency_admin']}>
                       <Layout>
                         <Routes>
                           <Route path="dashboard" element={<ACCDashboardScreen />} />
@@ -259,11 +259,11 @@ function App() {
                   }
                 />
 
-                {/* Certificate Designer (No Layout) - Shared by ACC Admin and Group Admin */}
+                {/* Certificate Designer (No Layout) - Shared by ACC Admin, Competency Admin and Group Admin */}
                 <Route
                   path="/acc/certificate-templates/:id/design"
                   element={
-                    <ProtectedRoute allowedRoles={['acc_admin']}>
+                    <ProtectedRoute allowedRoles={['acc_admin', 'competency_admin']}>
                       <CertificateDesignerScreen />
                     </ProtectedRoute>
                   }
@@ -281,7 +281,7 @@ function App() {
                 <Route
                   path="/acc/certificate-templates/:id/card-design"
                   element={
-                    <ProtectedRoute allowedRoles={['acc_admin']}>
+                    <ProtectedRoute allowedRoles={['acc_admin', 'competency_admin']}>
                       <TraineeCardDesignerScreen />
                     </ProtectedRoute>
                   }

@@ -193,6 +193,14 @@ const CompleteRegistrationScreen = () => {
         if (name === 'physical_country') fetchCities(value);
     };
 
+    // Allows only integer digits (0-9) — used for phone numbers and GOV registry
+    const handleNumericChange = (e) => {
+        const { name, value } = e.target;
+        const digitsOnly = value.replace(/\D/g, '');
+        setFormData(prev => ({ ...prev, [name]: digitsOnly }));
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    };
+
     const handleInterestChange = (interest) => {
         setFormData(prev => {
             const current = prev.interested_fields;
@@ -591,7 +599,8 @@ const CompleteRegistrationScreen = () => {
                                 <CustomInput
                                     name="telephone"
                                     value={formData.telephone}
-                                    onChange={handleChange}
+                                    onChange={handleNumericChange}
+                                    inputMode="numeric"
                                     error={!!errors.telephone}
                                     helperText={errors.telephone}
                                 />
@@ -601,7 +610,8 @@ const CompleteRegistrationScreen = () => {
                                 <CustomInput
                                     name="fax"
                                     value={formData.fax}
-                                    onChange={handleChange}
+                                    onChange={handleNumericChange}
+                                    inputMode="numeric"
                                 />
                             </div>
 
@@ -800,7 +810,8 @@ const CompleteRegistrationScreen = () => {
                                 <CustomInput
                                     name="primary_mobile"
                                     value={formData.primary_mobile}
-                                    onChange={handleChange}
+                                    onChange={handleNumericChange}
+                                    inputMode="numeric"
                                     error={!!errors.primary_mobile}
                                 />
                             </div>
@@ -898,7 +909,8 @@ const CompleteRegistrationScreen = () => {
                                     <CustomInput
                                         name="secondary_mobile"
                                         value={formData.secondary_mobile}
-                                        onChange={handleChange}
+                                        onChange={handleNumericChange}
+                                        inputMode="numeric"
                                         error={!!errors.secondary_mobile}
                                     />
                                 </div>
@@ -929,7 +941,8 @@ const CompleteRegistrationScreen = () => {
                                 <CustomInput
                                     name="company_gov_registry_number"
                                     value={formData.company_gov_registry_number}
-                                    onChange={handleChange}
+                                    onChange={handleNumericChange}
+                                    inputMode="numeric"
                                     error={!!errors.company_gov_registry_number}
                                     helperText={errors.company_gov_registry_number}
                                 />

@@ -21,7 +21,7 @@ const AVAILABLE_VARIABLES = [
     { variable: 'instructor_name', label: 'Instructor Full Name' },
     // { variable: 'instructor_first_name', label: 'First Name' },
     // { variable: 'instructor_last_name', label: 'Last Name' },
-    { variable: 'student_name', label: 'Student Name' },
+    { variable: 'trainee_name', label: 'Trainee Name' },
     { variable: 'course_name', label: 'Course Name' },
     { variable: 'course_code', label: 'Course Code' },
     { variable: 'training_center_name', label: 'Training Provider Name' },
@@ -41,7 +41,7 @@ const EXAMPLE_DATA = {
     instructor_name: 'Dr. Sarah Johnson',
     instructor_first_name: 'Sarah',
     instructor_last_name: 'Johnson',
-    student_name: 'John Doe',
+    trainee_name: 'John Doe',
     course_name: 'Advanced Project Management',
     course_code: 'APM-301',
     training_center_name: 'Excellence Training Provider',
@@ -182,11 +182,17 @@ const TraineeCardDesignerScreen = () => {
     const loadBackgroundImage = (url) => {
         if (!canvas.current || !url) return;
         setTimeout(() => {
+            // In Fabric v5, load the image first to get its natural dimensions,
+            // then compute the correct scaleX/scaleY and set it as background.
+            // crossOrigin is removed — if the server doesn't send CORS headers,
+            // adding it will block the load entirely (silent failure).
             fabric.Image.fromURL(url, (img) => {
                 if (!img || !canvas.current) return;
+                const naturalW = img.width || 1;
+                const naturalH = img.height || 1;
                 img.set({
-                    scaleX: CARD_WIDTH / img.width,
-                    scaleY: CARD_HEIGHT / img.height,
+                    scaleX: CARD_WIDTH / naturalW,
+                    scaleY: CARD_HEIGHT / naturalH,
                     originX: 'left',
                     originY: 'top',
                     left: 0,
@@ -194,8 +200,10 @@ const TraineeCardDesignerScreen = () => {
                     selectable: false,
                     evented: false,
                 });
-                canvas.current.setBackgroundImage(img, () => canvas.current.renderAll());
-            }, { crossOrigin: 'anonymous' });
+                canvas.current.setBackgroundImage(img, () => {
+                    if (canvas.current) canvas.current.renderAll();
+                });
+            });   // ← no crossOrigin option
         }, 100);
     };
 
@@ -511,6 +519,10 @@ const TraineeCardDesignerScreen = () => {
                 };
             });
 
+            // Step 1: Save the designer layout via PUT /card-config
+            await accAPI.updateCardConfig(id, { card_config_json: { elements } });
+
+            // Step 2: Build and save the full HTML rendering via PUT /card
             const bgImageStyle = template?.card_background_image_url
                 ? `background-image: url('${template.card_background_image_url}'); background-size: cover; background-position: center; background-repeat: no-repeat;`
                 : 'background-color: #ffffff;';
@@ -539,10 +551,8 @@ ${elements.map(el => {
 </div>
 `.trim();
 
-            await accAPI.updateCardSettings(id, {
-                card_template_html: htmlContent,
-                card_config_json: { elements }
-            });
+            await accAPI.updateCardSettings(id, { card_template_html: htmlContent, include_card: true });
+
             alert('Card configuration saved successfully!');
             navigate('/acc/trainee-card-template');
         } catch (err) {

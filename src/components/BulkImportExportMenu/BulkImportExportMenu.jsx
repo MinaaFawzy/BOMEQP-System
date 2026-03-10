@@ -9,14 +9,23 @@ import './BulkImportExportMenu.css';
  * BulkImportExportMenu
  *
  * Props:
+ *   mode                   string               — 'categories' (default) | 'courses'
+ *
+ *   -- Categories / default mode --
  *   onDownloadCategories   (format) => Promise  — download categories template
  *   onImportCategories     (FormData) => Promise — import categories file
  *   onDownloadSubCategories(format) => Promise  — download sub-cats template
  *   onImportSubCategories  (FormData) => Promise — import sub-cats file
  *   categories             Array                — used to show valid names hint in CSV tip
+ *
+ *   -- Courses mode --
+ *   onDownloadCategories   (format) => Promise  — reused for downloading courses template
+ *   onImportCategories     (FormData) => Promise — reused for importing courses file
+ *
  *   cancelLabel            string               — translated "Cancel" text (optional)
  */
 const BulkImportExportMenu = ({
+    mode = 'categories',
     onDownloadCategories,
     onImportCategories,
     onDownloadSubCategories,
@@ -27,6 +36,8 @@ const BulkImportExportMenu = ({
     const { t } = useTranslation('common');
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
+
+    const isCourseMode = mode === 'courses';
 
     // --- Categories import state ---
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -132,7 +143,7 @@ const BulkImportExportMenu = ({
 
     // ── Shared sub-components ──────────────────────────────────────────────────
 
-    const FileDropZone = ({ file, onFileChange }) => (
+    const FileDropZone = ({ file, onFileChange, acceptXlsx = false }) => (
         <div className="biem-dropzone">
             <Upload className="biem-dropzone-icon" size={36} />
             <label className="biem-dropzone-label">
@@ -142,11 +153,11 @@ const BulkImportExportMenu = ({
                 <input
                     type="file"
                     className="sr-only"
-                    accept=".csv,.txt"
+                    accept={acceptXlsx ? '.xlsx,.csv' : '.csv,.txt'}
                     onChange={(e) => onFileChange(e.target.files[0] || null)}
                 />
             </label>
-            {!file && <p className="biem-dropzone-hint">{t('bulk_import_export.csv_files_only', { defaultValue: '.csv files only' })}</p>}
+            {!file && <p className="biem-dropzone-hint">{acceptXlsx ? '.xlsx / .csv files' : t('bulk_import_export.csv_files_only', { defaultValue: '.csv files only' })}</p>}
         </div>
     );
 
@@ -203,87 +214,132 @@ const BulkImportExportMenu = ({
 
                 {isOpen && (
                     <div className="biem-dropdown">
-                        {/* Category section */}
-                        <div className="biem-section-label">
-                            <FileSpreadsheet size={12} />
-                            {t('bulk_import_export.categories', { defaultValue: 'Categories' })}
-                        </div>
+                        {isCourseMode ? (
+                            /* ── Courses-only section ── */
+                            <>
+                                <div className="biem-section-label">
+                                    <FileSpreadsheet size={12} />
+                                    {t('bulk_import_export.courses', { defaultValue: 'Courses' })}
+                                </div>
 
-                        <button
-                            type="button"
-                            className="biem-item"
-                            onClick={() => handleDownload(onDownloadCategories, 'categories')}
-                        >
-                            <Download size={15} className="biem-item-icon biem-item-icon-blue" />
-                            <div>
-                                <div className="biem-item-title">{t('bulk_import_export.export_categories_template', { defaultValue: 'Export Categories Template' })}</div>
-                                <div className="biem-item-desc">{t('bulk_import_export.download_csv_template', { defaultValue: 'Download CSV template file' })}</div>
-                            </div>
-                        </button>
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={() => handleDownload(onDownloadCategories, 'courses')}
+                                >
+                                    <Download size={15} className="biem-item-icon biem-item-icon-blue" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.export_courses_template', { defaultValue: 'Export Courses Template' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.download_xlsx_template', { defaultValue: 'Download XLSX template file' })}</div>
+                                    </div>
+                                </button>
 
-                        <button
-                            type="button"
-                            className="biem-item"
-                            onClick={openCatModal}
-                        >
-                            <Upload size={15} className="biem-item-icon biem-item-icon-green" />
-                            <div>
-                                <div className="biem-item-title">{t('bulk_import_export.import_categories', { defaultValue: 'Import Categories' })}</div>
-                                <div className="biem-item-desc">{t('bulk_import_export.bulk_create_update_csv', { defaultValue: 'Bulk create/update from CSV' })}</div>
-                            </div>
-                        </button>
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={openCatModal}
+                                >
+                                    <Upload size={15} className="biem-item-icon biem-item-icon-green" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.import_courses', { defaultValue: 'Import Courses' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.bulk_create_update_xlsx', { defaultValue: 'Bulk create/update from XLSX/CSV' })}</div>
+                                    </div>
+                                </button>
+                            </>
+                        ) : (
+                            /* ── Default: Categories + Sub-Categories ── */
+                            <>
+                                {/* Category section */}
+                                <div className="biem-section-label">
+                                    <FileSpreadsheet size={12} />
+                                    {t('bulk_import_export.categories', { defaultValue: 'Categories' })}
+                                </div>
 
-                        <div className="biem-divider" />
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={() => handleDownload(onDownloadCategories, 'categories')}
+                                >
+                                    <Download size={15} className="biem-item-icon biem-item-icon-blue" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.export_categories_template', { defaultValue: 'Export Categories Template' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.download_csv_template', { defaultValue: 'Download CSV template file' })}</div>
+                                    </div>
+                                </button>
 
-                        {/* Sub-Category section */}
-                        <div className="biem-section-label">
-                            <Layers size={12} />
-                            {t('bulk_import_export.sub_categories', { defaultValue: 'Sub-Categories' })}
-                        </div>
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={openCatModal}
+                                >
+                                    <Upload size={15} className="biem-item-icon biem-item-icon-green" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.import_categories', { defaultValue: 'Import Categories' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.bulk_create_update_csv', { defaultValue: 'Bulk create/update from CSV' })}</div>
+                                    </div>
+                                </button>
 
-                        <button
-                            type="button"
-                            className="biem-item"
-                            onClick={() => handleDownload(onDownloadSubCategories, 'sub-categories')}
-                        >
-                            <Download size={15} className="biem-item-icon biem-item-icon-blue" />
-                            <div>
-                                <div className="biem-item-title">{t('bulk_import_export.export_sub_categories_template', { defaultValue: 'Export Sub-Categories Template' })}</div>
-                                <div className="biem-item-desc">{t('bulk_import_export.download_csv_template', { defaultValue: 'Download CSV template file' })}</div>
-                            </div>
-                        </button>
+                                <div className="biem-divider" />
 
-                        <button
-                            type="button"
-                            className="biem-item"
-                            onClick={openSubCatModal}
-                        >
-                            <Upload size={15} className="biem-item-icon biem-item-icon-green" />
-                            <div>
-                                <div className="biem-item-title">{t('bulk_import_export.import_sub_categories', { defaultValue: 'Import Sub-Categories' })}</div>
-                                <div className="biem-item-desc">{t('bulk_import_export.bulk_create_update_csv', { defaultValue: 'Bulk create/update from CSV' })}</div>
-                            </div>
-                        </button>
+                                {/* Sub-Category section */}
+                                <div className="biem-section-label">
+                                    <Layers size={12} />
+                                    {t('bulk_import_export.sub_categories', { defaultValue: 'Sub-Categories' })}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={() => handleDownload(onDownloadSubCategories, 'sub-categories')}
+                                >
+                                    <Download size={15} className="biem-item-icon biem-item-icon-blue" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.export_sub_categories_template', { defaultValue: 'Export Sub-Categories Template' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.download_csv_template', { defaultValue: 'Download CSV template file' })}</div>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="biem-item"
+                                    onClick={openSubCatModal}
+                                >
+                                    <Upload size={15} className="biem-item-icon biem-item-icon-green" />
+                                    <div>
+                                        <div className="biem-item-title">{t('bulk_import_export.import_sub_categories', { defaultValue: 'Import Sub-Categories' })}</div>
+                                        <div className="biem-item-desc">{t('bulk_import_export.bulk_create_update_csv', { defaultValue: 'Bulk create/update from CSV' })}</div>
+                                    </div>
+                                </button>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* ── Import Categories Modal ── */}
-            <Modal isOpen={isCatModalOpen} onClose={closeCatModal} title={t('bulk_import_export.import_categories', { defaultValue: 'Import Categories' })} size="md">
+            {/* ── Import Categories / Courses Modal ── */}
+            <Modal isOpen={isCatModalOpen} onClose={closeCatModal} title={isCourseMode ? t('bulk_import_export.import_courses', { defaultValue: 'Import Courses' }) : t('bulk_import_export.import_categories', { defaultValue: 'Import Categories' })} size="md">
                 <div className="biem-modal-body">
                     <p className="biem-modal-desc">
-                        {t('bulk_import_export.upload_csv_categories', { defaultValue: 'Upload a .csv file to bulk create or update categories.' })}
+                        {isCourseMode
+                            ? t('bulk_import_export.upload_xlsx_courses', { defaultValue: 'Upload an .xlsx or .csv file to bulk create or update courses.' })
+                            : t('bulk_import_export.upload_csv_categories', { defaultValue: 'Upload a .csv file to bulk create or update categories.' })}
                     </p>
 
                     <button
                         type="button"
                         className="biem-dl-link"
-                        onClick={() => handleDownload(onDownloadCategories, 'categories')}
+                        onClick={() => handleDownload(onDownloadCategories, isCourseMode ? 'courses' : 'categories')}
                     >
-                        <Download size={13} /> {t('bulk_import_export.download_template_csv', { defaultValue: 'Download Template (csv)' })}
+                        <Download size={13} /> {isCourseMode
+                            ? t('bulk_import_export.download_template_xlsx', { defaultValue: 'Download Template (xlsx)' })
+                            : t('bulk_import_export.download_template_csv', { defaultValue: 'Download Template (csv)' })}
                     </button>
 
-                    <FileDropZone file={catFile} onFileChange={(f) => { setCatFile(f); setCatResult(null); setCatError(null); }} />
+                    <FileDropZone
+                        file={catFile}
+                        onFileChange={(f) => { setCatFile(f); setCatResult(null); setCatError(null); }}
+                        acceptXlsx={isCourseMode}
+                    />
                     <ResultBox result={catResult} error={catError} />
 
                     <div className="biem-modal-actions">

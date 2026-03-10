@@ -470,6 +470,20 @@ export const accAPI = {
   getCourseDetails: (id) => api.get(`/acc/courses/${id}`),
   updateCourse: (id, data) => api.put(`/acc/courses/${id}`, data),
   deleteCourse: (id) => api.delete(`/acc/courses/${id}`),
+  downloadCoursesTemplate: (format = 'xlsx') => {
+    const token = getAuthToken();
+    return axios.get(`${API_BASE_URL}/acc/courses/template/download`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      params: { format },
+      responseType: 'blob',
+    });
+  },
+  importCourses: (formData) => {
+    const token = getAuthToken();
+    return axios.post(`${API_BASE_URL}/acc/courses/import`, formData, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    }).then(response => response.data);
+  },
   setCoursePricing: (id, data) => api.post(`/acc/courses/${id}/pricing`, data),
   updateCoursePricing: (id, data) => api.put(`/acc/courses/${id}/pricing`, data),
 

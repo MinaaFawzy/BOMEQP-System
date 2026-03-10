@@ -21,6 +21,7 @@ const DashboardScreen = () => {
     case 'group_admin':
       return <GroupAdminDashboard />;
     case 'acc_admin':
+    case 'competency_admin':
       return <ACCDashboardScreen />;
     case 'training_center_admin':
       return <TrainingCenterDashboardScreen />;

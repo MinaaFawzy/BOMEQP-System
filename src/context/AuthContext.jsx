@@ -96,9 +96,9 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ email, password });
 
       if (response.token) {
-        // For pending ACC admins, use sessionStorage instead of localStorage
+        // For pending ACC/Competency admins, use sessionStorage instead of localStorage
         // This way the session is cleared when browser closes
-        const isPendingACC = response.user?.role === 'acc_admin' &&
+        const isPendingACC = (response.user?.role === 'acc_admin' || response.user?.role === 'competency_admin') &&
           (response.user?.status === 'pending' || response.user?.status === 'inactive');
 
         if (isPendingACC) {
@@ -198,8 +198,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // If user is pending ACC admin, clear sessionStorage and localStorage
-      if (user?.role === 'acc_admin' &&
+      // If user is pending ACC/Competency admin, clear sessionStorage and localStorage
+      if ((user?.role === 'acc_admin' || user?.role === 'competency_admin') &&
         (user?.status === 'pending' || user?.status === 'inactive')) {
         // Clear sessionStorage (where pending ACC token is stored)
         sessionStorage.clear();
