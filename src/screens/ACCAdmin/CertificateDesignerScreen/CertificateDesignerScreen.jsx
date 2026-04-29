@@ -64,12 +64,12 @@ const CertificateDesignerScreen = () => {
     const [placeholders, setPlaceholders] = useState([]);
     const [selectedPlaceholder, setSelectedPlaceholder] = useState(null);
     const [error, setError] = useState(null);
-    const [orientation, setOrientation] = useState('landscape'); // 'landscape' | 'portrait'
+    const [orientation, setOrientation] = useState('landscape'); 
 
     const getPageDimensions = () => {
         return orientation === 'portrait'
-            ? { width: 848, height: 1200 } // A4 portrait approx
-            : { width: 1200, height: 848 }; // A4 landscape approx
+            ? { width: 848, height: 1200 } 
+            : { width: 1200, height: 848 }; 
     };
 
     // Image-type variables: rendered as image placeholders on canvas and as <img> in HTML

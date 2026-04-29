@@ -637,7 +637,7 @@ const ClassesScreen = () => {
                       const imageUrl = profileImageUrl
                         ? (profileImageUrl.startsWith('http')
                           ? profileImageUrl
-                          : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${profileImageUrl}`)
+                          : `${import.meta.env.VITE_API_BASE_URL}${profileImageUrl}`)
                         : null;
 
                       return (

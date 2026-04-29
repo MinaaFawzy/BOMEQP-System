@@ -285,7 +285,7 @@ const CodesScreen = () => {
       const finalAccId = typeof accId === 'string' ? parseInt(accId) : accId;
       const finalCourseId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
       const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
+      const baseURL = import.meta.env.VITE_API_BASE_URL;
 
       console.log(`Loading discount codes for Accreditation ID: ${finalAccId} and Course ID: ${finalCourseId}`);
 
@@ -443,7 +443,7 @@ const CodesScreen = () => {
 
     try {
       const token = getAuthToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
+      const baseURL = import.meta.env.VITE_API_BASE_URL;
 
       // Try different endpoints to get ACC details
       const endpoints = [

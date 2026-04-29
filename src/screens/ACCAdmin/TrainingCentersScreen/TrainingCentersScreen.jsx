@@ -734,7 +734,7 @@ const TrainingCentersScreen = () => {
                         </div>
                         {doc.url && (
                           <a
-                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${doc.url}`}
+                            href={doc.url.startsWith('http') ? doc.url : `${import.meta.env.VITE_API_BASE_URL}${doc.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium"

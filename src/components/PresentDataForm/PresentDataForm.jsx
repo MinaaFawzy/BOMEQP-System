@@ -450,7 +450,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                   <a
                     href={(doc.document_url || doc.url).startsWith('http')
                       ? (doc.document_url || doc.url)
-                      : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${doc.document_url || doc.url}`}
+                      : `${import.meta.env.VITE_API_BASE_URL}${doc.document_url || doc.url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium"
@@ -586,7 +586,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
                       <a
                         href={certUrl.startsWith('http')
                           ? certUrl
-                          : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${certUrl}`}
+                          : `${import.meta.env.VITE_API_BASE_URL}${certUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -624,7 +624,7 @@ const PresentDataForm = ({ data, isLoading, emptyMessage = 'No data available' }
               <a
                 href={data.cv_url.startsWith('http')
                   ? data.cv_url
-                  : `${import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api'}${data.cv_url}`}
+                  : `${import.meta.env.VITE_API_BASE_URL}${data.cv_url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"

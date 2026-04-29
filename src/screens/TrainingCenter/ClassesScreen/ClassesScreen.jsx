@@ -286,7 +286,7 @@ const ClassesScreen = () => {
         // Course not found in availableCourses, try to fetch from API
         try {
           const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-          const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
+          const baseURL = import.meta.env.VITE_API_BASE_URL;
 
           // Try to get course from ACC API
           const response = await axios.get(`${baseURL}/acc/courses/${courseId}`, {

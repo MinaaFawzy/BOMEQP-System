@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.bomeqp.com/api/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const getAuthToken = () =>
   sessionStorage.getItem('auth_token') ||
