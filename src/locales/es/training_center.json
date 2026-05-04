@@ -1,4 +1,4 @@
-﻿{
+{
   "title": "Centro de formación",
   "accs": "Organismos de acreditación",
   "instructors": "Instructores",
@@ -753,6 +753,7 @@
       "duplicate_submit": "No se puede emitir el certificado: se encontró un registro duplicado para esta clase y este participante.",
       "download_failed": "No se pudo descargar el certificado. Por favor, inténtalo de nuevo.",
       "download_card_failed": "No se pudo descargar la tarjeta. Por favor, inténtalo de nuevo.",
+      "no_card_available": "No hay PDF de tarjeta disponible para este certificado.",
       "no_permission": "No tienes permiso para descargar este certificado.",
       "not_found": "No se encontró el archivo del certificado.",
       "server_error": "Error del servidor. Por favor, inténtalo más tarde.",

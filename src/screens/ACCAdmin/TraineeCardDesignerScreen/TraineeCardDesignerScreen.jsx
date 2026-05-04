@@ -82,6 +82,12 @@ const TraineeCardDesignerScreen = () => {
     const navigate = useNavigate();
 
     const [template, setTemplate] = useState(null);
+    const [activeSide, setActiveSide] = useState('front'); // 'front' or 'back'
+    const [sidesData, setSidesData] = useState({
+        front: { config: [], bgUrl: null, html: '' },
+        back: { config: [], bgUrl: null, html: '' }
+    });
+
     const [loading, setLoading] = useState(true);
     const [savingConfig, setSavingConfig] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -113,6 +119,23 @@ const TraineeCardDesignerScreen = () => {
             const data = await accAPI.getTemplateDetails(id);
             const templateData = data.template || data.data || data;
             setTemplate(templateData);
+
+            // Initialize sidesData from the loaded template
+            const frontConfig = templateData.card_config_json;
+            const backConfig = templateData.card_back_config_json;
+
+            setSidesData({
+                front: {
+                    config: Array.isArray(frontConfig) ? frontConfig : (frontConfig?.elements || []),
+                    bgUrl: templateData.card_background_image_url,
+                    html: templateData.card_template_html
+                },
+                back: {
+                    config: Array.isArray(backConfig) ? backConfig : (backConfig?.elements || []),
+                    bgUrl: templateData.card_back_background_image_url,
+                    html: templateData.card_back_template_html
+                }
+            });
         } catch (err) {
             console.error('Failed to load template:', err);
             setError('Failed to load template details.');
@@ -152,14 +175,13 @@ const TraineeCardDesignerScreen = () => {
         canvas.current.setZoom(scale);
 
         // Load card background
-        const bgUrl = template.card_background_image_url;
+        const bgUrl = activeSide === 'front' ? sidesData.front.bgUrl : sidesData.back.bgUrl;
         if (bgUrl) loadBackgroundImage(bgUrl);
 
         // Load saved card config
-        const cardConfig = template.card_config_json;
-        if (cardConfig) {
-            const elements = Array.isArray(cardConfig) ? cardConfig : (cardConfig.elements || []);
-            if (elements.length > 0) loadCardConfig(elements);
+        const elements = activeSide === 'front' ? sidesData.front.config : sidesData.back.config;
+        if (elements && elements.length > 0) {
+            loadCardConfig(elements);
         }
 
         setTimeout(() => refreshVariableDisplays(), 200);
@@ -179,31 +201,45 @@ const TraineeCardDesignerScreen = () => {
         }
     };
 
+    const applyImageAsBackground = (img) => {
+        if (!img || !canvas.current) return;
+        const naturalW = img.width || 1;
+        const naturalH = img.height || 1;
+        img.set({
+            scaleX: CARD_WIDTH / naturalW,
+            scaleY: CARD_HEIGHT / naturalH,
+            originX: 'left',
+            originY: 'top',
+            left: 0,
+            top: 0,
+            selectable: false,
+            evented: false,
+        });
+        canvas.current.setBackgroundImage(img, () => {
+            if (canvas.current) canvas.current.renderAll();
+        });
+    };
+
     const loadBackgroundImage = (url) => {
         if (!canvas.current || !url) return;
         setTimeout(() => {
-            // In Fabric v5, load the image first to get its natural dimensions,
-            // then compute the correct scaleX/scaleY and set it as background.
-            // crossOrigin is removed — if the server doesn't send CORS headers,
-            // adding it will block the load entirely (silent failure).
-            fabric.Image.fromURL(url, (img) => {
-                if (!img || !canvas.current) return;
-                const naturalW = img.width || 1;
-                const naturalH = img.height || 1;
-                img.set({
-                    scaleX: CARD_WIDTH / naturalW,
-                    scaleY: CARD_HEIGHT / naturalH,
-                    originX: 'left',
-                    originY: 'top',
-                    left: 0,
-                    top: 0,
-                    selectable: false,
-                    evented: false,
-                });
-                canvas.current.setBackgroundImage(img, () => {
-                    if (canvas.current) canvas.current.renderAll();
-                });
-            });   // ← no crossOrigin option
+            // Strategy: try with crossOrigin first (needed for tainted canvas).
+            // If the server doesn't support CORS the img comes back with width=0,
+            // so fall back to a no-crossOrigin attempt.
+            fabric.Image.fromURL(
+                url,
+                (img) => {
+                    if (img && img.width > 0 && canvas.current) {
+                        applyImageAsBackground(img);
+                    } else {
+                        // Fallback: load without crossOrigin
+                        fabric.Image.fromURL(url, (img2) => {
+                            if (img2 && canvas.current) applyImageAsBackground(img2);
+                        });
+                    }
+                },
+                { crossOrigin: 'anonymous' }
+            );
         }, 100);
     };
 
@@ -477,20 +513,91 @@ const TraineeCardDesignerScreen = () => {
     };
 
     // ──────────────────────────────
+    // Tab Switching
+    // ──────────────────────────────
+    const switchSide = (newSide) => {
+        if (newSide === activeSide || !canvas.current) return;
+
+        // 1. Save current canvas config to state
+        const currentConfig = [...placeholders];
+        
+        setSidesData(prev => ({
+            ...prev,
+            [activeSide]: { 
+                ...prev[activeSide], 
+                config: currentConfig 
+            }
+        }));
+
+        // 2. Clear canvas
+        canvas.current.clear();
+        canvas.current.setBackgroundImage(null);
+        canvas.current.backgroundColor = '#ffffff';
+
+        // 3. Update active side
+        setActiveSide(newSide);
+        setSelectedPlaceholder(null);
+
+        // 4. Load the other side
+        const nextData = sidesData[newSide];
+        if (nextData.bgUrl) {
+            loadBackgroundImage(nextData.bgUrl);
+        }
+        if (nextData.config && nextData.config.length > 0) {
+            loadCardConfig(nextData.config);
+        } else {
+            setPlaceholders([]);
+        }
+        
+        setTimeout(() => {
+            refreshVariableDisplays();
+            canvas.current?.renderAll();
+        }, 100);
+    };
+
+    // ──────────────────────────────
     // Background upload
     // ──────────────────────────────
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        // Reset the input so the same file can be re-uploaded if needed
+        e.target.value = '';
         setUploadingImage(true);
         try {
             const formData = new FormData();
             formData.append('card_background_image', file);
+            formData.append('side', activeSide);
             const response = await accAPI.uploadCardBackground(id, formData);
-            const newUrl = response.card_background_image_url || response.template?.card_background_image_url;
+
+            // Per the API spec, the upload endpoint always returns
+            // card_background_image_url at the root level regardless of side.
+            // The template object inside the response uses the side-specific field.
+            const bgField = activeSide === 'front'
+                ? 'card_background_image_url'
+                : 'card_back_background_image_url';
+
+            const newUrl =
+                response.card_background_image_url ||
+                response.template?.[bgField] ||
+                response[bgField];
+
+            console.log('📸 Background upload response:', response);
+            console.log('📸 Extracted URL:', newUrl, '| Side:', activeSide);
+
             if (newUrl) {
                 loadBackgroundImage(newUrl);
-                setTemplate(prev => ({ ...prev, card_background_image_url: newUrl }));
+                setSidesData(prev => ({
+                    ...prev,
+                    [activeSide]: { ...prev[activeSide], bgUrl: newUrl }
+                }));
+                setTemplate(prev => ({
+                    ...prev,
+                    [bgField]: newUrl
+                }));
+            } else {
+                console.warn('⚠️ No background URL found in upload response:', response);
+                alert('Image uploaded but could not retrieve the URL. Please refresh.');
             }
         } catch (err) {
             console.error('Upload failed:', err);
@@ -503,55 +610,110 @@ const TraineeCardDesignerScreen = () => {
     // ──────────────────────────────
     // Save
     // ──────────────────────────────
+    // Converts a placeholder/config item (from updatePlaceholdersList or sidesData) into
+    // the API payload shape, returning null if the element has no meaningful variable/text.
+    const toApiElement = (p) => {
+        if (p.element_type === 'image' || p.type === 'image') {
+            const varValue = p.variable || p.text || '';
+            if (!varValue) return null;
+            return {
+                type: 'image',
+                variable: varValue,
+                x: p.x ?? 0,
+                y: p.y ?? 0,
+                width: p.width ?? 0.1,
+                height: p.height ?? 0.07,
+            };
+        }
+        // Text element: variable field is the {{varname}} string for dynamic, or the literal for static
+        const varValue = p.text || p.variable || '';
+        if (!varValue.trim()) return null; // skip completely blank elements
+        return {
+            type: p.type || 'text',
+            variable: varValue,
+            x: p.x ?? 0,
+            y: p.y ?? 0,
+            font_family: p.fontFamily || p.font_family || 'Arial',
+            font_size: p.fontSize || p.font_size || 18,
+            color: p.color || '#000000',
+            font_weight: p.fontWeight || p.font_weight || 'normal',
+            text_align: p.text_align || p.textAlign || 'left',
+        };
+    };
+
     const handleSave = async () => {
         setSavingConfig(true);
         try {
-            const elements = placeholders.map(p => {
-                const base = { type: p.element_type === 'image' ? 'image' : 'text', variable: p.text, x: p.x, y: p.y };
-                if (p.element_type === 'image') return { ...base, width: p.width, height: p.height };
-                return {
-                    ...base,
-                    font_family: p.fontFamily,
-                    font_size: p.fontSize,
-                    color: p.color,
-                    font_weight: p.fontWeight || 'normal',
-                    text_align: p.text_align || 'left',
-                };
-            });
+            // 1. Build current side elements from the live placeholders state
+            const currentElements = placeholders
+                .map(toApiElement)
+                .filter(Boolean);
 
-            // Step 1: Save the designer layout via PUT /card-config
-            await accAPI.updateCardConfig(id, { card_config_json: { elements } });
+            // 2. Prepare full sides data (current + other).
+            //    The "other" side's data comes from sidesData which stores items in
+            //    updatePlaceholdersList format — normalize it to API format too.
+            const normalizeConfig = (cfg) =>
+                (cfg || []).map(toApiElement).filter(Boolean);
 
-            // Step 2: Build and save the full HTML rendering via PUT /card
-            const bgImageStyle = template?.card_background_image_url
-                ? `background-image: url('${template.card_background_image_url}'); background-size: cover; background-position: center; background-repeat: no-repeat;`
-                : 'background-color: #ffffff;';
+            const allSides = {
+                front: activeSide === 'front' ? currentElements : normalizeConfig(sidesData.front.config),
+                back:  activeSide === 'back'  ? currentElements : normalizeConfig(sidesData.back.config),
+            };
 
-            const htmlContent = `
+            const bgs = {
+                front: sidesData.front.bgUrl,
+                back: sidesData.back.bgUrl
+            };
+
+            // 3. Save each side to backend
+            for (const side of ['front', 'back']) {
+                const elements = allSides[side];
+                const bgUrl = bgs[side];
+                
+                // Save config
+                await accAPI.updateCardConfig(id, { 
+                    card_config_json: { elements },
+                    side: side 
+                });
+
+                // Generate HTML for this side
+                const bgImageStyle = bgUrl
+                    ? `background-image: url('${bgUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;`
+                    : 'background-color: #ffffff;';
+
+                const htmlContent = `
 <div style="position: relative; width: ${CARD_WIDTH}px; height: ${CARD_HEIGHT}px; ${bgImageStyle} overflow: hidden; font-family: sans-serif;">
 ${elements.map(el => {
-                const leftPx = Math.round(el.x * CARD_WIDTH);
-                const topPx = Math.round(el.y * CARD_HEIGHT);
-                if (el.type === 'image') {
-                    const widthPx = Math.round(el.width * CARD_WIDTH);
-                    const heightPx = Math.round(el.height * CARD_HEIGHT);
-                    return `    <img src="${el.variable}" style="position: absolute; left: ${leftPx}px; top: ${topPx}px; width: ${widthPx}px; height: ${heightPx}px; object-fit: contain;" />`;
-                } else {
-                    let alignStyle = '';
-                    if (el.text_align === 'center') {
-                        alignStyle = `left: ${leftPx - 1000}px; width: 2000px; text-align: center;`;
-                    } else if (el.text_align === 'right') {
-                        alignStyle = `left: ${leftPx - 2000}px; width: 2000px; text-align: right;`;
+                    const leftPx = Math.round(el.x * CARD_WIDTH);
+                    const topPx = Math.round(el.y * CARD_HEIGHT);
+                    if (el.type === 'image') {
+                        const widthPx = Math.round(el.width * CARD_WIDTH);
+                        const heightPx = Math.round(el.height * CARD_HEIGHT);
+                        return `    <img src="${el.variable}" style="position: absolute; left: ${leftPx}px; top: ${topPx}px; width: ${widthPx}px; height: ${heightPx}px; object-fit: contain;" />`;
                     } else {
-                        alignStyle = `left: ${leftPx}px; text-align: left; white-space: nowrap;`;
+                        let alignStyle = '';
+                        if (el.text_align === 'center') {
+                            alignStyle = `left: ${leftPx - 1000}px; width: 2000px; text-align: center;`;
+                        } else if (el.text_align === 'right') {
+                            alignStyle = `left: ${leftPx - 2000}px; width: 2000px; text-align: right;`;
+                        } else {
+                            alignStyle = `left: ${leftPx}px; text-align: left; white-space: nowrap;`;
+                        }
+                        return `    <div style="position: absolute; top: ${topPx}px; color: ${el.color}; font-size: ${el.font_size}px; font-family: '${el.font_family || 'Arial'}', sans-serif; font-weight: ${el.font_weight || 'normal'}; ${alignStyle} margin: 0; padding: 0; line-height: 1;">${el.variable}</div>`;
                     }
-                    return `    <div style="position: absolute; top: ${topPx}px; color: ${el.color}; font-size: ${el.font_size}px; font-family: '${el.font_family || 'Arial'}', sans-serif; font-weight: ${el.font_weight || 'normal'}; ${alignStyle} margin: 0; padding: 0; line-height: 1;">${el.variable}</div>`;
-                }
-            }).join('\n')}
-</div>
-`.trim();
+                }).join('\n')}
+</div>`.trim();
 
-            await accAPI.updateCardSettings(id, { card_template_html: htmlContent, include_card: true });
+                // Save HTML settings
+                const settingsData = { 
+                    side: side,
+                    include_card: true 
+                };
+                if (side === 'front') settingsData.card_template_html = htmlContent;
+                else settingsData.card_back_template_html = htmlContent;
+
+                await accAPI.updateCardSettings(id, settingsData);
+            }
 
             alert('Card configuration saved successfully!');
             navigate('/acc/trainee-card-template');
@@ -661,7 +823,12 @@ ${elements.map(el => {
 
                     <SidebarSection title="Dynamic Elements" defaultOpen={true}>
                         <div className="grid grid-cols-1 gap-2">
-                            {AVAILABLE_VARIABLES.map(field => {
+                            {AVAILABLE_VARIABLES.filter(field => {
+                                if (activeSide === 'back') {
+                                    return field.variable === 'qr_code';
+                                }
+                                return true;
+                            }).map(field => {
                                 const isImage = IMAGE_PLACEHOLDER_VARS.includes(field.variable);
                                 return (
                                     <button
@@ -679,34 +846,47 @@ ${elements.map(el => {
                         </div>
                     </SidebarSection>
 
-                    <SidebarSection title="Static Elements" defaultOpen={false}>
-                        <div className="grid grid-cols-1 gap-2">
-                            <button onClick={() => addPlaceholder(null, true)} className="card-tool-btn">
-                                <div className="p-1 bg-purple-50 text-purple-600 rounded"><Type size={14} /></div>
-                                Custom Text
-                            </button>
-                            {AVAILABLE_VARIABLES.map(field => (
-                                <button
-                                    key={`static-${field.variable}`}
-                                    onClick={() => addPlaceholder(null, true, field.label)}
-                                    className="card-tool-btn"
-                                >
-                                    <div className="p-1 bg-gray-50 text-gray-600 rounded"><Type size={14} /></div>
-                                    {field.label} (Title)
+                    {activeSide === 'front' && (
+                        <SidebarSection title="Static Elements" defaultOpen={false}>
+                            <div className="grid grid-cols-1 gap-2">
+                                <button onClick={() => addPlaceholder(null, true)} className="card-tool-btn">
+                                    <div className="p-1 bg-purple-50 text-purple-600 rounded"><Type size={14} /></div>
+                                    Custom Text
                                 </button>
-                            ))}
-                        </div>
-                    </SidebarSection>
+                                {AVAILABLE_VARIABLES.map(field => (
+                                    <button
+                                        key={`static-${field.variable}`}
+                                        onClick={() => addPlaceholder(null, true, field.label)}
+                                        className="card-tool-btn"
+                                    >
+                                        <div className="p-1 bg-gray-50 text-gray-600 rounded"><Type size={14} /></div>
+                                        {field.label} (Title)
+                                    </button>
+                                ))}
+                            </div>
+                        </SidebarSection>
+                    )}
                 </div>
 
                 {/* Workspace */}
                 <div className="card-designer-workspace">
                     {/* Toolbar */}
                     <div className="card-workspace-header">
-                        <div className="card-template-info">
-                            <CreditCard size={16} className="text-indigo-500" />
-                            <span className="card-template-name">Global Trainee Card</span>
-                            <span className="card-template-status">{template?.status || 'draft'}</span>
+                        <div className="card-tabs-container">
+                            <button 
+                                className={`card-tab ${activeSide === 'front' ? 'active' : ''}`}
+                                onClick={() => switchSide('front')}
+                            >
+                                <CreditCard size={16} />
+                                Front Side
+                            </button>
+                            <button 
+                                className={`card-tab ${activeSide === 'back' ? 'active' : ''}`}
+                                onClick={() => switchSide('back')}
+                            >
+                                <CreditCard size={16} />
+                                Back Side
+                            </button>
                         </div>
                         <div className="card-workspace-actions">
                             <button
@@ -715,7 +895,7 @@ ${elements.map(el => {
                                 disabled={savingConfig}
                             >
                                 <Save size={18} />
-                                {savingConfig ? 'Saving...' : 'Save Card Config'}
+                                {savingConfig ? 'Saving...' : 'Save All Changes'}
                             </button>
                         </div>
                     </div>

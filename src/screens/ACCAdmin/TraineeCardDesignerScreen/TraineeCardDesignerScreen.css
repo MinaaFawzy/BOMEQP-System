@@ -146,6 +146,41 @@
     text-transform: uppercase;
 }
 
+/* ─── Tabs ─── */
+.card-tabs-container {
+    display: flex;
+    gap: 0.5rem;
+    background-color: #f3f4f6;
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+}
+
+.card-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.card-tab:hover {
+    color: #111827;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.card-tab.active {
+    background-color: white;
+    color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .card-workspace-actions {
     display: flex;
     gap: 0.75rem;

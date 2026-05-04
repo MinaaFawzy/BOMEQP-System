@@ -757,6 +757,7 @@
       "duplicate_submit": "Cannot issue certificate: Duplicate record found for this class and trainee.",
       "download_failed": "Failed to download certificate. Please try again.",
       "download_card_failed": "Failed to download card. Please try again.",
+      "no_card_available": "No card PDF is available for this certificate.",
       "no_permission": "You do not have permission to download this certificate.",
       "not_found": "Certificate file not found.",
       "server_error": "Server error. Please try again later.",

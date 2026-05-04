@@ -64,12 +64,12 @@ const CertificateDesignerScreen = () => {
     const [placeholders, setPlaceholders] = useState([]);
     const [selectedPlaceholder, setSelectedPlaceholder] = useState(null);
     const [error, setError] = useState(null);
-    const [orientation, setOrientation] = useState('landscape'); 
+    const [orientation, setOrientation] = useState('landscape');
 
     const getPageDimensions = () => {
         return orientation === 'portrait'
-            ? { width: 848, height: 1200 } 
-            : { width: 1200, height: 848 }; 
+            ? { width: 848, height: 1200 }
+            : { width: 1200, height: 848 };
     };
 
     // Image-type variables: rendered as image placeholders on canvas and as <img> in HTML
@@ -130,7 +130,7 @@ const CertificateDesignerScreen = () => {
                 { variable: 'expiry_date', label: 'Expiry Date' },
                 { variable: 'training_provider_name', label: 'Training Provider Name' },
                 { variable: 'training_provider_phone', label: 'Training Provider Phone' },
-                { variable: 'delivery_method', label: 'Delivery Method' },
+                // { variable: 'delivery_method', label: 'Delivery Method' },
                 { variable: 'training_provider_id_number', label: 'Training Provider ID Number' },
                 { variable: 'instructor_name', label: 'Instructor Name' },
                 { variable: 'instructor_photo', label: 'Instructor Photo (Image)' },
@@ -209,6 +209,7 @@ const CertificateDesignerScreen = () => {
                 training_provider_name: 'Excellence Training Provider',
                 training_provider_phone: '+1 (555) 123-4567',
                 delivery_method: '', // Usually empty for instructor certs
+                training_provider_id_number: 'TP-123456789',
                 training_center_same_as_training_provider: 'Yes',
                 instructor_photo: instructorPhoto,
                 training_center_logo: trainingCenterLogo,

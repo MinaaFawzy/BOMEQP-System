@@ -753,6 +753,7 @@
       "duplicate_submit": "无法签发证书：该班级和学员的记录已存在。",
       "download_failed": "下载证书失败。请重试。",
       "download_card_failed": "下载卡片失败。请重试。",
+      "no_card_available": "此证书暂无卡片 PDF。",
       "no_permission": "您没有权限下载此证书。",
       "not_found": "未找到证书文件。",
       "server_error": "服务器错误。请稍后重试。",

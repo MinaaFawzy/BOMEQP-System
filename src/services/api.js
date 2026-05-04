@@ -134,9 +134,15 @@ api.interceptors.request.use(
       loadingCallbacks.showLoading();
     }
 
-    const token = getAuthToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Do NOT attach Authorization header for public auth endpoints
+    const publicAuthPaths = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
+    const isPublicAuthEndpoint = publicAuthPaths.some((path) => config.url?.endsWith(path));
+
+    if (!isPublicAuthEndpoint) {
+      const token = getAuthToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     // If FormData, remove Content-Type to let browser set it with boundary

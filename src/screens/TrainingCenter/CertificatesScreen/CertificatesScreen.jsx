@@ -613,7 +613,10 @@ const TrainingCenterCertificatesScreen = () => {
 
   const handleDownloadCard = async (cert) => {
     const url = cert?.card_pdf_url;
-    if (!url) return;
+    if (!url) {
+      alert(t('certificates_screen.errors.no_card_available'));
+      return;
+    }
     try {
       const token =
         sessionStorage.getItem('auth_token') ||
@@ -624,10 +627,19 @@ const TrainingCenterCertificatesScreen = () => {
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const response = await fetch(url, { headers });
-      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+      let blob;
+      try {
+        // Attempt authenticated blob fetch (may fail due to CORS on storage URLs)
+        const response = await fetch(url, { headers, mode: 'cors' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        blob = await response.blob();
+      } catch (fetchError) {
+        console.warn('Direct fetch failed, falling back to window.open:', fetchError);
+        // Fallback: open the URL directly in a new tab so the browser handles the download
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
 
-      const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = objectUrl;
@@ -701,11 +713,11 @@ const TrainingCenterCertificatesScreen = () => {
     },
     {
       header: t('certificates_screen.table.accreditation'),
-      accessor: 'course',
+      accessor: 'acc_name',
       sortable: true,
       render: (value, row) => {
-        // ACC is nested in course.acc
-        const accName = row.course?.acc?.name || value?.acc?.name || t('certificates_screen.status.na');
+        // API returns a top-level acc_name field; fall back to nested course.acc.name for safety
+        const accName = value || row.course?.acc?.name || t('certificates_screen.status.na');
         return (
           <div className="text-sm text-gray-700">
             {accName}
@@ -775,15 +787,18 @@ const TrainingCenterCertificatesScreen = () => {
           >
             <Download size={16} />
           </button>
-          {row.card_pdf_url && (
-            <button
-              onClick={() => handleDownloadCard(row)}
-              className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              title={t('certificates_screen.details.download_card')}
-            >
-              <Download size={16} />
-            </button>
-          )}
+          <button
+            onClick={() => handleDownloadCard(row)}
+            disabled={!row.card_pdf_url}
+            className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${
+              row.card_pdf_url
+                ? 'bg-purple-50 text-purple-600 hover:bg-purple-100 hover:scale-110 hover:shadow-md'
+                : 'bg-gray-100 text-gray-300 cursor-not-allowed opacity-50'
+            }`}
+            title={row.card_pdf_url ? t('certificates_screen.details.download_card') : t('certificates_screen.errors.no_card_available')}
+          >
+            <Download size={16} />
+          </button>
           {row.verification_code && (
             <a
               href={`/certificates/verify/${row.verification_code}`}
