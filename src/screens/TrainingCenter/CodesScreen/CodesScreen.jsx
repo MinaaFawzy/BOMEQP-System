@@ -5,7 +5,7 @@ import { useHeader } from '../../../context/HeaderContext';
 import { getAuthToken } from '../../../config/api';
 import axios from 'axios';
 import imageCompression from 'browser-image-compression';
-import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen, Building2, CheckCircle2, XCircle, Calendar, DollarSign } from 'lucide-react';
+import { Package, ShoppingCart, Search, Filter, ChevronUp, ChevronDown, BookOpen, Building2, CheckCircle2, XCircle, Calendar, DollarSign, X } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import FormInput from '../../../components/FormInput/FormInput';
 import StripePaymentModal from '../../../components/StripePaymentModal/StripePaymentModal';
@@ -36,6 +36,7 @@ const CodesScreen = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 500);
 
 
@@ -61,6 +62,14 @@ const CodesScreen = () => {
   const fetchingAccsSet = useRef(new Set()); // IDs currently being fetched
   const failedAccsSet = useRef(new Set()); // IDs that failed to fetch
 
+  // Course search states
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const [courseSearchResults, setCourseSearchResults] = useState([]);
+  const [isSearchingCourses, setIsSearchingCourses] = useState(false);
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const courseSearchRef = useRef(null);
+  const debouncedCourseSearch = useDebounce(courseSearchQuery, 400);
+
   useEffect(() => {
     loadACCs();
   }, []);
@@ -79,8 +88,34 @@ const CodesScreen = () => {
   useEffect(() => {
     if (purchaseModalOpen) {
       loadFormData();
+    } else {
+      // Reset course search on modal close
+      setCourseSearchQuery('');
+      setCourseSearchResults([]);
+      setShowCourseDropdown(false);
     }
   }, [purchaseModalOpen]);
+
+  // Close course dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (courseSearchRef.current && !courseSearchRef.current.contains(event.target)) {
+        setShowCourseDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Trigger course search when debounced query or selected ACC changes
+  useEffect(() => {
+    if (!debouncedCourseSearch.trim() || !purchaseModalOpen || !purchaseForm.acc_id) {
+      setCourseSearchResults([]);
+      setShowCourseDropdown(false);
+      return;
+    }
+    searchCoursesAcrossACCs(debouncedCourseSearch);
+  }, [debouncedCourseSearch, purchaseModalOpen, purchaseForm.acc_id]);
 
   // Removed applySort useEffect - now handled in filteredAndSortedInventory useMemo
 
@@ -220,12 +255,80 @@ const CodesScreen = () => {
     setDiscountCodes([]);
     setManualPaymentInfo(null);
     setPaymentIntentData(null);
+    // Clear course search when ACC changes
+    setCourseSearchQuery('');
+    setCourseSearchResults([]);
+    setShowCourseDropdown(false);
 
     if (!accId) {
       return;
     }
 
     loadCategories(accId);
+  };
+
+  // Search courses by name within the currently selected ACC only
+  const searchCoursesAcrossACCs = async (query) => {
+    const selectedAccId = purchaseForm.acc_id;
+    if (!query.trim() || !selectedAccId) {
+      setCourseSearchResults([]);
+      setShowCourseDropdown(false);
+      return;
+    }
+    setIsSearchingCourses(true);
+    try {
+      const selectedAcc = accs.find(a => String(a.id) === String(selectedAccId));
+      const data = await trainingCenterAPI.getCoursesForACC(selectedAccId, { search: query, per_page: 200 });
+      const courses = data.courses || data.data || data || [];
+
+      // Client-side filtering since the API may not support the search param
+      const queryLower = query.toLowerCase().trim();
+      const filtered = courses.filter(course => {
+        const name = (course.name || '').toLowerCase();
+        const code = (course.code || '').toLowerCase();
+        return name.includes(queryLower) || code.includes(queryLower);
+      });
+
+      const results = filtered.map(course => ({
+        ...course,
+        _acc_id: selectedAccId,
+        _acc_name: selectedAcc?.name || '',
+      }));
+      setCourseSearchResults(results);
+      setShowCourseDropdown(results.length > 0);
+    } catch (error) {
+      console.error('Course search error:', error);
+      setCourseSearchResults([]);
+    } finally {
+      setIsSearchingCourses(false);
+    }
+  };
+
+  // When user selects a course from search, auto-fill cascade fields
+  const handleCourseSearchSelect = async (course) => {
+    setShowCourseDropdown(false);
+    setCourseSearchQuery(course.name || course.code || '');
+
+    const accId = course._acc_id;
+    const categoryId = course.category_id || course.category?.id || course.sub_category?.category_id || '';
+    const subCategoryId = course.sub_category_id || course.sub_category?.id || '';
+    const courseId = course.id;
+
+    // Load cascade data in order
+    if (accId) await loadCategories(accId);
+    if (categoryId) await loadSubCategories(categoryId);
+    if (accId && subCategoryId) await loadCoursesForSubCategory(accId, subCategoryId);
+    if (accId && courseId) loadDiscountCodes(accId, courseId);
+
+    setPurchaseForm(prev => ({
+      ...prev,
+      acc_id: String(accId),
+      category_id: String(categoryId),
+      sub_category_id: String(subCategoryId),
+      course_id: String(courseId),
+      discount_code: '',
+      payment_amount: '',
+    }));
   };
 
   const handleCategoryChange = async (categoryId) => {
@@ -592,6 +695,7 @@ const CodesScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      setIsSearchLoading(true);
 
       // Ensure ACCs are loaded
       let currentAccsMap = accsMap;
@@ -659,6 +763,7 @@ const CodesScreen = () => {
       }
     } finally {
       setLoading(false);
+      setIsSearchLoading(false);
     }
   };
 
@@ -708,6 +813,9 @@ const CodesScreen = () => {
     setSubCategories([]);
     setCourses([]);
     setDiscountCodes([]);
+    setCourseSearchQuery('');
+    setCourseSearchResults([]);
+    setShowCourseDropdown(false);
     setPurchaseModalOpen(true);
   };
 
@@ -1286,6 +1394,8 @@ const CodesScreen = () => {
           <button
             onClick={() => {
               setActiveTab('inventory');
+              setSearchTerm('');
+              setStatusFilter('all');
             }}
             className={`tab-button ${activeTab === 'inventory' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
@@ -1295,6 +1405,8 @@ const CodesScreen = () => {
           <button
             onClick={() => {
               setActiveTab('batches');
+              setSearchTerm('');
+              setStatusFilter('all');
             }}
             className={`tab-button ${activeTab === 'batches' ? 'tab-button-active' : 'tab-button-inactive'}`}
           >
@@ -1319,6 +1431,11 @@ const CodesScreen = () => {
                 }}
                 className="search-input"
               />
+              {isSearchLoading && (
+                <div className="search-loading-indicator" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
+                  <div className="loading-spinner-small" />
+                </div>
+              )}
             </div>
             <div className="filter-container">
               <Filter className="filter-icon" size={20} />
@@ -1438,6 +1555,7 @@ const CodesScreen = () => {
             searchable={true}
             searchValue={searchTerm}
             onSearch={handleSearch}
+            isSearchLoading={isSearchLoading}
             filterable={false}
             searchPlaceholder={t('codes_screen.search.history_placeholder')}
             sortable={true}
@@ -1481,6 +1599,7 @@ const CodesScreen = () => {
             </div>
           )}
 
+          {/* ACC Selector — must come first */}
           <FormInput
             label={t('codes_screen.purchase_modal.accreditation')}
             name="acc_id"
@@ -1504,6 +1623,87 @@ const CodesScreen = () => {
             </p>
           )}
 
+          {/* Course Name Search — active only after ACC is selected */}
+          <div className="course-search-wrapper" ref={courseSearchRef}>
+            <label className={`form-label${!purchaseForm.acc_id ? ' course-search-label-disabled' : ''}`}>
+              <Search size={14} style={{ display: 'inline', marginRight: '0.35rem', verticalAlign: 'middle' }} />
+              {t('codes_screen.purchase_modal.search_course_by_name')}
+            </label>
+            <div className="course-search-input-container">
+              <input
+                type="text"
+                className={`course-search-input${!purchaseForm.acc_id ? ' course-search-input-disabled' : ''}`}
+                placeholder={!purchaseForm.acc_id ? t('codes_screen.purchase_modal.accreditation') + '...' : t('codes_screen.purchase_modal.search_course_placeholder')}
+                value={courseSearchQuery}
+                disabled={!purchaseForm.acc_id}
+                onChange={(e) => {
+                  setCourseSearchQuery(e.target.value);
+                  if (!e.target.value.trim()) {
+                    setCourseSearchResults([]);
+                    setShowCourseDropdown(false);
+                  }
+                }}
+                onFocus={() => courseSearchResults.length > 0 && setShowCourseDropdown(true)}
+                autoComplete="off"
+              />
+              {isSearchingCourses && (
+                <div className="course-search-spinner" />
+              )}
+              {courseSearchQuery && !isSearchingCourses && (
+                <button
+                  type="button"
+                  className="course-search-clear"
+                  onClick={() => {
+                    setCourseSearchQuery('');
+                    setCourseSearchResults([]);
+                    setShowCourseDropdown(false);
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {showCourseDropdown && courseSearchResults.length > 0 && (
+              <div className="course-search-dropdown">
+                {courseSearchResults.map((course) => (
+                  <button
+                    key={`${course._acc_id}-${course.id}`}
+                    type="button"
+                    className="course-search-option"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleCourseSearchSelect(course);
+                    }}
+                  >
+                    <div className="course-search-option-name">
+                      <BookOpen size={14} />
+                      <span>{course.name || course.code}</span>
+                    </div>
+                    <div className="course-search-option-meta">
+                      {(course.category?.name || course.sub_category?.name) && (
+                        <span className="course-search-option-separator">·</span>
+                      )}
+                      {course.category?.name && <span>{course.category.name}</span>}
+                      {course.sub_category?.name && (
+                        <>
+                          <span className="course-search-option-separator">›</span>
+                          <span>{course.sub_category.name}</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {debouncedCourseSearch && !isSearchingCourses && courseSearchResults.length === 0 && purchaseForm.acc_id && (
+              <p className="course-search-no-results">{t('codes_screen.purchase_modal.search_course_no_results')}</p>
+            )}
+          </div>
+
+          <div className="course-search-divider">
+            <span>{t('codes_screen.purchase_modal.or_select_manually')}</span>
+          </div>
+
           {/* Category Selection */}
           <FormInput
             label={t('codes_screen.purchase_modal.category')}
@@ -1519,7 +1719,7 @@ const CodesScreen = () => {
               ...categories
                 .filter(cat => cat.id != null && cat.id !== '')
                 .map(cat => ({
-                  value: cat.id,
+                  value: String(cat.id),
                   label: cat.name || cat.name_ar || `${t('codes_screen.purchase_modal.category')} ${cat.id}`
                 }))
             ]}
@@ -1540,7 +1740,7 @@ const CodesScreen = () => {
               ...subCategories
                 .filter(subCat => subCat.id != null && subCat.id !== '')
                 .map(subCat => ({
-                  value: subCat.id,
+                  value: String(subCat.id),
                   label: subCat.name || subCat.name_ar || `${t('codes_screen.purchase_modal.sub_category')} ${subCat.id}`
                 }))
             ]}
@@ -1561,7 +1761,7 @@ const CodesScreen = () => {
                 ...courses.map(course => {
                   const courseId = course.id ? (typeof course.id === 'string' ? parseInt(course.id) : course.id) : course.id;
                   return {
-                    value: courseId,
+                    value: String(courseId),
                     label: course.name || course.code || `${t('codes_screen.purchase_modal.course')} ${courseId}`,
                   };
                 })

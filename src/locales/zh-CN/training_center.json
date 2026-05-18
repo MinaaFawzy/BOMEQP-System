@@ -140,6 +140,7 @@
     "view_details": "查看详情",
     "view_info": "查看信息",
     "request_authorization": "申请授权",
+    "apply": "申请",
     "acc": "认证机构",
     "request_date": "申请日期",
     "reviewed_at": "审核日期",
@@ -607,7 +608,11 @@
       "location": "授课方式",
       "physical": "线下",
       "online": "线上",
-      "hybrid": "混合"
+      "hybrid": "混合",
+      "search_course_by_name": "按名称搜索课程",
+      "search_course_placeholder": "输入课程名称搜索...",
+      "search_course_no_results": "未找到匹配的课程",
+      "or_select_manually": "或手动选择"
     },
     "trainees": {
       "title": "学员（可选）",
@@ -832,7 +837,11 @@
       "credit_card_info_title": "支付方式：信用卡",
       "credit_card_info_text": "付款将通过 Stripe 安全处理。总金额将包含任何折扣计算。点击下方“购买代码”以输入您的卡信息。",
       "select_course_first": "请先选择课程",
-      "enter_discount_manually": "手动输入折扣"
+      "enter_discount_manually": "手动输入折扣",
+      "search_course_by_name": "按名称搜索课程",
+      "search_course_placeholder": "输入课程名称搜索...",
+      "search_course_no_results": "未找到匹配的课程",
+      "or_select_manually": "或手动选择"
     },
     "buttons": {
       "cancel": "取消",

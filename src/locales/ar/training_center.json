@@ -154,6 +154,7 @@
     "view_details": "عرض التفاصيل",
     "view_info": "عرض المعلومات",
     "request_authorization": "طلب اعتماد",
+    "apply": "قدم",
     "acc": "جهة الاعتماد",
     "request_date": "تاريخ الطلب",
     "reviewed_at": "تاريخ المراجعة",
@@ -621,7 +622,11 @@
       "location": "الموقع",
       "physical": "حضوري",
       "online": "عن بُعد",
-      "hybrid": "هجين"
+      "hybrid": "هجين",
+      "search_course_by_name": "البحث عن دورة بالاسم",
+      "search_course_placeholder": "اكتب اسم الدورة للبحث...",
+      "search_course_no_results": "لم يتم العثور على دورات مطابقة",
+      "or_select_manually": "أو اختر يدويًا"
     },
     "trainees": {
       "title": "المتدربون (اختياري)",
@@ -846,7 +851,11 @@
       "credit_card_info_title": "طريقة الدفع: بطاقة ائتمان",
       "credit_card_info_text": "سيتم تنفيذ الدفع بأمان عبر Stripe. سيتم احتساب المبلغ النهائي شامل الخصومات. اضغط \"شراء رموز\" لإدخال بيانات البطاقة.",
       "select_course_first": "اختر المادة اولا",
-      "enter_discount_manually": "أدخل كود الخصم يدويًا"
+      "enter_discount_manually": "أدخل كود الخصم يدويًا",
+      "search_course_by_name": "البحث عن دورة بالاسم",
+      "search_course_placeholder": "اكتب اسم الدورة للبحث...",
+      "search_course_no_results": "لم يتم العثور على دورات مطابقة",
+      "or_select_manually": "أو اختر يدويًا"
     },
     "buttons": {
       "cancel": "إلغاء",

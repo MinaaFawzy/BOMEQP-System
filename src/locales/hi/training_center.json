@@ -140,6 +140,7 @@
     "view_details": "विवरण देखें",
     "view_info": "जानकारी देखें",
     "request_authorization": "प्राधिकरण का अनुरोध करें",
+    "apply": "आवेदन",
     "acc": "मान्यता निकाय",
     "request_date": "अनुरोध तिथि",
     "reviewed_at": "समीक्षा तिथि",
@@ -608,7 +609,11 @@
       "location": "स्थान",
       "physical": "भौतिक",
       "online": "ऑनलाइन",
-      "hybrid": "हाइब्रिड"
+      "hybrid": "हाइब्रिड",
+      "search_course_by_name": "नाम से पाठ्यक्रम खोजें",
+      "search_course_placeholder": "खोजने के लिए पाठ्यक्रम नाम टाइप करें...",
+      "search_course_no_results": "मिलते हुए पाठ्यक्रम नहीं मिले",
+      "or_select_manually": "या मैन्युअली चुनें"
     },
     "trainees": {
       "title": "प्रशिक्षार्थी (वैकल्पिक)",
@@ -833,7 +838,11 @@
       "credit_card_info_title": "भुगतान विधि: क्रेडिट कार्ड",
       "credit_card_info_text": "भुगतान Stripe के माध्यम से सुरक्षित रूप से प्रोसेस किया जाएगा। कुल राशि किसी भी छूट सहित गणना की जाएगी। कार्ड विवरण दर्ज करने के लिए नीचे \"कोड खरीदें\" पर क्लिक करें।",
       "select_course_first": "पहले पाठ्यक्रम चुनें",
-      "enter_discount_manually": "छूट मैन्युअली दर्ज करें"
+      "enter_discount_manually": "छूट मैन्युअली दर्ज करें",
+      "search_course_by_name": "नाम से पाठ्यक्रम खोजें",
+      "search_course_placeholder": "खोजने के लिए पाठ्यक्रम नाम टाइप करें...",
+      "search_course_no_results": "मिलते हुए पाठ्यक्रम नहीं मिले",
+      "or_select_manually": "या मैन्युअली चुनें"
     },
     "buttons": {
       "cancel": "रद्द करें",

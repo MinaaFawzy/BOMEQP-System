@@ -48,6 +48,14 @@ const ClassesScreen = () => {
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
 
+  // Course search states
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const [courseSearchResults, setCourseSearchResults] = useState([]);
+  const [isSearchingCourses, setIsSearchingCourses] = useState(false);
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const courseSearchRef = useRef(null);
+  const debouncedCourseSearch = useDebounce(courseSearchQuery, 400);
+
   // Trainees selection
   const [availableTrainees, setAvailableTrainees] = useState([]);
   const [loadingTrainees, setLoadingTrainees] = useState(false);
@@ -95,13 +103,9 @@ const ClassesScreen = () => {
   useEffect(() => {
     // Only show full loading spinner if we don't have data yet
     const showLoading = !hasDataRef.current;
-
-    if (searchTerm !== debouncedSearchTerm) {
-      return;
-    }
-
     loadData(page, perPage, debouncedSearchTerm, statusFilter, showLoading);
-  }, [page, perPage, debouncedSearchTerm, statusFilter, searchTerm]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, perPage, debouncedSearchTerm, statusFilter]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -113,7 +117,7 @@ const ClassesScreen = () => {
     }
   }, [isModalOpen, instructors]);
 
-  // When ACC is selected, load categories
+  // When ACC is selected, load categories; clear course search when ACC changes
   useEffect(() => {
     if (formData.acc_id && isModalOpen) {
       loadCategories(formData.acc_id);
@@ -128,6 +132,10 @@ const ClassesScreen = () => {
         course_id: ''
       }));
     }
+    // Always clear search results when ACC changes
+    setCourseSearchQuery('');
+    setCourseSearchResults([]);
+    setShowCourseDropdown(false);
   }, [formData.acc_id, isModalOpen]);
 
   // When category is selected, load sub-categories
@@ -167,6 +175,27 @@ const ClassesScreen = () => {
       setFilteredInstructors(instructors);
     }
   }, [formData.course_id, isModalOpen, availableCourses, instructors]);
+
+  // Course search within the selected ACC
+  useEffect(() => {
+    if (!debouncedCourseSearch.trim() || !isModalOpen || !formData.acc_id) {
+      setCourseSearchResults([]);
+      setShowCourseDropdown(false);
+      return;
+    }
+    searchCoursesAcrossACCs(debouncedCourseSearch);
+  }, [debouncedCourseSearch, isModalOpen, formData.acc_id]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (courseSearchRef.current && !courseSearchRef.current.contains(event.target)) {
+        setShowCourseDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setHeaderTitle(t('classes_screen.header.title'));
@@ -430,6 +459,73 @@ const ClassesScreen = () => {
     }
   };
 
+  // Search courses by name within the currently selected ACC
+  const searchCoursesAcrossACCs = async (query) => {
+    const selectedAccId = formData.acc_id;
+    if (!query.trim() || !selectedAccId) {
+      setCourseSearchResults([]);
+      setShowCourseDropdown(false);
+      return;
+    }
+    setIsSearchingCourses(true);
+    try {
+      const selectedAcc = availableACCs.find(a => String(a.id) === String(selectedAccId));
+      const data = await trainingCenterAPI.getCoursesForACC(selectedAccId, { search: query, per_page: 200 });
+      const courses = data.courses || data.data || data || [];
+
+      // Client-side filtering since the API may not support the search param
+      const queryLower = query.toLowerCase().trim();
+      const filtered = courses.filter(course => {
+        const name = (course.name || '').toLowerCase();
+        const code = (course.code || '').toLowerCase();
+        return name.includes(queryLower) || code.includes(queryLower);
+      });
+
+      const results = filtered.map(course => ({
+        ...course,
+        _acc_id: selectedAccId,
+        _acc_name: selectedAcc?.name || '',
+      }));
+      setCourseSearchResults(results);
+      setShowCourseDropdown(results.length > 0);
+    } catch (error) {
+      console.error('Course search error:', error);
+      setCourseSearchResults([]);
+    } finally {
+      setIsSearchingCourses(false);
+    }
+  };
+
+  // When user selects a course from search results, auto-fill cascade fields
+  const handleCourseSearchSelect = async (course) => {
+    setShowCourseDropdown(false);
+    setCourseSearchQuery(course.name || course.code || '');
+
+    const accId = course._acc_id;
+    const categoryId = course.category_id || course.category?.id || course.sub_category?.category_id || '';
+    const subCategoryId = course.sub_category_id || course.sub_category?.id || '';
+
+    // Load the full cascade first
+    if (accId) {
+      await loadCategories(accId);
+    }
+    if (categoryId) {
+      await loadSubCategories(categoryId);
+    }
+    if (accId && subCategoryId) {
+      await loadCoursesForSubCategory(accId, subCategoryId);
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      acc_id: String(accId),
+      category_id: String(categoryId),
+      sub_category_id: String(subCategoryId),
+      course_id: String(course.id),
+      instructor_id: '',
+    }));
+  };
+
   // Load available trainees for the training provider
   const loadAvailableTrainees = async () => {
     try {
@@ -658,6 +754,9 @@ const ClassesScreen = () => {
     setSelectedCourseData(null);
     setFilteredInstructors(instructors);
     setTraineeSearchTerm('');
+    setCourseSearchQuery('');
+    setCourseSearchResults([]);
+    setShowCourseDropdown(false);
     setErrors({});
     setIsModalOpen(true);
   };
@@ -684,6 +783,9 @@ const ClassesScreen = () => {
     setAvailableCourses([]);
     setSelectedTraineeIds([]);
     setTraineeSearchTerm('');
+    setCourseSearchQuery('');
+    setCourseSearchResults([]);
+    setShowCourseDropdown(false);
     setErrors({});
   };
 
@@ -1201,6 +1303,7 @@ const ClassesScreen = () => {
           setSearchTerm(value);
           setPage(1);
         }}
+        isSearchLoading={isSearchLoading}
         sortable={true}
         defaultFilter={statusFilter}
         customActions={[
@@ -1239,7 +1342,7 @@ const ClassesScreen = () => {
           {/* Only show ACC, Category, Sub-Category, and Course fields when creating (not editing) */}
           {!selectedClass && (
             <>
-              {/* ACC Selection */}
+              {/* ACC Selection — must come first */}
               <FormInput
                 label={t('classes_screen.form.accreditation')}
                 name="acc_id"
@@ -1265,6 +1368,87 @@ const ClassesScreen = () => {
                 </div>
               )}
 
+              {/* Course Name Search — active only after ACC is selected */}
+              <div className="course-search-wrapper" ref={courseSearchRef}>
+                <label className={`form-label${!formData.acc_id ? ' course-search-label-disabled' : ''}`}>
+                  <Search size={14} style={{ display: 'inline', marginRight: '0.35rem', verticalAlign: 'middle' }} />
+                  {t('classes_screen.form.search_course_by_name')}
+                </label>
+                <div className="course-search-input-container">
+                  <input
+                    type="text"
+                    className={`course-search-input${!formData.acc_id ? ' course-search-input-disabled' : ''}`}
+                    placeholder={!formData.acc_id ? t('classes_screen.form.select_accreditation') : t('classes_screen.form.search_course_placeholder')}
+                    value={courseSearchQuery}
+                    disabled={!formData.acc_id}
+                    onChange={(e) => {
+                      setCourseSearchQuery(e.target.value);
+                      if (!e.target.value.trim()) {
+                        setCourseSearchResults([]);
+                        setShowCourseDropdown(false);
+                      }
+                    }}
+                    onFocus={() => courseSearchResults.length > 0 && setShowCourseDropdown(true)}
+                    autoComplete="off"
+                  />
+                  {isSearchingCourses && (
+                    <div className="course-search-spinner" />
+                  )}
+                  {courseSearchQuery && !isSearchingCourses && (
+                    <button
+                      type="button"
+                      className="course-search-clear"
+                      onClick={() => {
+                        setCourseSearchQuery('');
+                        setCourseSearchResults([]);
+                        setShowCourseDropdown(false);
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                {showCourseDropdown && courseSearchResults.length > 0 && (
+                  <div className="course-search-dropdown">
+                    {courseSearchResults.map((course) => (
+                      <button
+                        key={`${course._acc_id}-${course.id}`}
+                        type="button"
+                        className="course-search-option"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleCourseSearchSelect(course);
+                        }}
+                      >
+                        <div className="course-search-option-name">
+                          <BookOpen size={14} />
+                          <span>{course.name || course.code}</span>
+                        </div>
+                        <div className="course-search-option-meta">
+                          {(course.category?.name || course.sub_category?.name) && (
+                            <span className="course-search-option-separator">·</span>
+                          )}
+                          {course.category?.name && <span>{course.category.name}</span>}
+                          {course.sub_category?.name && (
+                            <>
+                              <span className="course-search-option-separator">›</span>
+                              <span>{course.sub_category.name}</span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {debouncedCourseSearch && !isSearchingCourses && courseSearchResults.length === 0 && formData.acc_id && (
+                  <p className="course-search-no-results">{t('classes_screen.form.search_course_no_results')}</p>
+                )}
+              </div>
+
+              <div className="course-search-divider">
+                <span>{t('classes_screen.form.or_select_manually')}</span>
+              </div>
+
               {/* Category Selection */}
               <FormInput
                 label={t('classes_screen.form.category')}
@@ -1280,7 +1464,7 @@ const ClassesScreen = () => {
                   ...categories
                     .filter(cat => cat.id != null && cat.id !== '')
                     .map(cat => ({
-                      value: cat.id,
+                      value: String(cat.id),
                       label: cat.name || cat.name_ar || `Category ${cat.id}`
                     }))
                 ]}
@@ -1301,7 +1485,7 @@ const ClassesScreen = () => {
                   ...subCategories
                     .filter(subCat => subCat.id != null && subCat.id !== '')
                     .map(subCat => ({
-                      value: subCat.id,
+                      value: String(subCat.id),
                       label: subCat.name || subCat.name_ar || `Sub-Category ${subCat.id}`
                     }))
                 ]}
@@ -1322,7 +1506,7 @@ const ClassesScreen = () => {
                     { value: '', label: !formData.acc_id ? t('classes_screen.form.select_accreditation') : (!formData.category_id ? t('classes_screen.form.select_category_first') : (!formData.sub_category_id ? t('classes_screen.form.select_sub_category') : (loadingCourses ? 'Loading courses...' : t('classes_screen.form.select_course')))) },
                     ...availableCourses.map(course => {
                       const courseName = course.name || course.code || `Course ${course.id}`;
-                      return { value: course.id, label: courseName };
+                      return { value: String(course.id), label: courseName };
                     })
                   ]}
                 />

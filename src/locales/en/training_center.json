@@ -141,6 +141,7 @@
     "view_info": "View Information",
     "request_authorization": "Request Authorization",
     "acc": "Accreditation Body",
+    "apply": "Apply",
     "request_date": "Request Date",
     "reviewed_at": "Reviewed At",
     "search_by_name_email_or_country": "Search by name, email, or country...",
@@ -609,7 +610,11 @@
       "location": "Location",
       "physical": "Physical",
       "online": "Online",
-      "hybrid": "Hybrid"
+      "hybrid": "Hybrid",
+      "search_course_by_name": "Search Course by Name",
+      "search_course_placeholder": "Type course name to search...",
+      "search_course_no_results": "No courses found matching your search",
+      "or_select_manually": "or select manually"
     },
     "trainees": {
       "title": "Trainees (Optional)",
@@ -837,7 +842,11 @@
       "credit_card_info_title": "Payment Method: Credit Card",
       "credit_card_info_text": "Payment will be processed securely through Stripe. The total amount will be calculated including any discounts. Click \"Purchase Codes\" below to enter your card details.",
       "select_course_first": "Select course first",
-      "enter_discount_manually": "Enter discount manually"
+      "enter_discount_manually": "Enter discount manually",
+      "search_course_by_name": "Search Course by Name",
+      "search_course_placeholder": "Type course name to search...",
+      "search_course_no_results": "No courses found matching your search",
+      "or_select_manually": "or select manually"
     },
     "buttons": {
       "cancel": "Cancel",

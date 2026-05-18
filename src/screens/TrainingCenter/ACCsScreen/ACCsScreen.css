@@ -305,6 +305,12 @@ tbody tr:hover {
   border-radius: 0.5rem;
   transition: all 0.2s;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .accs-action-button:hover {
@@ -324,6 +330,7 @@ tbody tr:hover {
 .accs-action-button-green {
   background: #f0fdf4;
   color: #16a34a;
+  padding: 0.5rem 0.875rem;
 }
 
 .accs-action-button-green:hover {

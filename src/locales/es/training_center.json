@@ -140,6 +140,7 @@
     "view_details": "Ver detalles",
     "view_info": "Ver información",
     "request_authorization": "Solicitar autorización",
+    "apply": "Solicitar",
     "acc": "Organismo de acreditación",
     "request_date": "Fecha de solicitud",
     "reviewed_at": "Revisado el",
@@ -607,7 +608,11 @@
       "location": "Ubicación",
       "physical": "Presencial",
       "online": "En línea",
-      "hybrid": "Híbrido"
+      "hybrid": "Híbrido",
+      "search_course_by_name": "Buscar curso por nombre",
+      "search_course_placeholder": "Escribe el nombre del curso para buscar...",
+      "search_course_no_results": "No se encontraron cursos coincidentes",
+      "or_select_manually": "o selecciona manualmente"
     },
     "trainees": {
       "title": "Participantes (opcional)",
@@ -832,7 +837,11 @@
       "credit_card_info_title": "Método de pago: Tarjeta de crédito",
       "credit_card_info_text": "El pago se procesará de forma segura a través de Stripe. El monto total se calculará incluyendo cualquier descuento. Haz clic en \"Comprar códigos\" a continuación para ingresar los datos de tu tarjeta.",
       "select_course_first": "Selecciona primero el curso",
-      "enter_discount_manually": "Ingresar descuento manualmente"
+      "enter_discount_manually": "Ingresar descuento manualmente",
+      "search_course_by_name": "Buscar curso por nombre",
+      "search_course_placeholder": "Escribe el nombre del curso para buscar...",
+      "search_course_no_results": "No se encontraron cursos coincidentes",
+      "or_select_manually": "o selecciona manualmente"
     },
     "buttons": {
       "cancel": "Cancelar",

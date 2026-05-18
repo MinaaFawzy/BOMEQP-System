@@ -287,8 +287,9 @@ const ACCsScreen = () => {
                     handleRequestAuth(row);
                   }}
                   className="accs-action-button accs-action-button-green"
-                  title={t('accreditations.request_authorization')}
+                // title={t('accreditations.request_authorization')}
                 >
+                  <span className="request-auth-text">{t('accreditations.apply', "Apply")} </span>
                   <Send size={16} />
                 </button>
               )
@@ -586,8 +587,8 @@ const ACCsScreen = () => {
       name: acc.legal_name || acc.name,
       email: acc.email,
       phone: acc.phone,
-      fax: acc.fax,
-      website: acc.website,
+      // fax: acc.fax,
+      // website: acc.website,
 
       // Physical Address - Merged with fallbacks
       physical_address_full: [
@@ -791,110 +792,110 @@ const ACCsScreen = () => {
             <DetailForm
               data={selectedACC}
               fields={[
-                { key: 'id', label: t('accreditations.id'), showEmpty: false },
+                // { key: 'id', label: t('accreditations.id'), showEmpty: false },
                 { key: 'name', label: t('accreditations.name'), icon: Building2 },
                 { key: 'email', label: t('accreditations.email'), type: 'email', icon: Mail },
                 { key: 'phone', label: t('accreditations.phone'), icon: Phone, showEmpty: false },
-                { key: 'fax', label: 'Fax', showEmpty: false },
-                { key: 'website', label: t('accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
-                { key: 'physical_address_full', label: t('accreditations.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'mailing_address_full', label: t('accreditations.mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'primary_contact_full_name', label: t('accreditations.primary_contact'), showEmpty: false },
-                { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
-                { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
-                { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
-                {
-                  key: 'primary_contact_passport_url',
-                  label: t('accreditations.primary_contact_passport'),
-                  render: (value) => value ? (
-                    <a
-                      href={value}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '6px 12px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        borderRadius: '6px',
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Eye size={16} style={{ marginRight: '8px' }} />
-                      {t('accreditations.view') || 'View'}
-                    </a>
-                  ) : null,
-                  showEmpty: false
-                },
+                // { key: 'fax', label: 'Fax', showEmpty: false },
+                // { key: 'website', label: t('accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
+                // { key: 'physical_address_full', label: t('accreditations.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                // { key: 'mailing_address_full', label: t('accreditations.mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                // { key: 'primary_contact_full_name', label: t('accreditations.primary_contact'), showEmpty: false },
+                // { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
+                // { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
+                // { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
+                // {
+                //   key: 'primary_contact_passport_url',
+                //   label: t('accreditations.primary_contact_passport'),
+                //   render: (value) => value ? (
+                //     <a
+                //       href={value}
+                //       target="_blank"
+                //       rel="noreferrer"
+                //       style={{
+                //         display: 'inline-flex',
+                //         alignItems: 'center',
+                //         padding: '6px 12px',
+                //         backgroundColor: '#3b82f6',
+                //         color: 'white',
+                //         borderRadius: '6px',
+                //         textDecoration: 'none',
+                //         fontSize: '14px'
+                //       }}
+                //       onClick={(e) => e.stopPropagation()}
+                //     >
+                //       <Eye size={16} style={{ marginRight: '8px' }} />
+                //       {t('accreditations.view') || 'View'}
+                //     </a>
+                //   ) : null,
+                //   showEmpty: false
+                // },
 
-                { key: 'secondary_contact_full_name', label: t('accreditations.secondary_contact'), showEmpty: false },
-                { key: 'secondary_contact_email', label: t('accreditations.secondary_contact_email'), type: 'email', showEmpty: false },
-                { key: 'secondary_contact_mobile', label: t('accreditations.secondary_contact_mobile'), showEmpty: false },
-                { key: 'secondary_contact_country', label: t('accreditations.secondary_contact_country'), showEmpty: false },
-                {
-                  key: 'secondary_contact_passport_url',
-                  label: t('accreditations.secondary_contact_passport'),
-                  render: (value) => value ? (
-                    <a
-                      href={value}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '6px 12px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        borderRadius: '6px',
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Eye size={16} style={{ marginRight: '8px' }} />
-                      {t('accreditations.view') || 'View'}
-                    </a>
-                  ) : null,
-                  showEmpty: false
-                },
+                // { key: 'secondary_contact_full_name', label: t('accreditations.secondary_contact'), showEmpty: false },
+                // { key: 'secondary_contact_email', label: t('accreditations.secondary_contact_email'), type: 'email', showEmpty: false },
+                // { key: 'secondary_contact_mobile', label: t('accreditations.secondary_contact_mobile'), showEmpty: false },
+                // { key: 'secondary_contact_country', label: t('accreditations.secondary_contact_country'), showEmpty: false },
+                // {
+                //   key: 'secondary_contact_passport_url',
+                //   label: t('accreditations.secondary_contact_passport'),
+                //   render: (value) => value ? (
+                //     <a
+                //       href={value}
+                //       target="_blank"
+                //       rel="noreferrer"
+                //       style={{
+                //         display: 'inline-flex',
+                //         alignItems: 'center',
+                //         padding: '6px 12px',
+                //         backgroundColor: '#3b82f6',
+                //         color: 'white',
+                //         borderRadius: '6px',
+                //         textDecoration: 'none',
+                //         fontSize: '14px'
+                //       }}
+                //       onClick={(e) => e.stopPropagation()}
+                //     >
+                //       <Eye size={16} style={{ marginRight: '8px' }} />
+                //       {t('accreditations.view') || 'View'}
+                //     </a>
+                //   ) : null,
+                //   showEmpty: false
+                // },
 
-                { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
-                {
-                  key: 'company_registration_certificate_url',
-                  label: t('accreditations.registration_certificate'),
-                  render: (value) => value ? (
-                    <a
-                      href={value}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '6px 12px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        borderRadius: '6px',
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Eye size={16} style={{ marginRight: '8px' }} />
-                      {t('accreditations.view') || 'View'}
-                    </a>
-                  ) : null,
-                  showEmpty: false
-                },
-                { key: 'how_did_you_hear_about_us', label: t('accreditations.how_did_you_hear_about_us'), showEmpty: false },
-                { key: 'agreements_summary', label: t('accreditations.agreements'), showEmpty: false },
+                // { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
+                // {
+                //   key: 'company_registration_certificate_url',
+                //   label: t('accreditations.registration_certificate'),
+                //   render: (value) => value ? (
+                //     <a
+                //       href={value}
+                //       target="_blank"
+                //       rel="noreferrer"
+                //       style={{
+                //         display: 'inline-flex',
+                //         alignItems: 'center',
+                //         padding: '6px 12px',
+                //         backgroundColor: '#3b82f6',
+                //         color: 'white',
+                //         borderRadius: '6px',
+                //         textDecoration: 'none',
+                //         fontSize: '14px'
+                //       }}
+                //       onClick={(e) => e.stopPropagation()}
+                //     >
+                //       <Eye size={16} style={{ marginRight: '8px' }} />
+                //       {t('accreditations.view') || 'View'}
+                //     </a>
+                //   ) : null,
+                //   showEmpty: false
+                // },
+                // { key: 'how_did_you_hear_about_us', label: t('accreditations.how_did_you_hear_about_us'), showEmpty: false },
+                // { key: 'agreements_summary', label: t('accreditations.agreements'), showEmpty: false },
 
-                { key: 'status', label: t('accreditations.status'), type: 'status' },
-                { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
-                { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },
-                { key: 'updated_at', label: t('accreditations.updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                // { key: 'status', label: t('accreditations.status'), type: 'status' },
+                // { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
+                // { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                // { key: 'updated_at', label: t('accreditations.updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
               ]}
             />
             {selectedACC.status === 'active' && !allAuthorizations.some(auth => auth.acc?.id === selectedACC.id) && (
@@ -931,23 +932,23 @@ const ACCsScreen = () => {
             <DetailForm
               data={selectedAuthorization.acc || {}}
               fields={[
-                { key: 'id', label: t('accreditations.id'), showEmpty: false },
+                // { key: 'id', label: t('accreditations.id'), showEmpty: false },
                 { key: 'name', label: t('accreditations.name'), icon: Building2 },
                 { key: 'email', label: t('accreditations.email'), type: 'email', icon: Mail },
                 { key: 'phone', label: t('accreditations.phone'), icon: Phone, showEmpty: false },
-                { key: 'fax', label: t('accreditations.fax'), showEmpty: false },
-                { key: 'website', label: t('accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
-                { key: 'physical_address_full', label: t('accreditations.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'mailing_address_full', label: t('accreditations.mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
-                { key: 'primary_contact_full_name', label: t('accreditations.primary_contact'), showEmpty: false },
-                { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
-                { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
-                { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
-                { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
+                // { key: 'fax', label: t('accreditations.fax'), showEmpty: false },
+                // { key: 'website', label: t('accreditations.website'), type: 'url', icon: Globe, showEmpty: false },
+                // { key: 'physical_address_full', label: t('accreditations.physical_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                // { key: 'mailing_address_full', label: t('accreditations.mailing_address'), icon: MapPin, fullWidth: true, showEmpty: false },
+                // { key: 'primary_contact_full_name', label: t('accreditations.primary_contact'), showEmpty: false },
+                // { key: 'primary_contact_email', label: t('accreditations.primary_contact_email'), type: 'email', showEmpty: false },
+                // { key: 'primary_contact_mobile', label: t('accreditations.primary_contact_mobile'), showEmpty: false },
+                // { key: 'primary_contact_country', label: t('accreditations.primary_contact_country'), showEmpty: false },
+                // { key: 'company_gov_registry_number', label: t('accreditations.gov_registry_number'), showEmpty: false },
                 { key: 'status', label: t('accreditations.status'), type: 'status' },
-                { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
-                { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },
-                { key: 'updated_at', label: t('accreditations.updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                // { key: 'description', label: t('accreditations.description'), fullWidth: true, showEmpty: false },
+                // { key: 'created_at', label: t('accreditations.created_at'), type: 'datetime', icon: Clock, showEmpty: false },
+                // { key: 'updated_at', label: t('accreditations.updated_at'), type: 'datetime', icon: Clock, showEmpty: false },
               ]}
             />
 
@@ -955,7 +956,7 @@ const ACCsScreen = () => {
             <DetailForm
               data={selectedAuthorization}
               fields={[
-                { key: 'status', label: t('accreditations.status'), type: 'status' },
+                // { key: 'status', label: t('accreditations.status'), type: 'status' },
                 { key: 'request_date', label: t('accreditations.request_date'), type: 'datetime', icon: Clock },
                 { key: 'reviewed_at', label: t('accreditations.reviewed_at'), type: 'datetime', icon: CheckCircle, showEmpty: false },
               ]}
