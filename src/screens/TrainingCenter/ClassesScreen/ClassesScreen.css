@@ -807,6 +807,14 @@ select:focus {
   background-color: rgb(21, 128, 61);
 }
 
+.detail-modal-edit-btn {
+  background-color: var(--primary-color, #3b82f6);
+}
+
+.detail-modal-edit-btn:hover {
+  background-color: var(--primary-hover, #2563eb);
+}
+
 .detail-modal-action-icon {
   margin-right: 0.5rem;
 }

@@ -1170,7 +1170,8 @@
       "logo_type": "Logo must be an image file (JPG, JPEG, or PNG only)",
       "logo_size": "Logo size must not exceed 5MB",
       "file_type": "File must be PDF, JPG, JPEG, or PNG",
-      "file_size": "File size must not exceed 10MB"
+      "file_size": "File size must not exceed 10MB",
+      "required_fields_missing": "Please complete all required fields and upload the necessary documents."
     },
     "password": {
       "current": "Current Password",

@@ -410,7 +410,8 @@
       "title": "Enrolled Classes",
       "empty": "No training classes available",
       "classFallback": "Class {{id}}",
-      "instructorPrefix": "Instructor:"
+      "instructorPrefix": "Instructor:",
+      "completed": "Completed"
     },
     "details": {
       "title": "Trainee Details",

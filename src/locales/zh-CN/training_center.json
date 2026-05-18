@@ -410,7 +410,8 @@
       "title": "已报名课程",
       "empty": "暂无可用培训课程",
       "classFallback": "课程 {{id}}",
-      "instructorPrefix": "讲师："
+      "instructorPrefix": "讲师：",
+      "completed": "完成"
     },
     "details": {
       "title": "学员详情",

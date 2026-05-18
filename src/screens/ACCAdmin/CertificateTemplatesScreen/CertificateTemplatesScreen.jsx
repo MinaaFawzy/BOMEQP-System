@@ -93,15 +93,15 @@ const CertificateTemplatesScreen = () => {
     setLoading(true);
     try {
       const [categoriesData, subCategoriesData, coursesData] = await Promise.all([
-        accAPI.listCategories({ per_page: 1000 }),
-        accAPI.listSubCategories({ per_page: 1000 }),
-        accAPI.listCourses({ per_page: 1000 })
+        accAPI.listCategories({ per_page: 10000 }),
+        accAPI.listSubCategories({ per_page: 10000 }),
+        accAPI.listCourses({ per_page: 10000 })
       ]);
 
       // Templates loaded separately in useEffect
 
 
-      // Process Categories
+      // Process Categories 
       let categoriesArray = [];
       if (categoriesData.data) {
         categoriesArray = categoriesData.data || [];

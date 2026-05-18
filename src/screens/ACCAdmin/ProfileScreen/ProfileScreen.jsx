@@ -504,15 +504,9 @@ const ProfileScreen = () => {
     else if (validateEmail(formData.primary_contact_email)) validationErrors.primary_contact_email = t('profile_screen.validation.invalid_email');
     if (!formData.primary_contact_country) validationErrors.primary_contact_country = t('profile_screen.validation.required');
     if (!formData.primary_contact_mobile) validationErrors.primary_contact_mobile = t('profile_screen.validation.required');
-    // File validation: Required if not already uploaded (how to check? we can check if URL exists in profileData)
+    // File validation: Required if not already uploaded
     if (!primaryPassportFile && !profileData?.primary_contact?.passport_url) {
-      // Ideally this should be required, but for updates maybe optional if already exists? 
-      // Requirement says "Required: Yes". Assuming if it exists on backend it's fine.
-      // Let's check profileData structure for existing file.
-      // The requirement structure shows passport_url in response.
-      if (!profileData?.primary_contact?.passport_url) {
-        validationErrors.primary_contact_passport = t('profile_screen.validation.required');
-      }
+      validationErrors.primary_contact_passport = t('profile_screen.validation.required');
     }
 
     // 5. Secondary Contact
@@ -524,23 +518,26 @@ const ProfileScreen = () => {
     if (!formData.secondary_contact_country) validationErrors.secondary_contact_country = t('profile_screen.validation.required');
     if (!formData.secondary_contact_mobile) validationErrors.secondary_contact_mobile = t('profile_screen.validation.required');
     if (!secondaryPassportFile && !profileData?.secondary_contact?.passport_url) {
-      if (!profileData?.secondary_contact?.passport_url) {
-        validationErrors.secondary_contact_passport = t('profile_screen.validation.required');
-      }
+      validationErrors.secondary_contact_passport = t('profile_screen.validation.required');
     }
 
     // 6. Additional Info
-    // company_gov_registry_number is optional
-    // company_registration_certificate is optional
+    if (!formData.company_gov_registry_number) {
+      validationErrors.company_gov_registry_number = t('profile_screen.validation.required');
+    }
+    if (!companyCertFile && !profileData?.company_registration_certificate_url) {
+      validationErrors.company_registration_certificate = t('profile_screen.validation.required');
+    }
 
     // 7. Agreements
     if (!formData.agreed_to_receive_communications) validationErrors.agreed_to_receive_communications = t('profile_screen.validation.required');
     if (!formData.agreed_to_terms_and_conditions) validationErrors.agreed_to_terms_and_conditions = t('profile_screen.validation.required');
 
     if (Object.keys(validationErrors).length > 0) {
+      validationErrors.general = t('profile_screen.validation.required_fields_missing', 'Please complete all required fields and upload the necessary documents.');
       setErrors(validationErrors);
       setLoading(false);
-      // Scroll to top or first error could be nice
+      // Scroll to top
       window.scrollTo(0, 0);
       return;
     }

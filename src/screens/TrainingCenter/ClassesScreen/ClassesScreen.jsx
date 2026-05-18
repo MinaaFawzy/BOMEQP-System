@@ -2074,6 +2074,16 @@ const ClassesScreen = () => {
                   <CheckCircle size={20} className="detail-modal-action-icon" />
                   {t('classes_screen.details.mark_complete')}
                 </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    handleOpenModal(selectedClass);
+                  }}
+                  className="detail-modal-action-btn detail-modal-edit-btn"
+                >
+                  <Edit size={20} className="detail-modal-action-icon" />
+                  {t('classes_screen.actions.edit', { defaultValue: 'Edit' })}
+                </button>
               </div>
             )}
           </div>

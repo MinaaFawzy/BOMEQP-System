@@ -424,7 +424,8 @@
       "title": "الدورات المسجّل بها",
       "empty": "لا توجد دورات تدريبية متاحة",
       "classFallback": "مجموعة {{id}}",
-      "instructorPrefix": "المدرب:"
+      "instructorPrefix": "المدرب:",
+      "completed": "مكتمل"
     },
     "details": {
       "title": "تفاصيل المتدرب",

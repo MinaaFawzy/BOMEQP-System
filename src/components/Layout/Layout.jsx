@@ -740,7 +740,7 @@ const Layout = ({ children }) => {
           </header>
 
           <main className="p-4 lg:p-9 animate-fade-in min-h-full">
-            <div className="max-w-7xl mx-auto">
+            <div className="w-full mx-auto">
               {
                 // user?.role === 'training_center_admin' ? (
                 //   // Coming Soon Screen for Training Provider Admin

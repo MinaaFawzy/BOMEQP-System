@@ -177,30 +177,30 @@ const PaymentTransactionsScreen = () => {
 
   // Define columns for DataTable
   const columns = useMemo(() => [
-    {
-      header: t('payment_transactions_screen.table.type'),
-      accessor: 'transaction_type',
-      sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center gap-2">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${isReceived(row)
-            ? 'bg-gradient-to-br from-green-100 to-green-200'
-            : 'bg-gradient-to-br from-red-100 to-red-200'
-            }`}>
-            {isReceived(row) ? (
-              <ArrowDownCircle className="h-5 w-5 text-green-600" />
-            ) : (
-              <ArrowUpCircle className="h-5 w-5 text-red-600" />
-            )}
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">
-              {getTransactionTypeLabel(value)}
-            </div>
-          </div>
-        </div>
-      )
-    },
+    // {
+    //   header: t('payment_transactions_screen.table.type'),
+    //   accessor: 'transaction_type',
+    //   sortable: true,
+    //   render: (value, row) => (
+    //     <div className="flex items-center gap-2">
+    //       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${isReceived(row)
+    //         ? 'bg-gradient-to-br from-green-100 to-green-200'
+    //         : 'bg-gradient-to-br from-red-100 to-red-200'
+    //         }`}>
+    //         {isReceived(row) ? (
+    //           <ArrowDownCircle className="h-5 w-5 text-green-600" />
+    //         ) : (
+    //           <ArrowUpCircle className="h-5 w-5 text-red-600" />
+    //         )}
+    //       </div>
+    //       <div>
+    //         <div className="text-sm font-semibold text-gray-900">
+    //           {getTransactionTypeLabel(value)}
+    //         </div>
+    //       </div>
+    //     </div>
+    //   )
+    // },
     {
       header: t('payment_transactions_screen.table.payer'),
       accessor: 'payer',

@@ -410,7 +410,8 @@
       "title": "Clases inscritas",
       "empty": "No hay clases de formación disponibles",
       "classFallback": "Clase {{id}}",
-      "instructorPrefix": "Instructor:"
+      "instructorPrefix": "Instructor:",
+      "completed": "Completada"
     },
     "details": {
       "title": "Detalles del participante",

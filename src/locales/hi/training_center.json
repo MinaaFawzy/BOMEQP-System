@@ -411,7 +411,8 @@
       "title": "नामांकित कक्षाएँ",
       "empty": "कोई प्रशिक्षण कक्षा उपलब्ध नहीं",
       "classFallback": "कक्षा {{id}}",
-      "instructorPrefix": "प्रशिक्षक:"
+      "instructorPrefix": "प्रशिक्षक:",
+      "completed": "पूर्ण"
     },
     "details": {
       "title": "प्रशिक्षार्थी विवरण",

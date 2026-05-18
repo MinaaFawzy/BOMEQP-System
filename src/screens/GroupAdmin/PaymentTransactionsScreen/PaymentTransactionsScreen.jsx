@@ -228,16 +228,16 @@ const PaymentTransactionsScreen = () => {
     //   sortable: true,
     //   render: (value) => <span className="text-gray-500 font-mono text-xs">#{value}</span>
     // },
-    {
-      header: 'Type',
-      accessor: 'transaction_type',
-      sortable: true,
-      render: (value) => (
-        <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
-          {value ? value.replace(/_/g, ' ') : 'N/A'}
-        </span>
-      )
-    },
+    // {
+    //   header: 'Type',
+    //   accessor: 'transaction_type',
+    //   sortable: true,
+    //   render: (value) => (
+    //     <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+    //       {value ? value.replace(/_/g, ' ') : 'N/A'}
+    //     </span>
+    //   )
+    // },
     {
       header: 'Payer',
       accessor: 'payer',

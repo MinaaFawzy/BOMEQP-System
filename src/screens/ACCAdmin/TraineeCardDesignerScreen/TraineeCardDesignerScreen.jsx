@@ -526,12 +526,12 @@ const TraineeCardDesignerScreen = () => {
 
         // 1. Save current canvas config to state
         const currentConfig = [...placeholders];
-        
+
         setSidesData(prev => ({
             ...prev,
-            [activeSide]: { 
-                ...prev[activeSide], 
-                config: currentConfig 
+            [activeSide]: {
+                ...prev[activeSide],
+                config: currentConfig
             }
         }));
 
@@ -554,7 +554,7 @@ const TraineeCardDesignerScreen = () => {
         } else {
             setPlaceholders([]);
         }
-        
+
         setTimeout(() => {
             refreshVariableDisplays();
             canvas.current?.renderAll();
@@ -663,7 +663,7 @@ const TraineeCardDesignerScreen = () => {
 
             const allSides = {
                 front: activeSide === 'front' ? currentElements : normalizeConfig(sidesData.front.config),
-                back:  activeSide === 'back'  ? currentElements : normalizeConfig(sidesData.back.config),
+                back: activeSide === 'back' ? currentElements : normalizeConfig(sidesData.back.config),
             };
 
             const bgs = {
@@ -675,11 +675,11 @@ const TraineeCardDesignerScreen = () => {
             for (const side of ['front', 'back']) {
                 const elements = allSides[side];
                 const bgUrl = bgs[side];
-                
+
                 // Save config
-                await accAPI.updateCardConfig(id, { 
+                await accAPI.updateCardConfig(id, {
                     card_config_json: { elements },
-                    side: side 
+                    side: side
                 });
 
                 // Generate HTML for this side
@@ -711,9 +711,9 @@ ${elements.map(el => {
 </div>`.trim();
 
                 // Save HTML settings
-                const settingsData = { 
+                const settingsData = {
                     side: side,
-                    include_card: true 
+                    include_card: true
                 };
                 if (side === 'front') settingsData.card_template_html = htmlContent;
                 else settingsData.card_back_template_html = htmlContent;
@@ -879,14 +879,14 @@ ${elements.map(el => {
                     {/* Toolbar */}
                     <div className="card-workspace-header">
                         <div className="card-tabs-container">
-                            <button 
+                            <button
                                 className={`card-tab ${activeSide === 'front' ? 'active' : ''}`}
                                 onClick={() => switchSide('front')}
                             >
                                 <CreditCard size={16} />
                                 Front Side
                             </button>
-                            <button 
+                            <button
                                 className={`card-tab ${activeSide === 'back' ? 'active' : ''}`}
                                 onClick={() => switchSide('back')}
                             >

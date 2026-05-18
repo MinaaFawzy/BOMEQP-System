@@ -3,7 +3,7 @@ import { trainingCenterAPI, publicAPI } from '../../../services/api';
 import { useHeader } from '../../../context/HeaderContext';
 import useDebounce from '../../../hooks/useDebounce';
 import { validateEmail, validatePhone, validateRequired, validateUKID } from '../../../utils/validation';
-import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, BookOpen, Calendar, Upload, User } from 'lucide-react';
+import { UserCheck, Plus, Edit, Trash2, Eye, Mail, Phone, Search, Filter, CheckCircle, Clock, XCircle, ChevronUp, ChevronDown, X, FileImage, FileText, BookOpen, Calendar, Upload, User } from 'lucide-react';
 import Modal from '../../../components/Modal/Modal';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -18,6 +18,15 @@ import { useTranslation } from '../../../hooks/useTranslation';
 
 const TraineesScreen = () => {
   const { t } = useTranslation('training_center');
+  const isPdf = (file, previewUrl) => {
+    if (file instanceof File) {
+      return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    }
+    if (typeof previewUrl === 'string') {
+      return previewUrl.startsWith('data:application/pdf') || previewUrl.toLowerCase().split('?')[0].endsWith('.pdf');
+    }
+    return false;
+  };
   const { setHeaderActions, setHeaderTitle, setHeaderSubtitle } = useHeader();
   const [trainees, setTrainees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -340,14 +349,14 @@ const TraineesScreen = () => {
           [type]: processedFile,
         });
 
-        // Create preview for images
-        if (type === 'id_image' && processedFile.type.startsWith('image/')) {
+        // Create preview for images or PDFs
+        if (type === 'id_image') {
           const reader = new FileReader();
           reader.onloadend = () => {
             setIdImagePreview(reader.result);
           };
           reader.readAsDataURL(processedFile);
-        } else if (type === 'card_image' && processedFile.type.startsWith('image/')) {
+        } else if (type === 'card_image') {
           const reader = new FileReader();
           reader.onloadend = () => {
             setCardImagePreview(reader.result);
@@ -365,6 +374,14 @@ const TraineesScreen = () => {
   };
 
   const handleClassToggle = (classId) => {
+    const trainingClass = trainingClasses.find(c => c.id === classId);
+    const isCompleted = trainingClass?.status === 'completed';
+    const isAlreadyEnrolled = selectedTrainee?.training_classes?.some(tc => tc.id === classId);
+
+    if (isCompleted && !isAlreadyEnrolled) {
+      return;
+    }
+
     setFormData(prev => {
       const enrolledClasses = prev.enrolled_classes || [];
       if (enrolledClasses.includes(classId)) {
@@ -442,6 +459,19 @@ const TraineesScreen = () => {
       if (!formData.card_image && !cardImagePreview) {
         validationErrors.card_image = t('trainees.errors.cardImageRequired');
       }
+    }
+
+    // Validation: prevent enrolling trainee in completed classes
+    const newlyAddedClasses = (formData.enrolled_classes || []).filter(
+      classId => !selectedTrainee?.training_classes?.some(tc => tc.id === classId)
+    );
+    const hasCompletedClassAdded = newlyAddedClasses.some(classId => {
+      const cls = trainingClasses.find(c => c.id === classId);
+      return cls && cls.status === 'completed';
+    });
+
+    if (hasCompletedClassAdded) {
+      validationErrors.enrolled_classes = t('trainees.errors.completedClassEnrolment') || 'Cannot enroll trainee in a completed class.';
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -1012,11 +1042,20 @@ const TraineesScreen = () => {
             ) : idImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
-                  <img
-                    src={idImagePreview}
-                    alt="ID Preview"
-                    className="trainees-image-preview-img"
-                  />
+                  {isPdf(formData.id_image, idImagePreview) ? (
+                    <div className="trainees-pdf-preview-placeholder">
+                      <FileText size={48} className="trainees-pdf-preview-icon" />
+                      <span className="trainees-pdf-preview-text">
+                        {formData.id_image instanceof File ? formData.id_image.name : (t('trainees.upload.pdfDocument') || 'PDF Document')}
+                      </span>
+                    </div>
+                  ) : (
+                    <img
+                      src={idImagePreview}
+                      alt="ID Preview"
+                      className="trainees-image-preview-img"
+                    />
+                  )}
                   <div className="trainees-image-preview-overlay">
                     <div className="trainees-image-preview-actions">
                       <label>
@@ -1100,11 +1139,20 @@ const TraineesScreen = () => {
             ) : cardImagePreview ? (
               <div className="trainees-image-preview-container">
                 <div className="trainees-image-preview-box">
-                  <img
-                    src={cardImagePreview}
-                    alt="Card Preview"
-                    className="trainees-image-preview-img"
-                  />
+                  {isPdf(formData.card_image, cardImagePreview) ? (
+                    <div className="trainees-pdf-preview-placeholder">
+                      <FileText size={48} className="trainees-pdf-preview-icon" />
+                      <span className="trainees-pdf-preview-text">
+                        {formData.card_image instanceof File ? formData.card_image.name : (t('trainees.upload.pdfDocument') || 'PDF Document')}
+                      </span>
+                    </div>
+                  ) : (
+                    <img
+                      src={cardImagePreview}
+                      alt="Card Preview"
+                      className="trainees-image-preview-img"
+                    />
+                  )}
                   <div className="trainees-image-preview-overlay">
                     <div className="trainees-image-preview-actions">
                       <label>
@@ -1183,31 +1231,44 @@ const TraineesScreen = () => {
               <p className="trainees-classes-empty">{t('trainees.classes.empty')}</p>
             ) : (
               <div className="trainees-classes-container">
-                {trainingClasses.map(trainingClass => (
-                  <label
-                    key={trainingClass.id}
-                    className="trainees-class-item"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.enrolled_classes?.includes(trainingClass.id) || false}
-                      onChange={() => handleClassToggle(trainingClass.id)}
-                      className="trainees-class-checkbox"
-                      disabled={saving}
-                    />
-                    <div className="trainees-class-info">
-                      <span className="trainees-class-name">
-                        {trainingClass.course?.name || trainingClass.name || t('trainees.classes.classFallback', { id: trainingClass.id })}
-                      </span>
-                      {trainingClass.start_date && trainingClass.end_date && (
-                        <div className="trainees-class-date">
-                          <Calendar size={12} />
-                          {new Date(trainingClass.start_date).toLocaleDateString()} - {new Date(trainingClass.end_date).toLocaleDateString()}
+                {trainingClasses.map(trainingClass => {
+                  const isCompleted = trainingClass.status === 'completed';
+                  const isAlreadyEnrolled = selectedTrainee?.training_classes?.some(tc => tc.id === trainingClass.id);
+                  const isDisabled = isCompleted && !isAlreadyEnrolled;
+
+                  return (
+                    <label
+                      key={trainingClass.id}
+                      className={`trainees-class-item ${isDisabled ? 'trainees-class-item-disabled' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.enrolled_classes?.includes(trainingClass.id) || false}
+                        onChange={() => handleClassToggle(trainingClass.id)}
+                        className="trainees-class-checkbox"
+                        disabled={saving || isDisabled}
+                      />
+                      <div className="trainees-class-info">
+                        <div className="trainees-class-header-row">
+                          <span className="trainees-class-name">
+                            {trainingClass.course?.name || trainingClass.name || t('trainees.classes.classFallback', { id: trainingClass.id })}
+                          </span>
+                          {isCompleted && (
+                            <span className="trainees-class-badge-completed">
+                              {t('trainees.classes.completed', 'Completed')}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </label>
-                ))}
+                        {trainingClass.start_date && trainingClass.end_date && (
+                          <div className="trainees-class-date">
+                            <Calendar size={12} />
+                            {new Date(trainingClass.start_date).toLocaleDateString()} - {new Date(trainingClass.end_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             )}
             {errors.enrolled_classes && (
@@ -1280,7 +1341,14 @@ const TraineesScreen = () => {
                 <div className="trainees-detail-image-box">
                   <p className="trainees-detail-image-label">{t('trainees.details.detailFields.uploadPassportId')}</p>
                   <a href={selectedTrainee.id_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
-                    <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" loading="lazy" decoding="async" />
+                    {isPdf(null, selectedTrainee.id_image_url) ? (
+                      <div className="trainees-pdf-detail-placeholder">
+                        <FileText size={40} className="trainees-pdf-preview-icon" />
+                        <span className="trainees-pdf-preview-text">{t('trainees.upload.viewPdf') || 'View PDF Document'}</span>
+                      </div>
+                    ) : (
+                      <img src={selectedTrainee.id_image_url} alt="ID" className="trainees-detail-image" loading="lazy" decoding="async" />
+                    )}
                   </a>
                 </div>
               )}
@@ -1288,7 +1356,14 @@ const TraineesScreen = () => {
                 <div className="trainees-detail-image-box">
                   <p className="trainees-detail-image-label">{t('trainees.details.detailFields.picUpload')}</p>
                   <a href={selectedTrainee.card_image_url} target="_blank" rel="noopener noreferrer" className="trainees-detail-image-link">
-                    <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" loading="lazy" decoding="async" />
+                    {isPdf(null, selectedTrainee.card_image_url) ? (
+                      <div className="trainees-pdf-detail-placeholder">
+                        <FileText size={40} className="trainees-pdf-preview-icon" />
+                        <span className="trainees-pdf-preview-text">{t('trainees.upload.viewPdf') || 'View PDF Document'}</span>
+                      </div>
+                    ) : (
+                      <img src={selectedTrainee.card_image_url} alt="Card" className="trainees-detail-image" loading="lazy" decoding="async" />
+                    )}
                   </a>
                 </div>
               )}
