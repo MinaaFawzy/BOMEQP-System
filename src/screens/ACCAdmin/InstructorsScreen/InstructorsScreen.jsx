@@ -364,8 +364,8 @@ const InstructorsScreen = () => {
   // filteredData was removed as we are using server-side filtering/searching (tableData).
 
   const confirmApprove = async () => {
-    if (!authorizationPrice || parseFloat(authorizationPrice) <= 0) {
-      alert('Please enter a valid authorization price'); // No key for this in provided JSON, using literal or check generic error from API response
+    if (!authorizationPrice || parseFloat(authorizationPrice) < 1) {
+      alert(t('instructors_screen.approval.price_min_error') || 'Please enter a valid authorization price (Minimum $1.00)');
       return;
     }
     try {
@@ -1043,9 +1043,10 @@ const InstructorsScreen = () => {
             value={authorizationPrice}
             onChange={(e) => setAuthorizationPrice(e.target.value)}
             required
-            min="0"
+            min="1"
             step="0.01"
             placeholder={t('instructors_screen.approval.price_placeholder')}
+            helpText={t('instructors_screen.approval.price_help_text') || 'Minimum amount is $1.00'}
           />
           <p className="text-sm text-gray-500">
             {t('instructors_screen.approval.note')}

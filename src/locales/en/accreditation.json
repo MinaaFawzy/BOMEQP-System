@@ -298,7 +298,9 @@
       "price_placeholder": "500.00",
       "description": "Please set the authorization price for this instructor.",
       "note": "After approval, Group Admin will need to set the commission percentage before Training Provider can pay.",
-      "success": "Instructor approved successfully. Waiting for Group Admin to set commission percentage."
+      "success": "Instructor approved successfully. Waiting for Group Admin to set commission percentage.",
+      "price_help_text": "Minimum amount is $1.00",
+      "price_min_error": "Please enter a valid authorization price (Minimum $1.00)"
     },
     "rejection": {
       "modal_title": "Reject Instructor Request",

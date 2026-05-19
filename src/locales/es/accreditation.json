@@ -298,7 +298,9 @@
       "price_placeholder": "500.00",
       "description": "Por favor, establece el precio de autorización para este instructor.",
       "note": "Después de la aprobación, el Administrador del Grupo deberá establecer el porcentaje de comisión antes de que el Prestador de formación pueda pagar.",
-      "success": "Instructor aprobado correctamente. En espera de que el Administrador del Grupo establezca el porcentaje de comisión."
+      "success": "Instructor aprobado correctamente. En espera de que el Administrador del Grupo establezca el porcentaje de comisión.",
+      "price_help_text": "El monto mínimo es de $1.00",
+      "price_min_error": "Por favor, ingrese un precio de autorización válido (mínimo $1.00)"
     },
     "rejection": {
       "modal_title": "Rechazar solicitud de instructor",
