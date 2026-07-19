@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Shield, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import logoCircle from '../../../assets/logo-circle.png';
 import './CertificateVerificationScreen.css';
 
 const CertificateVerificationScreen = () => {
@@ -36,7 +37,7 @@ const CertificateVerificationScreen = () => {
         <div className="verify-card">
           {/* Icon */}
           <div className="verify-icon">
-            <Shield size={64} />
+            <img src={logoCircle} alt="BOMEQP Logo" className="verify-logo" />
           </div>
 
           {/* Title */}
